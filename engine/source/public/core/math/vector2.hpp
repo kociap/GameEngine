@@ -67,4 +67,6 @@ public:
     }
 };
 
+Vector2 rotate_vector(Vector2 const& vec, float angle) {}
+
 #endif // !GAME_ENGINE_CORE_MATH_VECTOR2_HPP_INCLUDE

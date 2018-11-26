@@ -9,17 +9,11 @@ set(BUILD_SHARED_LIBS OFF)
 
 add_subdirectory(glfw)
 add_subdirectory(glad)
+add_subdirectory(engine)
 
+# Compiler flags
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3")
+elseif("${CMAKE_CXX_COMPILER_ID}" matches "GCC" or "${CMAKE_CXX_COMPILER_ID}" matches "Clang")
+
 endif()
-
-set(SOURCE_FILES 
-    engine/source/engine.cpp
-)
-
-add_executable(${PROJECT_NAME})
-target_sources(${PROJECT_NAME}
-    PRIVATE
-    ${SOURCE_FILES}
-)
