@@ -7,8 +7,15 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(BUILD_SHARED_LIBS OFF)
 
-add_subdirectory(glfw)
+set(GAMEENGINE_FOLDER_NAME "GameEngine")
+
+set(GLFW_BUILD_EXAMPLES CACHE BOOL OFF)
+set(GLFW_BUILD_TESTS CACHE BOOL OFF)
+set(GLFW_INSTALL CACHE BOOL OFF)
+
+find_package(OpenGL REQUIRED)
 add_subdirectory(glad)
+add_subdirectory(glfw)
 add_subdirectory(engine)
 
 # Compiler flags
