@@ -16,6 +16,7 @@ set(GLFW_INSTALL CACHE BOOL OFF)
 find_package(OpenGL REQUIRED)
 add_subdirectory(glad)
 add_subdirectory(glfw)
+add_subdirectory(stb)
 add_subdirectory(engine)
 
 # Compiler flags
