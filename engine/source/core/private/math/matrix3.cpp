@@ -1,4 +1,4 @@
-#include "core/math/matrix3.hpp"
+#include "math/matrix3.hpp"
 
 float& Matrix3::operator()(int row, int column) {
     return components[column * 3 + row];
@@ -8,12 +8,13 @@ float const& Matrix3::operator()(int row, int column) const {
     return components[column * 3 + row];
 }
 
-Matrix3& Matrix3::operator*(float num) {}
+//Matrix3& Matrix3::operator*(float num) {}
 
 Matrix3& Matrix3::operator/=(float num) {
     for (int i = 0; i < 9; ++i) {
         components[i] /= num;
     }
+    return *this;
 }
 
 Matrix3 operator/(Matrix3 const& m, float a) {
@@ -27,7 +28,7 @@ float determinant(Matrix3 const& m) {
            m(2, 0) * m(1, 1) * m(0, 2);
 }
 
-Matrix3 adjoint(Matrix3 const& m) {}
+//Matrix3 adjoint(Matrix3 const& m) {}
 
 Matrix3 inverse(Matrix3 const& m) {
     return adjoint(m) / determinant(m);

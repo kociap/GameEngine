@@ -3,8 +3,14 @@
 
 #include "../coremacrodefinitions.hpp"
 
-float inv_sqrt(float number) {}
+#include <cmath>
 
-float truncate_float(float num) {}
+float inv_sqrt(float number) {
+    return 0;
+}
+
+float truncate_float(float num) {
+    return 0;
+}
 
 #endif // !CORE_MATH_MATH_HPP_INCLUDE

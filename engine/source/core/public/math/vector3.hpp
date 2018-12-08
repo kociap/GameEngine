@@ -1,6 +1,8 @@
 #ifndef GAME_ENGINE_CORE_MATH_VECTOR3_HPP_INCLUDE
 #define GAME_ENGINE_CORE_MATH_VECTOR3_HPP_INCLUDE
 
+#include "math.hpp"
+
 class Vector3 {
 public:
     float x = 0;
@@ -8,10 +10,10 @@ public:
     float z = 0;
 
     Vector3(float X, float Y, float Z) : x(X), y(Y), z(Z) {}
-    explicit Vector3(Vector2 const& vec) : x(vec.x), y(vec.y), z(0) {}
+    /*explicit Vector3(Vector2 const& vec) : x(vec.x), y(vec.y), z(0) {}
     explicit Vector3(Vector2&& vec) : x(vec.x), y(vec.y), z(0) {}
     explicit Vector3(Vector4 const& vec) : x(vec.x), y(vec.y), z(vec.z) {}
-    explicit Vector3(Vector4&& vec) : x(vec.x), y(vec.y), z(vec.z) {}
+    explicit Vector3(Vector4&& vec) : x(vec.x), y(vec.y), z(vec.z) {}*/
 
     static float dot(Vector3 const& vec1, Vector3 const& vec2) {
         return vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z;

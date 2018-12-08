@@ -29,10 +29,13 @@ private:
 //            m(2, 0) * m(1, 1) * m(0, 2);
 // }
 
-Matrix4 adjoint(Matrix4 const& m) {}
+Matrix4 adjoint(Matrix4 const& m) {
+    return {};
+}
 
 Matrix4 inverse(Matrix4 const& m) {
     // return adjoint(m) / determinant(m);
+    return {};
 }
 
 #endif // !GAME_ENGINE_CORE_MATH_MARTIX4_HPP_INCLUDE

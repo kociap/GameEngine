@@ -1,5 +1,5 @@
-#include "core/math/quaternion.hpp"
-#include "core/math/math.hpp"
+#include "math/quaternion.hpp"
+#include "math/math.hpp"
 
 const Quaternion Quaternion::identity = Quaternion(0, 0, 0, 1);
 
@@ -40,7 +40,9 @@ Quaternion& Quaternion::operator-=(Quaternion const& q) {
     return *this;
 }
 
-Quaternion& Quaternion::operator*=(Quaternion const&) {}
+Quaternion& Quaternion::operator*=(Quaternion const&) {
+    return *this;
+}
 
 Quaternion& Quaternion::operator*=(float a) {
     x *= a;
@@ -90,7 +92,9 @@ Quaternion operator-(Quaternion const& q1, Quaternion const& q2) {
     return {q1.x - q2.x, q1.y - q2.y, q1.z - q2.z, q1.w - q2.w};
 }
 
-Quaternion operator*(Quaternion const&, Quaternion const&) {}
+//Quaternion operator*(Quaternion const&, Quaternion const&) {
+//    return {};
+//}
 
 Quaternion operator*(Quaternion const& q, float a) {
     return {q.x * a, q.y * a, q.z * a, q.w * a};
