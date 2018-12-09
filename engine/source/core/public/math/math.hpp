@@ -6,11 +6,7 @@
 #include <cmath>
 
 float inv_sqrt(float number) {
-    return 0;
-}
-
-float truncate_float(float num) {
-    return 0;
+    return 1 / sqrt(number);
 }
 
 #endif // !CORE_MATH_MATH_HPP_INCLUDE

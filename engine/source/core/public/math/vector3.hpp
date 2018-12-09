@@ -1,5 +1,5 @@
-#ifndef GAME_ENGINE_CORE_MATH_VECTOR3_HPP_INCLUDE
-#define GAME_ENGINE_CORE_MATH_VECTOR3_HPP_INCLUDE
+#ifndef CORE_MATH_VECTOR3_HPP_INCLUDE
+#define CORE_MATH_VECTOR3_HPP_INCLUDE
 
 #include "math.hpp"
 
@@ -9,15 +9,12 @@ public:
     float y = 0;
     float z = 0;
 
-    Vector3(float X, float Y, float Z) : x(X), y(Y), z(Z) {}
-    /*explicit Vector3(Vector2 const& vec) : x(vec.x), y(vec.y), z(0) {}
-    explicit Vector3(Vector2&& vec) : x(vec.x), y(vec.y), z(0) {}
-    explicit Vector3(Vector4 const& vec) : x(vec.x), y(vec.y), z(vec.z) {}
-    explicit Vector3(Vector4&& vec) : x(vec.x), y(vec.y), z(vec.z) {}*/
+    Vector3(float x, float y, float z);
 
-    static float dot(Vector3 const& vec1, Vector3 const& vec2) {
-        return vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z;
-    }
+    float& component(int);
+    float const& component(int) const;
+
+    static float dot(Vector3 const& vec1, Vector3 const& vec2);
 
     static Vector3 cross(Vector3 const& vec1, Vector3 const& vec2) {}
 
@@ -40,7 +37,7 @@ public:
 
     // Requires correct comparison
     bool is_zero() const {
-        return truncate_float(x) == 0.0f && truncate_float(y) == 0.0f && truncate_float(z) == 0.0f;
+        return x == 0.0f && y == 0.0f && z == 0.0f;
     }
 
     float length_squared() const {
@@ -72,4 +69,4 @@ public:
     }
 };
 
-#endif // !GAME_ENGINE_CORE_MATH_VECTOR3_HPP_INCLUDE
+#endif // !CORE_MATH_VECTOR3_HPP_INCLUDE

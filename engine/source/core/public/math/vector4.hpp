@@ -11,9 +11,11 @@ public:
     float z = 0;
     float w = 0;
 
+	Vector4(float x, float y, float z, float w);
+
     // Requires correct comparison
     bool is_zero() const {
-        return truncate_float(x) == 0.0f && truncate_float(y) == 0.0f && truncate_float(z) == 0.0f && truncate_float(w) == 0.0f;
+        return x == 0.0f && y == 0.0f && z == 0.0f && w == 0.0f;
     }
 };
 

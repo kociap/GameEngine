@@ -4,23 +4,30 @@
 #include "../coremacrodefinitions.hpp"
 #include "vector3.hpp"
 
+// Row major
 class Matrix3 {
 public:
+    static const Matrix3 zero;
     static const Matrix3 identity;
 
-    //Matrix3(Vector3 const& a, Vector3 const& b, Vector3 const& c): components{a(0), a(1), a(2)} {}
+    Matrix3();
+    Matrix3(Vector3 const&, Vector3 const&, Vector3 const&);
 
     float& operator()(int row, int column);
     float const& operator()(int row, int column) const;
 
-    Matrix3& operator*(float);
-    Matrix3& operator/=(float);
-
-    friend Matrix3 operator/(Matrix3 const&, float);
-
 private:
     float components[9];
 };
+
+Matrix3 operator+(Matrix3 const&, float);
+Matrix3 operator-(Matrix3 const&, float);
+Matrix3 operator*(Matrix3 const&, float);
+Matrix3 operator/(Matrix3 const&, float);
+Matrix3 operator+(Matrix3 const&, Matrix3 const&);
+Matrix3 operator-(Matrix3 const&, Matrix3 const&);
+Matrix3 operator*(Matrix3 const&, Matrix3 const&);
+Vector3 operator*(Vector3 const&, Matrix3 const&);
 
 float determinant(Matrix3 const& m);
 Matrix3 adjoint(Matrix3 const& m);

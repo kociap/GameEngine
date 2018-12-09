@@ -4,11 +4,13 @@
 #include "../coremacrodefinitions.hpp"
 #include "vector4.hpp"
 
+// Row major
 class Matrix4 {
 public:
     static const Matrix4 identity;
 
-    //Matrix3(Vector3 const& a, Vector3 const& b, Vector3 const& c): components{a(0), a(1), a(2)} {}
+	Matrix4();
+    Matrix4(Vector4 const&, Vector4 const&, Vector4 const&, Vector4 const&);
 
     float& operator()(int row, int column);
     float const& operator()(int row, int column) const;
@@ -29,13 +31,8 @@ private:
 //            m(2, 0) * m(1, 1) * m(0, 2);
 // }
 
-Matrix4 adjoint(Matrix4 const& m) {
-    return {};
-}
+Matrix4 adjoint(Matrix4 const& m);
 
-Matrix4 inverse(Matrix4 const& m) {
-    // return adjoint(m) / determinant(m);
-    return {};
-}
+Matrix4 inverse(Matrix4 const& m);
 
 #endif // !GAME_ENGINE_CORE_MATH_MARTIX4_HPP_INCLUDE

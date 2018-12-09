@@ -8,6 +8,7 @@
 class Program {
 public:
     Program();
+    ~Program();
 
     void attach(Shader const& shader);
     void link();

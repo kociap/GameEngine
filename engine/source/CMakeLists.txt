@@ -14,6 +14,7 @@ add_subdirectory(shaders)
 target_link_libraries(${PROJECT_NAME}
     glad    
     glfw
+    stb
     core
     shaders
 )

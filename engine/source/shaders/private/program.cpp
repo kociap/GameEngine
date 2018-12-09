@@ -10,6 +10,10 @@ Program::Program() {
     }
 }
 
+Program::~Program() {
+    glDeleteProgram(program);
+}
+
 void Program::attach(Shader const& shader) {
     glAttachShader(program, shader.shader);
 }
