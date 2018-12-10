@@ -1,5 +1,8 @@
 #include "math/vector2.hpp"
 
+#include "math/math.hpp"
+#include <cmath>
+
 const Vector2 Vector2::zero = Vector2(0.0f, 0.0f);
 const Vector2 Vector2::one = Vector2(1.0f, 1.0f);
 const Vector2 Vector2::up = Vector2(0.0f, 1.0f);
@@ -32,7 +35,7 @@ float Vector2::length() const {
 
 Vector2& Vector2::normalize() {
     if (!is_zero()) {
-        float invertedVecLength = inv_sqrt(x * x + y * y);
+        float invertedVecLength = math::inv_sqrt(x * x + y * y);
         x *= invertedVecLength;
         y *= invertedVecLength;
     }
@@ -41,7 +44,7 @@ Vector2& Vector2::normalize() {
 
 Vector2 Vector2::normalized() const {
     if (is_zero()) {
-        float invertedVecLength = inv_sqrt(x * x + y * y);
+        float invertedVecLength = math::inv_sqrt(x * x + y * y);
         return {x * invertedVecLength, y * invertedVecLength};
     } else {
         return {0.0f, 0.0f};

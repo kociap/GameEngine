@@ -1,8 +1,6 @@
 #ifndef CORE_MATH_VECTOR2_HPP_INCLUDE
 #define CORE_MATH_VECTOR2_HPP_INCLUDE
 
-#include "math.hpp"
-
 class Vector2 {
 public:
     static const Vector2 zero;

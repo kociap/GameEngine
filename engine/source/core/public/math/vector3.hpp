@@ -1,7 +1,8 @@
 #ifndef CORE_MATH_VECTOR3_HPP_INCLUDE
 #define CORE_MATH_VECTOR3_HPP_INCLUDE
 
-#include "math.hpp"
+#include "math/math.hpp"
+#include <cmath>
 
 class Vector3 {
 public:
@@ -49,7 +50,7 @@ public:
     }
 
     Vector3& normalize() {
-        float invertedVecLength = inv_sqrt(x * x + y * y + z * z);
+        float invertedVecLength = math::inv_sqrt(x * x + y * y + z * z);
         x *= invertedVecLength;
         y *= invertedVecLength;
         z *= invertedVecLength;
@@ -57,7 +58,7 @@ public:
     }
 
     Vector3 normalized() const {
-        float invertedVecLength = inv_sqrt(x * x + y * y + z * z);
+        float invertedVecLength = math::inv_sqrt(x * x + y * y + z * z);
         return {x * invertedVecLength, y * invertedVecLength, z * invertedVecLength};
     }
 

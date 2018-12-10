@@ -1,5 +1,6 @@
 #include "math/quaternion.hpp"
 #include "math/math.hpp"
+#include <cmath>
 
 const Quaternion Quaternion::identity = Quaternion(0, 0, 0, 1);
 
@@ -12,7 +13,7 @@ void Quaternion::conjugate() {
 }
 
 void Quaternion::normalize() {
-    float invNorm = inv_sqrt(norm_squared(*this));
+    float invNorm = math::inv_sqrt(norm_squared(*this));
     x *= invNorm;
     y *= invNorm;
     z *= invNorm;
@@ -67,7 +68,7 @@ Quaternion conjugate(Quaternion const& q) {
 }
 
 Quaternion normalized(Quaternion const& q) {
-    return q * inv_sqrt(norm_squared(q));
+    return q * math::inv_sqrt(norm_squared(q));
 }
 
 Quaternion inverse(Quaternion const& q) {

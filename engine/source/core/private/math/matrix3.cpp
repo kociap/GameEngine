@@ -3,7 +3,7 @@
 const Matrix3 Matrix3::zero = Matrix3();
 const Matrix3 Matrix3::identity = Matrix3({1, 0, 0}, {0, 1, 0}, {0, 0, 1});
 
-Matrix3::Matrix3() : components{0, 0, 0, 0, 0, 0, 0, 0, 0} {}
+Matrix3::Matrix3() : components{} {}
 Matrix3::Matrix3(Vector3 const& a, Vector3 const& b, Vector3 const& c) : components{a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z} {}
 
 float& Matrix3::operator()(int row, int column) {
@@ -50,10 +50,10 @@ float multiply_row_column(Matrix3 const& lhs, int row, Matrix3 const& rhs, int c
     return result;
 }
 
-float multiply_row_column(Vector3 const& lhs, Matrix3 const& rhs, int column) {
+float multiply_row_column(Vector3 const& a, Matrix3 const& b, int column) {
     float result = 0;
     for (int i = 0; i < 3; ++i) {
-        result += lhs.component(i) * rhs(i, column);
+        result += a.component(i) * b(i, column);
     }
     return result;
 }

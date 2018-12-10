@@ -7,6 +7,7 @@ set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/math/matrix4.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/quaternion.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/transform.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/math/math.cpp"
 )
 
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_FILES})

@@ -20,14 +20,18 @@ private:
     float components[9];
 };
 
+// Add a number to each component of a matrix
 Matrix3 operator+(Matrix3 const&, float);
+// Subtract a number from each component of a matrix
 Matrix3 operator-(Matrix3 const&, float);
+// Matrix-scalar multiplication
 Matrix3 operator*(Matrix3 const&, float);
+// Matrix-scalar division
 Matrix3 operator/(Matrix3 const&, float);
 Matrix3 operator+(Matrix3 const&, Matrix3 const&);
 Matrix3 operator-(Matrix3 const&, Matrix3 const&);
 Matrix3 operator*(Matrix3 const&, Matrix3 const&);
-Vector3 operator*(Vector3 const&, Matrix3 const&);
+Vector3 operator*(Vector3 const& , Matrix3 const&);
 
 float determinant(Matrix3 const& m);
 Matrix3 adjoint(Matrix3 const& m);
