@@ -4,7 +4,9 @@
 #include <cmath>
 #include <iostream>
 
-#include "core/public/math/transform.hpp"
+#include "math/math.hpp"
+#include "math/matrix4.hpp"
+#include "math/transform.hpp"
 #include "program.hpp"
 #include "shader.hpp"
 #include "stb/stb_image.hpp"
@@ -161,7 +163,10 @@ int main() {
     GLuint wall_tex = load_texture("C:/Users/An0num0us/Documents/GameEngine/wall.jpg");
     GLuint face_tex = load_texture("C:/Users/An0num0us/Documents/GameEngine/awesomeface.jpg");
 
-    Matrix4 trans_scale;
+    Matrix4 model = transform::rotate_x(math::radians(-55.0f));
+    Matrix4 view = transform::translate({0, -1.0f, 3.0f});
+    Matrix4 projection = transform::perspective(math::radians(45.0f), window_width / window_height, 0.1f, 100.0f);
+    //Matrix4 projection = transform::orthographic(-1.0f, 1.0f, -1.0f, 1.0f, -0.0f, -100.0f);
 
     // Window and render loop
     while (!glfwWindowShouldClose(window)) {
@@ -171,11 +176,10 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         program.use();
-        trans_scale = transform::scale(Matrix4::identity, {0.5f, 0.5f, 1.0f}) * transform::translate(Matrix4::identity, {0.5f, 0.5f, 0.0f}) *
-                      transform::rotate_z(Matrix4::identity, static_cast<float>(glfwGetTime()));
         glUniform1i(program.get_uniform("frag_texture0"), 0);
         glUniform1i(program.get_uniform("frag_texture1"), 1);
-        glUniformMatrix4fv(program.get_uniform("transform"), 1, GL_FALSE, trans_scale.get_raw());
+        Matrix4 transform_matrix = model * view * projection;
+        glUniformMatrix4fv(program.get_uniform("transform"), 1, GL_FALSE, transform_matrix.get_raw());
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, wall_tex);
