@@ -69,7 +69,7 @@ void mouse_position_callback(GLFWwindow* window, double param_x, double param_y)
     static float last_y = window_height / 2.0f;
     float x = static_cast<float>(param_x);
     float y = static_cast<float>(param_y);
-    float offset_x = last_x - x;
+    float offset_x = x - last_x;
     float offset_y = last_y - y;
     last_x = x;
     last_y = y;
@@ -85,9 +85,9 @@ void mouse_position_callback(GLFWwindow* window, double param_x, double param_y)
     pitch = std::max(pitch, -89.0f);
     pitch = std::min(pitch, 89.0f);
 
-    camera.front.x = std::sinf(math::radians(yaw));
+    camera.front.x = std::cosf(math::radians(yaw)) * std::cosf(math::radians(pitch));
     camera.front.y = std::sinf(math::radians(pitch));
-    camera.front.z = std::cosf(math::radians(yaw));
+    camera.front.z = std::sinf(math::radians(yaw)) * std::cosf(math::radians(pitch));
     camera.front.normalize();
 }
 
@@ -287,7 +287,7 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, wall_tex);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, face_tex);
-
+        // projection = transform::orthographic(-2, 2, -2, 2, 0.1, 100);
         view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
 
         for (int i = 0; i < 20; ++i) {

@@ -91,6 +91,7 @@ namespace transform {
         return Matrix4{{right.x, up.x, -forward.x, 0}, //
                        {right.y, up.y, -forward.y, 0}, //
                        {right.z, up.z, -forward.z, 0}, //
-                       {-position.x, -position.y, -position.z, 1}};
+                       //{-position.x, -position.y, -position.z, 1}};
+                       {-Vector3::dot(right, position), -Vector3::dot(up, position), Vector3::dot(forward, position), 1}};
     }
 } // namespace transform
