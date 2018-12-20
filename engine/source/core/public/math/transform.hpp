@@ -18,7 +18,7 @@ namespace transform {
     Matrix4 scale(Vector3 const& scale);
     Matrix4 orthographic(float left, float right, float bottom, float top, float near, float far);
     Matrix4 perspective(float fov, float aspect_ratio, float near, float far);
-    Matrix4 look_at();
+    Matrix4 look_at(Vector3 position, Vector3 target, Vector3 up);
 } // namespace transform
 
 #endif // !GAME_ENGINE_CORE_MATH_TRANSFORM_HPP_INCLUDE

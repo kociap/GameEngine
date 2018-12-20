@@ -19,7 +19,9 @@ public:
     Matrix4& operator*=(float);
     Matrix4& operator/=(float);
 
-    float* get_raw();
+    Matrix4& transpose();
+
+    float const* get_raw() const;
 
 private:
     float components[16];
@@ -33,6 +35,8 @@ Matrix4 operator+(Matrix4 const&, Matrix4 const&);
 Matrix4 operator+(Matrix4 const&, Matrix4 const&);
 Matrix4 operator*(Matrix4 const&, Matrix4 const&);
 Vector4 operator*(Vector4 const&, Matrix4 const&);
+
+Matrix4 transpose(Matrix4);
 
 // float determinant(Matrix4 const& m) {
 //     return m(0, 0) * m(1, 1) * m(2, 2) + m(1, 0) * m(2, 1) * m(0, 2) + m(2, 0) * m(0, 1) * m(1, 2) - m(0, 0) * m(2, 1) * m(1, 2) - m(1, 0) * m(0, 1) * m(2, 2) -

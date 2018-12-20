@@ -14,10 +14,20 @@ public:
     float& component(int);
     float const& component(int) const;
 
-    // Requires correct comparison
-    bool is_zero() const {
-        return x == 0.0f && y == 0.0f && z == 0.0f && w == 0.0f;
-    }
+    Vector4& operator*=(float);
+
+    bool is_zero() const;
+
+    float length_squared() const;
+    float length() const;
+
+    // If vector is non-zero, normalizes the vector.
+    // Otherwise leaves it unchanged
+    Vector4& normalize();
 };
+
+// If vector is non-zero, returns normalized copy of the vector.
+// Otherwise returns zero vector
+Vector4 normalize(Vector4);
 
 #endif // !GAME_ENGINE_CORE_MATH_VECTOR4_HPP_INCLUDE

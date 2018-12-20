@@ -1,73 +1,49 @@
 #ifndef CORE_MATH_VECTOR3_HPP_INCLUDE
 #define CORE_MATH_VECTOR3_HPP_INCLUDE
 
-#include "math/math.hpp"
-#include <cmath>
-
 class Vector3 {
 public:
+    static Vector3 const zero;
+    static Vector3 const one;
+    static Vector3 const up;
+    static Vector3 const right;
+    static Vector3 const forward;
+
+    static float dot(Vector3 const& vec1, Vector3 const& vec2);
+    static Vector3 cross(Vector3 const& vec1, Vector3 const& vec2);
+    static Vector3 cross_direction(Vector3 const& vec1, Vector3 const& vec2) {}
+
     float x = 0;
     float y = 0;
     float z = 0;
 
+    Vector3();
     Vector3(float x, float y, float z);
 
     float& component(int);
     float const& component(int) const;
 
-    static float dot(Vector3 const& vec1, Vector3 const& vec2);
+    Vector3& operator-();
+    Vector3& operator+=(Vector3 const&);
+    Vector3& operator-=(Vector3 const&);
+    Vector3& operator*=(float);
 
-    static Vector3 cross(Vector3 const& vec1, Vector3 const& vec2) {}
+    bool is_zero() const;
+    float length_squared() const;
+    float length() const;
 
-    static Vector3 cross_direction(Vector3 const& vec1, Vector3 const& vec2) {}
-
-    Vector3 operator+(Vector3 const& vec) {
-        return {x + vec.x, y + vec.y, z + vec.z};
-    }
-
-    Vector3 operator-(Vector3 const& vec) {
-        return {x - vec.x, y - vec.y, z - vec.z};
-    }
-
-    Vector3& operator-() {
-        x = -x;
-        y = -y;
-        z = -z;
-        return *this;
-    }
-
-    // Requires correct comparison
-    bool is_zero() const {
-        return x == 0.0f && y == 0.0f && z == 0.0f;
-    }
-
-    float length_squared() const {
-        return x * x + y * y + z * z;
-    }
-
-    float length() {
-        return sqrt(x * x + y * y + z * z);
-    }
-
-    Vector3& normalize() {
-        float invertedVecLength = math::inv_sqrt(x * x + y * y + z * z);
-        x *= invertedVecLength;
-        y *= invertedVecLength;
-        z *= invertedVecLength;
-        return *this;
-    }
-
-    Vector3 normalized() const {
-        float invertedVecLength = math::inv_sqrt(x * x + y * y + z * z);
-        return {x * invertedVecLength, y * invertedVecLength, z * invertedVecLength};
-    }
-
-    Vector3& scale(float s) {
-        x *= s;
-        y *= s;
-        z *= s;
-        return *this;
-    }
+    // If vector is non-zero, normalizes the vector.
+    // Otherwise leaves it unchanged
+    Vector3& normalize();
+    Vector3& scale(float);
 };
+
+Vector3 operator+(Vector3 const&, Vector3 const&);
+Vector3 operator-(Vector3 const&, Vector3 const&);
+Vector3 operator*(Vector3 const&, float);
+
+// If vector is non-zero, returns normalized copy of the vector.
+// Otherwise returns zero vector
+Vector3 normalize(Vector3);
 
 #endif // !CORE_MATH_VECTOR3_HPP_INCLUDE

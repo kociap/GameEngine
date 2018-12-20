@@ -19,7 +19,7 @@ namespace math {
         constexpr static double rad_to_deg = 180.0 / pi;
     };
 
-	constexpr float radians(float degrees) {
+    constexpr float radians(float degrees) {
         return degrees * constants<float>::deg_to_rad;
     }
 
@@ -28,6 +28,7 @@ namespace math {
     }
 
     float inv_sqrt(float number);
+    float sign(float);
 } // namespace math
 
 #endif // !CORE_MATH_MATH_HPP_INCLUDE

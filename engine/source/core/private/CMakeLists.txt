@@ -1,4 +1,4 @@
-set(SOURCE_FILES 
+set(SOURCE_FILES ${SOURCE_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/math/vector2.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/vector3.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/vector4.cpp"
@@ -8,6 +8,6 @@ set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/math/quaternion.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/transform.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/math.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/camera.cpp"
+    PARENT_SCOPE
 )
-
-target_sources(${PROJECT_NAME} PRIVATE ${SOURCE_FILES})

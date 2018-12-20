@@ -79,6 +79,6 @@ float determinant(Matrix3 const& m) {
 
 //Matrix3 adjoint(Matrix3 const& m) {}
 
-Matrix3 inverse(Matrix3 const& m) {
-    return adjoint(m) / determinant(m);
-}
+//Matrix3 inverse(Matrix3 const& m) {
+//    return adjoint(m) / determinant(m);
+//}
