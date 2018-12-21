@@ -9,5 +9,6 @@ set(SOURCE_FILES ${SOURCE_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/math/transform.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/math.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/camera.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/color.cpp"
     PARENT_SCOPE
 )

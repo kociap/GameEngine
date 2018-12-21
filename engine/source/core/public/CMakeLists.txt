@@ -9,6 +9,7 @@ set(HEADER_FILES ${HEADER_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/math/vector4.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/transform.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/camera.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/color.hpp"
     PARENT_SCOPE
 )
 

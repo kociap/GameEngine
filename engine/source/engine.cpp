@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "camera.hpp"
+#include "color.hpp"
 #include "math/math.hpp"
 #include "math/matrix4.hpp"
 #include "math/transform.hpp"
@@ -20,8 +21,8 @@
 GLuint window_width = 800;
 GLuint window_height = 800;
 
-Matrix4 projection = transform::perspective(math::radians(45.0f), static_cast<float>(window_width) / static_cast<float>(window_height), 0.1f, 100.0f);
 Camera camera;
+Matrix4 projection;
 
 void read_file(std::filesystem::path const& filename, std::string& out) {
     std::ifstream file(filename);
@@ -59,12 +60,12 @@ void framebuffer_size_callback(GLFWwindow*, int width, int height) {
     glViewport(0, 0, width, height);
     window_width = width;
     window_height = height;
-    projection = transform::perspective(math::radians(45.0f), static_cast<float>(window_width) / static_cast<float>(window_height), 0.1f, 100.0f);
+    projection = transform::perspective(math::radians(camera.fov), static_cast<float>(window_width) / static_cast<float>(window_height), 0.1f, 100.0f);
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {}
+void mouse_button_callback(GLFWwindow*, int button, int action, int mods) {}
 
-void mouse_position_callback(GLFWwindow* window, double param_x, double param_y) {
+void mouse_position_callback(GLFWwindow*, double param_x, double param_y) {
     static float last_x = window_width / 2.0f;
     static float last_y = window_height / 2.0f;
     float x = static_cast<float>(param_x);
@@ -89,6 +90,13 @@ void mouse_position_callback(GLFWwindow* window, double param_x, double param_y)
     camera.front.y = std::sinf(math::radians(pitch));
     camera.front.z = std::sinf(math::radians(yaw)) * std::cosf(math::radians(pitch));
     camera.front.normalize();
+}
+
+void scroll_callback(GLFWwindow*, double offset_x, double offset_y) {
+    camera.fov -= offset_y * 2;
+    camera.fov = std::min(camera.fov, 120.0f);
+    camera.fov = std::max(camera.fov, 10.0f);
+    projection = transform::perspective(math::radians(camera.fov), static_cast<float>(window_width) / static_cast<float>(window_height), 0.1f, 100.0f);
 }
 
 void process_input(GLFWwindow* window) {
@@ -119,6 +127,7 @@ void process_input(GLFWwindow* window) {
 
 int main() {
     camera = Camera();
+    projection = transform::perspective(math::radians(camera.fov), static_cast<float>(window_width) / static_cast<float>(window_height), 0.1f, 100.0f);
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -147,98 +156,98 @@ int main() {
     glfwSetCursorPosCallback(window, mouse_position_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     glEnable(GL_DEPTH_TEST);
 
     GLfloat vertices[] = {
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, //
-        0.5f,  -0.5f, -0.5f, 1.0f, 0.0f, //
-        0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
-        0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
-        -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, //
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, //
+        -0.5f, -0.5f, -0.5f, //
+        0.5f,  -0.5f, -0.5f, //
+        0.5f,  0.5f,  -0.5f, //
+        0.5f,  0.5f,  -0.5f, //
+        -0.5f, 0.5f,  -0.5f, //
+        -0.5f, -0.5f, -0.5f, //
 
-        -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
-        0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f, //
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f, //
-        -0.5f, 0.5f,  0.5f,  0.0f, 1.0f, //
-        -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
+        -0.5f, -0.5f, 0.5f, //
+        0.5f,  -0.5f, 0.5f, //
+        0.5f,  0.5f,  0.5f, //
+        0.5f,  0.5f,  0.5f, //
+        -0.5f, 0.5f,  0.5f, //
+        -0.5f, -0.5f, 0.5f, //
 
-        -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, //
-        -0.5f, 0.5f,  -0.5f, 1.0f, 1.0f, //
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
-        -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
-        -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, //
+        -0.5f, 0.5f,  0.5f,  //
+        -0.5f, 0.5f,  -0.5f, //
+        -0.5f, -0.5f, -0.5f, //
+        -0.5f, -0.5f, -0.5f, //
+        -0.5f, -0.5f, 0.5f,  //
+        -0.5f, 0.5f,  0.5f,  //
 
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
-        0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
-        0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, //
-        0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, //
-        0.5f,  -0.5f, 0.5f,  0.0f, 0.0f, //
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
+        0.5f,  0.5f,  0.5f,  //
+        0.5f,  0.5f,  -0.5f, //
+        0.5f,  -0.5f, -0.5f, //
+        0.5f,  -0.5f, -0.5f, //
+        0.5f,  -0.5f, 0.5f,  //
+        0.5f,  0.5f,  0.5f,  //
 
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
-        0.5f,  -0.5f, -0.5f, 1.0f, 1.0f, //
-        0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
-        0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, //
-        -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, //
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, //
+        -0.5f, -0.5f, -0.5f, //
+        0.5f,  -0.5f, -0.5f, //
+        0.5f,  -0.5f, 0.5f,  //
+        0.5f,  -0.5f, 0.5f,  //
+        -0.5f, -0.5f, 0.5f,  //
+        -0.5f, -0.5f, -0.5f, //
 
-        -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, //
-        0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, //
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, //
-        -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, //
-        -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f  //
-    };
-
-    // GLuint indices[] = {
-    //     0, 1, 3, // 1st triangle
-    //     1, 2, 3  // 2nd triangle
-    // };
-
-    GLfloat texture_coordinates[] = {
-        0.0f, 0.0f, //
-        1.0f, 0.0f, //
-        0.5f, 1.0f  //
+        -0.5f, 0.5f,  -0.5f, //
+        0.5f,  0.5f,  -0.5f, //
+        0.5f,  0.5f,  0.5f,  //
+        0.5f,  0.5f,  0.5f,  //
+        -0.5f, 0.5f,  0.5f,  //
+        -0.5f, 0.5f,  -0.5f //
     };
 
     // Buffers
+    GLuint vbo;
+    glGenBuffers(1, &vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
     GLuint vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    GLuint vbo;
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+    // position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+    glEnableVertexAttribArray(0);
 
-    // GLuint ebo;
-    // glGenBuffers(1, &ebo);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
+    GLuint light_vao;
+    glGenVertexArrays(1, &light_vao);
+    glBindVertexArray(vao);
 
     // position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
     glEnableVertexAttribArray(0);
-    // texture coords
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
 
     // Load, compile and link shaders
+    // I really need to do something with those hardcoded paths
     std::vector<std::filesystem::path> shader_paths(
-        {"C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicvertex.vert", "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicfrag.frag"});
+        {"C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicvertex.vert", "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicfrag.frag",
+         "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/lightvertex.vert", "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/lightfrag.frag"});
 
-    Shader shader;
-    for (std::filesystem::path const& path : shader_paths) {
+    auto load_shader_file = [](Shader& shader, std::filesystem::path const& path) -> void {
         std::string shader_source;
         read_file(path, shader_source);
         Shader_file s(shader_type_from_filename(path), shader_source);
         shader.attach(s);
-    }
+    };
+
+    Shader shader;
+    load_shader_file(shader, shader_paths[0]);
+    load_shader_file(shader, shader_paths[1]);
     shader.link();
+
+    Shader light_shader;
+    load_shader_file(light_shader, shader_paths[2]);
+    load_shader_file(light_shader, shader_paths[3]);
+    light_shader.link();
 
     auto load_texture = [](char const* filename) -> GLuint {
         int width, height, channels;
@@ -256,9 +265,6 @@ int main() {
         return texture;
     };
 
-    GLuint wall_tex = load_texture("C:/Users/An0num0us/Documents/GameEngine/wall.jpg");
-    GLuint face_tex = load_texture("C:/Users/An0num0us/Documents/GameEngine/awesomeface.jpg");
-
     std::mt19937 rng;
     rng.seed(std::random_device()());
     std::uniform_real_distribution<float> dist(-2.0f, 2.0f);
@@ -266,39 +272,61 @@ int main() {
     std::vector<Matrix4> model_transforms;
     for (int i = 0; i < 20; ++i) {
         model_transforms.push_back(transform::translate({dist(rng) * 5.0f, dist(rng) * 1.25f, dist(rng) * 5.0f}));
-        //model_transforms.push_back(transform::translate({1, 1, -4}));
-        // transform::rotate_x(math::radians(dist(rng) * 90.0f)) * transform::rotate_z(math::radians(dist(rng) * 90.0f)) *
     }
+
     Matrix4 view = Matrix4::identity;
-    //Matrix4 projection = transform::orthographic(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 100.0f);
+
+    Color light_color(1.0f, 1.0f, 1.0f);
+    Color object_color(1.0f, 0.5f, 0.31f);
 
     // Window and render loop
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
 
-        glClearColor(0.5f, 0.7f, 0.2f, 1.0f);
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shader.use();
-        glUniform1i(shader.get_uniform("frag_texture0"), 0);
-        glUniform1i(shader.get_uniform("frag_texture1"), 1);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, wall_tex);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, face_tex);
-        // projection = transform::orthographic(-2, 2, -2, 2, 0.1, 100);
         view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
 
+        shader.use();
+		shader.set_vec3("light_color", light_color);
+		shader.set_vec3("object_color", object_color);
         for (int i = 0; i < 20; ++i) {
+            GLenum error = glGetError();
+            if (error == GL_NO_ERROR) {
+                std::cout << "GL_NO_ERROR\n";
+            } else if (error == GL_INVALID_ENUM) {
+                std::cout << "GL_INVALID_ENUM\n";
+            } else if (error == GL_INVALID_VALUE) {
+                std::cout << "GL_INVALID_VALUE\n";
+            } else if (error == GL_INVALID_OPERATION) {
+                std::cout << "GL_INVALID_OPERATION\n";
+            } else if (error == GL_INVALID_FRAMEBUFFER_OPERATION) {
+                std::cout << "GL_INVALID_FRAMEBUFFER_OPERATION\n";
+            } else if (error == GL_OUT_OF_MEMORY) {
+                std::cout << "GL_OUT_OF_MEMORY\n";
+            } else if (error == GL_STACK_UNDERFLOW) {
+                std::cout << "GL_STACK_UNDERFLOW\n";
+            } else if (error == GL_STACK_OVERFLOW) {
+                std::cout << "GL_STACK_OVERFLOW\n";
+            }
+
             Matrix4 transform_matrix = model_transforms[i] * view * projection;
-            shader.setMatrix4("transform", transform_matrix);
+            shader.set_matrix4("transform", transform_matrix);
 
             glBindVertexArray(vao);
             glDrawArrays(GL_TRIANGLES, 0, 36);
-            //glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
         }
+
+        light_shader.use();
+        Matrix4 transform_matrix = transform::scale({0.2f, 0.2f, 0.2f}) * transform::translate({-5.0f, 2.0f, -3.0f}) * view * projection;
+        light_shader.set_vec3("light_color", light_color);
+        light_shader.set_matrix4("transform", transform_matrix);
+
+        glBindVertexArray(light_vao);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

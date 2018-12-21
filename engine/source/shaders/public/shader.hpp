@@ -2,7 +2,9 @@
 #define SHADERS_SHADER_HPP_INCLUDE
 
 #include "glad/glad.h"
+#include "math//vector3.hpp"
 #include "math/matrix4.hpp"
+#include "color.hpp"
 #include "shaderfile.hpp"
 #include <string>
 
@@ -19,7 +21,10 @@ public:
     GLint get_uniform(std::string const&);
     GLint get_uniform(char const*);
 
-    void setMatrix4(std::string const&, Matrix4 const&);
+    void set_int(std::string const&, int);
+    void set_vec3(std::string const&, Vector3 const&);
+    void set_vec3(std::string const&, Color const&);
+    void set_matrix4(std::string const&, Matrix4 const&);
 
 private:
     GLuint program;

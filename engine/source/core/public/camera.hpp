@@ -8,6 +8,7 @@ public:
     Vector3 position = Vector3::zero;
     Vector3 front = Vector3::forward;
     Vector3 rotation = Vector3::zero;
+    float fov = 70;
 };
 
 #endif // !CORE_CAMERA_HPP_INCLUDE
