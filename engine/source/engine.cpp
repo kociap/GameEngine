@@ -18,6 +18,30 @@
 #include <stdexcept>
 #include <vector>
 
+#ifdef _DEBUG
+void check_gl_errors() {
+    GLenum error = glGetError();
+    if (error == GL_INVALID_ENUM) {
+        throw std::runtime_error("GL_INVALID_ENUM");
+    } else if (error == GL_INVALID_VALUE) {
+        throw std::runtime_error("GL_INVALID_VALUE");
+    } else if (error == GL_INVALID_OPERATION) {
+        throw std::runtime_error("GL_INVALID_OPERATION");
+    } else if (error == GL_INVALID_FRAMEBUFFER_OPERATION) {
+        throw std::runtime_error("GL_INVALID_FRAMEBUFFER_OPERATION");
+    } else if (error == GL_OUT_OF_MEMORY) {
+        throw std::runtime_error("GL_OUT_OF_MEMORY");
+    } else if (error == GL_STACK_UNDERFLOW) {
+        throw std::runtime_error("GL_STACK_UNDERFLOW");
+    } else if (error == GL_STACK_OVERFLOW) {
+        throw std::runtime_error("GL_STACK_OVERFLOW");
+    }
+}
+#define CHECK_GL_ERRORS check_gl_errors();
+#else
+#define CHECK_GL_ERRORS
+#endif // _DEBUG
+
 GLuint window_width = 800;
 GLuint window_height = 800;
 
@@ -201,14 +225,14 @@ int main() {
         0.5f,  0.5f,  0.5f,  //
         0.5f,  0.5f,  0.5f,  //
         -0.5f, 0.5f,  0.5f,  //
-        -0.5f, 0.5f,  -0.5f //
+        -0.5f, 0.5f,  -0.5f  //
     };
 
     // Buffers
     GLuint vbo;
     glGenBuffers(1, &vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
 
     GLuint vao;
     glGenVertexArrays(1, &vao);
@@ -289,28 +313,9 @@ int main() {
         view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
 
         shader.use();
-		shader.set_vec3("light_color", light_color);
-		shader.set_vec3("object_color", object_color);
+        shader.set_vec3("light_color", light_color);
+        shader.set_vec3("object_color", object_color);
         for (int i = 0; i < 20; ++i) {
-            GLenum error = glGetError();
-            if (error == GL_NO_ERROR) {
-                std::cout << "GL_NO_ERROR\n";
-            } else if (error == GL_INVALID_ENUM) {
-                std::cout << "GL_INVALID_ENUM\n";
-            } else if (error == GL_INVALID_VALUE) {
-                std::cout << "GL_INVALID_VALUE\n";
-            } else if (error == GL_INVALID_OPERATION) {
-                std::cout << "GL_INVALID_OPERATION\n";
-            } else if (error == GL_INVALID_FRAMEBUFFER_OPERATION) {
-                std::cout << "GL_INVALID_FRAMEBUFFER_OPERATION\n";
-            } else if (error == GL_OUT_OF_MEMORY) {
-                std::cout << "GL_OUT_OF_MEMORY\n";
-            } else if (error == GL_STACK_UNDERFLOW) {
-                std::cout << "GL_STACK_UNDERFLOW\n";
-            } else if (error == GL_STACK_OVERFLOW) {
-                std::cout << "GL_STACK_OVERFLOW\n";
-            }
-
             Matrix4 transform_matrix = model_transforms[i] * view * projection;
             shader.set_matrix4("transform", transform_matrix);
 
