@@ -149,7 +149,9 @@ void process_input(GLFWwindow* window) {
     }
 }
 
-int main() {
+int main(int argc, char** argv) {
+    auto path = argv[0];
+
     camera = Camera();
     projection = transform::perspective(math::radians(camera.fov), static_cast<float>(window_width) / static_cast<float>(window_height), 0.1f, 100.0f);
 
@@ -185,47 +187,47 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     float vertices[] = {
-        -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, //
-        0.5f,  -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, //
-        0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, //
-        0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, //
-        -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, //
-        -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, //
+        -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
+        0.5f,  -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f, //
+        0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, //
+        0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, //
+        -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 1.0f, //
+        -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
 
-        -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f, //
-        0.5f,  -0.5f, 0.5f,  0.0f,  0.0f,  1.0f, //
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, //
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, //
-        -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f, //
-        -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f, //
+        -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, //
+        0.5f,  -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f, //
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, //
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, //
+        -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f, //
+        -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, //
 
-        -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f, //
-        -0.5f, 0.5f,  -0.5f, -1.0f, 0.0f,  0.0f, //
-        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f, //
-        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f, //
-        -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f, //
-        -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f, //
+        -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f, //
+        -0.5f, 0.5f,  -0.5f, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f, //
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f, //
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f, //
+        -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f, //
+        -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f, //
 
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, //
-        0.5f,  0.5f,  -0.5f, 1.0f,  0.0f,  0.0f, //
-        0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f, //
-        0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f, //
-        0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f, //
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, //
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, //
+        0.5f,  0.5f,  -0.5f, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f, //
+        0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.0f, 1.0f, //
+        0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.0f, 1.0f, //
+        0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f, //
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, //
 
-        -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f, //
-        0.5f,  -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f, //
-        0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f, //
-        0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f, //
-        -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f, //
-        -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f, //
+        -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f, 1.0f, //
+        0.5f,  -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  1.0f, 1.0f, //
+        0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  1.0f, 0.0f, //
+        0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  1.0f, 0.0f, //
+        -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  0.0f, 0.0f, //
+        -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f, 1.0f, //
 
-        -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f, //
-        0.5f,  0.5f,  -0.5f, 0.0f,  1.0f,  0.0f, //
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, //
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, //
-        -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f, //
-        -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f  //
+        -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f, //
+        0.5f,  0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  1.0f, 1.0f, //
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, //
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, //
+        -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f, //
+        -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f  //
     };
 
     // Buffers
@@ -239,18 +241,21 @@ int main() {
     glBindVertexArray(vao);
 
     // position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
     glEnableVertexAttribArray(0);
     // normal
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // texture coordinates
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     GLuint light_vao;
     glGenVertexArrays(1, &light_vao);
     glBindVertexArray(light_vao);
 
     // position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
     glEnableVertexAttribArray(0);
 
     // Load, compile and link shaders
@@ -306,6 +311,10 @@ int main() {
     Color light_color(1.0f, 1.0f, 1.0f);
     Color object_color(1.0f, 0.5f, 0.31f);
     Vector3 light_position(-2.0f, 1.0f, -3.0f);
+
+	GLuint diffuse_map = load_texture("C:\\Users\\An0num0us\\Documents\\GameEngine\\container.jpg");
+    GLuint specular_map = load_texture("C:\\Users\\An0num0us\\Documents\\GameEngine\\container_specular.jpg");
+
     // Window and render loop
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
@@ -316,14 +325,20 @@ int main() {
         view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
 
         shader.use();
-        shader.set_vec3("light_color", light_color);
-        shader.set_vec3("object_color", object_color);
-        shader.set_vec3("light_position", light_position);
         shader.set_vec3("view_position", camera.position);
-        shader.set_vec3("material.ambient", Color(1.0f, 0.5f, 0.31f));
-        shader.set_vec3("material.diffuse", Color(1.0f, 0.5f, 0.31f));
-        shader.set_vec3("material.specular", Color(0.5f, 0.5f, 0.5f));
+        shader.set_vec3("light.color", light_color);
+        shader.set_vec3("light.position", light_position);
+        shader.set_int("material.diffuse_map", 0);
+        shader.set_int("material.specular_map", 1);
         shader.set_float("material.shininess", 32.0f);
+        shader.set_float("material.ambient_strength", 0.2f);
+        shader.set_float("material.diffuse_strength", 0.8f);
+        shader.set_float("material.specular_strength", 1.0f);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuse_map);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specular_map);
+
         for (int i = 0; i < 20; ++i) {
             shader.set_matrix4("model", model_transforms[i]);
             shader.set_matrix4("view", view);
