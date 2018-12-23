@@ -184,48 +184,48 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
 
-    GLfloat vertices[] = {
-        -0.5f, -0.5f, -0.5f, //
-        0.5f,  -0.5f, -0.5f, //
-        0.5f,  0.5f,  -0.5f, //
-        0.5f,  0.5f,  -0.5f, //
-        -0.5f, 0.5f,  -0.5f, //
-        -0.5f, -0.5f, -0.5f, //
+    float vertices[] = {
+        -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, //
+        0.5f,  -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, //
+        0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, //
+        0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, //
+        -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, //
+        -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, //
 
-        -0.5f, -0.5f, 0.5f, //
-        0.5f,  -0.5f, 0.5f, //
-        0.5f,  0.5f,  0.5f, //
-        0.5f,  0.5f,  0.5f, //
-        -0.5f, 0.5f,  0.5f, //
-        -0.5f, -0.5f, 0.5f, //
+        -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f, //
+        0.5f,  -0.5f, 0.5f,  0.0f,  0.0f,  1.0f, //
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, //
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, //
+        -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f, //
+        -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f, //
 
-        -0.5f, 0.5f,  0.5f,  //
-        -0.5f, 0.5f,  -0.5f, //
-        -0.5f, -0.5f, -0.5f, //
-        -0.5f, -0.5f, -0.5f, //
-        -0.5f, -0.5f, 0.5f,  //
-        -0.5f, 0.5f,  0.5f,  //
+        -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f, //
+        -0.5f, 0.5f,  -0.5f, -1.0f, 0.0f,  0.0f, //
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f, //
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f, //
+        -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f, //
+        -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f, //
 
-        0.5f,  0.5f,  0.5f,  //
-        0.5f,  0.5f,  -0.5f, //
-        0.5f,  -0.5f, -0.5f, //
-        0.5f,  -0.5f, -0.5f, //
-        0.5f,  -0.5f, 0.5f,  //
-        0.5f,  0.5f,  0.5f,  //
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, //
+        0.5f,  0.5f,  -0.5f, 1.0f,  0.0f,  0.0f, //
+        0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f, //
+        0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f, //
+        0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f, //
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, //
 
-        -0.5f, -0.5f, -0.5f, //
-        0.5f,  -0.5f, -0.5f, //
-        0.5f,  -0.5f, 0.5f,  //
-        0.5f,  -0.5f, 0.5f,  //
-        -0.5f, -0.5f, 0.5f,  //
-        -0.5f, -0.5f, -0.5f, //
+        -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f, //
+        0.5f,  -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f, //
+        0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f, //
+        0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f, //
+        -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f, //
+        -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f, //
 
-        -0.5f, 0.5f,  -0.5f, //
-        0.5f,  0.5f,  -0.5f, //
-        0.5f,  0.5f,  0.5f,  //
-        0.5f,  0.5f,  0.5f,  //
-        -0.5f, 0.5f,  0.5f,  //
-        -0.5f, 0.5f,  -0.5f  //
+        -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f, //
+        0.5f,  0.5f,  -0.5f, 0.0f,  1.0f,  0.0f, //
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, //
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, //
+        -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f, //
+        -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f  //
     };
 
     // Buffers
@@ -239,15 +239,18 @@ int main() {
     glBindVertexArray(vao);
 
     // position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
     glEnableVertexAttribArray(0);
+    // normal
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     GLuint light_vao;
     glGenVertexArrays(1, &light_vao);
-    glBindVertexArray(vao);
+    glBindVertexArray(light_vao);
 
     // position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
     glEnableVertexAttribArray(0);
 
     // Load, compile and link shaders
@@ -295,14 +298,14 @@ int main() {
 
     std::vector<Matrix4> model_transforms;
     for (int i = 0; i < 20; ++i) {
-        model_transforms.push_back(transform::translate({dist(rng) * 5.0f, dist(rng) * 1.25f, dist(rng) * 5.0f}));
+        model_transforms.push_back(transform::scale({3, 3, 3}) * transform::translate({dist(rng) * 10.0f, dist(rng) * 2.0f, dist(rng) * 10.0f}));
     }
 
     Matrix4 view = Matrix4::identity;
 
     Color light_color(1.0f, 1.0f, 1.0f);
     Color object_color(1.0f, 0.5f, 0.31f);
-
+    Vector3 light_position(-2.0f, 1.0f, -3.0f);
     // Window and render loop
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
@@ -315,9 +318,12 @@ int main() {
         shader.use();
         shader.set_vec3("light_color", light_color);
         shader.set_vec3("object_color", object_color);
+        shader.set_vec3("light_position", light_position);
+        shader.set_vec3("view_position", camera.position);
         for (int i = 0; i < 20; ++i) {
-            Matrix4 transform_matrix = model_transforms[i] * view * projection;
-            shader.set_matrix4("transform", transform_matrix);
+            shader.set_matrix4("model", model_transforms[i]);
+            shader.set_matrix4("view", view);
+            shader.set_matrix4("projection", projection);
 
             glBindVertexArray(vao);
             glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -325,7 +331,7 @@ int main() {
         }
 
         light_shader.use();
-        Matrix4 transform_matrix = transform::scale({0.2f, 0.2f, 0.2f}) * transform::translate({-5.0f, 2.0f, -3.0f}) * view * projection;
+        Matrix4 transform_matrix = transform::scale({0.2f, 0.2f, 0.2f}) * transform::translate(light_position) * view * projection;
         light_shader.set_vec3("light_color", light_color);
         light_shader.set_matrix4("transform", transform_matrix);
 
