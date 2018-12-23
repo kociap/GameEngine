@@ -51,6 +51,10 @@ void Shader::set_int(std::string const& name, int a) {
     glUniform1i(get_uniform(name), a);
 }
 
+void Shader::set_float(std::string const& name, float a) {
+    glUniform1f(get_uniform(name), a);
+}
+
 void Shader::set_vec3(std::string const& name, Vector3 const& vec) {
     glUniform3fv(get_uniform(name), 1, &vec.x);
 }

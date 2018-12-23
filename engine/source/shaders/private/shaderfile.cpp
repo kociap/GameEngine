@@ -58,6 +58,7 @@ void Shader_file::compile() {
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
         std::vector<GLchar> log(log_length);
         glGetShaderInfoLog(shader, log_length, &log_length, &log[0]);
-        throw Shader_compilation_failed(std::string(log.begin(), log.end()));
+        std::string log_string(log.begin(), log.end());
+        throw Shader_compilation_failed(std::move(log_string));
     }
 }

@@ -320,6 +320,10 @@ int main() {
         shader.set_vec3("object_color", object_color);
         shader.set_vec3("light_position", light_position);
         shader.set_vec3("view_position", camera.position);
+        shader.set_vec3("material.ambient", Color(1.0f, 0.5f, 0.31f));
+        shader.set_vec3("material.diffuse", Color(1.0f, 0.5f, 0.31f));
+        shader.set_vec3("material.specular", Color(0.5f, 0.5f, 0.5f));
+        shader.set_float("material.shininess", 32.0f);
         for (int i = 0; i < 20; ++i) {
             shader.set_matrix4("model", model_transforms[i]);
             shader.set_matrix4("view", view);
