@@ -12,6 +12,7 @@
 #include "shader.hpp"
 #include "stb/stb_image.hpp"
 #include <cstdint>
+#include "spotlight.hpp"
 #include <filesystem>
 #include <fstream>
 #include <random>
@@ -128,7 +129,7 @@ void process_input(GLFWwindow* window) {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
 
-    float camera_speed = 0.05f;
+    float camera_speed = 0.15f;
     if (glfwGetKey(window, GLFW_KEY_W)) {
         camera.position += camera.front * camera_speed;
     }
@@ -308,12 +309,28 @@ int main(int argc, char** argv) {
 
     Matrix4 view = Matrix4::identity;
 
-    Color light_color(1.0f, 1.0f, 1.0f);
+	Spotlight light;
+    light.position = Vector3(-2.0f, 1.0f, -3.0f);
+    light.direction = Vector3(0.3f, 1.0f, 0.3f);
+    light.color = Color(1.0f, 1.0f, 1.0f);
+    light.cutoff_angle = math::radians(22.5f);
+    light.blend_angle = math::radians(35.0f);
+    light.direction.normalize();
     Color object_color(1.0f, 0.5f, 0.31f);
-    Vector3 light_position(-2.0f, 1.0f, -3.0f);
 
-	GLuint diffuse_map = load_texture("C:\\Users\\An0num0us\\Documents\\GameEngine\\container.jpg");
+    GLuint diffuse_map = load_texture("C:\\Users\\An0num0us\\Documents\\GameEngine\\container.jpg");
     GLuint specular_map = load_texture("C:\\Users\\An0num0us\\Documents\\GameEngine\\container_specular.jpg");
+
+    shader.use();
+    shader.set_int("material.diffuse_map", 0);
+    shader.set_int("material.specular_map", 1);
+    shader.set_float("material.shininess", 32.0f);
+    shader.set_float("material.ambient_strength", 0.2f);
+    shader.set_float("material.diffuse_strength", 0.8f);
+    shader.set_float("material.specular_strength", 1.0f);
+    shader.set_float("light.attentuation_constant", 1.0f);
+    shader.set_float("light.attentuation_linear", 0.09f);
+    shader.set_float("light.attentuation_quadratic", 0.032f);
 
     // Window and render loop
     while (!glfwWindowShouldClose(window)) {
@@ -326,14 +343,11 @@ int main(int argc, char** argv) {
 
         shader.use();
         shader.set_vec3("view_position", camera.position);
-        shader.set_vec3("light.color", light_color);
-        shader.set_vec3("light.position", light_position);
-        shader.set_int("material.diffuse_map", 0);
-        shader.set_int("material.specular_map", 1);
-        shader.set_float("material.shininess", 32.0f);
-        shader.set_float("material.ambient_strength", 0.2f);
-        shader.set_float("material.diffuse_strength", 0.8f);
-        shader.set_float("material.specular_strength", 1.0f);
+        shader.set_vec3("light.position", camera.position);
+        shader.set_vec3("light.direction", normalize(camera.front));
+        shader.set_vec3("light.color", light.color);
+        shader.set_float("light.cutoff_angle", std::cos(light.cutoff_angle));
+        shader.set_float("light.blend_angle", std::cos(light.blend_angle));
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuse_map);
         glActiveTexture(GL_TEXTURE1);
@@ -350,8 +364,8 @@ int main(int argc, char** argv) {
         }
 
         light_shader.use();
-        Matrix4 transform_matrix = transform::scale({0.2f, 0.2f, 0.2f}) * transform::translate(light_position) * view * projection;
-        light_shader.set_vec3("light_color", light_color);
+        Matrix4 transform_matrix = transform::scale({0.2f, 0.2f, 0.2f}) * transform::translate(light.position) * view * projection;
+        light_shader.set_vec3("light_color", light.color);
         light_shader.set_matrix4("transform", transform_matrix);
 
         glBindVertexArray(light_vao);

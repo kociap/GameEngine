@@ -15,6 +15,8 @@ add_subdirectory(core/public)
 add_subdirectory(core/private)
 add_subdirectory(shaders/public)
 add_subdirectory(shaders/private)
+add_subdirectory(engine/public)
+add_subdirectory(engine/private)
 
 function(source_groups_from_paths root_path)
     foreach(file IN ITEMS ${ARGN})
