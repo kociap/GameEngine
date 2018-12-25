@@ -4,7 +4,7 @@
 #include "math/vector3.hpp"
 #include "color.hpp"
 
-class Spotlight {
+class Spot_light {
 public:
     Vector3 position;
     Vector3 direction;

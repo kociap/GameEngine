@@ -10,9 +10,9 @@
 #include "math/matrix4.hpp"
 #include "math/transform.hpp"
 #include "shader.hpp"
+#include "spotlight.hpp"
 #include "stb/stb_image.hpp"
 #include <cstdint>
-#include "spotlight.hpp"
 #include <filesystem>
 #include <fstream>
 #include <random>
@@ -309,7 +309,7 @@ int main(int argc, char** argv) {
 
     Matrix4 view = Matrix4::identity;
 
-	Spotlight light;
+    Spot_light light;
     light.position = Vector3(-2.0f, 1.0f, -3.0f);
     light.direction = Vector3(0.3f, 1.0f, 0.3f);
     light.color = Color(1.0f, 1.0f, 1.0f);
@@ -321,16 +321,52 @@ int main(int argc, char** argv) {
     GLuint diffuse_map = load_texture("C:\\Users\\An0num0us\\Documents\\GameEngine\\container.jpg");
     GLuint specular_map = load_texture("C:\\Users\\An0num0us\\Documents\\GameEngine\\container_specular.jpg");
 
+    Vector3 point_light_positions[] = {Vector3(0.7f, 0.2f, 2.0f), Vector3(2.3f, -3.3f, -4.0f), Vector3(-4.0f, 2.0f, -12.0f), Vector3(0.0f, 0.0f, -3.0f)};
+
     shader.use();
     shader.set_int("material.diffuse_map", 0);
     shader.set_int("material.specular_map", 1);
     shader.set_float("material.shininess", 32.0f);
-    shader.set_float("material.ambient_strength", 0.2f);
-    shader.set_float("material.diffuse_strength", 0.8f);
-    shader.set_float("material.specular_strength", 1.0f);
-    shader.set_float("light.attentuation_constant", 1.0f);
-    shader.set_float("light.attentuation_linear", 0.09f);
-    shader.set_float("light.attentuation_quadratic", 0.032f);
+
+    Color point_light_color = Color(0.75f, 0.5f, 0.25f);
+
+    shader.set_vec3("point_lights[0].position", point_light_positions[0]);
+    shader.set_vec3("point_lights[0].color", point_light_color);
+    shader.set_float("point_lights[0].diffuse_strength", 0.8f);
+    shader.set_float("point_lights[0].specular_strength", 1.0f);
+    shader.set_float("point_lights[0].attentuation_constant", 1.0f);
+    shader.set_float("point_lights[0].attentuation_linear", 0.09f);
+    shader.set_float("point_lights[0].attentuation_quadratic", 0.032f);
+
+    shader.set_vec3("point_lights[1].position", point_light_positions[1]);
+    shader.set_vec3("point_lights[1].color", point_light_color);
+    shader.set_float("point_lights[1].diffuse_strength", 0.8f);
+    shader.set_float("point_lights[1].specular_strength", 1.0f);
+    shader.set_float("point_lights[1].attentuation_constant", 1.0f);
+    shader.set_float("point_lights[1].attentuation_linear", 0.09f);
+    shader.set_float("point_lights[1].attentuation_quadratic", 0.032f);
+
+    shader.set_vec3("point_lights[2].position", point_light_positions[2]);
+    shader.set_vec3("point_lights[2].color", point_light_color);
+    shader.set_float("point_lights[2].diffuse_strength", 0.8f);
+    shader.set_float("point_lights[2].specular_strength", 1.0f);
+    shader.set_float("point_lights[2].attentuation_constant", 1.0f);
+    shader.set_float("point_lights[2].attentuation_linear", 0.09f);
+    shader.set_float("point_lights[2].attentuation_quadratic", 0.032f);
+
+    shader.set_vec3("point_lights[3].position", point_light_positions[3]);
+    shader.set_vec3("point_lights[3].color", point_light_color);
+    shader.set_float("point_lights[3].diffuse_strength", 0.8f);
+    shader.set_float("point_lights[3].specular_strength", 1.0f);
+    shader.set_float("point_lights[3].attentuation_constant", 1.0f);
+    shader.set_float("point_lights[3].attentuation_linear", 0.09f);
+    shader.set_float("point_lights[3].attentuation_quadratic", 0.032f);
+
+    shader.set_vec3("directional_light.direction", normalize(-Vector3(-1.0f, -3.0f, -2.0f)));
+    shader.set_vec3("directional_light.color", Color(1.0f, 1.0f, 1.0f));
+    shader.set_float("directional_light.ambient_strength", 0.2f);
+    shader.set_float("directional_light.diffuse_strength", 0.6f);
+    shader.set_float("directional_light.specular_strength", 1.0f);
 
     // Window and render loop
     while (!glfwWindowShouldClose(window)) {
@@ -343,11 +379,10 @@ int main(int argc, char** argv) {
 
         shader.use();
         shader.set_vec3("view_position", camera.position);
-        shader.set_vec3("light.position", camera.position);
-        shader.set_vec3("light.direction", normalize(camera.front));
-        shader.set_vec3("light.color", light.color);
-        shader.set_float("light.cutoff_angle", std::cos(light.cutoff_angle));
-        shader.set_float("light.blend_angle", std::cos(light.blend_angle));
+        shader.set_vec3("camera.position", camera.position);
+        shader.set_vec3("camera.direction", normalize(camera.front));
+        //shader.set_float("light.cutoff_angle", std::cos(light.cutoff_angle));
+        //shader.set_float("light.blend_angle", std::cos(light.blend_angle));
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuse_map);
         glActiveTexture(GL_TEXTURE1);
@@ -364,13 +399,15 @@ int main(int argc, char** argv) {
         }
 
         light_shader.use();
-        Matrix4 transform_matrix = transform::scale({0.2f, 0.2f, 0.2f}) * transform::translate(light.position) * view * projection;
-        light_shader.set_vec3("light_color", light.color);
-        light_shader.set_matrix4("transform", transform_matrix);
+        for (int i = 0; i < 4; ++i) {
+            Matrix4 transform_matrix = transform::scale({0.2f, 0.2f, 0.2f}) * transform::translate(point_light_positions[i]) * view * projection;
+            light_shader.set_vec3("light_color", light.color);
+            light_shader.set_matrix4("transform", transform_matrix);
 
-        glBindVertexArray(light_vao);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glBindVertexArray(0);
+            glBindVertexArray(light_vao);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+            glBindVertexArray(0);
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
