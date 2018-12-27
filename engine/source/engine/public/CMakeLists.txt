@@ -3,6 +3,8 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/directionallight.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/pointlight.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/spotlight.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/mesh.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/model.hpp"
     PARENT_SCOPE
 )
 

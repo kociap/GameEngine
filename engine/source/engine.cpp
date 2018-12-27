@@ -11,37 +11,13 @@
 #include "math/transform.hpp"
 #include "shader.hpp"
 #include "spotlight.hpp"
-#include "stb/stb_image.hpp"
+#include "model.hpp"
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <random>
 #include <stdexcept>
 #include <vector>
-
-#ifdef _DEBUG
-void check_gl_errors() {
-    GLenum error = glGetError();
-    if (error == GL_INVALID_ENUM) {
-        throw std::runtime_error("GL_INVALID_ENUM");
-    } else if (error == GL_INVALID_VALUE) {
-        throw std::runtime_error("GL_INVALID_VALUE");
-    } else if (error == GL_INVALID_OPERATION) {
-        throw std::runtime_error("GL_INVALID_OPERATION");
-    } else if (error == GL_INVALID_FRAMEBUFFER_OPERATION) {
-        throw std::runtime_error("GL_INVALID_FRAMEBUFFER_OPERATION");
-    } else if (error == GL_OUT_OF_MEMORY) {
-        throw std::runtime_error("GL_OUT_OF_MEMORY");
-    } else if (error == GL_STACK_UNDERFLOW) {
-        throw std::runtime_error("GL_STACK_UNDERFLOW");
-    } else if (error == GL_STACK_OVERFLOW) {
-        throw std::runtime_error("GL_STACK_OVERFLOW");
-    }
-}
-#define CHECK_GL_ERRORS check_gl_errors();
-#else
-#define CHECK_GL_ERRORS
-#endif // _DEBUG
 
 GLuint window_width = 800;
 GLuint window_height = 800;
@@ -187,78 +163,6 @@ int main(int argc, char** argv) {
 
     glEnable(GL_DEPTH_TEST);
 
-    float vertices[] = {
-        -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
-        0.5f,  -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f, //
-        0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, //
-        0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, //
-        -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 1.0f, //
-        -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, //
-
-        -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, //
-        0.5f,  -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f, //
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, //
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, //
-        -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f, //
-        -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, //
-
-        -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f, //
-        -0.5f, 0.5f,  -0.5f, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f, //
-        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f, //
-        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f, //
-        -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f, //
-        -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f, //
-
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, //
-        0.5f,  0.5f,  -0.5f, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f, //
-        0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.0f, 1.0f, //
-        0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.0f, 1.0f, //
-        0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f, //
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, //
-
-        -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f, 1.0f, //
-        0.5f,  -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  1.0f, 1.0f, //
-        0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  1.0f, 0.0f, //
-        0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  1.0f, 0.0f, //
-        -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  0.0f, 0.0f, //
-        -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f, 1.0f, //
-
-        -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f, //
-        0.5f,  0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  1.0f, 1.0f, //
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, //
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, //
-        -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f, //
-        -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f  //
-    };
-
-    // Buffers
-    GLuint vbo;
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
-
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    // position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
-    glEnableVertexAttribArray(0);
-    // normal
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // texture coordinates
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    GLuint light_vao;
-    glGenVertexArrays(1, &light_vao);
-    glBindVertexArray(light_vao);
-
-    // position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
-    glEnableVertexAttribArray(0);
-
     // Load, compile and link shaders
     // I really need to do something with those hardcoded paths
     std::vector<std::filesystem::path> shader_paths(
@@ -276,27 +180,6 @@ int main(int argc, char** argv) {
     load_shader_file(shader, shader_paths[0]);
     load_shader_file(shader, shader_paths[1]);
     shader.link();
-
-    Shader light_shader;
-    load_shader_file(light_shader, shader_paths[2]);
-    load_shader_file(light_shader, shader_paths[3]);
-    light_shader.link();
-
-    auto load_texture = [](char const* filename) -> GLuint {
-        int width, height, channels;
-        stbi_set_flip_vertically_on_load(true);
-        unsigned char* image_data = stbi_load(filename, &width, &height, &channels, 0);
-        if (!image_data) {
-            throw std::runtime_error("Image not loaded");
-        }
-        GLuint texture;
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        stbi_image_free(image_data);
-        return texture;
-    };
 
     std::mt19937 rng;
     rng.seed(std::random_device()());
@@ -318,14 +201,9 @@ int main(int argc, char** argv) {
     light.direction.normalize();
     Color object_color(1.0f, 0.5f, 0.31f);
 
-    GLuint diffuse_map = load_texture("C:\\Users\\An0num0us\\Documents\\GameEngine\\container.jpg");
-    GLuint specular_map = load_texture("C:\\Users\\An0num0us\\Documents\\GameEngine\\container_specular.jpg");
-
     Vector3 point_light_positions[] = {Vector3(0.7f, 0.2f, 2.0f), Vector3(2.3f, -3.3f, -4.0f), Vector3(-4.0f, 2.0f, -12.0f), Vector3(0.0f, 0.0f, -3.0f)};
 
     shader.use();
-    shader.set_int("material.diffuse_map", 0);
-    shader.set_int("material.specular_map", 1);
     shader.set_float("material.shininess", 32.0f);
 
     Color point_light_color = Color(0.75f, 0.5f, 0.25f);
@@ -338,35 +216,7 @@ int main(int argc, char** argv) {
     shader.set_float("point_lights[0].attentuation_linear", 0.09f);
     shader.set_float("point_lights[0].attentuation_quadratic", 0.032f);
 
-    shader.set_vec3("point_lights[1].position", point_light_positions[1]);
-    shader.set_vec3("point_lights[1].color", point_light_color);
-    shader.set_float("point_lights[1].diffuse_strength", 0.8f);
-    shader.set_float("point_lights[1].specular_strength", 1.0f);
-    shader.set_float("point_lights[1].attentuation_constant", 1.0f);
-    shader.set_float("point_lights[1].attentuation_linear", 0.09f);
-    shader.set_float("point_lights[1].attentuation_quadratic", 0.032f);
-
-    shader.set_vec3("point_lights[2].position", point_light_positions[2]);
-    shader.set_vec3("point_lights[2].color", point_light_color);
-    shader.set_float("point_lights[2].diffuse_strength", 0.8f);
-    shader.set_float("point_lights[2].specular_strength", 1.0f);
-    shader.set_float("point_lights[2].attentuation_constant", 1.0f);
-    shader.set_float("point_lights[2].attentuation_linear", 0.09f);
-    shader.set_float("point_lights[2].attentuation_quadratic", 0.032f);
-
-    shader.set_vec3("point_lights[3].position", point_light_positions[3]);
-    shader.set_vec3("point_lights[3].color", point_light_color);
-    shader.set_float("point_lights[3].diffuse_strength", 0.8f);
-    shader.set_float("point_lights[3].specular_strength", 1.0f);
-    shader.set_float("point_lights[3].attentuation_constant", 1.0f);
-    shader.set_float("point_lights[3].attentuation_linear", 0.09f);
-    shader.set_float("point_lights[3].attentuation_quadratic", 0.032f);
-
-    shader.set_vec3("directional_light.direction", normalize(-Vector3(-1.0f, -3.0f, -2.0f)));
-    shader.set_vec3("directional_light.color", Color(1.0f, 1.0f, 1.0f));
-    shader.set_float("directional_light.ambient_strength", 0.2f);
-    shader.set_float("directional_light.diffuse_strength", 0.6f);
-    shader.set_float("directional_light.specular_strength", 1.0f);
+	Model model = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/nanosuit/nanosuit.obj");
 
     // Window and render loop
     while (!glfwWindowShouldClose(window)) {
@@ -383,31 +233,11 @@ int main(int argc, char** argv) {
         shader.set_vec3("camera.direction", normalize(camera.front));
         //shader.set_float("light.cutoff_angle", std::cos(light.cutoff_angle));
         //shader.set_float("light.blend_angle", std::cos(light.blend_angle));
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuse_map);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specular_map);
 
-        for (int i = 0; i < 20; ++i) {
-            shader.set_matrix4("model", model_transforms[i]);
-            shader.set_matrix4("view", view);
-            shader.set_matrix4("projection", projection);
-
-            glBindVertexArray(vao);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-            glBindVertexArray(0);
-        }
-
-        light_shader.use();
-        for (int i = 0; i < 4; ++i) {
-            Matrix4 transform_matrix = transform::scale({0.2f, 0.2f, 0.2f}) * transform::translate(point_light_positions[i]) * view * projection;
-            light_shader.set_vec3("light_color", light.color);
-            light_shader.set_matrix4("transform", transform_matrix);
-
-            glBindVertexArray(light_vao);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-            glBindVertexArray(0);
-        }
+        shader.set_matrix4("model", Matrix4::identity);
+        shader.set_matrix4("view", view);
+        shader.set_matrix4("projection", projection);
+        model.draw(shader);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

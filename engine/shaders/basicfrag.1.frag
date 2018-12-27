@@ -33,8 +33,17 @@ struct Point_light {
     float specular_strength;
 };
 
+struct Directional_light {
+    vec3 direction;
+    vec3 color;
+    float ambient_strength;
+    float diffuse_strength;
+    float specular_strength;
+};
+
 #define point_lights_number 1
 
+uniform Directional_light directional_light;
 uniform Point_light point_lights[point_lights_number];
 uniform Camera camera;
 uniform Material material;

@@ -41,4 +41,5 @@ target_link_libraries(${PROJECT_NAME}
     glad    
     glfw
     stb
+    assimp
 )
