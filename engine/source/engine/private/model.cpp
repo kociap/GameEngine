@@ -17,17 +17,15 @@ static std::filesystem::path current_model_path;
 static uint32_t load_texture(std::filesystem::path filename) {
     int width, height, channels;
     int32_t desired_channel_count = 4;
-    stbi_set_flip_vertically_on_load(true);
+    //stbi_set_flip_vertically_on_load(true);
     unsigned char* image_data = stbi_load(filename.string().c_str(), &width, &height, &channels, desired_channel_count);
     if (!image_data) {
         throw std::runtime_error("Image not loaded");
     }
     GLuint texture;
-	CHECK_GL_ERRORS
     glGenTextures(1, &texture);
-	CHECK_GL_ERRORS
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(image_data);
     return texture;

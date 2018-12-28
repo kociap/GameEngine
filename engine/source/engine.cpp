@@ -205,6 +205,12 @@ int main(int argc, char** argv) {
 
     shader.use();
     shader.set_float("material.shininess", 32.0f);
+    shader.set_float("material.ambient_strength", 0.2f);
+    shader.set_float("material.diffuse_strength", 1.0f);
+    shader.set_float("material.specular_strength", 1.0f);
+    shader.set_float("light.attentuation_constant", 1.0f);
+    shader.set_float("light.attentuation_linear", 0.09f);
+    shader.set_float("light.attentuation_quadratic", 0.032f);
 
     Color point_light_color = Color(0.75f, 0.5f, 0.25f);
 
@@ -213,8 +219,8 @@ int main(int argc, char** argv) {
     shader.set_float("point_lights[0].diffuse_strength", 0.8f);
     shader.set_float("point_lights[0].specular_strength", 1.0f);
     shader.set_float("point_lights[0].attentuation_constant", 1.0f);
-    shader.set_float("point_lights[0].attentuation_linear", 0.09f);
-    shader.set_float("point_lights[0].attentuation_quadratic", 0.032f);
+    shader.set_float("point_lights[0].attentuation_linear", 0.009f);
+    shader.set_float("point_lights[0].attentuation_quadratic", 0.0032f);
 
 	Model model = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/nanosuit/nanosuit.obj");
 
@@ -228,15 +234,19 @@ int main(int argc, char** argv) {
         view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
 
         shader.use();
+        shader.set_vec3("light.position", camera.position);
+        shader.set_vec3("light.direction", normalize(camera.front));
+        shader.set_vec3("light.color", light.color);
+        shader.set_float("light.cutoff_angle", std::cos(light.cutoff_angle));
+        shader.set_float("light.blend_angle", std::cos(light.blend_angle));
         shader.set_vec3("view_position", camera.position);
         shader.set_vec3("camera.position", camera.position);
         shader.set_vec3("camera.direction", normalize(camera.front));
-        //shader.set_float("light.cutoff_angle", std::cos(light.cutoff_angle));
-        //shader.set_float("light.blend_angle", std::cos(light.blend_angle));
 
         shader.set_matrix4("model", Matrix4::identity);
         shader.set_matrix4("view", view);
         shader.set_matrix4("projection", projection);
+
         model.draw(shader);
 
         glfwSwapBuffers(window);

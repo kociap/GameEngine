@@ -31,9 +31,15 @@ Mesh& Mesh::operator=(Mesh&& from) {
 }
 
 Mesh::~Mesh() {
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
-    glDeleteBuffers(1, &ebo);
+    if (vao) {
+		glDeleteVertexArrays(1, &vao);
+    }
+    if (vbo) {
+		glDeleteBuffers(1, &vbo);
+    }
+    if (ebo) {
+		glDeleteBuffers(1, &ebo);
+    }
 }
 
 void Mesh::draw(Shader& shader) {
@@ -76,10 +82,10 @@ void Mesh::prepare_mesh() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
     // normal
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)3);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(Vector3)));
     glEnableVertexAttribArray(1);
     // texture coordinates
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)6);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2 * sizeof(Vector3)));
     glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
