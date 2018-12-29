@@ -26,10 +26,6 @@ struct Texture {
 
 class Mesh {
 public:
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-    std::vector<Texture> textures;
-
     Mesh();
     Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices, std::vector<Texture> const& textures);
     Mesh(std::vector<Vertex>&& vertices, std::vector<uint32_t>&& indices, std::vector<Texture>&& textures);
@@ -41,7 +37,11 @@ public:
     Mesh& operator=(Mesh const&) = delete;
 
 	void draw(Shader&);
+
 private:
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
+    std::vector<Texture> textures;
     uint32_t vao = 0;
     uint32_t vbo = 0;
     uint32_t ebo = 0;

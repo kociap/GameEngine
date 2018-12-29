@@ -161,14 +161,7 @@ int main(int argc, char** argv) {
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    glEnable(GL_DEPTH_TEST);
-
     // Load, compile and link shaders
-    // I really need to do something with those hardcoded paths
-    std::vector<std::filesystem::path> shader_paths(
-        {"C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicvertex.vert", "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicfrag.frag",
-         "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/lightvertex.vert", "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/lightfrag.frag"});
-
     auto load_shader_file = [](Shader& shader, std::filesystem::path const& path) -> void {
         std::string shader_source;
         read_file(path, shader_source);
@@ -176,10 +169,16 @@ int main(int argc, char** argv) {
         shader.attach(s);
     };
 
+    // I really need to do something with those hardcoded paths
     Shader shader;
-    load_shader_file(shader, shader_paths[0]);
-    load_shader_file(shader, shader_paths[1]);
+    load_shader_file(shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicvertex.vert");
+    load_shader_file(shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicfrag.frag");
     shader.link();
+
+	Shader outline_shader;
+    load_shader_file(outline_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/outline.vert");
+    load_shader_file(outline_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/outline.frag");
+    outline_shader.link();
 
     std::mt19937 rng;
     rng.seed(std::random_device()());
@@ -198,8 +197,8 @@ int main(int argc, char** argv) {
     light.color = Color(1.0f, 1.0f, 1.0f);
     light.cutoff_angle = math::radians(22.5f);
     light.blend_angle = math::radians(35.0f);
+    light.intensity = 1.5f;
     light.direction.normalize();
-    Color object_color(1.0f, 0.5f, 0.31f);
 
     Vector3 point_light_positions[] = {Vector3(0.7f, 0.2f, 2.0f), Vector3(2.3f, -3.3f, -4.0f), Vector3(-4.0f, 2.0f, -12.0f), Vector3(0.0f, 0.0f, -3.0f)};
 
@@ -211,6 +210,7 @@ int main(int argc, char** argv) {
     shader.set_float("light.attentuation_constant", 1.0f);
     shader.set_float("light.attentuation_linear", 0.09f);
     shader.set_float("light.attentuation_quadratic", 0.032f);
+    shader.set_float("light.intensity", light.intensity);
 
     Color point_light_color = Color(0.75f, 0.5f, 0.25f);
 
@@ -222,14 +222,18 @@ int main(int argc, char** argv) {
     shader.set_float("point_lights[0].attentuation_linear", 0.009f);
     shader.set_float("point_lights[0].attentuation_quadratic", 0.0032f);
 
-	Model model = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/nanosuit/nanosuit.obj");
+	Model cube1 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
+    Model cube2 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
+
+	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_STENCIL_TEST);
 
     // Window and render loop
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
 
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
 
@@ -247,7 +251,26 @@ int main(int argc, char** argv) {
         shader.set_matrix4("view", view);
         shader.set_matrix4("projection", projection);
 
-        model.draw(shader);
+		glEnable(GL_DEPTH_TEST);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
+        cube1.draw(shader);
+		shader.set_matrix4("model", transform::translate({1.5f, 0.0f, -1.5f}));
+		cube2.draw(shader);
+
+        glDisable(GL_DEPTH_TEST);
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+        outline_shader.use();
+        outline_shader.set_matrix4("view", view);
+        outline_shader.set_matrix4("projection", projection);
+        outline_shader.set_matrix4("model", transform::scale({1.1f, 1.1f, 1.1f}));
+        cube1.draw(outline_shader);
+        outline_shader.set_matrix4("model", transform::scale({1.1f, 1.1f, 1.1f}) * transform::translate({1.5f, 0.0f, -1.5f}));
+        cube2.draw(outline_shader);
+        glEnable(GL_DEPTH_TEST);
+        glStencilMask(0xFF);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

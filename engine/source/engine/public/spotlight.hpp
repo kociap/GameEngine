@@ -11,6 +11,7 @@ public:
     Color color;
     float cutoff_angle;
     float blend_angle;
+	float intensity;
 };
 
 #endif // !ENGINE_SPOTLIGHT_LIGHT_HPP_INCLUDE
