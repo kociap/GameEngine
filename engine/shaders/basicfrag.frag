@@ -75,7 +75,7 @@ void main() {
         vec3 specular = vec3(texture(material.texture_specular0, texture_coordinates)) * specular_component * light.color;
 
         float dist = length(light.position - fragment_position);
-        float attentuation = 1.0 / (light.attentuation_constant + light.attentuation_linear * dist + light.attentuation_quadratic * dist * dist);
+        float attentuation = light.intensity / (light.attentuation_constant + light.attentuation_linear * dist + light.attentuation_quadratic * dist * dist);
 
         diffuse = material.diffuse_strength * diffuse * attentuation * blend_strength;
         specular = material.specular_strength * specular * attentuation * blend_strength;

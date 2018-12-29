@@ -18,12 +18,178 @@
 #include <random>
 #include <stdexcept>
 #include <vector>
+#include <map>
 
 GLuint window_width = 800;
 GLuint window_height = 800;
 
 Camera camera;
 Matrix4 projection;
+
+void read_file(std::filesystem::path const& filename, std::string& out);
+Shader_type shader_type_from_filename(std::filesystem::path const& filename);
+void framebuffer_size_callback(GLFWwindow*, int width, int height);
+void mouse_button_callback(GLFWwindow*, int button, int action, int mods);
+void mouse_position_callback(GLFWwindow*, double param_x, double param_y);
+void scroll_callback(GLFWwindow*, double offset_x, double offset_y);
+void process_input(GLFWwindow* window);
+
+int main(int argc, char** argv) {
+    auto path = argv[0];
+
+    camera = Camera();
+    projection = transform::perspective(math::radians(camera.fov), static_cast<float>(window_width) / static_cast<float>(window_height), 0.1f, 100.0f);
+
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+    GLFWwindow* window = glfwCreateWindow(window_width, window_height, "GameEngine", NULL, NULL);
+    if (!window) {
+        std::cout << "GLFW failed to create a window\n";
+        return -1;
+    }
+
+    glfwMakeContextCurrent(window);
+
+    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
+        std::cout << "GLAD not initialized\n";
+        glfwTerminate();
+        return -2;
+    }
+
+    glViewport(0, 0, window_width, window_height);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_position_callback);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+
+    // Load, compile and link shaders
+    auto load_shader_file = [](Shader& shader, std::filesystem::path const& path) -> void {
+        std::string shader_source;
+        read_file(path, shader_source);
+        Shader_file s(shader_type_from_filename(path), shader_source);
+        shader.attach(s);
+    };
+
+    // I really need to do something with those hardcoded paths
+    Shader shader;
+    load_shader_file(shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicvertex.vert");
+    load_shader_file(shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicfrag.frag");
+    shader.link();
+
+	Shader grass_shader;
+    load_shader_file(grass_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/grass.vert");
+    load_shader_file(grass_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/grass.frag");
+    grass_shader.link();
+
+    std::mt19937 rng;
+    rng.seed(std::random_device()());
+    std::uniform_real_distribution<float> dist(-2.0f, 2.0f);
+
+    std::vector<Matrix4> model_transforms;
+    for (int i = 0; i < 20; ++i) {
+        model_transforms.push_back(transform::translate({dist(rng) * 10.0f, dist(rng) * 2.0f, dist(rng) * 10.0f}));
+    }
+
+    Matrix4 view = Matrix4::identity;
+
+    Spot_light light;
+    light.position = Vector3(-2.0f, 1.0f, -3.0f);
+    light.direction = Vector3(0.3f, 1.0f, 0.3f);
+    light.color = Color(1.0f, 1.0f, 1.0f);
+    light.cutoff_angle = math::radians(22.5f);
+    light.blend_angle = math::radians(35.0f);
+    light.intensity = 1.5f;
+    light.direction.normalize();
+
+    Vector3 point_light_positions[] = {Vector3(0.7f, 0.2f, 2.0f), Vector3(2.3f, -3.3f, -4.0f), Vector3(-4.0f, 2.0f, -12.0f), Vector3(0.0f, 0.0f, -3.0f)};
+
+    shader.use();
+    shader.set_float("material.shininess", 32.0f);
+    shader.set_float("material.ambient_strength", 0.2f);
+    shader.set_float("material.diffuse_strength", 1.0f);
+    shader.set_float("material.specular_strength", 1.0f);
+    shader.set_float("light.attentuation_constant", 1.0f);
+    shader.set_float("light.attentuation_linear", 0.09f);
+    shader.set_float("light.attentuation_quadratic", 0.032f);
+    shader.set_float("light.intensity", light.intensity);
+
+    Color point_light_color = Color(0.75f, 0.5f, 0.25f);
+
+    shader.set_vec3("point_lights[0].position", point_light_positions[0]);
+    shader.set_vec3("point_lights[0].color", point_light_color);
+    shader.set_float("point_lights[0].diffuse_strength", 0.8f);
+    shader.set_float("point_lights[0].specular_strength", 1.0f);
+    shader.set_float("point_lights[0].attentuation_constant", 1.0f);
+    shader.set_float("point_lights[0].attentuation_linear", 0.009f);
+    shader.set_float("point_lights[0].attentuation_quadratic", 0.0032f);
+
+	Model cube1 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
+    Model cube2 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
+    Model grass_plane = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/grass.obj");
+    Model transparent_window = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/window.obj");
+
+	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_STENCIL_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Window and render loop
+    while (!glfwWindowShouldClose(window)) {
+        process_input(window);
+
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+        view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
+
+        shader.use();
+        shader.set_vec3("light.position", camera.position);
+        shader.set_vec3("light.direction", normalize(camera.front));
+        shader.set_vec3("light.color", light.color);
+        shader.set_float("light.cutoff_angle", std::cos(light.cutoff_angle));
+        shader.set_float("light.blend_angle", std::cos(light.blend_angle));
+        shader.set_vec3("view_position", camera.position);
+        shader.set_vec3("camera.position", camera.position);
+        shader.set_vec3("camera.direction", normalize(camera.front));
+
+        shader.set_matrix4("model", Matrix4::identity);
+        shader.set_matrix4("view", view);
+        shader.set_matrix4("projection", projection);
+
+        cube1.draw(shader);
+		shader.set_matrix4("model", transform::translate({2.0f, 0.0f, -2.0f}));
+		cube2.draw(shader);
+
+		grass_shader.use();
+
+        grass_shader.set_matrix4("view", view);
+        grass_shader.set_matrix4("projection", projection);
+
+		for (int i = 0; i < 10; ++i) {
+			grass_shader.set_matrix4("model", model_transforms[i]);
+            grass_plane.draw(grass_shader);
+		}
+
+		for (int i = 10; i < 20; ++i) {
+            grass_shader.set_matrix4("model", model_transforms[i]);
+            transparent_window.draw(grass_shader);
+        }
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    glfwTerminate();
+
+    return 0;
+}
 
 void read_file(std::filesystem::path const& filename, std::string& out) {
     std::ifstream file(filename);
@@ -124,159 +290,4 @@ void process_input(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_Q)) {
         camera.position -= Vector3::up * camera_speed;
     }
-}
-
-int main(int argc, char** argv) {
-    auto path = argv[0];
-
-    camera = Camera();
-    projection = transform::perspective(math::radians(camera.fov), static_cast<float>(window_width) / static_cast<float>(window_height), 0.1f, 100.0f);
-
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-    GLFWwindow* window = glfwCreateWindow(window_width, window_height, "GameEngine", NULL, NULL);
-    if (!window) {
-        std::cout << "GLFW failed to create a window\n";
-        return -1;
-    }
-
-    glfwMakeContextCurrent(window);
-
-    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
-        std::cout << "GLAD not initialized\n";
-        glfwTerminate();
-        return -2;
-    }
-
-    glViewport(0, 0, window_width, window_height);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouse_position_callback);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-
-    // Load, compile and link shaders
-    auto load_shader_file = [](Shader& shader, std::filesystem::path const& path) -> void {
-        std::string shader_source;
-        read_file(path, shader_source);
-        Shader_file s(shader_type_from_filename(path), shader_source);
-        shader.attach(s);
-    };
-
-    // I really need to do something with those hardcoded paths
-    Shader shader;
-    load_shader_file(shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicvertex.vert");
-    load_shader_file(shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicfrag.frag");
-    shader.link();
-
-	Shader outline_shader;
-    load_shader_file(outline_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/outline.vert");
-    load_shader_file(outline_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/outline.frag");
-    outline_shader.link();
-
-    std::mt19937 rng;
-    rng.seed(std::random_device()());
-    std::uniform_real_distribution<float> dist(-2.0f, 2.0f);
-
-    std::vector<Matrix4> model_transforms;
-    for (int i = 0; i < 20; ++i) {
-        model_transforms.push_back(transform::scale({3, 3, 3}) * transform::translate({dist(rng) * 10.0f, dist(rng) * 2.0f, dist(rng) * 10.0f}));
-    }
-
-    Matrix4 view = Matrix4::identity;
-
-    Spot_light light;
-    light.position = Vector3(-2.0f, 1.0f, -3.0f);
-    light.direction = Vector3(0.3f, 1.0f, 0.3f);
-    light.color = Color(1.0f, 1.0f, 1.0f);
-    light.cutoff_angle = math::radians(22.5f);
-    light.blend_angle = math::radians(35.0f);
-    light.intensity = 1.5f;
-    light.direction.normalize();
-
-    Vector3 point_light_positions[] = {Vector3(0.7f, 0.2f, 2.0f), Vector3(2.3f, -3.3f, -4.0f), Vector3(-4.0f, 2.0f, -12.0f), Vector3(0.0f, 0.0f, -3.0f)};
-
-    shader.use();
-    shader.set_float("material.shininess", 32.0f);
-    shader.set_float("material.ambient_strength", 0.2f);
-    shader.set_float("material.diffuse_strength", 1.0f);
-    shader.set_float("material.specular_strength", 1.0f);
-    shader.set_float("light.attentuation_constant", 1.0f);
-    shader.set_float("light.attentuation_linear", 0.09f);
-    shader.set_float("light.attentuation_quadratic", 0.032f);
-    shader.set_float("light.intensity", light.intensity);
-
-    Color point_light_color = Color(0.75f, 0.5f, 0.25f);
-
-    shader.set_vec3("point_lights[0].position", point_light_positions[0]);
-    shader.set_vec3("point_lights[0].color", point_light_color);
-    shader.set_float("point_lights[0].diffuse_strength", 0.8f);
-    shader.set_float("point_lights[0].specular_strength", 1.0f);
-    shader.set_float("point_lights[0].attentuation_constant", 1.0f);
-    shader.set_float("point_lights[0].attentuation_linear", 0.009f);
-    shader.set_float("point_lights[0].attentuation_quadratic", 0.0032f);
-
-	Model cube1 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
-    Model cube2 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
-
-	glEnable(GL_DEPTH_TEST);
-    glEnable(GL_STENCIL_TEST);
-
-    // Window and render loop
-    while (!glfwWindowShouldClose(window)) {
-        process_input(window);
-
-        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-        view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
-
-        shader.use();
-        shader.set_vec3("light.position", camera.position);
-        shader.set_vec3("light.direction", normalize(camera.front));
-        shader.set_vec3("light.color", light.color);
-        shader.set_float("light.cutoff_angle", std::cos(light.cutoff_angle));
-        shader.set_float("light.blend_angle", std::cos(light.blend_angle));
-        shader.set_vec3("view_position", camera.position);
-        shader.set_vec3("camera.position", camera.position);
-        shader.set_vec3("camera.direction", normalize(camera.front));
-
-        shader.set_matrix4("model", Matrix4::identity);
-        shader.set_matrix4("view", view);
-        shader.set_matrix4("projection", projection);
-
-		glEnable(GL_DEPTH_TEST);
-		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0xFF);
-        cube1.draw(shader);
-		shader.set_matrix4("model", transform::translate({1.5f, 0.0f, -1.5f}));
-		cube2.draw(shader);
-
-        glDisable(GL_DEPTH_TEST);
-        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		glStencilMask(0x00);
-        outline_shader.use();
-        outline_shader.set_matrix4("view", view);
-        outline_shader.set_matrix4("projection", projection);
-        outline_shader.set_matrix4("model", transform::scale({1.1f, 1.1f, 1.1f}));
-        cube1.draw(outline_shader);
-        outline_shader.set_matrix4("model", transform::scale({1.1f, 1.1f, 1.1f}) * transform::translate({1.5f, 0.0f, -1.5f}));
-        cube2.draw(outline_shader);
-        glEnable(GL_DEPTH_TEST);
-        glStencilMask(0xFF);
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
-    glfwTerminate();
-
-    return 0;
 }
