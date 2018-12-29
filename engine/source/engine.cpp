@@ -162,11 +162,11 @@ int main(int argc, char** argv) {
         shader.set_matrix4("model", Matrix4::identity);
         shader.set_matrix4("view", view);
         shader.set_matrix4("projection", projection);
-
+        glEnable(GL_CULL_FACE);
         cube1.draw(shader);
 		shader.set_matrix4("model", transform::translate({2.0f, 0.0f, -2.0f}));
 		cube2.draw(shader);
-
+        glDisable(GL_CULL_FACE);
 		grass_shader.use();
 
         grass_shader.set_matrix4("view", view);
