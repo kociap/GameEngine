@@ -2,6 +2,8 @@
 #include "glad/glad.h"
 #include "debug_macros.hpp"
 
+Vertex::Vertex(Vector3 pos, Vector3 norm, Vector2 tex): position(std::move(pos)), normal(std::move(norm)), uv_coordinates(std::move(tex)) {}
+
 Mesh::Mesh() {}
 
 Mesh::Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices, std::vector<Texture> const& textures)

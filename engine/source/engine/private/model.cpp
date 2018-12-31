@@ -34,7 +34,7 @@ static uint32_t load_texture(std::filesystem::path filename) {
 static void load_material_textures(aiMaterial* mat, aiTextureType type, std::vector<Texture>& textures) {
     for (std::size_t i = 0, texture_count = mat->GetTextureCount(type); i < texture_count; ++i) {
         aiString str;
-        mat->GetTexture(type, i, &str);
+        mat->GetTexture(type, static_cast<unsigned int>(i), &str);
         auto texture_path(current_model_path);
         texture_path += str.C_Str();
         Texture texture;

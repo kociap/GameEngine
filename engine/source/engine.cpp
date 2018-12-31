@@ -1,24 +1,26 @@
 #include "glad/glad.h" // GLAD must be before GLFW
                        // Or define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
-#include <cmath>
-#include <iostream>
 
 #include "camera.hpp"
 #include "color.hpp"
 #include "math/math.hpp"
 #include "math/matrix4.hpp"
 #include "math/transform.hpp"
+#include "model.hpp"
+#include "renderer/framebuffer.hpp"
 #include "shader.hpp"
 #include "spotlight.hpp"
-#include "model.hpp"
+#include "debug_macros.hpp"
+#include <cmath>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <map>
 #include <random>
 #include <stdexcept>
 #include <vector>
-#include <map>
 
 GLuint window_width = 800;
 GLuint window_height = 800;
@@ -50,16 +52,14 @@ int main(int argc, char** argv) {
 
     GLFWwindow* window = glfwCreateWindow(window_width, window_height, "GameEngine", NULL, NULL);
     if (!window) {
-        std::cout << "GLFW failed to create a window\n";
-        return -1;
+        throw std::runtime_error("GLFW failed to create a window");
     }
 
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
-        std::cout << "GLAD not initialized\n";
         glfwTerminate();
-        return -2;
+        throw std::runtime_error("GLAD not initialized");
     }
 
     glViewport(0, 0, window_width, window_height);
@@ -83,10 +83,10 @@ int main(int argc, char** argv) {
     load_shader_file(shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicfrag.frag");
     shader.link();
 
-	Shader grass_shader;
-    load_shader_file(grass_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/grass.vert");
-    load_shader_file(grass_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/grass.frag");
-    grass_shader.link();
+    Shader quad_shader;
+    load_shader_file(quad_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/quad.vert");
+    load_shader_file(quad_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/postprocessing/blur.frag");
+    quad_shader.link();
 
     std::mt19937 rng;
     rng.seed(std::random_device()());
@@ -108,8 +108,6 @@ int main(int argc, char** argv) {
     light.intensity = 1.5f;
     light.direction.normalize();
 
-    Vector3 point_light_positions[] = {Vector3(0.7f, 0.2f, 2.0f), Vector3(2.3f, -3.3f, -4.0f), Vector3(-4.0f, 2.0f, -12.0f), Vector3(0.0f, 0.0f, -3.0f)};
-
     shader.use();
     shader.set_float("material.shininess", 32.0f);
     shader.set_float("material.ambient_strength", 0.2f);
@@ -120,35 +118,31 @@ int main(int argc, char** argv) {
     shader.set_float("light.attentuation_quadratic", 0.032f);
     shader.set_float("light.intensity", light.intensity);
 
-    Color point_light_color = Color(0.75f, 0.5f, 0.25f);
-
-    shader.set_vec3("point_lights[0].position", point_light_positions[0]);
-    shader.set_vec3("point_lights[0].color", point_light_color);
-    shader.set_float("point_lights[0].diffuse_strength", 0.8f);
-    shader.set_float("point_lights[0].specular_strength", 1.0f);
-    shader.set_float("point_lights[0].attentuation_constant", 1.0f);
-    shader.set_float("point_lights[0].attentuation_linear", 0.009f);
-    shader.set_float("point_lights[0].attentuation_quadratic", 0.0032f);
-
-	Model cube1 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
+    Model cube1 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
     Model cube2 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
     Model grass_plane = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/grass.obj");
     Model transparent_window = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/window.obj");
+    Mesh scene_quad({Vertex(Vector3(-1.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(0.0f, 1.0f)),
+                     Vertex(Vector3(-1.0f, -1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(0.0f, 0.0f)),
+                     Vertex(Vector3(1.0f, -1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(1.0f, 0.0f)),
+                     Vertex(Vector3(-1.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(0.0f, 1.0f)),
+                     Vertex(Vector3(1.0f, -1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(1.0f, 0.0f)),
+                     Vertex(Vector3(1.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(1.0f, 1.0f))},
+                    {0, 1, 2, 3, 4, 5}, {});
 
-	glEnable(GL_DEPTH_TEST);
-    glEnable(GL_STENCIL_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    Framebuffer framebuffer(window_width, window_height);
+    glEnable(GL_CULL_FACE);
 
     // Window and render loop
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
 
+        framebuffer.bind();
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
 
         view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
-
         shader.use();
         shader.set_vec3("light.position", camera.position);
         shader.set_vec3("light.direction", normalize(camera.front));
@@ -162,25 +156,17 @@ int main(int argc, char** argv) {
         shader.set_matrix4("model", Matrix4::identity);
         shader.set_matrix4("view", view);
         shader.set_matrix4("projection", projection);
-        glEnable(GL_CULL_FACE);
         cube1.draw(shader);
-		shader.set_matrix4("model", transform::translate({2.0f, 0.0f, -2.0f}));
-		cube2.draw(shader);
-        glDisable(GL_CULL_FACE);
-		grass_shader.use();
+        shader.set_matrix4("model", transform::translate({4.0f, 0.0f, -2.0f}));
+        cube2.draw(shader);
 
-        grass_shader.set_matrix4("view", view);
-        grass_shader.set_matrix4("projection", projection);
-
-		for (int i = 0; i < 10; ++i) {
-			grass_shader.set_matrix4("model", model_transforms[i]);
-            grass_plane.draw(grass_shader);
-		}
-
-		for (int i = 10; i < 20; ++i) {
-            grass_shader.set_matrix4("model", model_transforms[i]);
-            transparent_window.draw(grass_shader);
-        }
+        framebuffer.unbind();
+        glDisable(GL_DEPTH_TEST);
+        quad_shader.use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.get_texture());
+        quad_shader.set_int("scene_texture", 0);
+        scene_quad.draw(quad_shader);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -260,7 +246,7 @@ void mouse_position_callback(GLFWwindow*, double param_x, double param_y) {
 }
 
 void scroll_callback(GLFWwindow*, double offset_x, double offset_y) {
-    camera.fov -= offset_y * 2;
+    camera.fov -= static_cast<float>(offset_y * 2.0);
     camera.fov = std::min(camera.fov, 120.0f);
     camera.fov = std::max(camera.fov, 10.0f);
     projection = transform::perspective(math::radians(camera.fov), static_cast<float>(window_width) / static_cast<float>(window_height), 0.1f, 100.0f);

@@ -16,6 +16,9 @@ struct Vertex {
     Vector3 position;
     Vector3 normal;
     Vector2 uv_coordinates;
+
+	Vertex() = default;
+	Vertex(Vector3, Vector3, Vector2);
 };
 
 struct Texture {
