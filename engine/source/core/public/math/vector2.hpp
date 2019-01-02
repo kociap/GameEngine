@@ -38,4 +38,6 @@ Vector2 operator-(Vector2 const&, Vector2 const&);
 // Otherwise returns zero vector
 Vector2 normalize(Vector2);
 
+void swap(Vector2&, Vector2&);
+
 #endif // !CORE_MATH_VECTOR2_HPP_INCLUDE

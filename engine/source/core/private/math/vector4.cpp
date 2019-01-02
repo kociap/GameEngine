@@ -2,6 +2,7 @@
 
 #include "math/math.hpp"
 #include <cmath>
+#include <utility>
 
 Vector4::Vector4() : x(0), y(0), z(0), w(0) {}
 Vector4::Vector4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
@@ -46,4 +47,11 @@ Vector4& Vector4::normalize() {
 Vector4 normalize(Vector4 vec) {
     vec.normalize();
     return vec;
+}
+
+void swap(Vector4& a, Vector4& b) {
+    std::swap(a.x, b.x);
+    std::swap(a.y, b.y);
+    std::swap(a.z, b.z);
+    std::swap(a.w, b.w);
 }

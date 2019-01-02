@@ -94,4 +94,8 @@ namespace transform {
                        //{-position.x, -position.y, -position.z, 1}};
                        {-Vector3::dot(right, position), -Vector3::dot(up, position), Vector3::dot(forward, position), 1}};
     }
+
+	Vector3 get_translation(Matrix4 const& mat) {
+        return {mat(3, 0), mat(3, 1), mat(3, 2)};
+	}
 } // namespace transform

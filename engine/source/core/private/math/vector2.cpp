@@ -2,6 +2,7 @@
 
 #include "math/math.hpp"
 #include <cmath>
+#include <utility>
 
 const Vector2 Vector2::zero = Vector2(0.0f, 0.0f);
 const Vector2 Vector2::one = Vector2(1.0f, 1.0f);
@@ -64,4 +65,9 @@ Vector2 operator-(Vector2 const& vec1, Vector2 const& vec2) {
 Vector2 normalize(Vector2 vec) {
     vec.normalize();
     return vec;
+}
+
+void swap(Vector2& a, Vector2& b) {
+    std::swap(a.x, b.x);
+    std::swap(a.y, b.y);
 }

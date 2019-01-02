@@ -2,6 +2,7 @@
 
 #include "math/math.hpp"
 #include <cmath>
+#include <utility>
 
 Vector3 const Vector3::zero = Vector3(0, 0, 0);
 Vector3 const Vector3::one = Vector3(1, 1, 1);
@@ -99,4 +100,10 @@ Vector3 operator*(Vector3 const& a, float b) {
 Vector3 normalize(Vector3 vec) {
     vec.normalize();
     return vec;
+}
+
+void swap(Vector3& a, Vector3& b) {
+    std::swap(a.x, b.x);
+    std::swap(a.y, b.y);
+    std::swap(a.z, b.z);
 }

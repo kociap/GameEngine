@@ -4,6 +4,7 @@
 
 #include "camera.hpp"
 #include "color.hpp"
+#include "debug_macros.hpp"
 #include "math/math.hpp"
 #include "math/matrix4.hpp"
 #include "math/transform.hpp"
@@ -11,7 +12,9 @@
 #include "renderer/framebuffer.hpp"
 #include "shader.hpp"
 #include "spotlight.hpp"
-#include "debug_macros.hpp"
+#include "stb/stb_image.hpp"
+#include "mesh/plane.hpp"
+#include "mesh/cube.hpp"
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
@@ -85,8 +88,45 @@ int main(int argc, char** argv) {
 
     Shader quad_shader;
     load_shader_file(quad_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/quad.vert");
-    load_shader_file(quad_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/postprocessing/blur.frag");
+    load_shader_file(quad_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/quad.frag");
     quad_shader.link();
+
+	Shader skybox_shader;
+    load_shader_file(skybox_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/skybox.vert");
+    load_shader_file(skybox_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/skybox.frag");
+	skybox_shader.link();
+
+    auto load_cubemap = [](std::vector<std::filesystem::path> const& paths) -> GLuint {
+        if (paths.size() != 6) {
+            throw std::invalid_argument("The number of paths provided is not 6");
+        }
+
+        GLuint cubemap;
+        glGenTextures(1, &cubemap);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+
+        int32_t width;
+        int32_t height;
+        int32_t channels;
+        for (std::size_t i = 0; i < 6; ++i) {
+            uint8_t* data = stbi_load(paths[i].string().c_str(), &width, &height, &channels, 0);
+            if (!data) {
+                glDeleteTextures(1, &cubemap);
+                throw std::runtime_error("Could not load image " + paths[i].string());
+            }
+
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            stbi_image_free(data);
+        }
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+        return cubemap;
+    };
 
     std::mt19937 rng;
     rng.seed(std::random_device()());
@@ -118,17 +158,34 @@ int main(int argc, char** argv) {
     shader.set_float("light.attentuation_quadratic", 0.032f);
     shader.set_float("light.intensity", light.intensity);
 
+	auto load_texture = [](std::filesystem::path filename) -> GLuint {
+        int width, height, channels;
+        int32_t desired_channel_count = 4;
+        //stbi_set_flip_vertically_on_load(true);
+        unsigned char* image_data = stbi_load(filename.string().c_str(), &width, &height, &channels, desired_channel_count);
+        if (!image_data) {
+            throw std::runtime_error("Image not loaded");
+        }
+        GLuint texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        stbi_image_free(image_data);
+        return texture;
+    };
+
     Model cube1 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
     Model cube2 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
-    Model grass_plane = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/grass.obj");
-    Model transparent_window = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/window.obj");
-    Mesh scene_quad({Vertex(Vector3(-1.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(0.0f, 1.0f)),
-                     Vertex(Vector3(-1.0f, -1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(0.0f, 0.0f)),
-                     Vertex(Vector3(1.0f, -1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(1.0f, 0.0f)),
-                     Vertex(Vector3(-1.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(0.0f, 1.0f)),
-                     Vertex(Vector3(1.0f, -1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(1.0f, 0.0f)),
-                     Vertex(Vector3(1.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(1.0f, 1.0f))},
-                    {0, 1, 2, 3, 4, 5}, {});
+    Plane scene_quad;
+    Cube skybox;
+	Cube cube;
+    GLuint wall_texture = load_texture("C:/Users/An0num0us/Documents/GameEngine/assets/wall.jpg");
+
+    GLuint skybox_cubemap =
+        load_cubemap({"C:/Users/An0num0us/Documents/GameEngine/assets/skybox/right.jpg", "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/left.jpg",
+                      "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/top.jpg", "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/bottom.jpg",
+                      "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/back.jpg", "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/front.jpg"});
 
     Framebuffer framebuffer(window_width, window_height);
     glEnable(GL_CULL_FACE);
@@ -143,6 +200,7 @@ int main(int argc, char** argv) {
         glEnable(GL_DEPTH_TEST);
 
         view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
+
         shader.use();
         shader.set_vec3("light.position", camera.position);
         shader.set_vec3("light.direction", normalize(camera.front));
@@ -158,7 +216,20 @@ int main(int argc, char** argv) {
         shader.set_matrix4("projection", projection);
         cube1.draw(shader);
         shader.set_matrix4("model", transform::translate({4.0f, 0.0f, -2.0f}));
+        //cube2.draw(shader);
         cube2.draw(shader);
+
+		glDisable(GL_CULL_FACE);
+		glDepthFunc(GL_LEQUAL);
+        skybox_shader.use();
+        skybox_shader.set_matrix4("view", view * transform::translate(-transform::get_translation(view)));
+        skybox_shader.set_matrix4("projection", projection);
+        skybox_shader.set_int("skybox", 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_cubemap);
+        skybox.draw(skybox_shader);
+        glDepthFunc(GL_LESS);
+        glEnable(GL_CULL_FACE);
 
         framebuffer.unbind();
         glDisable(GL_DEPTH_TEST);

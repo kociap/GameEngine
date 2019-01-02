@@ -30,4 +30,6 @@ public:
 // Otherwise returns zero vector
 Vector4 normalize(Vector4);
 
+void swap(Vector4&, Vector4&);
+
 #endif // !GAME_ENGINE_CORE_MATH_VECTOR4_HPP_INCLUDE

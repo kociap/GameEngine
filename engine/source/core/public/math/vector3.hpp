@@ -46,4 +46,6 @@ Vector3 operator*(Vector3 const&, float);
 // Otherwise returns zero vector
 Vector3 normalize(Vector3);
 
+void swap(Vector3&, Vector3&);
+
 #endif // !CORE_MATH_VECTOR3_HPP_INCLUDE

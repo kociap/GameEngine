@@ -1,5 +1,6 @@
 //
-//	Empty source file for CMake to build this project as a library
+//	Implementation of stb
 //
 
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
