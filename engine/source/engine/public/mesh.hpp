@@ -40,6 +40,9 @@ public:
     Mesh& operator=(Mesh const&) = delete;
 
 	void draw(Shader&);
+    void draw_instanced(Shader&, uint32_t count);
+    void bind();
+    void unbind();
 
 private:
     std::vector<Vertex> vertices;

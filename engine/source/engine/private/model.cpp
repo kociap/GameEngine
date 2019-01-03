@@ -12,6 +12,12 @@ void Model::draw(Shader& shader) {
     }
 }
 
+void Model::draw_instanced(Shader& shader, uint32_t count) {
+    for (Mesh& mesh : meshes) {
+        mesh.draw_instanced(shader, count);
+    }
+}
+
 static std::filesystem::path current_model_path;
 
 static uint32_t load_texture(std::filesystem::path filename) {

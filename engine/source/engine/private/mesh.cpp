@@ -70,6 +70,43 @@ void Mesh::draw(Shader& shader) {
 	CHECK_GL_ERRORS
 }
 
+void Mesh::draw_instanced(Shader& shader, uint32_t count) {
+    CHECK_GL_ERRORS
+    std::size_t specular = 0;
+    std::size_t diffuse = 0;
+    for (std::size_t i = 0; i < textures.size(); ++i) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        CHECK_GL_ERRORS
+        if (textures[i].type == Texture_type::diffuse) {
+            shader.set_int("material.texture_diffuse" + std::to_string(diffuse), i);
+            ++diffuse;
+        } else {
+            shader.set_int("material.texture_specular" + std::to_string(specular), i);
+            ++specular;
+        }
+        glBindTexture(GL_TEXTURE_2D, textures[i].id);
+        CHECK_GL_ERRORS
+    }
+    CHECK_GL_ERRORS
+    glBindVertexArray(vao);
+    CHECK_GL_ERRORS
+    glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0, count);
+    CHECK_GL_ERRORS
+    glBindVertexArray(0);
+    CHECK_GL_ERRORS
+}
+
+void Mesh::bind() {
+	CHECK_GL_ERRORS
+    glBindVertexArray(vao);
+	CHECK_GL_ERRORS
+}
+void Mesh::unbind() {
+    CHECK_GL_ERRORS
+    glBindVertexArray(0);
+    CHECK_GL_ERRORS
+}
+
 void Mesh::prepare_mesh() {
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);

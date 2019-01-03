@@ -7,11 +7,14 @@
 #include "math/matrix4.hpp"
 #include "shaderfile.hpp"
 #include <string>
+#include <filesystem>
 
 class Shader {
 public:
     Shader();
     ~Shader();
+
+	void load_shader_file(std::filesystem::path);
 
     void attach(Shader_file const& shader);
     void link();

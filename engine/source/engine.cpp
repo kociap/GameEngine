@@ -31,8 +31,6 @@ GLuint window_height = 800;
 Camera camera;
 Matrix4 projection;
 
-void read_file(std::filesystem::path const& filename, std::string& out);
-Shader_type shader_type_from_filename(std::filesystem::path const& filename);
 void framebuffer_size_callback(GLFWwindow*, int width, int height);
 void mouse_button_callback(GLFWwindow*, int button, int action, int mods);
 void mouse_position_callback(GLFWwindow*, double param_x, double param_y);
@@ -73,34 +71,32 @@ int main(int argc, char** argv) {
     glfwSetScrollCallback(window, scroll_callback);
 
     // Load, compile and link shaders
-    auto load_shader_file = [](Shader& shader, std::filesystem::path const& path) -> void {
-        std::string shader_source;
-        read_file(path, shader_source);
-        Shader_file s(shader_type_from_filename(path), shader_source);
-        shader.attach(s);
-    };
 
     // I really need to do something with those hardcoded paths
     Shader shader;
-    load_shader_file(shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicvertex.vert");
-    load_shader_file(shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicfrag.frag");
-    //load_shader_file(shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/explode.geom");
+    shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicvertex.vert");
+    shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicfrag.frag");
     shader.link();
 
+	Shader instanced_shader;
+    instanced_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/asteroid.vert");
+    instanced_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/asteroid.frag");
+	instanced_shader.link();
+
     Shader normals_shader;
-    load_shader_file(normals_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.vert");
-    load_shader_file(normals_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.geom");
-    load_shader_file(normals_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.frag");
+    normals_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.vert");
+    normals_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.geom");
+    normals_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.frag");
     normals_shader.link();
 
     Shader quad_shader;
-    load_shader_file(quad_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/quad.vert");
-    load_shader_file(quad_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/quad.frag");
+    quad_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/quad.vert");
+    quad_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/quad.frag");
     quad_shader.link();
 
     Shader skybox_shader;
-    load_shader_file(skybox_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/skybox.vert");
-    load_shader_file(skybox_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/skybox.frag");
+    skybox_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/skybox.vert");
+    skybox_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/skybox.frag");
     skybox_shader.link();
 
     auto load_cubemap = [](std::vector<std::filesystem::path> const& paths) -> GLuint {
@@ -137,38 +133,30 @@ int main(int argc, char** argv) {
 
     std::mt19937 rng;
     rng.seed(std::random_device()());
-    std::uniform_real_distribution<float> dist(-2.0f, 2.0f);
+    std::mt19937 rng1;
+    rng.seed(std::random_device()());
+    std::uniform_real_distribution<float> dist(0, 1.0f);
+    std::uniform_real_distribution<float> ring_variation(0.9f, 1.1f);
+    std::uniform_real_distribution<float> variance(0.9f, 1.3f);
 
+    uint32_t asteroid_count = 2000;
+    float ring_radius = 9;
     std::vector<Matrix4> model_transforms;
-    for (int i = 0; i < 20; ++i) {
-        model_transforms.push_back(transform::translate({dist(rng) * 10.0f, dist(rng) * 2.0f, dist(rng) * 10.0f}));
+    for (int i = 0; i < asteroid_count; ++i) {
+        float random_number = math::radians(dist(rng) * 360.0f);
+        float ring = ring_radius * ring_variation(rng) * variance(rng1);
+        model_transforms.push_back(transform::rotate_z(math::radians(dist(rng) * 360.0f)) * transform::rotate_x(math::radians(dist(rng) * 360.0f)) *
+                                   transform::translate({ring * std::cosf(random_number), (dist(rng) - 0.5f) * variance(rng1) + 0.8f, ring * std::sinf(random_number)}));
     }
 
     Matrix4 view = Matrix4::identity;
 
-    Spot_light light;
-    light.position = Vector3(-2.0f, 1.0f, -3.0f);
-    light.direction = Vector3(0.3f, 1.0f, 0.3f);
-    light.color = Color(1.0f, 1.0f, 1.0f);
-    light.cutoff_angle = math::radians(12.5f);
-    light.blend_angle = math::radians(13.5f);
-    light.intensity = 1.5f;
-    light.direction.normalize();
-
-    shader.use();
-    shader.set_float("material.shininess", 32.0f);
-    shader.set_float("material.ambient_strength", 0.2f);
-    shader.set_float("material.diffuse_strength", 1.0f);
-    shader.set_float("material.specular_strength", 1.0f);
-    shader.set_float("light.attentuation_constant", 1.0f);
-    shader.set_float("light.attentuation_linear", 0.09f);
-    shader.set_float("light.attentuation_quadratic", 0.032f);
-    shader.set_float("light.intensity", light.intensity);
-
-    Model cube1 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/nanosuit/nanosuit.obj");
-    Model cube2 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
+    Model cube = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
     Plane scene_quad;
     Cube skybox;
+
+    Model planet = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/planet/planet.obj");
+    Model asteroid = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/rock/rock.obj");
 
     GLuint skybox_cubemap =
         load_cubemap({"C:/Users/An0num0us/Documents/GameEngine/assets/skybox/right.jpg", "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/left.jpg",
@@ -177,6 +165,27 @@ int main(int argc, char** argv) {
 
     Framebuffer framebuffer(window_width, window_height);
     glEnable(GL_CULL_FACE);
+
+	GLuint instance_buffer;
+    glGenBuffers(1, &instance_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, instance_buffer);
+    glBufferData(GL_ARRAY_BUFFER, asteroid_count * sizeof(Matrix4), &model_transforms[0], GL_STATIC_DRAW);
+
+	asteroid.for_each_mesh([](Mesh& mesh) -> void { 
+		mesh.bind();
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Matrix4), (void*)0);
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Matrix4), (void*)(4 * sizeof(float)));
+        glEnableVertexAttribArray(5);
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Matrix4), (void*)(8 * sizeof(float)));
+        glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Matrix4), (void*)(12 * sizeof(float)));
+        glVertexAttribDivisor(3, 1);
+        glVertexAttribDivisor(4, 1);
+        glVertexAttribDivisor(5, 1);
+        glVertexAttribDivisor(6, 1);
+    });
 
     // Window and render loop
     while (!glfwWindowShouldClose(window)) {
@@ -190,41 +199,36 @@ int main(int argc, char** argv) {
         view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
 
         shader.use();
-        shader.set_vec3("light.position", camera.position);
-        shader.set_vec3("light.direction", normalize(camera.front));
-        shader.set_vec3("light.color", light.color);
-        shader.set_float("light.cutoff_angle", std::cos(light.cutoff_angle));
-        shader.set_float("light.blend_angle", std::cos(light.blend_angle));
-        shader.set_vec3("view_position", camera.position);
-        shader.set_vec3("camera.position", camera.position);
-        shader.set_vec3("camera.direction", normalize(camera.front));
-        //shader.set_matrix4("model", transform::scale({0.5f, 0.5f, 0.5f}) * transform::rotate_y(math::radians(45.0f)) * transform::rotate_x(math::radians(17.0f)));
         shader.set_matrix4("model", Matrix4::identity);
         shader.set_matrix4("view", view);
         shader.set_matrix4("projection", projection);
-        shader.set_float("time_factor", (float)glfwGetTime());
-        cube1.draw(shader);
+        planet.draw(shader);
 
-        normals_shader.use();
-        normals_shader.set_matrix4("model", Matrix4::identity);
-        normals_shader.set_matrix4("view", view);
-        normals_shader.set_matrix4("projection", projection);
-        normals_shader.set_float("normal_magnitude", 0.2f);
-        cube1.draw(normals_shader);
-        //shader.set_matrix4("model", transform::translate({4.0f, 0.0f, -2.0f}));
-        //cube2.draw(shader);
+		instanced_shader.use();
+        instanced_shader.set_matrix4("view", view);
+        instanced_shader.set_matrix4("proejction", projection);
+        asteroid.for_each_mesh([&instanced_shader, asteroid_count](Mesh& mesh) -> void {
+            mesh.draw_instanced(instanced_shader, asteroid_count);
+		});
 
-        glDisable(GL_CULL_FACE);
-        glDepthFunc(GL_LEQUAL);
-        skybox_shader.use();
-        skybox_shader.set_matrix4("view", view * transform::translate(-transform::get_translation(view)));
-        skybox_shader.set_matrix4("projection", projection);
-        skybox_shader.set_int("skybox", 0);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_cubemap);
-        skybox.draw(skybox_shader);
-        glDepthFunc(GL_LESS);
-        glEnable(GL_CULL_FACE);
+        //normals_shader.use();
+        //normals_shader.set_matrix4("model", Matrix4::identity);
+        //normals_shader.set_matrix4("view", view);
+        //normals_shader.set_matrix4("projection", projection);
+        //normals_shader.set_float("normal_magnitude", 0.2f);
+        //cube1.draw(normals_shader);
+
+        //glDisable(GL_CULL_FACE);
+        //glDepthFunc(GL_LEQUAL);
+        //skybox_shader.use();
+        //skybox_shader.set_matrix4("view", view * transform::translate(-transform::get_translation(view)));
+        //skybox_shader.set_matrix4("projection", projection);
+        //skybox_shader.set_int("skybox", 0);
+        //glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_cubemap);
+        //skybox.draw(skybox_shader);
+        //glDepthFunc(GL_LESS);
+        //glEnable(GL_CULL_FACE);
 
         framebuffer.unbind();
         glDisable(GL_DEPTH_TEST);
@@ -241,38 +245,6 @@ int main(int argc, char** argv) {
     glfwTerminate();
 
     return 0;
-}
-
-void read_file(std::filesystem::path const& filename, std::string& out) {
-    std::ifstream file(filename);
-    if (file) {
-        file.seekg(0, std::ios::end);
-        out.resize(file.tellg());
-        file.seekg(0, std::ios::beg);
-        file.read(&out[0], out.size());
-        file.close();
-    } else {
-        throw std::invalid_argument("Could not open file " + filename.string());
-    }
-}
-
-Shader_type shader_type_from_filename(std::filesystem::path const& filename) {
-    std::string extension(filename.extension().string());
-    if (extension == ".vert") {
-        return Shader_type::vertex;
-    } else if (extension == ".frag") {
-        return Shader_type::fragment;
-    } else if (extension == ".geom") {
-        return Shader_type::geometry;
-    } else if (extension == ".comp") {
-        return Shader_type::compute;
-    } else if (extension == ".tese") {
-        return Shader_type::tessellation_evaluation;
-    } else if (extension == ".tesc") {
-        return Shader_type::tessellation_control;
-    } else {
-        throw std::invalid_argument("\"" + extension + "\" is not a known shader file extension");
-    }
 }
 
 void framebuffer_size_callback(GLFWwindow*, int width, int height) {

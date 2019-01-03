@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <fstream>
 
 Shader::Shader() {
     program = glCreateProgram();
@@ -39,6 +40,45 @@ void Shader::use() {
 void Shader::detach(Shader_file const& shader) {
     glDetachShader(program, shader.shader);
 }
+
+static void read_file(std::filesystem::path const& filename, std::string& out) {
+    std::ifstream file(filename);
+    if (file) {
+        file.seekg(0, std::ios::end);
+        out.resize(file.tellg());
+        file.seekg(0, std::ios::beg);
+        file.read(&out[0], out.size());
+        file.close();
+    } else {
+        throw std::invalid_argument("Could not open file " + filename.string());
+    }
+}
+
+static Shader_type shader_type_from_filename(std::filesystem::path const& filename) {
+    std::string extension(filename.extension().string());
+    if (extension == ".vert") {
+        return Shader_type::vertex;
+    } else if (extension == ".frag") {
+        return Shader_type::fragment;
+    } else if (extension == ".geom") {
+        return Shader_type::geometry;
+    } else if (extension == ".comp") {
+        return Shader_type::compute;
+    } else if (extension == ".tese") {
+        return Shader_type::tessellation_evaluation;
+    } else if (extension == ".tesc") {
+        return Shader_type::tessellation_control;
+    } else {
+        throw std::invalid_argument("\"" + extension + "\" is not a known shader file extension");
+    }
+}
+
+void Shader::load_shader_file(std::filesystem::path path) {
+    std::string shader_source;
+    read_file(path, shader_source);
+    Shader_file s(shader_type_from_filename(path), shader_source);
+    attach(s);
+};
 
 GLint Shader::get_uniform(std::string const& name) {
     return glGetUniformLocation(program, name.c_str());
