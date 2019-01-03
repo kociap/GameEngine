@@ -70,8 +70,6 @@ int main(int argc, char** argv) {
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    // Load, compile and link shaders
-
     // I really need to do something with those hardcoded paths
     Shader shader;
     shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicvertex.vert");
@@ -138,14 +136,16 @@ int main(int argc, char** argv) {
     std::uniform_real_distribution<float> dist(0, 1.0f);
     std::uniform_real_distribution<float> ring_variation(0.9f, 1.1f);
     std::uniform_real_distribution<float> variance(0.9f, 1.3f);
+    std::uniform_real_distribution<float> scale(0.6f, 1.2f);
 
-    uint32_t asteroid_count = 2000;
+    uint32_t asteroid_count = 1000;
     float ring_radius = 9;
     std::vector<Matrix4> model_transforms;
+    model_transforms.reserve(asteroid_count);
     for (int i = 0; i < asteroid_count; ++i) {
         float random_number = math::radians(dist(rng) * 360.0f);
         float ring = ring_radius * ring_variation(rng) * variance(rng1);
-        model_transforms.push_back(transform::rotate_z(math::radians(dist(rng) * 360.0f)) * transform::rotate_x(math::radians(dist(rng) * 360.0f)) *
+        model_transforms.push_back((transform::scale({0.1f, 0.1f, 0.1f}) *= scale(rng)) * transform::rotate_z(math::radians(dist(rng) * 360.0f)) * transform::rotate_x(math::radians(dist(rng) * 360.0f)) *
                                    transform::translate({ring * std::cosf(random_number), (dist(rng) - 0.5f) * variance(rng1) + 0.8f, ring * std::sinf(random_number)}));
     }
 
@@ -206,7 +206,7 @@ int main(int argc, char** argv) {
 
 		instanced_shader.use();
         instanced_shader.set_matrix4("view", view);
-        instanced_shader.set_matrix4("proejction", projection);
+        instanced_shader.set_matrix4("projection", projection);
         asteroid.for_each_mesh([&instanced_shader, asteroid_count](Mesh& mesh) -> void {
             mesh.draw_instanced(instanced_shader, asteroid_count);
 		});

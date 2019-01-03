@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <cassert>
 
 Shader::Shader() {
     program = glCreateProgram();
@@ -81,11 +82,15 @@ void Shader::load_shader_file(std::filesystem::path path) {
 };
 
 GLint Shader::get_uniform(std::string const& name) {
-    return glGetUniformLocation(program, name.c_str());
+    GLint location = glGetUniformLocation(program, name.c_str());
+    assert(location != -1);
+    return location;
 }
 
 GLint Shader::get_uniform(char const* name) {
-    return glGetUniformLocation(program, name);
+    GLint location = glGetUniformLocation(program, name);
+    assert(location != -1);
+    return location;
 }
 
 void Shader::set_int(std::string const& name, int a) {
