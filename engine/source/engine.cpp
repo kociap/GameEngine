@@ -8,13 +8,13 @@
 #include "math/math.hpp"
 #include "math/matrix4.hpp"
 #include "math/transform.hpp"
+#include "mesh/cube.hpp"
+#include "mesh/plane.hpp"
 #include "model.hpp"
 #include "renderer/framebuffer.hpp"
 #include "shader.hpp"
 #include "spotlight.hpp"
 #include "stb/stb_image.hpp"
-#include "mesh/plane.hpp"
-#include "mesh/cube.hpp"
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
@@ -84,17 +84,24 @@ int main(int argc, char** argv) {
     Shader shader;
     load_shader_file(shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicvertex.vert");
     load_shader_file(shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicfrag.frag");
+    //load_shader_file(shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/explode.geom");
     shader.link();
+
+    Shader normals_shader;
+    load_shader_file(normals_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.vert");
+    load_shader_file(normals_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.geom");
+    load_shader_file(normals_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.frag");
+    normals_shader.link();
 
     Shader quad_shader;
     load_shader_file(quad_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/quad.vert");
     load_shader_file(quad_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/quad.frag");
     quad_shader.link();
 
-	Shader skybox_shader;
+    Shader skybox_shader;
     load_shader_file(skybox_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/skybox.vert");
     load_shader_file(skybox_shader, "C:/Users/An0num0us/Documents/GameEngine/engine/shaders/skybox.frag");
-	skybox_shader.link();
+    skybox_shader.link();
 
     auto load_cubemap = [](std::vector<std::filesystem::path> const& paths) -> GLuint {
         if (paths.size() != 6) {
@@ -143,8 +150,8 @@ int main(int argc, char** argv) {
     light.position = Vector3(-2.0f, 1.0f, -3.0f);
     light.direction = Vector3(0.3f, 1.0f, 0.3f);
     light.color = Color(1.0f, 1.0f, 1.0f);
-    light.cutoff_angle = math::radians(22.5f);
-    light.blend_angle = math::radians(35.0f);
+    light.cutoff_angle = math::radians(12.5f);
+    light.blend_angle = math::radians(13.5f);
     light.intensity = 1.5f;
     light.direction.normalize();
 
@@ -158,29 +165,10 @@ int main(int argc, char** argv) {
     shader.set_float("light.attentuation_quadratic", 0.032f);
     shader.set_float("light.intensity", light.intensity);
 
-	auto load_texture = [](std::filesystem::path filename) -> GLuint {
-        int width, height, channels;
-        int32_t desired_channel_count = 4;
-        //stbi_set_flip_vertically_on_load(true);
-        unsigned char* image_data = stbi_load(filename.string().c_str(), &width, &height, &channels, desired_channel_count);
-        if (!image_data) {
-            throw std::runtime_error("Image not loaded");
-        }
-        GLuint texture;
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        stbi_image_free(image_data);
-        return texture;
-    };
-
-    Model cube1 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
+    Model cube1 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/nanosuit/nanosuit.obj");
     Model cube2 = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
     Plane scene_quad;
     Cube skybox;
-	Cube cube;
-    GLuint wall_texture = load_texture("C:/Users/An0num0us/Documents/GameEngine/assets/wall.jpg");
 
     GLuint skybox_cubemap =
         load_cubemap({"C:/Users/An0num0us/Documents/GameEngine/assets/skybox/right.jpg", "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/left.jpg",
@@ -210,17 +198,24 @@ int main(int argc, char** argv) {
         shader.set_vec3("view_position", camera.position);
         shader.set_vec3("camera.position", camera.position);
         shader.set_vec3("camera.direction", normalize(camera.front));
-
+        //shader.set_matrix4("model", transform::scale({0.5f, 0.5f, 0.5f}) * transform::rotate_y(math::radians(45.0f)) * transform::rotate_x(math::radians(17.0f)));
         shader.set_matrix4("model", Matrix4::identity);
         shader.set_matrix4("view", view);
         shader.set_matrix4("projection", projection);
+        shader.set_float("time_factor", (float)glfwGetTime());
         cube1.draw(shader);
-        shader.set_matrix4("model", transform::translate({4.0f, 0.0f, -2.0f}));
-        //cube2.draw(shader);
-        cube2.draw(shader);
 
-		glDisable(GL_CULL_FACE);
-		glDepthFunc(GL_LEQUAL);
+        normals_shader.use();
+        normals_shader.set_matrix4("model", Matrix4::identity);
+        normals_shader.set_matrix4("view", view);
+        normals_shader.set_matrix4("projection", projection);
+        normals_shader.set_float("normal_magnitude", 0.2f);
+        cube1.draw(normals_shader);
+        //shader.set_matrix4("model", transform::translate({4.0f, 0.0f, -2.0f}));
+        //cube2.draw(shader);
+
+        glDisable(GL_CULL_FACE);
+        glDepthFunc(GL_LEQUAL);
         skybox_shader.use();
         skybox_shader.set_matrix4("view", view * transform::translate(-transform::get_translation(view)));
         skybox_shader.set_matrix4("projection", projection);

@@ -1,8 +1,11 @@
 #version 450 core
 
-in vec3 normal;
-in vec3 fragment_position;
-in vec2 texture_coordinates;
+in Frag_data {
+    vec3 normal;
+    vec3 fragment_position;
+    vec2 texture_coordinates;
+}
+fragment_data;
 
 struct Material {
     sampler2D texture_diffuse0;
@@ -58,23 +61,23 @@ uniform Material material;
 out vec4 frag_color;
 
 void main() {
-    vec3 ambient = vec3(texture(material.texture_diffuse0, texture_coordinates));
+    vec3 ambient = vec3(texture(material.texture_diffuse0, fragment_data.texture_coordinates));
     ambient = material.ambient_strength * ambient;
 
-    vec3 light_direction = normalize(light.position - fragment_position);
+    vec3 light_direction = normalize(light.position - fragment_data.fragment_position);
     float angle = dot(light.direction, -light_direction);
     if (light.blend_angle < angle) {
         float blend_strength = clamp((light.blend_angle - angle) / (light.blend_angle - light.cutoff_angle), 0.0, 1.0);
 
-        float diffuse_strength = max(dot(normal, light_direction), 0.0);
-        vec3 diffuse = diffuse_strength * vec3(texture(material.texture_diffuse0, texture_coordinates));
+        float diffuse_strength = max(dot(fragment_data.normal, light_direction), 0.0);
+        vec3 diffuse = diffuse_strength * vec3(texture(material.texture_diffuse0, fragment_data.texture_coordinates));
 
-        vec3 view_direction = normalize(camera.position - fragment_position);
-        vec3 reflect_direction = reflect(-light_direction, normal);
+        vec3 view_direction = normalize(camera.position - fragment_data.fragment_position);
+        vec3 reflect_direction = reflect(-light_direction, fragment_data.normal);
         float specular_component = pow(max(dot(view_direction, reflect_direction), 0.0), material.shininess);
-        vec3 specular = vec3(texture(material.texture_specular0, texture_coordinates)) * specular_component * light.color;
+        vec3 specular = vec3(texture(material.texture_specular0, fragment_data.texture_coordinates)) * specular_component * light.color;
 
-        float dist = length(light.position - fragment_position);
+        float dist = length(light.position - fragment_data.fragment_position);
         float attentuation = light.intensity / (light.attentuation_constant + light.attentuation_linear * dist + light.attentuation_quadratic * dist * dist);
 
         diffuse = material.diffuse_strength * diffuse * attentuation * blend_strength;

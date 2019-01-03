@@ -27,7 +27,8 @@ void Shader::link() {
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &log_length);
         std::vector<GLchar> log(log_length);
         glGetProgramInfoLog(program, log_length, &log_length, &log[0]);
-        throw Program_linking_failed(std::string(log.begin(), log.end()));
+        std::string log_string(log.begin(), log.end());
+        throw Program_linking_failed(std::move(log_string));
     }
 }
 
