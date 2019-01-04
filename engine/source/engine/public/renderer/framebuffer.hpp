@@ -1,5 +1,5 @@
-#ifndef ENGINE_RENDERED_FRAMEBUFFER_HPP_INCLUDE
-#define ENGINE_RENDERED_FRAMEBUFFER_HPP_INCLUDE
+#ifndef ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
+#define ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
 
 #include <cstdint>
 
@@ -10,13 +10,14 @@ public:
     Framebuffer& operator=(Framebuffer&&);
     ~Framebuffer();
 
-	Framebuffer() = delete;
-	Framebuffer(Framebuffer const&) = delete;
+    Framebuffer() = delete;
+    Framebuffer(Framebuffer const&) = delete;
     Framebuffer& operator=(Framebuffer const&) = delete;
 
     void bind();
     void unbind();
-	void resize(uint32_t width, uint32_t height);
+    void clear();
+    void resize(uint32_t width, uint32_t height);
     uint32_t get_texture();
 
 private:
@@ -24,6 +25,10 @@ private:
     uint32_t depth_rbo = 0;
     uint32_t stencil_rbo = 0;
     uint32_t texture_color_buffer = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
+
+	friend class Framebuffer_multisampled;
 };
 
-#endif ENGINE_RENDERED_FRAMEBUFFER_HPP_INCLUDE
+#endif // !ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE

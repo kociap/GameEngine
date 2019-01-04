@@ -8,6 +8,7 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/plane.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/cube.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/renderer/framebuffer.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/renderer/framebuffer_multisampled.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/renderer/uniform_buffer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/renderer/buffers.hpp"
     PARENT_SCOPE

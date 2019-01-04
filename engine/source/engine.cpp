@@ -12,6 +12,7 @@
 #include "mesh/plane.hpp"
 #include "model.hpp"
 #include "renderer/framebuffer.hpp"
+#include "renderer/framebuffer_multisampled.hpp"
 #include "shader.hpp"
 #include "spotlight.hpp"
 #include "stb/stb_image.hpp"
@@ -164,6 +165,8 @@ int main(int argc, char** argv) {
                       "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/back.jpg", "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/front.jpg"});
 
     Framebuffer framebuffer(window_width, window_height);
+    Framebuffer_multisampled framebuffer_multisampled(window_width, window_height, 16);
+
     glEnable(GL_CULL_FACE);
 
 	GLuint instance_buffer;
@@ -191,7 +194,7 @@ int main(int argc, char** argv) {
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
 
-        framebuffer.bind();
+        framebuffer_multisampled.bind();
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
@@ -202,7 +205,8 @@ int main(int argc, char** argv) {
         shader.set_matrix4("model", Matrix4::identity);
         shader.set_matrix4("view", view);
         shader.set_matrix4("projection", projection);
-        planet.draw(shader);
+        //planet.draw(shader);
+        cube.draw(shader);
 
 		instanced_shader.use();
         instanced_shader.set_matrix4("view", view);
@@ -230,7 +234,7 @@ int main(int argc, char** argv) {
         //glDepthFunc(GL_LESS);
         //glEnable(GL_CULL_FACE);
 
-        framebuffer.unbind();
+        framebuffer_multisampled.blit(framebuffer);
         glDisable(GL_DEPTH_TEST);
         quad_shader.use();
         glActiveTexture(GL_TEXTURE0);
