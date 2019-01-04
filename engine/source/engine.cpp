@@ -77,10 +77,10 @@ int main(int argc, char** argv) {
     shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicfrag.frag");
     shader.link();
 
-	Shader instanced_shader;
-    instanced_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/asteroid.vert");
-    instanced_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/asteroid.frag");
-	instanced_shader.link();
+	Shader light_shader;
+    light_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/light.vert");
+    light_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/light.frag");
+    light_shader.link();
 
     Shader normals_shader;
     normals_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.vert");
@@ -130,6 +130,23 @@ int main(int argc, char** argv) {
         return cubemap;
     };
 
+    auto load_texture = [](std::filesystem::path filename) -> GLuint {
+        int width, height, channels;
+        int32_t desired_channel_count = 4;
+        //stbi_set_flip_vertically_on_load(true);
+        unsigned char* image_data = stbi_load(filename.string().c_str(), &width, &height, &channels, 0);
+        if (!image_data) {
+            throw std::runtime_error("Image not loaded");
+        }
+        GLuint texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        stbi_image_free(image_data);
+        return texture;
+    };
+
     std::mt19937 rng;
     rng.seed(std::random_device()());
     std::mt19937 rng1;
@@ -155,40 +172,37 @@ int main(int argc, char** argv) {
     Model cube = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
     Plane scene_quad;
     Cube skybox;
-
-    Model planet = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/planet/planet.obj");
-    Model asteroid = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/rock/rock.obj");
+    Plane floor;
 
     GLuint skybox_cubemap =
         load_cubemap({"C:/Users/An0num0us/Documents/GameEngine/assets/skybox/right.jpg", "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/left.jpg",
                       "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/top.jpg", "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/bottom.jpg",
                       "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/back.jpg", "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/front.jpg"});
 
+	GLuint wood_texture = load_texture("C:/Users/An0num0us/Documents/GameEngine/assets/wood_floor.png");
+
     Framebuffer framebuffer(window_width, window_height);
-    Framebuffer_multisampled framebuffer_multisampled(window_width, window_height, 16);
+    Framebuffer_multisampled framebuffer_multisampled(window_width, window_height, 4);
 
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
 
-	GLuint instance_buffer;
-    glGenBuffers(1, &instance_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, instance_buffer);
-    glBufferData(GL_ARRAY_BUFFER, asteroid_count * sizeof(Matrix4), &model_transforms[0], GL_STATIC_DRAW);
+	Vector3 light_pos(-1.0f, 1.0f, 0.0f);
 
-	asteroid.for_each_mesh([](Mesh& mesh) -> void { 
-		mesh.bind();
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Matrix4), (void*)0);
-        glEnableVertexAttribArray(4);
-        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Matrix4), (void*)(4 * sizeof(float)));
-        glEnableVertexAttribArray(5);
-        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Matrix4), (void*)(8 * sizeof(float)));
-        glEnableVertexAttribArray(6);
-        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Matrix4), (void*)(12 * sizeof(float)));
-        glVertexAttribDivisor(3, 1);
-        glVertexAttribDivisor(4, 1);
-        glVertexAttribDivisor(5, 1);
-        glVertexAttribDivisor(6, 1);
-    });
+	shader.use();
+    shader.set_float("ambient_strength", 0.1f);
+    shader.set_vec3("ambient_color", Color(1.0f, 1.0f, 1.0f));
+    shader.set_float("light.attentuation_constant", 1.0f);
+    shader.set_float("light.attentuation_linear", 0.09f);
+    shader.set_float("light.attentuation_quadratic", 0.032f);
+    shader.set_float("light.intensity", 1.0f);
+    shader.set_float("light.diffuse_strength", 0.8f);
+    shader.set_float("light.specular_strength", 1.0f);
+    shader.set_float("material.shininess", 32.0f);
+    shader.set_vec3("light.position", light_pos);
+    shader.set_vec3("light.color", Color(1.0f, 1.0f, 1.0f));
+
+	light_shader.use();
+    light_shader.set_matrix4("light_transform", transform::scale({0.1f, 0.1f, 0.1f}) * transform::translate(light_pos));
 
     // Window and render loop
     while (!glfwWindowShouldClose(window)) {
@@ -202,18 +216,19 @@ int main(int argc, char** argv) {
         view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
 
         shader.use();
-        shader.set_matrix4("model", Matrix4::identity);
+        shader.set_matrix4("model", transform::scale({10, 10, 10}) * transform::rotate_x(math::radians(90.0f)));
         shader.set_matrix4("view", view);
         shader.set_matrix4("projection", projection);
-        //planet.draw(shader);
-        cube.draw(shader);
+        shader.set_vec3("camera.position", camera.position);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, wood_texture);
+        shader.set_int("material.texture_diffuse0", 0);
+        floor.draw(shader);
 
-		instanced_shader.use();
-        instanced_shader.set_matrix4("view", view);
-        instanced_shader.set_matrix4("projection", projection);
-        asteroid.for_each_mesh([&instanced_shader, asteroid_count](Mesh& mesh) -> void {
-            mesh.draw_instanced(instanced_shader, asteroid_count);
-		});
+		light_shader.use();
+        light_shader.set_matrix4("view", view);
+        light_shader.set_matrix4("projection", projection);
+		cube.draw(light_shader);
 
         //normals_shader.use();
         //normals_shader.set_matrix4("model", Matrix4::identity);

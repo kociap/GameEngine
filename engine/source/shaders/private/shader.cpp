@@ -83,13 +83,19 @@ void Shader::load_shader_file(std::filesystem::path path) {
 
 GLint Shader::get_uniform(std::string const& name) {
     GLint location = glGetUniformLocation(program, name.c_str());
-    assert(location != -1);
+	// -1 may also mean a uniform removed by optimizations
+	// Exception to catch typos
+    if (location == -1) {
+        throw std::runtime_error("Uniform location is -1");
+	}
     return location;
 }
 
 GLint Shader::get_uniform(char const* name) {
     GLint location = glGetUniformLocation(program, name);
-    assert(location != -1);
+    if (location == -1) {
+        throw std::runtime_error("Uniform location is -1");
+    }
     return location;
 }
 
