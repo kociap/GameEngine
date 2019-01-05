@@ -26,21 +26,60 @@
 #include <stdexcept>
 #include <vector>
 
-GLuint window_width = 800;
-GLuint window_height = 800;
-
-Camera camera;
-Matrix4 projection;
-
 void framebuffer_size_callback(GLFWwindow*, int width, int height);
 void mouse_button_callback(GLFWwindow*, int button, int action, int mods);
 void mouse_position_callback(GLFWwindow*, double param_x, double param_y);
 void scroll_callback(GLFWwindow*, double offset_x, double offset_y);
 void process_input(GLFWwindow* window);
 
+enum class Input_event { scroll };
+
+struct InputAxisBinding {
+    std::string axis_name;
+    Input_event input_event;
+    float axis_value = 0;
+
+	InputAxisBinding(std::string const& name, Input_event evt) : axis_name(name), input_event(evt) {}
+};
+
+struct Input {
+public:
+	float get_axis(std::string const& axis_name) {
+        auto map_iter = axis_bindings.find(axis_name);
+        if (map_iter == axis_bindings.end()) {
+            throw std::runtime_error("Axis " + axis_name + " not bound");
+		}
+        return map_iter->second.axis_value;
+	}
+
+	void add_axis_binding(std::string const& axis_name, Input_event evt) {
+        axis_bindings.emplace(axis_name, InputAxisBinding(axis_name, evt));
+	}
+
+	void update_axis_value(Input_event evt, float value) {
+        for (auto& [key, binding] : axis_bindings) {
+            if (binding.input_event == evt) {
+                binding.axis_value = value;
+			}
+		}
+	}
+
+private:
+    std::map<std::string, InputAxisBinding> axis_bindings;
+};
+
+GLuint window_width = 800;
+GLuint window_height = 800;
+
+Camera camera;
+Matrix4 projection;
+
+Input input;
+
 int main(int argc, char** argv) {
     auto path = argv[0];
 
+	input = Input();
     camera = Camera();
     projection = transform::perspective(math::radians(camera.fov), static_cast<float>(window_width) / static_cast<float>(window_height), 0.1f, 100.0f);
 
@@ -204,9 +243,14 @@ int main(int argc, char** argv) {
 	light_shader.use();
     light_shader.set_matrix4("light_transform", transform::scale({0.1f, 0.1f, 0.1f}) * transform::translate(light_pos));
 
+	input.add_axis_binding("scroll", Input_event::scroll);
+
     // Window and render loop
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
+
+		float scroll_value = input.get_axis("scroll");
+        camera.position += camera.front * scroll_value * 2;
 
         framebuffer_multisampled.bind();
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
@@ -258,6 +302,7 @@ int main(int argc, char** argv) {
         scene_quad.draw(quad_shader);
 
         glfwSwapBuffers(window);
+        input.update_axis_value(Input_event::scroll, static_cast<float>(0));
         glfwPollEvents();
     }
 
@@ -303,10 +348,7 @@ void mouse_position_callback(GLFWwindow*, double param_x, double param_y) {
 }
 
 void scroll_callback(GLFWwindow*, double offset_x, double offset_y) {
-    camera.fov -= static_cast<float>(offset_y * 2.0);
-    camera.fov = std::min(camera.fov, 120.0f);
-    camera.fov = std::max(camera.fov, 10.0f);
-    projection = transform::perspective(math::radians(camera.fov), static_cast<float>(window_width) / static_cast<float>(window_height), 0.1f, 100.0f);
+    input.update_axis_value(Input_event::scroll, static_cast<float>(offset_y));
 }
 
 void process_input(GLFWwindow* window) {

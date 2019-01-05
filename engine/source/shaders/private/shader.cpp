@@ -85,9 +85,9 @@ GLint Shader::get_uniform(std::string const& name) {
     GLint location = glGetUniformLocation(program, name.c_str());
 	// -1 may also mean a uniform removed by optimizations
 	// Exception to catch typos
-    if (location == -1) {
+    /*if (location == -1) {
         throw std::runtime_error("Uniform location is -1");
-	}
+	}*/
     return location;
 }
 
