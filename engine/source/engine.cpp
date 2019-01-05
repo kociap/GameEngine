@@ -12,7 +12,6 @@
 #include "mesh/plane.hpp"
 #include "model.hpp"
 #include "renderer/framebuffer.hpp"
-#include "renderer/framebuffer_multisampled.hpp"
 #include "shader.hpp"
 #include "spotlight.hpp"
 #include "stb/stb_image.hpp"
@@ -34,12 +33,12 @@ void process_input(GLFWwindow* window);
 
 enum class Input_event { scroll };
 
-struct InputAxisBinding {
+struct Input_axis_binding {
     std::string axis_name;
     Input_event input_event;
     float axis_value = 0;
 
-	InputAxisBinding(std::string const& name, Input_event evt) : axis_name(name), input_event(evt) {}
+	Input_axis_binding(std::string const& name, Input_event evt) : axis_name(name), input_event(evt) {}
 };
 
 struct Input {
@@ -53,7 +52,7 @@ public:
 	}
 
 	void add_axis_binding(std::string const& axis_name, Input_event evt) {
-        axis_bindings.emplace(axis_name, InputAxisBinding(axis_name, evt));
+        axis_bindings.emplace(axis_name, Input_axis_binding(axis_name, evt));
 	}
 
 	void update_axis_value(Input_event evt, float value) {
@@ -65,11 +64,14 @@ public:
 	}
 
 private:
-    std::map<std::string, InputAxisBinding> axis_bindings;
+    std::map<std::string, Input_axis_binding> axis_bindings;
 };
 
 GLuint window_width = 800;
 GLuint window_height = 800;
+
+uint32_t shadow_width = 1024;
+uint32_t shadow_height = 1024;
 
 Camera camera;
 Matrix4 projection;
@@ -87,9 +89,6 @@ int main(int argc, char** argv) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
 
     GLFWwindow* window = glfwCreateWindow(window_width, window_height, "GameEngine", NULL, NULL);
     if (!window) {
@@ -126,6 +125,11 @@ int main(int argc, char** argv) {
     normals_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.geom");
     normals_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.frag");
     normals_shader.link();
+
+	Shader gamma_correction_shader;
+    gamma_correction_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/postprocessing/postprocess_vertex.vert");
+    gamma_correction_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/postprocessing/gamma_correction.frag");
+    gamma_correction_shader.link();
 
     Shader quad_shader;
     quad_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/quad.vert");
@@ -179,9 +183,13 @@ int main(int argc, char** argv) {
         }
         GLuint texture;
         glGenTextures(1, &texture);
+		CHECK_GL_ERRORS
         glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
+		CHECK_GL_ERRORS
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
+		CHECK_GL_ERRORS
         glGenerateMipmap(GL_TEXTURE_2D);
+		CHECK_GL_ERRORS
         stbi_image_free(image_data);
         return texture;
     };
@@ -220,15 +228,25 @@ int main(int argc, char** argv) {
 
 	GLuint wood_texture = load_texture("C:/Users/An0num0us/Documents/GameEngine/assets/wood_floor.png");
 
-    Framebuffer framebuffer(window_width, window_height);
-    Framebuffer_multisampled framebuffer_multisampled(window_width, window_height, 4);
+	renderer::framebuffer::Framebuffer_construct_info framebuffer_construct_info;
+    framebuffer_construct_info.width = window_width;
+    framebuffer_construct_info.height = window_height;
+    framebuffer_construct_info.depth_buffer = true;
+    framebuffer_construct_info.multisampled = true;
+    framebuffer_construct_info.samples = 4;
+
+    renderer::framebuffer::Framebuffer framebuffer_multisampled(framebuffer_construct_info);
+
+	framebuffer_construct_info.multisampled = false;
+	framebuffer_construct_info.depth_buffer_type = renderer::framebuffer::Buffer_type::texture;
+    renderer::framebuffer::Framebuffer framebuffer(framebuffer_construct_info);
 
     //glEnable(GL_CULL_FACE);
 
 	Vector3 light_pos(-1.0f, 1.0f, 0.0f);
 
 	shader.use();
-    shader.set_float("ambient_strength", 0.1f);
+    shader.set_float("ambient_strength", 0.02f);
     shader.set_vec3("ambient_color", Color(1.0f, 1.0f, 1.0f));
     shader.set_float("light.attentuation_constant", 1.0f);
     shader.set_float("light.attentuation_linear", 0.09f);
@@ -245,6 +263,8 @@ int main(int argc, char** argv) {
 
 	input.add_axis_binding("scroll", Input_event::scroll);
 
+	float gamma_correction_value = 2.2;
+    glDisable(GL_FRAMEBUFFER_SRGB);
     // Window and render loop
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
@@ -253,7 +273,7 @@ int main(int argc, char** argv) {
         camera.position += camera.front * scroll_value * 2;
 
         framebuffer_multisampled.bind();
-        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
 
@@ -295,11 +315,12 @@ int main(int argc, char** argv) {
 
         framebuffer_multisampled.blit(framebuffer);
         glDisable(GL_DEPTH_TEST);
-        quad_shader.use();
+        gamma_correction_shader.use();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, framebuffer.get_texture());
-        quad_shader.set_int("scene_texture", 0);
-        scene_quad.draw(quad_shader);
+        gamma_correction_shader.set_int("scene_texture", 0);
+        gamma_correction_shader.set_float("gamma", 1 / gamma_correction_value);
+        scene_quad.draw(gamma_correction_shader);
 
         glfwSwapBuffers(window);
         input.update_axis_value(Input_event::scroll, static_cast<float>(0));

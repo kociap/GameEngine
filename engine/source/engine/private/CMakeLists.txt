@@ -5,7 +5,7 @@ set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/plane.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/cube.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/renderer/framebuffer.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/renderer/framebuffer_multisampled.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/renderer/framebuffer_construct_info.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/renderer/uniform_buffer.cpp"
     PARENT_SCOPE
 )
