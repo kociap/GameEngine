@@ -187,7 +187,9 @@ int main(int argc, char** argv) {
         glBindTexture(GL_TEXTURE_2D, texture);
 		CHECK_GL_ERRORS
         glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
-		CHECK_GL_ERRORS
+        CHECK_GL_ERRORS
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glGenerateMipmap(GL_TEXTURE_2D);
 		CHECK_GL_ERRORS
         stbi_image_free(image_data);
@@ -238,7 +240,7 @@ int main(int argc, char** argv) {
     renderer::framebuffer::Framebuffer framebuffer_multisampled(framebuffer_construct_info);
 
 	framebuffer_construct_info.multisampled = false;
-	framebuffer_construct_info.depth_buffer_type = renderer::framebuffer::Buffer_type::texture;
+	//framebuffer_construct_info.depth_buffer_type = renderer::framebuffer::Buffer_type::texture;
     renderer::framebuffer::Framebuffer framebuffer(framebuffer_construct_info);
 
     //glEnable(GL_CULL_FACE);

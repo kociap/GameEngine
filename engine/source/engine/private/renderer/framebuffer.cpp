@@ -21,15 +21,16 @@ namespace renderer {
 
             // Generate color buffer
             if (info.color_buffer) {
-				glGenTextures(1, &texture_color_buffer);
+                glGenTextures(1, &texture_color_buffer);
+                CHECK_GL_ERRORS
 				if (info.multisampled) {
 					if (info.samples == 0) {
 						throw std::invalid_argument("Samples must not be 0");
 					}
-					glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture_color_buffer);
-					glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, info.samples, GL_RGB, info.width, info.height, GL_TRUE);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture_color_buffer);
+                    CHECK_GL_ERRORS
+                    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, info.samples, GL_RGB, info.width, info.height, GL_TRUE);
+                    CHECK_GL_ERRORS
 					glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 					CHECK_GL_ERRORS
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, texture_color_buffer, 0);
@@ -67,14 +68,6 @@ namespace renderer {
                         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, depth_buffer);
 						CHECK_GL_ERRORS
                         glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, info.samples, GL_DEPTH_COMPONENT, info.width, info.height, GL_TRUE);
-                        CHECK_GL_ERRORS
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                        CHECK_GL_ERRORS
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                        CHECK_GL_ERRORS
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                        CHECK_GL_ERRORS
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
                         CHECK_GL_ERRORS
                         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
                         CHECK_GL_ERRORS
