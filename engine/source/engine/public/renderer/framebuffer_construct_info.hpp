@@ -17,10 +17,10 @@ namespace renderer {
             read_draw,
         };
 
-		enum class Buffer_type {
-			renderbuffer, 
-			texture,
-		};
+        enum class Buffer_type {
+            renderbuffer,
+            texture,
+        };
 
         enum class Attachment {
             color,

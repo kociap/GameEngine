@@ -38,30 +38,30 @@ struct Input_axis_binding {
     Input_event input_event;
     float axis_value = 0;
 
-	Input_axis_binding(std::string const& name, Input_event evt) : axis_name(name), input_event(evt) {}
+    Input_axis_binding(std::string const& name, Input_event evt) : axis_name(name), input_event(evt) {}
 };
 
 struct Input {
 public:
-	float get_axis(std::string const& axis_name) {
+    float get_axis(std::string const& axis_name) {
         auto map_iter = axis_bindings.find(axis_name);
         if (map_iter == axis_bindings.end()) {
             throw std::runtime_error("Axis " + axis_name + " not bound");
-		}
+        }
         return map_iter->second.axis_value;
-	}
+    }
 
-	void add_axis_binding(std::string const& axis_name, Input_event evt) {
+    void add_axis_binding(std::string const& axis_name, Input_event evt) {
         axis_bindings.emplace(axis_name, Input_axis_binding(axis_name, evt));
-	}
+    }
 
-	void update_axis_value(Input_event evt, float value) {
+    void update_axis_value(Input_event evt, float value) {
         for (auto& [key, binding] : axis_bindings) {
             if (binding.input_event == evt) {
                 binding.axis_value = value;
-			}
-		}
-	}
+            }
+        }
+    }
 
 private:
     std::map<std::string, Input_axis_binding> axis_bindings;
@@ -81,7 +81,7 @@ Input input;
 int main(int argc, char** argv) {
     auto path = argv[0];
 
-	input = Input();
+    input = Input();
     camera = Camera();
     projection = transform::perspective(math::radians(camera.fov), static_cast<float>(window_width) / static_cast<float>(window_height), 0.1f, 100.0f);
 
@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
     shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/basicfrag.frag");
     shader.link();
 
-	Shader light_shader;
+    Shader light_shader;
     light_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/light.vert");
     light_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/light.frag");
     light_shader.link();
@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
     normals_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.frag");
     normals_shader.link();
 
-	Shader gamma_correction_shader;
+    Shader gamma_correction_shader;
     gamma_correction_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/postprocessing/postprocess_vertex.vert");
     gamma_correction_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/postprocessing/gamma_correction.frag");
     gamma_correction_shader.link();
@@ -183,15 +183,15 @@ int main(int argc, char** argv) {
         }
         GLuint texture;
         glGenTextures(1, &texture);
-		CHECK_GL_ERRORS
+        CHECK_GL_ERRORS
         glBindTexture(GL_TEXTURE_2D, texture);
-		CHECK_GL_ERRORS
+        CHECK_GL_ERRORS
         glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
         CHECK_GL_ERRORS
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glGenerateMipmap(GL_TEXTURE_2D);
-		CHECK_GL_ERRORS
+        CHECK_GL_ERRORS
         stbi_image_free(image_data);
         return texture;
     };
@@ -212,8 +212,10 @@ int main(int argc, char** argv) {
     for (int i = 0; i < asteroid_count; ++i) {
         float random_number = math::radians(dist(rng) * 360.0f);
         float ring = ring_radius * ring_variation(rng) * variance(rng1);
-        model_transforms.push_back((transform::scale({0.1f, 0.1f, 0.1f}) *= scale(rng)) * transform::rotate_z(math::radians(dist(rng) * 360.0f)) * transform::rotate_x(math::radians(dist(rng) * 360.0f)) *
-                                   transform::translate({ring * std::cosf(random_number), (dist(rng) - 0.5f) * variance(rng1) + 0.8f, ring * std::sinf(random_number)}));
+        model_transforms.push_back(
+            (transform::scale({0.1f, 0.1f, 0.1f}) *= scale(rng)) * transform::rotate_z(math::radians(dist(rng) * 360.0f)) *
+            transform::rotate_x(math::radians(dist(rng) * 360.0f)) *
+            transform::translate({ring * std::cosf(random_number), (dist(rng) - 0.5f) * variance(rng1) + 0.8f, ring * std::sinf(random_number)}));
     }
 
     Matrix4 view = Matrix4::identity;
@@ -228,9 +230,9 @@ int main(int argc, char** argv) {
                       "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/top.jpg", "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/bottom.jpg",
                       "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/back.jpg", "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/front.jpg"});
 
-	GLuint wood_texture = load_texture("C:/Users/An0num0us/Documents/GameEngine/assets/wood_floor.png");
+    GLuint wood_texture = load_texture("C:/Users/An0num0us/Documents/GameEngine/assets/wood_floor.png");
 
-	renderer::framebuffer::Framebuffer_construct_info framebuffer_construct_info;
+    renderer::framebuffer::Framebuffer_construct_info framebuffer_construct_info;
     framebuffer_construct_info.width = window_width;
     framebuffer_construct_info.height = window_height;
     framebuffer_construct_info.depth_buffer = true;
@@ -239,15 +241,15 @@ int main(int argc, char** argv) {
 
     renderer::framebuffer::Framebuffer framebuffer_multisampled(framebuffer_construct_info);
 
-	framebuffer_construct_info.multisampled = false;
-	//framebuffer_construct_info.depth_buffer_type = renderer::framebuffer::Buffer_type::texture;
+    framebuffer_construct_info.multisampled = false;
+    //framebuffer_construct_info.depth_buffer_type = renderer::framebuffer::Buffer_type::texture;
     renderer::framebuffer::Framebuffer framebuffer(framebuffer_construct_info);
 
     //glEnable(GL_CULL_FACE);
 
-	Vector3 light_pos(-1.0f, 1.0f, 0.0f);
+    Vector3 light_pos(-1.0f, 1.0f, 0.0f);
 
-	shader.use();
+    shader.use();
     shader.set_float("ambient_strength", 0.02f);
     shader.set_vec3("ambient_color", Color(1.0f, 1.0f, 1.0f));
     shader.set_float("light.attentuation_constant", 1.0f);
@@ -260,18 +262,18 @@ int main(int argc, char** argv) {
     shader.set_vec3("light.position", light_pos);
     shader.set_vec3("light.color", Color(1.0f, 1.0f, 1.0f));
 
-	light_shader.use();
+    light_shader.use();
     light_shader.set_matrix4("light_transform", transform::scale({0.1f, 0.1f, 0.1f}) * transform::translate(light_pos));
 
-	input.add_axis_binding("scroll", Input_event::scroll);
+    input.add_axis_binding("scroll", Input_event::scroll);
 
-	float gamma_correction_value = 2.2;
+    float gamma_correction_value = 2.2;
     glDisable(GL_FRAMEBUFFER_SRGB);
     // Window and render loop
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
 
-		float scroll_value = input.get_axis("scroll");
+        float scroll_value = input.get_axis("scroll");
         camera.position += camera.front * scroll_value * 2;
 
         framebuffer_multisampled.bind();
@@ -291,10 +293,10 @@ int main(int argc, char** argv) {
         shader.set_int("material.texture_diffuse0", 0);
         floor.draw(shader);
 
-		light_shader.use();
+        light_shader.use();
         light_shader.set_matrix4("view", view);
         light_shader.set_matrix4("projection", projection);
-		cube.draw(light_shader);
+        cube.draw(light_shader);
 
         //normals_shader.use();
         //normals_shader.set_matrix4("model", Matrix4::identity);
