@@ -8,7 +8,7 @@ namespace renderer {
     namespace framebuffer {
         class Framebuffer {
         public:
-            Framebuffer(Framebuffer_construct_info const&);
+            Framebuffer(Framebuffer_Construct_Info const&);
             Framebuffer(Framebuffer&&);
             Framebuffer& operator=(Framebuffer&&);
             ~Framebuffer();
@@ -24,7 +24,7 @@ namespace renderer {
             uint32_t get_texture();
 
         private:
-            Framebuffer_construct_info info;
+            Framebuffer_Construct_Info info;
             uint32_t framebuffer = 0;
             uint32_t depth_buffer = 0;
             uint32_t stencil_buffer = 0;

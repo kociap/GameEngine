@@ -13,7 +13,6 @@
 #include "model.hpp"
 #include "renderer/framebuffer.hpp"
 #include "shader.hpp"
-#include "spotlight.hpp"
 #include "stb/stb_image.hpp"
 #include <cmath>
 #include <cstdint>
@@ -120,12 +119,6 @@ int main(int argc, char** argv) {
     light_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/light.frag");
     light_shader.link();
 
-    Shader normals_shader;
-    normals_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.vert");
-    normals_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.geom");
-    normals_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/normals.frag");
-    normals_shader.link();
-
     Shader gamma_correction_shader;
     gamma_correction_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/postprocessing/postprocess_vertex.vert");
     gamma_correction_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/postprocessing/gamma_correction.frag");
@@ -135,11 +128,6 @@ int main(int argc, char** argv) {
     quad_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/quad.vert");
     quad_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/quad.frag");
     quad_shader.link();
-
-    Shader skybox_shader;
-    skybox_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/skybox.vert");
-    skybox_shader.load_shader_file("C:/Users/An0num0us/Documents/GameEngine/engine/shaders/skybox.frag");
-    skybox_shader.link();
 
     auto load_cubemap = [](std::vector<std::filesystem::path> const& paths) -> GLuint {
         if (paths.size() != 6) {
@@ -198,41 +186,25 @@ int main(int argc, char** argv) {
 
     std::mt19937 rng;
     rng.seed(std::random_device()());
-    std::mt19937 rng1;
-    rng.seed(std::random_device()());
     std::uniform_real_distribution<float> dist(0, 1.0f);
-    std::uniform_real_distribution<float> ring_variation(0.9f, 1.1f);
-    std::uniform_real_distribution<float> variance(0.9f, 1.3f);
-    std::uniform_real_distribution<float> scale(0.6f, 1.2f);
 
-    uint32_t asteroid_count = 1000;
-    float ring_radius = 9;
     std::vector<Matrix4> model_transforms;
-    model_transforms.reserve(asteroid_count);
-    for (int i = 0; i < asteroid_count; ++i) {
-        float random_number = math::radians(dist(rng) * 360.0f);
-        float ring = ring_radius * ring_variation(rng) * variance(rng1);
-        model_transforms.push_back(
-            (transform::scale({0.1f, 0.1f, 0.1f}) *= scale(rng)) * transform::rotate_z(math::radians(dist(rng) * 360.0f)) *
-            transform::rotate_x(math::radians(dist(rng) * 360.0f)) *
-            transform::translate({ring * std::cosf(random_number), (dist(rng) - 0.5f) * variance(rng1) + 0.8f, ring * std::sinf(random_number)}));
+    uint32_t cubes_count = 40;
+    for (int i = 0; i < cubes_count; ++i) {
+        model_transforms.push_back(transform::translate({dist(rng) * 20, dist(rng) * 5, dist(rng) * 20}));
     }
 
     Matrix4 view = Matrix4::identity;
 
     Model cube = Model::load_from_file("C:/Users/An0num0us/Documents/GameEngine/assets/cube.obj");
     Plane scene_quad;
-    Cube skybox;
+    Cube box;
     Plane floor;
 
-    GLuint skybox_cubemap =
-        load_cubemap({"C:/Users/An0num0us/Documents/GameEngine/assets/skybox/right.jpg", "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/left.jpg",
-                      "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/top.jpg", "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/bottom.jpg",
-                      "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/back.jpg", "C:/Users/An0num0us/Documents/GameEngine/assets/skybox/front.jpg"});
-
     GLuint wood_texture = load_texture("C:/Users/An0num0us/Documents/GameEngine/assets/wood_floor.png");
+    GLuint container_texture = load_texture("C:/Users/An0num0us/Documents/GameEngine/assets/container.jpg");
 
-    renderer::framebuffer::Framebuffer_construct_info framebuffer_construct_info;
+    renderer::framebuffer::Framebuffer_Construct_Info framebuffer_construct_info;
     framebuffer_construct_info.width = window_width;
     framebuffer_construct_info.height = window_height;
     framebuffer_construct_info.depth_buffer = true;
@@ -242,12 +214,13 @@ int main(int argc, char** argv) {
     renderer::framebuffer::Framebuffer framebuffer_multisampled(framebuffer_construct_info);
 
     framebuffer_construct_info.multisampled = false;
-    //framebuffer_construct_info.depth_buffer_type = renderer::framebuffer::Buffer_type::texture;
     renderer::framebuffer::Framebuffer framebuffer(framebuffer_construct_info);
 
-    //glEnable(GL_CULL_FACE);
+    framebuffer_construct_info.depth_buffer_type = renderer::framebuffer::Buffer_Type::texture;
+    framebuffer_construct_info.color_buffer = false;
+    renderer::framebuffer::Framebuffer light_depth_buffer(framebuffer_construct_info);
 
-    Vector3 light_pos(-1.0f, 1.0f, 0.0f);
+    Vector3 light_pos(-1.0f, 4.0f, 0.0f);
 
     shader.use();
     shader.set_float("ambient_strength", 0.02f);
@@ -255,7 +228,7 @@ int main(int argc, char** argv) {
     shader.set_float("light.attentuation_constant", 1.0f);
     shader.set_float("light.attentuation_linear", 0.09f);
     shader.set_float("light.attentuation_quadratic", 0.032f);
-    shader.set_float("light.intensity", 1.0f);
+    shader.set_float("light.intensity", 6.0f);
     shader.set_float("light.diffuse_strength", 0.8f);
     shader.set_float("light.specular_strength", 1.0f);
     shader.set_float("material.shininess", 32.0f);
@@ -269,53 +242,59 @@ int main(int argc, char** argv) {
 
     float gamma_correction_value = 2.2;
     glDisable(GL_FRAMEBUFFER_SRGB);
-    // Window and render loop
-    while (!glfwWindowShouldClose(window)) {
-        process_input(window);
+    glEnable(GL_CULL_FACE);
 
-        float scroll_value = input.get_axis("scroll");
-        camera.position += camera.front * scroll_value * 2;
-
-        framebuffer_multisampled.bind();
-        glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_DEPTH_TEST);
-
-        view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
-
+    // A hack
+    auto render_scene = [&shader, &view, &wood_texture, &floor, &light_shader, &cube, &cubes_count, &model_transforms, &container_texture, &box]() -> void {
         shader.use();
-        shader.set_matrix4("model", transform::scale({10, 10, 10}) * transform::rotate_x(math::radians(90.0f)));
         shader.set_matrix4("view", view);
         shader.set_matrix4("projection", projection);
         shader.set_vec3("camera.position", camera.position);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, wood_texture);
         shader.set_int("material.texture_diffuse0", 0);
-        floor.draw(shader);
+        for (int i = -4; i < 20; ++i) {
+            for (int j = -4; j < 20; ++j) {
+                shader.set_matrix4("model",
+                                   transform::rotate_x(math::radians(90.0f)) * transform::translate({static_cast<float>(i * 2), 0, static_cast<float>(j * 2)}));
+                floor.draw(shader);
+            }
+        }
 
         light_shader.use();
         light_shader.set_matrix4("view", view);
         light_shader.set_matrix4("projection", projection);
         cube.draw(light_shader);
 
-        //normals_shader.use();
-        //normals_shader.set_matrix4("model", Matrix4::identity);
-        //normals_shader.set_matrix4("view", view);
-        //normals_shader.set_matrix4("projection", projection);
-        //normals_shader.set_float("normal_magnitude", 0.2f);
-        //cube1.draw(normals_shader);
+        for (int i = 0; i < cubes_count; ++i) {
+            shader.use();
+            shader.set_matrix4("model", model_transforms[i]);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, container_texture);
+            box.draw(shader);
+        }
+    };
 
-        //glDisable(GL_CULL_FACE);
-        //glDepthFunc(GL_LEQUAL);
-        //skybox_shader.use();
-        //skybox_shader.set_matrix4("view", view * transform::translate(-transform::get_translation(view)));
-        //skybox_shader.set_matrix4("projection", projection);
-        //skybox_shader.set_int("skybox", 0);
-        //glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_cubemap);
-        //skybox.draw(skybox_shader);
-        //glDepthFunc(GL_LESS);
-        //glEnable(GL_CULL_FACE);
+    // Window and render loop
+    while (!glfwWindowShouldClose(window)) {
+        process_input(window);
+
+        float scroll_value = input.get_axis("scroll");
+        camera.position += camera.front * scroll_value * 2;
+        glEnable(GL_DEPTH_TEST);
+
+        view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
+
+        glViewport(0, 0, shadow_width, shadow_height);
+        light_depth_buffer.bind();
+        glClear(GL_DEPTH_BUFFER_BIT);
+        render_scene();
+
+        glViewport(0, 0, window_width, window_height);
+        framebuffer_multisampled.bind();
+        glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        render_scene();
 
         framebuffer_multisampled.blit(framebuffer);
         glDisable(GL_DEPTH_TEST);

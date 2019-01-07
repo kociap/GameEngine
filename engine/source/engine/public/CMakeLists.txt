@@ -1,10 +1,15 @@
 set(HEADER_FILES 
     ${HEADER_FILES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/directionallight.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/pointlight.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/spotlight.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/model.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/object.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/game_object.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/components/point_light_component.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/components/spot_light_component.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/components/directional_light_component.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/components/base_component.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/components/input_component.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/components/transform.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/plane.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/cube.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/renderer/framebuffer.hpp"

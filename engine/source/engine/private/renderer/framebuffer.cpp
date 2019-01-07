@@ -7,7 +7,7 @@
 
 namespace renderer {
     namespace framebuffer {
-        Framebuffer::Framebuffer(Framebuffer_construct_info const& i) : info(i) {
+        Framebuffer::Framebuffer(Framebuffer_Construct_Info const& i) : info(i) {
             if (info.width > GL_MAX_RENDERBUFFER_SIZE || info.height > GL_MAX_RENDERBUFFER_SIZE) {
                 throw std::invalid_argument("Too big buffer size");
             }
@@ -51,7 +51,7 @@ namespace renderer {
             }
 
             if (info.depth_buffer) {
-                if (info.depth_buffer_type == Buffer_type::renderbuffer) {
+                if (info.depth_buffer_type == Buffer_Type::renderbuffer) {
                     glGenRenderbuffers(1, &depth_buffer);
                     glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
                     if (info.multisampled) {
