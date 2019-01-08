@@ -18,7 +18,6 @@ Vector3 Vector3::cross(Vector3 const& vec1, Vector3 const& vec2) {
     return Vector3(vec1.y * vec2.z - vec2.y * vec1.z, vec1.z * vec2.x - vec1.x * vec2.z, vec1.x * vec2.y - vec1.y * vec2.x);
 }
 
-Vector3::Vector3() : x(0), y(0), z(0) {}
 Vector3::Vector3(float x, float y, float z) : x(x), y(y), z(z) {}
 
 float& Vector3::component(int index) {
@@ -34,6 +33,10 @@ Vector3& Vector3::operator-() {
     y = -y;
     z = -z;
     return *this;
+}
+
+Vector3 Vector3::operator-() const {
+    return {-x, -y, -z};
 }
 
 Vector3& Vector3::operator+=(Vector3 const& a) {
@@ -85,6 +88,13 @@ Vector3& Vector3::scale(float s) {
     return *this;
 }
 
+Vector3& Vector3::multiply_componentwise(Vector3 const& a) {
+    x *= a.x;
+    y *= a.y;
+    z *= a.z;
+    return *this;
+}
+
 Vector3 operator+(Vector3 const& a, Vector3 const& b) {
     return {a.x + b.x, a.y + b.y, a.z + b.z};
 }
@@ -97,13 +107,17 @@ Vector3 operator*(Vector3 const& a, float b) {
     return {a.x * b, a.y * b, a.z * b};
 }
 
+void swap(Vector3& a, Vector3& b) {
+    std::swap(a.x, b.x);
+    std::swap(a.y, b.y);
+    std::swap(a.z, b.z);
+}
+
 Vector3 normalize(Vector3 vec) {
     vec.normalize();
     return vec;
 }
 
-void swap(Vector3& a, Vector3& b) {
-    std::swap(a.x, b.x);
-    std::swap(a.y, b.y);
-    std::swap(a.z, b.z);
+Vector3 multiply_componentwise(Vector3 const& a, Vector3 const& b) {
+    return {a.x * b.x, a.y * b.y, a.z * b.z};
 }

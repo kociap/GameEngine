@@ -4,7 +4,6 @@
 #include <cmath>
 #include <utility>
 
-Vector4::Vector4() : x(0), y(0), z(0), w(0) {}
 Vector4::Vector4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
 
 float& Vector4::component(int index) {
@@ -13,6 +12,34 @@ float& Vector4::component(int index) {
 
 float const& Vector4::component(int index) const {
     return (&x)[index];
+}
+
+Vector4& Vector4::operator-() {
+    x = -x;
+    y = -y;
+    z = -z;
+    w = -w;
+    return *this;
+}
+
+Vector4 Vector4::operator-() const {
+    return {-x, -y, -z, -w};
+}
+
+Vector4& Vector4::operator+=(Vector4 const& a) {
+    x += a.x;
+    y += a.y;
+    z += a.z;
+    w += a.w;
+    return *this;
+}
+
+Vector4& Vector4::operator-=(Vector4 const& a) {
+    x -= a.x;
+    y -= a.y;
+    z -= a.z;
+    w -= a.w;
+    return *this;
 }
 
 Vector4& Vector4::operator*=(float a) {
@@ -44,9 +71,37 @@ Vector4& Vector4::normalize() {
     return *this;
 }
 
+Vector4& Vector4::scale(float s) {
+    x *= s;
+    y *= s;
+    z *= s;
+    w *= s;
+    return *this;
+}
+
+Vector4& Vector4::multiply_componentwise(Vector4 const& a) {
+    x *= a.x;
+    y *= a.y;
+    z *= a.z;
+    w *= a.w;
+    return *this;
+}
+
 Vector4 normalize(Vector4 vec) {
     vec.normalize();
     return vec;
+}
+
+Vector4 operator+(Vector4 const& a, Vector4 const& b) {
+    return {a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w};
+}
+
+Vector4 operator-(Vector4 const& a, Vector4 const& b) {
+    return {a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w};
+}
+
+Vector4 operator*(Vector4 const& a, float s) {
+    return {a.x * s, a.y * s, a.z * s, a.w * s};
 }
 
 void swap(Vector4& a, Vector4& b) {
@@ -54,4 +109,8 @@ void swap(Vector4& a, Vector4& b) {
     std::swap(a.y, b.y);
     std::swap(a.z, b.z);
     std::swap(a.w, b.w);
+}
+
+Vector4 multiply_componentwise(Vector4 const& a, Vector4 const& b) {
+    return {a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w};
 }
