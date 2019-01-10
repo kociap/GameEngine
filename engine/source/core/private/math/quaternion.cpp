@@ -20,61 +20,25 @@ void Quaternion::normalize() {
     w *= invNorm;
 }
 
-void Quaternion::invert() {
+void Quaternion::inverse() {
     conjugate();
-    *this /= norm_squared(*this);
-}
-
-Quaternion& Quaternion::operator+=(Quaternion const& q) {
-    x += q.x;
-    y += q.y;
-    z += q.z;
-    w += q.w;
-    return *this;
-}
-
-Quaternion& Quaternion::operator-=(Quaternion const& q) {
-    x -= q.x;
-    y -= q.y;
-    z -= q.z;
-    w -= q.w;
-    return *this;
-}
-
-Quaternion& Quaternion::operator*=(Quaternion const&) {
-    return *this;
-}
-
-Quaternion& Quaternion::operator*=(float a) {
-    x *= a;
-    y *= a;
-    z *= a;
-    w *= a;
-    return *this;
-}
-
-Quaternion& Quaternion::operator/=(float a) {
-    x /= a;
-    y /= a;
-    z /= a;
-    w /= a;
-    return *this;
+    float ns = norm_squared(*this);
+    x /= ns;
+    y /= ns;
+    z /= ns;
+    w /= ns;
 }
 
 Quaternion conjugate(Quaternion const& q) {
-    Quaternion qnion(q);
-    qnion.conjugate();
-    return qnion;
+    return {-q.x, -q.y, -q.z, q.w};
 }
 
-Quaternion normalized(Quaternion const& q) {
+Quaternion normalize(Quaternion const& q) {
     return q * math::inv_sqrt(norm_squared(q));
 }
 
 Quaternion inverse(Quaternion const& q) {
-    Quaternion qnion(conjugate(q));
-    qnion /= norm_squared(q);
-    return qnion;
+    return conjugate(q) / norm_squared(q);
 }
 
 float norm_squared(Quaternion const& q) {
@@ -93,9 +57,14 @@ Quaternion operator-(Quaternion const& q1, Quaternion const& q2) {
     return {q1.x - q2.x, q1.y - q2.y, q1.z - q2.z, q1.w - q2.w};
 }
 
-//Quaternion operator*(Quaternion const&, Quaternion const&) {
-//    return {};
-//}
+// clang-format off
+Quaternion operator*(Quaternion const& p, Quaternion const& q) {
+    return {p.w * q.x + q.w * p.x + p.y * q.z - p.z * q.y, 
+            p.w * q.y + q.w * p.y + p.z * q.x - p.x * q.z, 
+            p.w * q.z + q.w * p.z + p.x * q.y - p.y * q.x,
+            p.w * q.w - p.x * q.x - p.y * q.y - p.z * q.z};
+}
+// clang-format on
 
 Quaternion operator*(Quaternion const& q, float a) {
     return {q.x * a, q.y * a, q.z * a, q.w * a};

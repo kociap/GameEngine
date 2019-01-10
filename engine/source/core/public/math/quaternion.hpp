@@ -7,38 +7,36 @@ public:
     // Equivalent to Quaternion(0, 0, 0, 1)
     static const Quaternion identity;
 
-    Quaternion(float, float, float, float);
+public:
+    float x = 0;
+    float y = 0;
+    float z = 0;
+    float w = 1;
+
+public:
+    Quaternion() = default;
+    Quaternion(float x, float y, float z, float w);
 
     // Make this quaternion conjugate
     void conjugate();
     // Normalize this quaternion
     void normalize();
     // Make this quaternion an inverse
-    void invert();
-
-    friend Quaternion conjugate(Quaternion const&);
-    friend Quaternion inverse(Quaternion const&);
-    friend float norm(Quaternion const&);
-    friend Quaternion normalized(Quaternion const&);
-    friend float norm_squared(Quaternion const&);
-
-    Quaternion& operator+=(Quaternion const&);
-    Quaternion& operator-=(Quaternion const&);
-    Quaternion& operator*=(Quaternion const&);
-    Quaternion& operator*=(float);
-    Quaternion& operator/=(float);
-
-    friend Quaternion operator+(Quaternion const&, Quaternion const&);
-    friend Quaternion operator-(Quaternion const&, Quaternion const&);
-    friend Quaternion operator*(Quaternion const&, Quaternion const&);
-    friend Quaternion operator*(Quaternion const&, float);
-    friend Quaternion operator/(Quaternion const&, float);
-
-private:
-    float x;
-    float y;
-    float z;
-    float w;
+    void inverse();
 };
+
+Quaternion conjugate(Quaternion const&);
+// If quaternion is normalized, this function returns the same resuls as conjugate
+Quaternion inverse(Quaternion const&);
+float norm(Quaternion const&);
+float norm_squared(Quaternion const&);
+Quaternion normalize(Quaternion const&);
+
+Quaternion operator+(Quaternion const&, Quaternion const&);
+Quaternion operator-(Quaternion const&, Quaternion const&);
+// Implements Grassmann product
+Quaternion operator*(Quaternion const&, Quaternion const&);
+Quaternion operator*(Quaternion const&, float);
+Quaternion operator/(Quaternion const&, float);
 
 #endif // !GAME_ENGINE_CORE_MATH_QUATERNION_HPP_INCLUDE
