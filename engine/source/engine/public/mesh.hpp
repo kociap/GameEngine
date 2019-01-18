@@ -32,8 +32,8 @@ public:
     Mesh();
     Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices, std::vector<Texture> const& textures);
     Mesh(std::vector<Vertex>&& vertices, std::vector<uint32_t>&& indices, std::vector<Texture>&& textures);
-    Mesh(Mesh&&);
-    Mesh& operator=(Mesh&&);
+    Mesh(Mesh&&) noexcept;
+    Mesh& operator=(Mesh&&) noexcept;
     ~Mesh();
 
     Mesh(Mesh const&) = delete;

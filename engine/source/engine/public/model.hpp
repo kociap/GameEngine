@@ -23,6 +23,4 @@ private:
     std::vector<Mesh> meshes;
 };
 
-
-
 #endif // !ENGINE_MODEL_HPP_INCLUDE

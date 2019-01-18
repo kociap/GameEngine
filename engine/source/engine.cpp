@@ -2,18 +2,23 @@
                        // Or define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
 
-#include "camera.hpp"
 #include "color.hpp"
+#include "components/camera.hpp"
 #include "debug_macros.hpp"
+#include "game_object.hpp"
 #include "math/math.hpp"
 #include "math/matrix4.hpp"
 #include "math/transform.hpp"
 #include "mesh/cube.hpp"
 #include "mesh/plane.hpp"
 #include "model.hpp"
+#include "object_manager.hpp"
 #include "renderer/framebuffer.hpp"
+#include "renderer/renderer.hpp"
 #include "shader.hpp"
+
 #include "stb/stb_image.hpp"
+
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
@@ -66,23 +71,27 @@ private:
     std::map<std::string, Input_axis_binding> axis_bindings;
 };
 
-GLuint window_width = 800;
-GLuint window_height = 800;
+uint32_t window_width = 800;
+uint32_t window_height = 800;
 
 uint32_t shadow_width = 1024;
 uint32_t shadow_height = 1024;
 
-Camera camera;
 Matrix4 projection;
 
 Input input;
+//renderer::Renderer g_renderer;
+//Object_Manager<Mesh> g_mesh_manager;
 
 int main(int argc, char** argv) {
     auto path = argv[0];
-
+    std::filesystem::path current_path = std::filesystem::current_path();
+	
+	Game_Object camera_object;
+    camera_object.add_component<Camera>();
     input = Input();
-    camera = Camera();
-    projection = transform::perspective(math::radians(camera.fov), static_cast<float>(window_width) / static_cast<float>(window_height), 0.1f, 100.0f);
+    //g_renderer = renderer::Renderer();
+    //g_mesh_manager = Object_Manager<Mesh>();
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -191,7 +200,7 @@ int main(int argc, char** argv) {
     std::vector<Matrix4> model_transforms;
     uint32_t cubes_count = 40;
     for (int i = 0; i < cubes_count; ++i) {
-        model_transforms.push_back(transform::translate({dist(rng) * 20, dist(rng) * 5, dist(rng) * 20}));
+        model_transforms.push_back(transform::translate({dist(rng) * 1, dist(rng) * 5, -dist(rng) * 20}));
     }
 
     Matrix4 view = Matrix4::identity;
@@ -249,7 +258,7 @@ int main(int argc, char** argv) {
         shader.use();
         shader.set_matrix4("view", view);
         shader.set_matrix4("projection", projection);
-        shader.set_vec3("camera.position", camera.position);
+        shader.set_vec3("camera.position", Camera::main->transform.position);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, wood_texture);
         shader.set_int("material.texture_diffuse0", 0);
@@ -280,10 +289,12 @@ int main(int argc, char** argv) {
         process_input(window);
 
         float scroll_value = input.get_axis("scroll");
-        camera.position += camera.front * scroll_value * 2;
+        Camera::main->transform.position += Camera::main->get_front() * scroll_value * 2;
         glEnable(GL_DEPTH_TEST);
 
-        view = transform::look_at(camera.position, camera.position + camera.front, Vector3::up);
+        //view = Camera::main->get_view_transform();
+		view = Camera::main->get_view_transform();
+        projection = Camera::main->get_projection_transform();
 
         glViewport(0, 0, shadow_width, shadow_height);
         light_depth_buffer.bind();
@@ -319,7 +330,6 @@ void framebuffer_size_callback(GLFWwindow*, int width, int height) {
     glViewport(0, 0, width, height);
     window_width = width;
     window_height = height;
-    projection = transform::perspective(math::radians(camera.fov), static_cast<float>(window_width) / static_cast<float>(window_height), 0.1f, 100.0f);
 }
 
 void mouse_button_callback(GLFWwindow*, int button, int action, int mods) {}
@@ -344,11 +354,7 @@ void mouse_position_callback(GLFWwindow*, double param_x, double param_y) {
     pitch += offset_y;
     pitch = std::max(pitch, -89.0f);
     pitch = std::min(pitch, 89.0f);
-
-    camera.front.x = std::cosf(math::radians(yaw)) * std::cosf(math::radians(pitch));
-    camera.front.y = std::sinf(math::radians(pitch));
-    camera.front.z = std::sinf(math::radians(yaw)) * std::cosf(math::radians(pitch));
-    camera.front.normalize();
+    Camera::main->transform.rotate(Vector3::up, math::radians(-offset_x));
 }
 
 void scroll_callback(GLFWwindow*, double offset_x, double offset_y) {
@@ -360,23 +366,25 @@ void process_input(GLFWwindow* window) {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
 
+	Vector3 camera_front = Camera::main->get_front();
+    Vector3& camera_position = Camera::main->transform.position;
     float camera_speed = 0.15f;
     if (glfwGetKey(window, GLFW_KEY_W)) {
-        camera.position += camera.front * camera_speed;
+        camera_position += camera_front * camera_speed;
     }
     if (glfwGetKey(window, GLFW_KEY_S)) {
-        camera.position -= camera.front * camera_speed;
+        camera_position -= camera_front * camera_speed;
     }
     if (glfwGetKey(window, GLFW_KEY_A)) {
-        camera.position += Vector3::cross(Vector3::up, camera.front).normalize() * camera_speed;
+        camera_position += Vector3::cross(Vector3::up, camera_front).normalize() * camera_speed;
     }
     if (glfwGetKey(window, GLFW_KEY_D)) {
-        camera.position -= Vector3::cross(Vector3::up, camera.front).normalize() * camera_speed;
+        camera_position -= Vector3::cross(Vector3::up, camera_front).normalize() * camera_speed;
     }
     if (glfwGetKey(window, GLFW_KEY_E)) {
-        camera.position += Vector3::up * camera_speed;
+        camera_position += Vector3::up * camera_speed;
     }
     if (glfwGetKey(window, GLFW_KEY_Q)) {
-        camera.position -= Vector3::up * camera_speed;
+        camera_position -= Vector3::up * camera_speed;
     }
 }

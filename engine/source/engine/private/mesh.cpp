@@ -16,13 +16,13 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, std::vector<uint32_t>&& indices, std:
     prepare_mesh();
 }
 
-Mesh::Mesh(Mesh&& from) : vertices(std::move(from.vertices)), indices(std::move(from.indices)), textures(std::move(from.textures)) {
+Mesh::Mesh(Mesh&& from) noexcept : vertices(std::move(from.vertices)), indices(std::move(from.indices)), textures(std::move(from.textures)) {
     std::swap(ebo, from.ebo);
     std::swap(vbo, from.vbo);
     std::swap(vao, from.vao);
 }
 
-Mesh& Mesh::operator=(Mesh&& from) {
+Mesh& Mesh::operator=(Mesh&& from) noexcept {
     vertices = std::move(from.vertices);
     indices = std::move(from.indices);
     textures = std::move(from.textures);

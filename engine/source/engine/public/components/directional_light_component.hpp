@@ -6,15 +6,11 @@
 #include "math/vector3.hpp"
 #include "shader.hpp"
 
-namespace component {
-    class Directional_Light_Component : public Base_Component {
-    public:
-        Vector3 position;
-        Vector3 direction;
-        Color color;
-
-        void draw(Shader&);
-    };
-} // namespace component
+class Directional_Light_Component : public Base_Component {
+public:
+    Vector3 position;
+    Vector3 direction;
+    Color color;
+};
 
 #endif // !ENGINE_COMPONENTS_DIRECITONAL_LIGHT_COMPONENT_HPP_INCLUDE
