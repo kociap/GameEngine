@@ -1,0 +1,12 @@
+#ifndef ENGINE_INPUT_AXIS_ACTION_NAMES_HPP_INCLUDE
+#define ENGINE_INPUT_AXIS_ACTION_NAMES_HPP_INCLUDE
+
+enum class Input_Axis {
+
+};
+
+enum class Input_Action {
+
+};
+
+#endif // !ENGINE_INPUT_AXIS_ACTION_NAMES_HPP_INCLUDE
