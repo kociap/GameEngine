@@ -10,6 +10,7 @@ set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/components/static_mesh_component.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/renderable_component.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/camera.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/guid.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/plane.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/cube.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/renderer/renderer.cpp"
