@@ -1,7 +1,6 @@
 #ifndef SHADERS_SHADER_FILE_HPP_INCLUDE
 #define SHADERS_SHADER_FILE_HPP_INCLUDE
 
-#include "exceptions.hpp"
 #include "glad/glad.h"
 #include <string>
 #include <vector>

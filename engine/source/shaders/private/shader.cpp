@@ -1,19 +1,37 @@
 #include "shader.hpp"
 
+#include "exceptions.hpp"
+
+#include <cassert>
+#include <fstream>
 #include <string>
 #include <vector>
-#include <fstream>
-#include <cassert>
 
-Shader::Shader() {
-    program = glCreateProgram();
-    if (program == 0) {
-        throw Program_not_created("");
+Shader::Shader(bool create_program) {
+    if (create_program) {
+        create();
     }
 }
 
+Shader::Shader(Shader&& shader) {
+    std::swap(shader.program, program);
+}
+
+Shader& Shader::operator=(Shader&& shader) {
+    std::swap(shader.program, program);
+}
+
 Shader::~Shader() {
-    glDeleteProgram(program);
+    if (program != 0) {
+        glDeleteProgram(program);
+    }
+}
+
+void Shader::create() {
+    program = glCreateProgram();
+    if (program == 0) {
+        throw Program_Not_Created("");
+    }
 }
 
 void Shader::attach(Shader_file const& shader) {
@@ -30,7 +48,7 @@ void Shader::link() {
         std::vector<GLchar> log(log_length);
         glGetProgramInfoLog(program, log_length, &log_length, &log[0]);
         std::string log_string(log.begin(), log.end());
-        throw Program_linking_failed(std::move(log_string));
+        throw Program_Linking_Failed(std::move(log_string));
     }
 }
 
@@ -83,11 +101,11 @@ void Shader::load_shader_file(std::filesystem::path path) {
 
 GLint Shader::get_uniform(std::string const& name) {
     GLint location = glGetUniformLocation(program, name.c_str());
-	// -1 may also mean a uniform removed by optimizations
-	// Exception to catch typos
+    // -1 may also mean a uniform removed by optimizations
+    // Exception to catch typos
     /*if (location == -1) {
         throw std::runtime_error("Uniform location is -1");
-	}*/
+    }*/
     return location;
 }
 
@@ -112,7 +130,7 @@ void Shader::set_vec3(std::string const& name, Vector3 const& vec) {
 }
 
 void Shader::set_vec3(std::string const& name, Color const& c) {
-    glUniform3fv(get_uniform(name), 1,&c.r);
+    glUniform3fv(get_uniform(name), 1, &c.r);
 }
 
 void Shader::set_matrix4(std::string const& name, Matrix4 const& mat) {
