@@ -1,4 +1,6 @@
 #include "shader.hpp"
+
+#include "exceptions.hpp"
 #include <iostream>
 
 Shader_file::Shader_file(Shader_type type, std::string const& source) : type(type), shader(0) {
@@ -39,7 +41,7 @@ void Shader_file::create() {
     }
 
     if (shader == 0) {
-        throw Shader_not_created("");
+        throw Shader_Not_Created("");
     }
 }
 
@@ -59,6 +61,6 @@ void Shader_file::compile() {
         std::vector<GLchar> log(log_length);
         glGetShaderInfoLog(shader, log_length, &log_length, &log[0]);
         std::string log_string(log.begin(), log.end());
-        throw Shader_compilation_failed(std::move(log_string));
+        throw Shader_Compilation_Failed(std::move(log_string));
     }
 }

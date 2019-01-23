@@ -3,19 +3,22 @@
 
 #include "color.hpp"
 #include "glad/glad.h"
-#include "math//vector3.hpp"
 #include "math/matrix4.hpp"
+#include "math/vector3.hpp"
 #include "shaderfile.hpp"
-#include <string>
 #include <filesystem>
+#include <string>
 
 class Shader {
 public:
-    Shader();
+    Shader(bool create_program = true);
+    Shader(Shader&&);
+    Shader& operator=(Shader&&);
     ~Shader();
 
-	void load_shader_file(std::filesystem::path);
+    void load_shader_file(std::filesystem::path);
 
+    void create();
     void attach(Shader_file const& shader);
     void link();
     void use();
@@ -31,7 +34,7 @@ public:
     void set_matrix4(std::string const&, Matrix4 const&);
 
 private:
-    GLuint program;
+    GLuint program = 0;
 };
 
 #endif // !SHADERS_SHADER_HPP_INCLUDE
