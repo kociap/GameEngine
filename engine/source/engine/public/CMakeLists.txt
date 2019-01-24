@@ -11,7 +11,6 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/components/directional_light_component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/base_component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/camera.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/object_manager.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/guid.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/key.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input_core.hpp"

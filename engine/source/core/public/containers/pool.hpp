@@ -1,5 +1,5 @@
-#ifndef ENGINE_OBJECT_MANAGER_HPP_INCLUDE
-#define ENGINE_OBJECT_MANAGER_HPP_INCLUDE
+#ifndef CORE_CONTAINERS_POOL_HPP_INCLUDE
+#define CORE_CONTAINERS_POOL_HPP_INCLUDE
 
 #include "handle.hpp"
 #include <memory>
@@ -10,7 +10,7 @@
 #include <vector>
 
 template <typename T, typename Allocator = std::allocator<T>>
-class Object_Manager {
+class Pool {
 public:
     using size_t = uint64_t;
 
@@ -38,34 +38,34 @@ private:
     storage_ptr storage;
 
 public:
-    Object_Manager() : storage(nullptr, Deleter(allocator, capacity)) {
+    Pool() : storage(nullptr, Deleter(allocator, capacity)) {
         storage.reset(allocator.allocate(capacity));
     }
 
     // Allocates storage for cap elements
     // Does not construct elements
-    Object_Manager(size_t cap) : capacity(cap), storage(nullptr, Deleter(allocator, cap)) {
+    Pool(size_t cap) : capacity(cap), storage(nullptr, Deleter(allocator, cap)) {
         storage.reset(allocator.allocate(cap));
     }
 
-    Object_Manager(Object_Manager const& original) : storage(nullptr, Deleter(allocator, capacity)) {
+    Pool(Pool const& original) : storage(nullptr, Deleter(allocator, capacity)) {
         // copy from original
         throw std::runtime_error("Not implemented");
     }
 
-    Object_Manager(Object_Manager&& from) noexcept : storage(std::move(from.storage)) {}
+    Pool(Pool&& from) noexcept : storage(std::move(from.storage)) {}
 
-    Object_Manager& operator=(Object_Manager const&) {
+    Pool& operator=(Pool const&) {
         throw std::runtime_error("Not implemented");
         return *this;
     }
 
-    Object_Manager& operator=(Object_Manager&& from) noexcept {
+    Pool& operator=(Pool&& from) noexcept {
         storage = std::move(from.storage);
         return *this;
     }
 
-    ~Object_Manager() {}
+    ~Pool() {}
 
 public:
     void resize(size_t n);
@@ -139,4 +139,4 @@ private:
     }
 };
 
-#endif // !ENGINE_OBJECT_MANAGER_HPP_INCLUDE
+#endif // !CORE_CONTAINERS_POOL_HPP_INCLUDE
