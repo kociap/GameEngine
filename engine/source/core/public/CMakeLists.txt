@@ -12,6 +12,7 @@ set(HEADER_FILES ${HEADER_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/color.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/debug_macros.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/handle.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/singleton.hpp"
     PARENT_SCOPE
 )
 
