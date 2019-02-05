@@ -8,4 +8,6 @@ public:
     Guid id;
 };
 
+bool operator==(Object const&, Object const&);
+
 #endif // !ENGINE_OBJECT_HPP_INCLUDE
