@@ -12,17 +12,17 @@
 class Shader {
 public:
     Shader(bool create_program = true);
-    Shader(Shader&&);
-    Shader& operator=(Shader&&);
+    Shader(Shader const&) = delete;
+    Shader& operator=(Shader const&) = delete;
+    Shader(Shader&&) noexcept;
+    Shader& operator=(Shader&&) noexcept;
     ~Shader();
 
-    void load_shader_file(std::filesystem::path);
-
     void create();
-    void attach(Shader_file const& shader);
+    void attach(Shader_File const& shader);
     void link();
     void use();
-    void detach(Shader_file const&);
+    void detach(Shader_File const&);
 
     GLint get_uniform(std::string const&);
     GLint get_uniform(char const*);

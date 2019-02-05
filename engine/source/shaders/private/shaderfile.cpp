@@ -3,29 +3,29 @@
 #include "exceptions.hpp"
 #include <iostream>
 
-Shader_file::Shader_file(Shader_type type, std::string const& source) : type(type), shader(0) {
+Shader_File::Shader_File(Shader_type type, std::string const& source) : type(type), shader(0) {
     create();
     set_source(source);
     compile();
 }
 
-Shader_file::Shader_file(Shader_file&& shader) noexcept : shader(shader.shader), type(shader.type) {
+Shader_File::Shader_File(Shader_File&& shader) noexcept : shader(shader.shader), type(shader.type) {
     shader.shader = 0;
 }
 
-Shader_file& Shader_file::operator=(Shader_file&& shader) noexcept {
+Shader_File& Shader_File::operator=(Shader_File&& shader) noexcept {
     this->shader = shader.shader;
     shader.shader = 0;
     return *this;
 }
 
-Shader_file::~Shader_file() {
+Shader_File::~Shader_File() {
     if (shader != 0) {
         glDeleteShader(shader);
     }
 }
 
-void Shader_file::create() {
+void Shader_File::create() {
     if (type == Shader_type::vertex) {
         shader = glCreateShader(GL_VERTEX_SHADER);
     } else if (type == Shader_type::fragment) {
@@ -45,12 +45,12 @@ void Shader_file::create() {
     }
 }
 
-void Shader_file::set_source(std::string const& source) {
+void Shader_File::set_source(std::string const& source) {
     const char* src = source.c_str();
     glShaderSource(shader, 1, &src, NULL);
 }
 
-void Shader_file::compile() {
+void Shader_File::compile() {
     glCompileShader(shader);
 
     GLint compilation_status;
