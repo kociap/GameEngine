@@ -1,6 +1,8 @@
 #ifndef ENGINE_GUID_HPP_INCLUDE
 #define ENGINE_GUID_HPP_INCLUDE
 
+#include <cstdint>
+
 struct Guid {
 public:
     Guid();
