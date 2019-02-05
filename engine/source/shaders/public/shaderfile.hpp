@@ -14,18 +14,16 @@ enum class Shader_type {
     compute,
 };
 
-class Shader;
-
-class Shader_file {
+class Shader_File {
 public:
-    Shader_file() = delete;
-    Shader_file(Shader_file const&) = delete;
-    Shader_file& operator=(Shader_file const&) = delete;
+    Shader_File() = delete;
+    Shader_File(Shader_File const&) = delete;
+    Shader_File& operator=(Shader_File const&) = delete;
 
-    Shader_file(Shader_type type, std::string const& source);
-    Shader_file(Shader_file&& shader) noexcept;
-    Shader_file& operator=(Shader_file&& shader) noexcept;
-    ~Shader_file();
+    Shader_File(Shader_type type, std::string const& source);
+    Shader_File(Shader_File&& shader) noexcept;
+    Shader_File& operator=(Shader_File&& shader) noexcept;
+    ~Shader_File();
 
 private:
     friend class Shader;
