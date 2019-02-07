@@ -1,21 +1,18 @@
 #ifndef ENGINE_INPUT_INPUT_CORE_HPP_INCLUDE
 #define ENGINE_INPUT_INPUT_CORE_HPP_INCLUDE
 
-#include "axis_action_names.hpp"
+#include "input/axis_action_names.hpp"
 #include "key.hpp"
-#include <queue>
 #include <vector>
 
-struct Input_Binding {};
-
-struct Input_Action_Binding : public Input_Binding {
+struct Input_Action_Binding {
     Input_Action action;
     Key key;
 
     Input_Action_Binding(Input_Action a, Key k) : action(a), key(k) {}
 };
 
-struct Input_Axis_Binding : public Input_Binding {
+struct Input_Axis_Binding {
     Input_Axis axis;
     Key key;
 
@@ -25,9 +22,12 @@ struct Input_Axis_Binding : public Input_Binding {
 struct Input_Event {
     Key key;
     float value;
+
+	Input_Event(Key k, float v) : key(k), value(v) {}
 };
 
-struct Input_Manager {
+class Input_Manager {
+public:
     struct Axis {
         Input_Axis axis;
         float raw_value;
@@ -39,6 +39,8 @@ struct Input_Manager {
     struct Action {
         Input_Action action;
         float value;
+
+        Action(Input_Action a) : action(a), value(0) {}
     };
 
     std::vector<Input_Event> input_event_queue;
@@ -47,8 +49,8 @@ struct Input_Manager {
     std::vector<Axis> axes;
     std::vector<Action> actions;
 
-    void init();
-    void shutdown();
+	void load_bindings_from_file();
+    void save_bindings_to_file();
 
     void register_axis_bindings(std::vector<Input_Axis_Binding> const&);
     void register_action_bindings(std::vector<Input_Action_Binding> const&);

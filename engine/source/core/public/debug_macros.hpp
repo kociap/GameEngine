@@ -3,8 +3,11 @@
 
 #include "glad/glad.h"
 #include <stdexcept>
+#include <cassert>
 
-#ifdef _DEBUG
+#ifndef NDEBUG
+#define GE_assert(condition, msg) assert((msg, condition))
+
 inline void check_gl_errors() {
     GLenum error = glGetError();
     if (error == GL_INVALID_ENUM) {
@@ -25,6 +28,7 @@ inline void check_gl_errors() {
 }
 #define CHECK_GL_ERRORS check_gl_errors();
 #else
+#define GE_assert(condition, msg) ((void)0)
 #define CHECK_GL_ERRORS
 #endif // _DEBUG
 

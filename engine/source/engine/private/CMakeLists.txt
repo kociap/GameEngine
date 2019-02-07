@@ -11,13 +11,21 @@ set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/components/renderable_component.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/camera.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/guid.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/time/time.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/time/time_core.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input_core.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/plane.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/cube.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/renderer/renderer.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/renderer/framebuffer.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/renderer/framebuffer_construct_info.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/renderer/uniform_buffer.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/assets.cpp"
     PARENT_SCOPE
 )
+
+set(HEADER_FILES
+    ${HEADER_FILES}
+    "${CMAKE_CURRENT_SOURCE_DIR}/input/input_core.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/time/time_core.hpp"
+    PARENT_SCOPE
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_DIR}")

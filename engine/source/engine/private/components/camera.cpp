@@ -1,27 +1,12 @@
 #include "components/camera.hpp"
-#include "math/transform.hpp"
 #include "components/transform.hpp"
+#include "math/transform.hpp"
+#include "engine.hpp"
+#include "window.hpp"
 
-extern uint32_t window_width;
-extern uint32_t window_height;
+Camera::Camera(Game_Object& go) : Base_Component(go) {}
 
-Camera* Camera::main = nullptr;
-
-Camera::Camera(Game_Object& go): Base_Component(go) {
-    if (!main) {
-        set_as_active_camera();
-	}
-}
-
-Camera::~Camera() {
-    if (main == this) {
-        main = nullptr;
-	}
-}
-
-void Camera::set_as_active_camera() {
-    main = this;
-}
+Camera::~Camera() {}
 
 void Camera::set_projection(Projection proj) {
     projection = proj;
@@ -37,7 +22,8 @@ Matrix4 Camera::get_view_transform() {
 }
 
 Matrix4 Camera::get_projection_transform() {
-    float aspect_ratio = static_cast<float>(window_width) / static_cast<float>(window_height);
+    Window& window = Engine::get_window();
+    float aspect_ratio = static_cast<float>(window.width()) / static_cast<float>(window.height());
     if (projection == Projection::perspective) {
         return transform::perspective(fov, aspect_ratio, near_plane, far_plane);
     } else {

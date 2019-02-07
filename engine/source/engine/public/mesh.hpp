@@ -4,12 +4,12 @@
 #include "math/vector2.hpp"
 #include "math/vector3.hpp"
 #include "shader.hpp"
-#include <vector>
 #include <string>
+#include <vector>
 
-enum class Texture_type { 
-	specular, 
-	diffuse, 
+enum class Texture_type {
+    specular,
+    diffuse,
 };
 
 struct Vertex {
@@ -17,8 +17,8 @@ struct Vertex {
     Vector3 normal;
     Vector2 uv_coordinates;
 
-	Vertex() = default;
-	Vertex(Vector3, Vector3, Vector2);
+    Vertex() = default;
+    Vertex(Vector3, Vector3, Vector2);
 };
 
 struct Texture {
@@ -39,20 +39,23 @@ public:
     Mesh(Mesh const&) = delete;
     Mesh& operator=(Mesh const&) = delete;
 
-	void draw(Shader&);
+    void draw(Shader&);
     void draw_instanced(Shader&, uint32_t count);
     void bind();
     void unbind();
 
 private:
+    void prepare_mesh();
+
+public:
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
     std::vector<Texture> textures;
+
+private:
     uint32_t vao = 0;
     uint32_t vbo = 0;
     uint32_t ebo = 0;
-
-    void prepare_mesh();
 };
 
 #endif // !ENGINE_MESH_HPP_INCLUDE
