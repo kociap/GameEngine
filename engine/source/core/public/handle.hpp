@@ -8,7 +8,6 @@ class Handle {
 public:
     uint64_t value;
 
-public:
     explicit Handle(uint64_t val) : value(val) {}
 };
 

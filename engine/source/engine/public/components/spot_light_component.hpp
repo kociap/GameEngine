@@ -7,7 +7,6 @@
 
 class Spot_Light_Component : public Base_Component {
 public:
-    Vector3 position;
     Vector3 direction;
     Color color;
     float cutoff_angle;

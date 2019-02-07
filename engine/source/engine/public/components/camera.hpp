@@ -14,27 +14,26 @@ public:
     };
 
 public:
-    static Camera* main;
-
-public:
-	// Size of the camera in ortographic projection
+    // Size of the camera in ortographic projection
     float size = 5;
-	// Field of view in perspective projection
+    // Field of view in perspective projection
     float fov = 70;
     float near_plane = 0.3f;
     float far_plane = 1000.0f;
 
 private:
     Projection projection = Projection::perspective;
+    bool active = true; // Temporarily make active by default
 
 public:
     Camera(Game_Object& game_object);
+    Camera(Camera&&) = default;
+    Camera& operator=(Camera&&) = default;
     virtual ~Camera();
 
-    void set_as_active_camera();
     void set_projection(Projection);
 
-	Vector3 get_front();
+    Vector3 get_front();
 
     Matrix4 get_view_transform();
     Matrix4 get_projection_transform();

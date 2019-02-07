@@ -7,8 +7,8 @@
 
 class Point_Light_Component : public Base_Component {
 public:
-    Vector3 position;
     Color color;
+    float intensity;
 };
 
 #endif // !ENGINE_COMPONENTS_POINT_LIGHT_COMPONENT_HPP_INCLUDE

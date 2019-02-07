@@ -6,13 +6,18 @@ enum class Key {
 
     mouse_x,
     mouse_y,
-    mouse_wheel,
+    mouse_scroll,
     mouse_scroll_up,
     mouse_scroll_down,
 
-    left_mouse_button,
-    right_mouse_button,
-    middle_mouse_button,
+    mouse_0,
+    mouse_1,
+    mouse_2,
+    mouse_3,
+    mouse_4,
+    mouse_5,
+    mouse_6,
+    mouse_7,
 
     escape,
     enter,

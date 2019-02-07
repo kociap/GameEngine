@@ -14,19 +14,13 @@ public:
     Base_Component(Base_Component const&) = delete;
     Base_Component(Base_Component&&) = default;
     Base_Component& operator=(Base_Component const&) = delete;
-    Base_Component& operator=(Base_Component&&) = default;
+    Base_Component& operator=(Base_Component&&) = delete;
     virtual ~Base_Component();
 
-    void register_component();
-    void unregister_component();
-
+protected:
     // Events
     virtual void on_register();
     virtual void on_unregister();
-    virtual void update();
-
-private:
-    uint64_t id;
 
 public:
     Game_Object& game_object;

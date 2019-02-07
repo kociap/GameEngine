@@ -1,7 +1,15 @@
-#include "input/input_core.hpp"
+#include "input_core.hpp"
 
-void Input_Manager::init() {}
-void Input_Manager::shutdown() {}
+#include "assets.hpp"
+#include "utils/path.hpp"
+
+void Input_Manager::load_bindings_from_file() {
+    std::string bindings;
+    std::filesystem::path bindings_file_path(utils::concat_paths(Assets::current_path(), "input_bindings.config"));
+    Assets::read_file_raw(bindings_file_path, bindings);
+}
+
+void Input_Manager::save_bindings_to_file() {}
 
 void Input_Manager::register_axis_bindings(std::vector<Input_Axis_Binding> const& bindings) {
     for (Input_Axis_Binding const& new_binding : bindings) {
@@ -38,7 +46,7 @@ void Input_Manager::register_action_bindings(std::vector<Input_Action_Binding> c
             duplicate = duplicate || (action.action == new_binding.action);
         }
         if (!duplicate) {
-            axes.emplace_back(new_binding.action);
+            actions.emplace_back(new_binding.action);
         }
     }
 }
