@@ -1,19 +1,19 @@
 #ifndef CORE_SINGLETON_HPP_INCLUDE
 #define CORE_SINGLETON_HPP_INCLUDE
 
-#include <cassert>
+#include "debug_macros.hpp"
 
 template <typename T>
 class Singleton {
 private:
-    static T* instance = nullptr;
+    static T* instance;
 
 public:
     Singleton(Singleton const&) = delete;
     Singleton& operator=(Singleton const&) = delete;
 
     Singleton() {
-        assert(!instance, "Attempting to create multiple singleton instances");
+        GE_assert(!instance, "Attempting to create multiple singleton instances");
         instance = static_cast<T*>(this);
     }
 
@@ -26,9 +26,12 @@ public:
     }
 
     static T* get_ptr() {
-        assert(instance, "Singleton instance does not exist");
+        GE_assert(instance, "Singleton instance does not exist");
         return instance;
     }
 };
+
+template<typename T>
+T* Singleton<T>::instance = nullptr;
 
 #endif // !CORE_SINGLETON_HPP_INCLUDE
