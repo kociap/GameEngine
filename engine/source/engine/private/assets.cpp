@@ -27,10 +27,7 @@ std::filesystem::path Assets::current_path() {
 void Assets::read_file_raw(std::filesystem::path const& filename, std::string& out) {
     std::ifstream file(filename);
     if (file) {
-        file.seekg(0, std::ios::end);
-        out.resize(file.tellg());
-        file.seekg(0, std::ios::beg);
-        file.read(&out[0], out.size());
+        std::getline(file, out, '\0');
         file.close();
     } else {
         throw std::invalid_argument("Could not open file " + filename.string());
