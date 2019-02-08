@@ -15,7 +15,7 @@ private:
     static renderer::Renderer* renderer;
     static Time_Core* time_core;
     static Component_System* component_system;
-    static Window* main_window; // Temporary hack until I create window class
+    static Window* main_window;
 
 public:
     static void init(int argc, char** argv);
