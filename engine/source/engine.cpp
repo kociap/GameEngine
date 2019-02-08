@@ -27,6 +27,7 @@ void Engine::init(int argc, char** argv) {
     main_window = new Window(1000, 800);
     time_core = new Time_Core();
     input_manager = new Input_Manager();
+    input_manager->load_bindings();
     component_system = new Component_System();
     renderer = new renderer::Renderer();
     renderer->load_shaders();

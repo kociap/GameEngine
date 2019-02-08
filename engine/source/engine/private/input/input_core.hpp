@@ -23,7 +23,7 @@ struct Input_Event {
     Key key;
     float value;
 
-	Input_Event(Key k, float v) : key(k), value(v) {}
+    Input_Event(Key k, float v) : key(k), value(v) {}
 };
 
 class Input_Manager {
@@ -49,8 +49,8 @@ public:
     std::vector<Axis> axes;
     std::vector<Action> actions;
 
-	void load_bindings_from_file();
-    void save_bindings_to_file();
+    void load_bindings();
+    void save_bindings();
 
     void register_axis_bindings(std::vector<Input_Axis_Binding> const&);
     void register_action_bindings(std::vector<Input_Action_Binding> const&);
