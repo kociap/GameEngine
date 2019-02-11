@@ -1,8 +1,9 @@
-#include "mesh.hpp"
-#include "glad/glad.h"
+#include "mesh/mesh.hpp"
 #include "debug_macros.hpp"
+#include "glad/glad.h"
+#include "shader.hpp"
 
-Vertex::Vertex(Vector3 pos, Vector3 norm, Vector2 tex): position(std::move(pos)), normal(std::move(norm)), uv_coordinates(std::move(tex)) {}
+Vertex::Vertex(Vector3 pos, Vector3 norm, Vector2 tex) : position(std::move(pos)), normal(std::move(norm)), uv_coordinates(std::move(tex)) {}
 
 Mesh::Mesh() {}
 
@@ -16,13 +17,14 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, std::vector<uint32_t>&& indices, std:
     prepare_mesh();
 }
 
-Mesh::Mesh(Mesh&& from) noexcept : vertices(std::move(from.vertices)), indices(std::move(from.indices)), textures(std::move(from.textures)) {
+Mesh::Mesh(Mesh&& from) noexcept : Object(std::move(from)), vertices(std::move(from.vertices)), indices(std::move(from.indices)), textures(std::move(from.textures)) {
     std::swap(ebo, from.ebo);
     std::swap(vbo, from.vbo);
     std::swap(vao, from.vao);
 }
 
 Mesh& Mesh::operator=(Mesh&& from) noexcept {
+    Object::operator=(std::move(from));
     vertices = std::move(from.vertices);
     indices = std::move(from.indices);
     textures = std::move(from.textures);
@@ -34,13 +36,13 @@ Mesh& Mesh::operator=(Mesh&& from) noexcept {
 
 Mesh::~Mesh() {
     if (vao) {
-		glDeleteVertexArrays(1, &vao);
+        glDeleteVertexArrays(1, &vao);
     }
     if (vbo) {
-		glDeleteBuffers(1, &vbo);
+        glDeleteBuffers(1, &vbo);
     }
     if (ebo) {
-		glDeleteBuffers(1, &ebo);
+        glDeleteBuffers(1, &ebo);
     }
 }
 
@@ -50,24 +52,24 @@ void Mesh::draw(Shader& shader) {
     std::size_t diffuse = 0;
     for (std::size_t i = 0; i < textures.size(); ++i) {
         glActiveTexture(GL_TEXTURE0 + i);
-		CHECK_GL_ERRORS
-        if (textures[i].type == Texture_type::diffuse) {
-			shader.set_int("material.texture_diffuse" + std::to_string(diffuse), i);
+        CHECK_GL_ERRORS
+        if (textures[i].type == Texture_Type::diffuse) {
+            shader.set_int("material.texture_diffuse" + std::to_string(diffuse), i);
             ++diffuse;
         } else {
             shader.set_int("material.texture_specular" + std::to_string(specular), i);
             ++specular;
-		}
+        }
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
-		CHECK_GL_ERRORS
+        CHECK_GL_ERRORS
     }
-	CHECK_GL_ERRORS
+    CHECK_GL_ERRORS
     glBindVertexArray(vao);
     CHECK_GL_ERRORS
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-	CHECK_GL_ERRORS
+    CHECK_GL_ERRORS
     glBindVertexArray(0);
-	CHECK_GL_ERRORS
+    CHECK_GL_ERRORS
 }
 
 void Mesh::draw_instanced(Shader& shader, uint32_t count) {
@@ -77,7 +79,7 @@ void Mesh::draw_instanced(Shader& shader, uint32_t count) {
     for (std::size_t i = 0; i < textures.size(); ++i) {
         glActiveTexture(GL_TEXTURE0 + i);
         CHECK_GL_ERRORS
-        if (textures[i].type == Texture_type::diffuse) {
+        if (textures[i].type == Texture_Type::diffuse) {
             shader.set_int("material.texture_diffuse" + std::to_string(diffuse), i);
             ++diffuse;
         } else {
@@ -97,9 +99,9 @@ void Mesh::draw_instanced(Shader& shader, uint32_t count) {
 }
 
 void Mesh::bind() {
-	CHECK_GL_ERRORS
+    CHECK_GL_ERRORS
     glBindVertexArray(vao);
-	CHECK_GL_ERRORS
+    CHECK_GL_ERRORS
 }
 void Mesh::unbind() {
     CHECK_GL_ERRORS
