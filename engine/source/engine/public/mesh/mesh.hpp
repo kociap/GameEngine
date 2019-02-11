@@ -3,11 +3,11 @@
 
 #include "math/vector2.hpp"
 #include "math/vector3.hpp"
-#include "shader.hpp"
+#include "object.hpp"
 #include <string>
 #include <vector>
 
-enum class Texture_type {
+enum class Texture_Type {
     specular,
     diffuse,
 };
@@ -23,11 +23,13 @@ struct Vertex {
 
 struct Texture {
     std::string name;
-    Texture_type type;
+    Texture_Type type;
     uint32_t id;
 };
 
-class Mesh {
+class Shader;
+
+class Mesh : public Object {
 public:
     Mesh();
     Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices, std::vector<Texture> const& textures);
