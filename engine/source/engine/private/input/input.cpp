@@ -4,13 +4,14 @@
 #include "input/input_core.hpp"
 
 float input::get_axis(Input_Axis axis_name) {
-    Input_Manager& input_manager = Engine::get_input_manager();
+    /*Input_Manager& input_manager = Engine::get_input_manager();
     for (Input_Manager::Axis& axis : input_manager.axes) {
         if (axis_name == axis.axis) {
             return axis.value;
         }
     }
-    return 0;
+    return 0;*/
+    return get_axis_raw(axis_name);
 }
 
 float input::get_axis_raw(Input_Axis axis_name) {
