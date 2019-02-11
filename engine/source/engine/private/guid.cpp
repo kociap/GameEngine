@@ -2,10 +2,14 @@
 
 #include <queue>
 
-static uint64_t highest_unused = 0;
+static uint64_t highest_unused = 1;
 
-Guid::Guid(): value(highest_unused++) {}
+Guid::Guid() : _value(highest_unused++) {}
+
+uint64_t Guid::value() const {
+    return _value;
+}
 
 bool operator==(Guid const& lhs, Guid const& rhs) {
-    return lhs.value == rhs.value;
+    return lhs.value() == rhs.value();
 }
