@@ -110,7 +110,7 @@ public:
     template <typename... CtorArgs>
     T& add(CtorArgs&&... args) {
         check_size();
-        new (storage.get() + elem_count) T(std::forward<std::decay_t<CtorArgs>>(args)...);
+        new (storage.get() + elem_count) T(std::forward<CtorArgs>(args)...);
         T& elem = *(storage.get() + elem_count);
         ++elem_count;
         return elem;
