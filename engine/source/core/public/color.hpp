@@ -3,6 +3,12 @@
 
 class Color {
 public:
+    static Color const white;
+    static Color const black;
+    static Color const red;
+    static Color const green;
+    static Color const blue;
+
     float r = 0;
     float g = 0;
     float b = 0;
