@@ -5,6 +5,13 @@
 
 class Object {
 public:
+    Object() = default;
+    Object(Object const&) = delete;
+    Object(Object&&) noexcept = default;
+    Object& operator=(Object const&) = delete;
+    Object& operator=(Object&&) noexcept = default;
+    ~Object() = default;
+
     Guid id;
 };
 

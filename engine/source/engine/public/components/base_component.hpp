@@ -17,14 +17,10 @@ public:
     Base_Component& operator=(Base_Component&&) = delete;
     virtual ~Base_Component();
 
-protected:
-    // Events
-    virtual void on_register();
-    virtual void on_unregister();
+    Transform& get_transform();
 
 public:
     Game_Object& game_object;
-    Transform& transform;
 };
 
 #endif // !ENGINE_COMPONENTS_BASE_COMPONENT_HPP_INCLUDE

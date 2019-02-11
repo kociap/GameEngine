@@ -7,11 +7,13 @@
 
 class Spot_Light_Component : public Base_Component {
 public:
-    Vector3 direction;
-    Color color;
-    float cutoff_angle;
-    float blend_angle;
-    float intensity;
+    using Base_Component::Base_Component;
+
+    Vector3 direction = -Vector3::up;
+    Color color = Color::white;
+    float cutoff_angle = 25.0f;
+    float blend_angle = 20.0f;
+    float intensity = 1.0f;
 };
 
 #endif // !ENGINE_COMPONENTS_SPOTLIGHT_LIGHT_COMPONENT_HPP_INCLUDE

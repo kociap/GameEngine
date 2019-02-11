@@ -2,12 +2,14 @@
 
 #include "assets.hpp"
 #include "components/camera.hpp"
+#include "components/component_system.hpp"
+#include "components/transform.hpp"
+#include "debug_macros.hpp"
+#include "engine.hpp"
 #include "framebuffer.hpp"
 #include "mesh/plane.hpp"
+#include "shader.hpp"
 #include "window.hpp"
-
-#include "components/component_system.hpp"
-#include "engine.hpp"
 
 namespace renderer {
     Renderer::Renderer() {
@@ -50,15 +52,15 @@ namespace renderer {
             shader.use();
             shader.set_float("ambient_strength", 0.02f);
             shader.set_vec3("ambient_color", Color(1.0f, 1.0f, 1.0f));
-            int i = 0;
+            uint32_t i = 0;
             for (auto& directional_light : component_sys.directional_light_components) {
                 shader.set_float("directional_lights[" + std::to_string(i) + "].attentuation_constant", 1.0f);
                 shader.set_float("directional_lights[" + std::to_string(i) + "].attentuation_linear", 0.09f);
                 shader.set_float("directional_lights[" + std::to_string(i) + "].attentuation_quadratic", 0.032f);
-                shader.set_float("directional_lights[" + std::to_string(i) + "].intensity", 6.0f);
+                shader.set_float("directional_lights[" + std::to_string(i) + "].intensity", directional_light.intensity);
                 shader.set_float("directional_lights[" + std::to_string(i) + "].diffuse_strength", 0.8f);
                 shader.set_float("directional_lights[" + std::to_string(i) + "].specular_strength", 1.0f);
-                shader.set_vec3("directional_lights[" + std::to_string(i) + "].position", directional_light.transform.position);
+                shader.set_vec3("directional_lights[" + std::to_string(i) + "].position", directional_light.get_transform().local_position);
                 shader.set_vec3("directional_lights[" + std::to_string(i) + "].color", directional_light.color);
                 shader.set_vec3("directional_lights[" + std::to_string(i) + "].direction", directional_light.direction);
                 ++i;
@@ -68,10 +70,10 @@ namespace renderer {
                 shader.set_float("spot_lights[" + std::to_string(i) + "].attentuation_constant", 1.0f);
                 shader.set_float("spot_lights[" + std::to_string(i) + "].attentuation_linear", 0.09f);
                 shader.set_float("spot_lights[" + std::to_string(i) + "].attentuation_quadratic", 0.032f);
-                shader.set_float("spot_lights[" + std::to_string(i) + "].intensity", 6.0f);
+                shader.set_float("spot_lights[" + std::to_string(i) + "].intensity", spot_light.intensity);
                 shader.set_float("spot_lights[" + std::to_string(i) + "].diffuse_strength", 0.8f);
                 shader.set_float("spot_lights[" + std::to_string(i) + "].specular_strength", 1.0f);
-                shader.set_vec3("spot_lights[" + std::to_string(i) + "].position", spot_light.transform.position);
+                shader.set_vec3("spot_lights[" + std::to_string(i) + "].position", spot_light.get_transform().local_position);
                 shader.set_vec3("spot_lights[" + std::to_string(i) + "].color", spot_light.color);
                 shader.set_vec3("spot_lights[" + std::to_string(i) + "].direction", spot_light.direction);
                 shader.set_float("spot_lights[" + std::to_string(i) + "].cutoff_angle", spot_light.cutoff_angle);
@@ -83,10 +85,10 @@ namespace renderer {
                 shader.set_float("point_lights[" + std::to_string(i) + "].attentuation_constant", 1.0f);
                 shader.set_float("point_lights[" + std::to_string(i) + "].attentuation_linear", 0.09f);
                 shader.set_float("point_lights[" + std::to_string(i) + "].attentuation_quadratic", 0.032f);
-                shader.set_float("point_lights[" + std::to_string(i) + "].intensity", 6.0f);
+                shader.set_float("point_lights[" + std::to_string(i) + "].intensity", point_light.intensity);
                 shader.set_float("point_lights[" + std::to_string(i) + "].diffuse_strength", 0.8f);
                 shader.set_float("point_lights[" + std::to_string(i) + "].specular_strength", 1.0f);
-                shader.set_vec3("point_lights[" + std::to_string(i) + "].position", point_light.transform.position);
+                shader.set_vec3("point_lights[" + std::to_string(i) + "].position", point_light.get_transform().local_position);
                 shader.set_vec3("point_lights[" + std::to_string(i) + "].color", point_light.color);
                 ++i;
             }
@@ -99,9 +101,28 @@ namespace renderer {
         shader.set_float("material.shininess", 32.0f);
     }
 
-    void Renderer::render_scene() {
-        /*Matrix4 view = Camera::main->get_view_transform();
-        Matrix4 projection = Camera::main->get_projection_transform();*/
+    Camera& Renderer::find_active_camera() {
+        Component_System& component_system = Engine::get_component_system();
+        for (Camera& camera : component_system.camera_components) {
+            if (camera.is_active()) {
+                return camera;
+            }
+        }
+
+        throw std::runtime_error("No active camera found");
+    }
+
+    void Renderer::render_scene(Transform const& camera_transform, Matrix4 const& view, Matrix4 const& projection) {
+        shader.use();
+        shader.set_vec3("camera.position", camera_transform.local_position);
+        shader.set_matrix4("projection", projection);
+        shader.set_matrix4("view", view);
+        for (Renderable_Component* component : registered_components) {
+            Transform& transform = component->game_object.get_component<Transform>();
+            Matrix4 model(transform.to_matrix());
+            shader.set_matrix4("model", model);
+            component->render(shader);
+        }
     }
 
     void Renderer::render_frame() {
@@ -118,22 +139,27 @@ namespace renderer {
 
         glEnable(GL_FRAMEBUFFER_SRGB);
 
-		Window& window = Engine::get_window();
+        Window& window = Engine::get_window();
 
         glViewport(0, 0, window.width(), window.height());
-        framebuffer_multisampled->bind();
-        glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
+        //framebuffer_multisampled->bind();
+        //glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
+        glClearColor(0.11f, 0.11f, 0.11f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        render_scene();
+        Camera& camera = find_active_camera();
+        Transform& camera_transform = camera.get_transform();
+        Matrix4 view = camera.get_view_transform();
+        Matrix4 projection = camera.get_projection_transform();
+        render_scene(camera_transform, view, projection);
 
-        framebuffer_multisampled->blit(*framebuffer);
+        /*framebuffer_multisampled->blit(*framebuffer);
         glDisable(GL_DEPTH_TEST);
         gamma_correction_shader.use();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, framebuffer->get_texture());
         gamma_correction_shader.set_int("scene_texture", 0);
         gamma_correction_shader.set_float("gamma", 1 / gamma_correction_value);
-        scene_quad.draw(gamma_correction_shader);
+        scene_quad.draw(gamma_correction_shader);*/
     }
 
     void Renderer::register_component(Renderable_Component* component) {

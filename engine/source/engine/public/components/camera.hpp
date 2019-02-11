@@ -31,6 +31,10 @@ public:
     Camera& operator=(Camera&&) = default;
     virtual ~Camera();
 
+    // Temporarily ???
+    void activate();
+    void deactivate();
+    bool is_active();
     void set_projection(Projection);
 
     Vector3 get_front();

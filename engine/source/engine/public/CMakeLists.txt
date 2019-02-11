@@ -1,7 +1,5 @@
 set(HEADER_FILES 
     ${HEADER_FILES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/mesh.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/model.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/object.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/game_object.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/static_mesh_component.hpp"
@@ -9,7 +7,7 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/components/point_light_component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/spot_light_component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/directional_light_component.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/components/scriptable_component.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/components/behaviour_component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/base_component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/camera.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/transform.hpp"
@@ -20,6 +18,9 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/key.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/axis_action_names.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/mesh/mesh_manager.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/mesh/mesh.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/mesh/model.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/plane.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/cube.hpp"
     PARENT_SCOPE

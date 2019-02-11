@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <vector>
 
+class Mesh;
+
 class Assets {
 public:
     static void init(std::filesystem::path current_path, std::filesystem::path assets_path, std::filesystem::path shaders_path);
@@ -28,6 +30,8 @@ public:
 
     // Loads texture and returns a OpenGL handle
     static uint32_t load_texture(std::filesystem::path filename);
+
+	static std::vector<Mesh> load_model(std::filesystem::path const& filename);
 
 private:
     static std::filesystem::path _current_path;

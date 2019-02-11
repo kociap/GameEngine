@@ -2,17 +2,17 @@
 #define ENGINE_GAME_OBJECT_HPP_INCLUDE
 
 #include "components/component_system.hpp"
-#include "components/transform.hpp"
 #include "engine.hpp"
 #include "object.hpp"
 
 class Game_Object : public Object {
-public:
-    Transform transform; // TODO move out of game object to component system
+    friend Game_Object& instantiate();
+    friend void destroy(Game_Object&);
 
 public:
-    Game_Object(); // TODO temporary, remove afterwards
+    Game_Object();
 
+public:
     template <typename T>
     T& get_component() {
         return Engine::get_component_system().get_component<T>(*this);

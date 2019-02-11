@@ -23,7 +23,7 @@ struct Camera {
     vec3 position;
 };
 
-struct Point_light {
+struct Point_Light {
     vec3 position;
     vec3 color;
     float intensity;
@@ -35,7 +35,7 @@ struct Point_light {
 };
 
 uniform Material material;
-uniform Point_light light;
+uniform Point_Light[16] point_lights;
 uniform Camera camera;
 uniform vec3 ambient_color;
 uniform float ambient_strength;
@@ -43,6 +43,8 @@ uniform float ambient_strength;
 out vec4 frag_color;
 
 void main() {
+    Point_Light light = point_lights[0];
+    
     vec3 view_vec = normalize(camera.position - fragment_data.fragment_position);
     vec3 light_vec = normalize(light.position - fragment_data.fragment_position);
     vec3 half_vec = normalize(view_vec + light_vec);
