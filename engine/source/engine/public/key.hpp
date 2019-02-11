@@ -1,6 +1,8 @@
 #ifndef ENGINE_KEY_HPP_INCLUDE
 #define ENGINE_KEY_HPP_INCLUDE
 
+#include <string>
+
 enum class Key {
     any_key,
 
@@ -136,5 +138,8 @@ enum class Key {
     gamepad_button_18,
     gamepad_button_19,
 };
+
+std::string key_to_string(Key);
+Key key_from_string(std::string const&);
 
 #endif // !ENGINE_KEY_HPP_INCLUDE
