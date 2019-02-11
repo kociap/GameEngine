@@ -3,11 +3,13 @@
 
 #include "components/renderable_component.hpp"
 #include "containers/swapping_pool.hpp"
+#include "framebuffer.hpp"
 #include "handle.hpp"
 #include "math/matrix4.hpp"
-#include "mesh.hpp"
 #include <cstdint>
-#include "framebuffer.hpp"
+#include "shader.hpp"
+
+class Camera;
 
 namespace renderer {
     class Renderer {
@@ -20,8 +22,9 @@ namespace renderer {
         void load_shaders();
 
     private:
-        void render_scene();
+        void render_scene(Transform const& camera_transform, Matrix4 const& view_transform, Matrix4 const& projection_transform);
         void load_shaders_properties();
+        Camera& find_active_camera();
 
     private:
         Swapping_Pool<Renderable_Component*> registered_components;
@@ -29,12 +32,12 @@ namespace renderer {
         Framebuffer* framebuffer;
         Framebuffer* light_depth_buffer;
 
-		Shader shader;
+        Shader shader;
         Shader light_shader;
         Shader gamma_correction_shader;
         Shader quad_shader;
 
-	public:
+    public:
         float gamma_correction_value = 2.2f;
     };
 } // namespace renderer

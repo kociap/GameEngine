@@ -7,8 +7,10 @@
 
 class Point_Light_Component : public Base_Component {
 public:
-    Color color;
-    float intensity;
+    using Base_Component::Base_Component;
+
+    Color color = Color::white;
+    float intensity = 1.0f;
 };
 
 #endif // !ENGINE_COMPONENTS_POINT_LIGHT_COMPONENT_HPP_INCLUDE

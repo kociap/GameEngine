@@ -2,6 +2,7 @@
 
 #include "assets.hpp"
 #include "components/component_system.hpp"
+#include "mesh/mesh_manager.hpp"
 #include "debug_macros.hpp"
 #include "game_object.hpp"
 #include "input/input_core.hpp"
@@ -11,11 +12,21 @@
 #include "utils/path.hpp"
 #include "window.hpp"
 
+#include "mesh/plane.hpp"
+#include "components/static_mesh_component.hpp"
+#include "components/point_light_component.hpp"
+#include "components/camera.hpp"
+#include "scripts/camera_movement.hpp"
+
 Input_Manager* Engine::input_manager = nullptr;
 renderer::Renderer* Engine::renderer = nullptr;
 Time_Core* Engine::time_core = nullptr;
 Component_System* Engine::component_system = nullptr;
 Window* Engine::main_window = nullptr;
+Mesh_Manager* Engine::mesh_manager = nullptr;
+
+std::vector<Game_Object> Engine::game_objects{};
+
 
 void Engine::init(int argc, char** argv) {
     std::filesystem::path executable_path(argv[0]);
@@ -25,12 +36,60 @@ void Engine::init(int argc, char** argv) {
     Assets::init(executable_path, assets_path, shaders_path);
 
     main_window = new Window(1000, 800);
+    mesh_manager = new Mesh_Manager();
     time_core = new Time_Core();
     input_manager = new Input_Manager();
     input_manager->load_bindings();
     component_system = new Component_System();
     renderer = new renderer::Renderer();
-    renderer->load_shaders();
+
+	// BS code to output anything on the screen
+    game_objects.emplace_back();
+    Game_Object& box = game_objects.back();
+    Transform& box_t = box.add_component<Transform>();
+    Static_Mesh_Component& box_sm = box.add_component<Static_Mesh_Component>();
+
+	std::vector<Mesh> meshes = Assets::load_model("cube.obj");
+    Texture container_diffuse;
+    container_diffuse.id = Assets::load_texture("container.jpg");
+    container_diffuse.type = Texture_Type::diffuse;
+    Texture container_specular;
+    container_specular.id = Assets::load_texture("container_specular.jpg");
+    container_specular.type = Texture_Type::specular;
+    meshes[0].textures.pop_back();
+    meshes[0].textures.push_back(container_diffuse);
+    meshes[0].textures.push_back(container_specular);
+	Handle<Mesh> box_handle = mesh_manager->add(std::move(meshes[0]));
+    box_sm.set_mesh(box_handle);
+
+	game_objects.emplace_back();
+    Game_Object& floor = game_objects.back();
+    Transform& floor_t = floor.add_component<Transform>();
+    Static_Mesh_Component& floor_sm = floor.add_component<Static_Mesh_Component>();
+	Texture floor_tex;
+    floor_tex.id = Assets::load_texture("wood_floor.png");
+    floor_tex.type = Texture_Type::diffuse;
+    Plane floor_mesh;
+    floor_mesh.textures.push_back(floor_tex);
+    Handle<Mesh> floor_handle = mesh_manager->add(std::move(floor_mesh));
+    floor_sm.set_mesh(floor_handle);
+    floor_t.translate({0, -2, 0});
+
+	game_objects.emplace_back();
+    Game_Object& lamp = game_objects.back();
+    Transform& lamp_t = lamp.add_component<Transform>();
+    Point_Light_Component& lamp_pl = lamp.add_component<Point_Light_Component>();
+    lamp_t.translate({2, 0, 2});
+    lamp_pl.intensity = 10;
+
+	game_objects.emplace_back();
+    Game_Object& camera = game_objects.back();
+    Transform& camera_t = camera.add_component<Transform>();
+    Camera& camera_c = camera.add_component<Camera>();
+    Camera_Movement& camera_m = camera.add_component<Camera_Movement>();
+
+
+	renderer->load_shaders();
 }
 
 void Engine::terminate() {
@@ -42,6 +101,8 @@ void Engine::terminate() {
     input_manager = nullptr;
     delete time_core;
     time_core = nullptr;
+    delete mesh_manager;
+    mesh_manager = nullptr;
     delete main_window;
     main_window = nullptr;
 }
@@ -50,11 +111,8 @@ void Engine::loop() {
     main_window->poll_events();
     input_manager->process_events();
     time_core->update_time();
-
-    update_components();
-
+    component_system->update_behaviours();
     renderer->render_frame();
-
     main_window->swap_buffers();
 }
 
@@ -76,6 +134,14 @@ renderer::Renderer& Engine::get_renderer() {
 
 Component_System& Engine::get_component_system() {
     return *component_system;
+}
+
+Mesh_Manager& Engine::get_mesh_manager() {
+    return *mesh_manager;
+}
+
+Time_Core& Engine::get_time_manager() {
+    return *time_core;
 }
 
 void Engine::update_components() {}

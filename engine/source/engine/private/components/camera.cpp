@@ -1,7 +1,7 @@
 #include "components/camera.hpp"
 #include "components/transform.hpp"
-#include "math/transform.hpp"
 #include "engine.hpp"
+#include "math/transform.hpp"
 #include "window.hpp"
 
 Camera::Camera(Game_Object& go) : Base_Component(go) {}
@@ -13,12 +13,14 @@ void Camera::set_projection(Projection proj) {
 }
 
 Vector3 Camera::get_front() {
-    Vector4 front = Vector4(0, 0, -1, 0) * transform::rotate(transform.rotation);
+    Transform& transform = get_transform();
+    Vector4 front = Vector4(0, 0, -1, 0) * transform::rotate(transform.local_rotation);
     return {front.x, front.y, front.z};
 }
 
 Matrix4 Camera::get_view_transform() {
-    return transform::look_at(transform.position, transform.position + get_front(), Vector3::up);
+    Transform& transform = get_transform();
+    return transform::look_at(transform.local_position, transform.local_position + get_front(), Vector3::up);
 }
 
 Matrix4 Camera::get_projection_transform() {
@@ -29,4 +31,16 @@ Matrix4 Camera::get_projection_transform() {
     } else {
         return transform::orthographic(-size * aspect_ratio, size * aspect_ratio, -size, size, near_plane, far_plane);
     }
+}
+
+void Camera::activate() {
+    active = false;
+}
+
+void Camera::deactivate() {
+    active = true;
+}
+
+bool Camera::is_active() {
+    return active;
 }
