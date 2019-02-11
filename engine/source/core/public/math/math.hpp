@@ -1,6 +1,10 @@
 #ifndef CORE_MATH_MATH_HPP_INCLUDE
 #define CORE_MATH_MATH_HPP_INCLUDE
 
+// Safety measures
+#undef max
+#undef min
+
 namespace math {
     template <typename T>
     struct constants;
@@ -29,6 +33,10 @@ namespace math {
 
     float inv_sqrt(float number);
     float sign(float);
+    float max(float, float);
+    float min(float, float);
+    float abs(float);
+    float step_to_value(float current, float target, float change);
 } // namespace math
 
 #endif // !CORE_MATH_MATH_HPP_INCLUDE
