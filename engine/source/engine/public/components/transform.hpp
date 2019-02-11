@@ -8,16 +8,15 @@
 
 class Transform : public Base_Component {
 public:
-    Quaternion rotation;
-    Vector3 position;
+    Quaternion local_rotation;
     Vector3 local_position;
-    Vector3 local_scale;
+    Vector3 local_scale = Vector3::one;
 
 public:
     using Base_Component::Base_Component;
 
-    void translate(Vector3);
-    void scale(Vector3);
+    void translate(Vector3 const&);
+    void scale(Vector3 const&);
 	// axis to rotate about
 	// angle in radians
     void rotate(Vector3 axis, float angle);
