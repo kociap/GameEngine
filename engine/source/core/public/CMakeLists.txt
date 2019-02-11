@@ -10,6 +10,7 @@ set(HEADER_FILES ${HEADER_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/math/transform.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/containers/pool.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/containers/swapping_pool.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/iterator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/debug_macros.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/handle.hpp"

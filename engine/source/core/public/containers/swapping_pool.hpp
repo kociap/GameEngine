@@ -2,6 +2,7 @@
 #define CORE_CONTAINERS_SWAPPING_POOL_HPP_INCLUDE
 
 #include "handle.hpp"
+#include "iterator.hpp"
 #include <memory>
 #include <queue>
 #include <stdexcept>
@@ -16,31 +17,9 @@ class Swapping_Pool {
 
 public:
     using value_type = T;
+    using pointer = T*;
     using size_t = uint64_t;
-
-    class iterator {
-        friend class Swapping_Pool;
-
-    private:
-        T* storage_ptr;
-
-    private:
-        iterator(T* ptr) : storage_ptr(ptr) {}
-
-    public:
-        iterator& operator++() {
-            ++storage_ptr;
-            return *this;
-        }
-
-        bool operator!=(iterator const& it) {
-            return storage_ptr != it.storage_ptr;
-        }
-
-        T& operator*() {
-            return *storage_ptr;
-        }
-    };
+    using iterator = iterators::iterator<Swapping_Pool>;
 
 private:
     class Deleter {
