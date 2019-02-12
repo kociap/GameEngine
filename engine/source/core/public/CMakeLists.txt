@@ -16,6 +16,7 @@ set(HEADER_FILES ${HEADER_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/handle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/singleton.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/utils/path.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/utils/simple_xml_parser.hpp"
     PARENT_SCOPE
 )
 
