@@ -1,13 +1,15 @@
 #ifndef ENGINE_HPP_INCLUDE
 #define ENGINE_HPP_INCLUDE
 
-class Input_Manager;
 class Time_Core;
 class Component_System;
 class Window;
 class Mesh_Manager;
 namespace renderer {
     class Renderer;
+}
+namespace Input {
+    class Manager;
 }
 
 class Game_Object;
@@ -16,7 +18,7 @@ class Game_Object;
 
 class Engine {
 private:
-    static Input_Manager* input_manager;
+    static Input::Manager* input_manager;
     static renderer::Renderer* renderer;
     static Time_Core* time_core;
     static Component_System* component_system;
@@ -30,7 +32,7 @@ public:
     static void loop();
     static bool should_close();
 
-    static Input_Manager& get_input_manager();
+    static Input::Manager& get_input_manager();
     static Window& get_window();
     static renderer::Renderer& get_renderer();
     static Component_System& get_component_system();

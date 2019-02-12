@@ -18,7 +18,7 @@
 #include "components/camera.hpp"
 #include "scripts/camera_movement.hpp"
 
-Input_Manager* Engine::input_manager = nullptr;
+Input::Manager* Engine::input_manager = nullptr;
 renderer::Renderer* Engine::renderer = nullptr;
 Time_Core* Engine::time_core = nullptr;
 Component_System* Engine::component_system = nullptr;
@@ -26,7 +26,6 @@ Window* Engine::main_window = nullptr;
 Mesh_Manager* Engine::mesh_manager = nullptr;
 
 std::vector<Game_Object> Engine::game_objects{};
-
 
 void Engine::init(int argc, char** argv) {
     std::filesystem::path executable_path(argv[0]);
@@ -38,7 +37,7 @@ void Engine::init(int argc, char** argv) {
     main_window = new Window(1000, 800);
     mesh_manager = new Mesh_Manager();
     time_core = new Time_Core();
-    input_manager = new Input_Manager();
+    input_manager = new Input::Manager();
     input_manager->load_bindings();
     component_system = new Component_System();
     renderer = new renderer::Renderer();
@@ -120,7 +119,7 @@ bool Engine::should_close() {
     return main_window->should_close();
 }
 
-Input_Manager& Engine::get_input_manager() {
+Input::Manager& Engine::get_input_manager() {
     return *input_manager;
 }
 

@@ -5,11 +5,17 @@
 #include "math/math.hpp"
 #include "time.hpp"
 #include "utils/path.hpp"
+#include "utils/simple_xml_parser.hpp"
+
 #include <cctype>
 #include <unordered_map>
 
-static void extract_bindings(std::string const& str, std::vector<Input_Axis_Binding>& axis_bindings, std::vector<Input_Action_Binding>& action_bindings) {
-    // clang-format off
+// DEBUG TODO remove
+#include <iostream>
+
+namespace Input {
+    static void extract_bindings(std::string const& str, std::vector<Axis_Binding>& axis_bindings, std::vector<Action_Binding>& action_bindings) {
+        // clang-format off
     std::unordered_map<std::string, Input_Axis> string_to_input_axis({
         {"move_forward", Input_Axis::move_forward},
         {"move_sideways", Input_Axis::move_sideways},
@@ -19,245 +25,227 @@ static void extract_bindings(std::string const& str, std::vector<Input_Axis_Bind
     });
 
 	std::unordered_map<std::string, Input_Action> string_to_input_action;
-    // clang-format on
+        // clang-format on
 
-    struct Binding {
-        std::string name;
-        std::string key;
-    };
+        struct Binding {
+            std::string name;
+            std::string key;
+            float scale;
 
-    auto parse_input_string = [](std::string const& str, std::vector<Binding>& axes, std::vector<Binding>& actions) {
-        enum class State {
-            new_line,
-            header,
-            header_end,
-            binding_name,
-            binding_name_whitespace,
-            binding_key_begin,
-            binding_key,
-            binding_key_whitespace,
-            invalid
+            Binding(std::string const& n, std::string const& k, float s) : name(n), key(k), scale(s) {}
         };
 
-        State state = State::new_line;
-        bool axis_binding = false;
-        std::string header_value;
-        for (char const& c : str) {
-            if (state == State::new_line) {
-                if (c == '[') {
-                    state = State::header;
-                    header_value = "";
-                } else if (std::isalnum(c) || c == '_') {
-                    GE_assert(header_value.size() > 0, "Missing header");
-                    if (axis_binding) {
-                        axes.emplace_back();
-                        axes.back().name += c;
-                    } else {
-                        actions.emplace_back();
-                        actions.back().name += c;
-                    }
-                    state = State::binding_name;
-                }
-            } else if (state == State::header) {
-                if (!std::isspace(c)) {
-                    if (c == ']') {
-                        state = State::header_end;
-                    } else {
-                        header_value += static_cast<char>(std::tolower(c));
+        auto parse_input_string = [](std::string const& str, std::vector<Binding>& axes, std::vector<Binding>& actions) {
+            // Why is this function ugly?
+
+            auto find_property = [](auto& properties, auto predicate) -> std::vector<utils::xml::Tag_Property>::iterator {
+                auto end = properties.end();
+                for (auto iter = properties.begin(); iter != end; ++iter) {
+                    if (predicate(*iter)) {
+                        return iter;
                     }
                 }
-            } else if (state == State::header_end) {
-                GE_assert(header_value == "axis" || header_value == "action", "Invalid header value");
-                GE_assert(std::isspace(c) || c == '\0', "Non-whitespace character after header");
-                axis_binding = header_value == "axis";
-                if (c == '\n') {
-                    state = State::new_line;
-                }
-            } else if (state == State::binding_name) {
-                if (c == '=') {
-                    state = State::binding_key_begin;
-                } else if (std::isspace(c)) {
-                    state = State::binding_name_whitespace;
+                return end;
+            };
+
+            std::vector<utils::xml::Tag> tags(utils::xml::parse(str));
+            for (utils::xml::Tag& tag : tags) {
+                GE_assert(tag.name == "axis" || tag.name == "action", "Unknown tag, skipping"); // TODO replace with logging
+
+                auto axis_prop = find_property(tag.properties, [](auto& property) { return property.name == "axis"; });
+                auto action_prop = find_property(tag.properties, [](auto& property) { return property.name == "action"; });
+                auto key_prop = find_property(tag.properties, [](auto& property) { return property.name == "key"; });
+                auto scale_prop = find_property(tag.properties, [](auto& property) { return property.name == "scale"; });
+
+                // TODO replace with logging
+                GE_assert(axis_prop != tag.properties.end() || action_prop != tag.properties.end(), "Missing action/axis property");
+                GE_assert(key_prop != tag.properties.end(), "Missing key property");
+                GE_assert(scale_prop != tag.properties.end(), "Missing scale property");
+
+                if (axis_prop != tag.properties.end()) {
+                    axes.emplace_back(axis_prop->value, key_prop->value, std::stof(scale_prop->value));
                 } else {
-                    if (axis_binding) {
-                        axes.back().name += c;
-                    } else {
-                        actions.back().name += c;
-                    }
+                    actions.emplace_back(action_prop->value, key_prop->value, std::stof(scale_prop->value));
                 }
-            } else if (state == State::binding_name_whitespace) {
-                GE_assert(!std::isspace(c) && c != '=', "Invalid character after binding name");
-                if (c == '=') {
-                    state = State::binding_key_begin;
+            }
+        };
+
+        std::vector<Binding> axes;
+        std::vector<Binding> actions;
+        parse_input_string(str, axes, actions);
+
+        for (Binding& axis : axes) {
+            auto key = key_from_string(axis.key);
+            auto name_iter = string_to_input_axis.find(axis.name);
+            GE_assert(name_iter != string_to_input_axis.end(),
+                      "Attepmting to load unknown axis binding, skipping"); // TODO replace with logging
+            if (name_iter != string_to_input_axis.end()) {
+                axis_bindings.emplace_back(name_iter->second, key, axis.scale);
+            }
+        }
+
+        for (Binding& action : actions) {
+            auto key = key_from_string(action.key);
+            auto name_iter = string_to_input_action.find(action.name);
+            GE_assert(name_iter != string_to_input_action.end(),
+                      "Attepmting to load unknown axis binding, skipping"); // TODO replace with logging
+            if (name_iter != string_to_input_action.end()) {
+                action_bindings.emplace_back(name_iter->second, key, action.scale);
+            }
+        }
+    }
+
+    void Manager::load_bindings() {
+        std::string config_file;
+        std::filesystem::path bindings_file_path(utils::concat_paths(Assets::current_path(), "input_bindings.config"));
+        Assets::read_file_raw(bindings_file_path, config_file);
+        std::vector<Axis_Binding> axes;
+        std::vector<Action_Binding> actions;
+        extract_bindings(config_file, axes, actions);
+        register_axis_bindings(axes);
+        register_action_bindings(actions);
+    }
+
+    void Manager::save_bindings() {}
+
+    void Manager::register_axis_bindings(std::vector<Axis_Binding> const& bindings) {
+        for (Axis_Binding const& new_binding : bindings) {
+            bool duplicate = false;
+            for (Axis_Binding& axis_binding : axis_bindings) {
+                duplicate = duplicate || (axis_binding.axis == new_binding.axis && axis_binding.key == new_binding.key);
+            }
+            if (!duplicate) {
+                axis_bindings.push_back(new_binding);
+            }
+
+            duplicate = false;
+            for (Axis& axis : axes) {
+                duplicate = duplicate || (axis.axis == new_binding.axis);
+            }
+            if (!duplicate) {
+                axes.emplace_back(new_binding.axis);
+            }
+        }
+    }
+
+    void Manager::register_action_bindings(std::vector<Action_Binding> const& bindings) {
+        for (Action_Binding const& new_binding : bindings) {
+            bool duplicate = false;
+            for (Action_Binding& action_binding : action_bindings) {
+                duplicate = duplicate || (action_binding.action == new_binding.action && action_binding.key == new_binding.key);
+            }
+            if (!duplicate) {
+                action_bindings.push_back(new_binding);
+            }
+
+            duplicate = false;
+            for (Action& action : actions) {
+                duplicate = duplicate || (action.action == new_binding.action);
+            }
+            if (!duplicate) {
+                actions.emplace_back(new_binding.action);
+            }
+        }
+    }
+
+    void Manager::process_events() {
+        // TODO add actions processing
+
+        process_mouse_events();
+
+        for (Event& event : input_event_queue) {
+            //std::cout << key_to_string(event.key) << ": " << event.value << "\n";
+
+            for (auto& binding : axis_bindings) {
+                if (binding.key == event.key) {
+                    binding.raw_value = event.value;
                 }
-            } else if (state == State::binding_key_begin) {
-                GE_assert(c != '\n', "Missing binding key");
-                if (!std::isspace(c)) {
-                    if (axis_binding) {
-                        axes.back().key += c;
-                    } else {
-                        actions.back().key += c;
-                    }
-                    state = State::binding_key;
-                }
-            } else if (state == State::binding_key) {
-                if (c == '\n') {
-                    state = State::new_line;
-                } else if (std::isspace(c)) {
-                    state = State::binding_key_whitespace;
-                } else {
-                    if (axis_binding) {
-                        axes.back().key += c;
-                    } else {
-                        actions.back().key += c;
-                    }
-                }
-            } else if (state == State::binding_key_whitespace) {
-                GE_assert(std::isspace(c) || c == '\0', "Invalid character after binding key");
-                if (c == '\n') {
-                    state = State::new_line;
+            }
+
+            for (auto& binding : action_bindings) {
+                if (binding.key == event.key) {
                 }
             }
         }
-    };
+        input_event_queue.clear();
 
-    std::vector<Binding> axes;
-    std::vector<Binding> actions;
-    parse_input_string(str, axes, actions);
-
-    for (Binding& axis : axes) {
-        auto key = key_from_string(axis.key);
-        auto name_iter = string_to_input_axis.find(axis.name);
-        GE_assert(name_iter != string_to_input_axis.end(),
-                  "Attepmting to load unknown axis binding, skipping"); // TODO replace with logging
-        if (name_iter != string_to_input_axis.end()) {
-            axis_bindings.emplace_back(name_iter->second, key);
-        }
-    }
-
-    for (Binding& action : actions) {
-        auto key = key_from_string(action.key);
-        auto name_iter = string_to_input_action.find(action.name);
-        GE_assert(name_iter != string_to_input_action.end(),
-                  "Attepmting to load unknown axis binding, skipping"); // TODO replace with logging
-        if (name_iter != string_to_input_action.end()) {
-            action_bindings.emplace_back(name_iter->second, key);
-        }
-    }
-}
-
-void Input_Manager::load_bindings() {
-    std::string config_file;
-    std::filesystem::path bindings_file_path(utils::concat_paths(Assets::current_path(), "input_bindings.config"));
-    Assets::read_file_raw(bindings_file_path, config_file);
-    std::vector<Input_Axis_Binding> axes;
-    std::vector<Input_Action_Binding> actions;
-    extract_bindings(config_file, axes, actions);
-    register_axis_bindings(axes);
-    register_action_bindings(actions);
-}
-
-void Input_Manager::save_bindings() {}
-
-void Input_Manager::register_axis_bindings(std::vector<Input_Axis_Binding> const& bindings) {
-    for (Input_Axis_Binding const& new_binding : bindings) {
-        bool duplicate = false;
-        for (Input_Axis_Binding& axis_binding : axis_bindings) {
-            duplicate = duplicate || (axis_binding.axis == new_binding.axis && axis_binding.key == new_binding.key);
-        }
-        if (!duplicate) {
-            axis_bindings.push_back(new_binding);
-        }
-
-        duplicate = false;
+        // TODO different behaviour for gamepad
         for (Axis& axis : axes) {
-            duplicate = duplicate || (axis.axis == new_binding.axis);
-        }
-        if (!duplicate) {
-            axes.emplace_back(new_binding.axis);
-        }
-    }
-}
+            float raw_value = 0.0f;
+            float max_scale = 0.0f;
+            bool has_mouse_bound = false;
+            for (auto& axis_binding : axis_bindings) {
+                if (axis.axis == axis_binding.axis) {
+                    if (axis_binding.key == Key::mouse_x || axis_binding.key == Key::mouse_y || axis_binding.key == Key::mouse_scroll) {
+                        has_mouse_bound = true;
+                    }
 
-void Input_Manager::register_action_bindings(std::vector<Input_Action_Binding> const& bindings) {
-    for (Input_Action_Binding const& new_binding : bindings) {
-        bool duplicate = false;
-        for (Input_Action_Binding& action_binding : action_bindings) {
-            duplicate = duplicate || (action_binding.action == new_binding.action && action_binding.key == new_binding.key);
-        }
-        if (!duplicate) {
-            action_bindings.push_back(new_binding);
-        }
+                    if (axis_binding.raw_value != 0) {
+                        raw_value += axis_binding.raw_value * math::sign(axis_binding.scale);
+                        max_scale = math::max(max_scale, math::abs(axis_binding.scale));
+                    }
+                }
+            }
 
-        duplicate = false;
-        for (Action& action : actions) {
-            duplicate = duplicate || (action.action == new_binding.action);
-        }
-        if (!duplicate) {
-            actions.emplace_back(new_binding.action);
-        }
-    }
-}
+            if (has_mouse_bound) {
+                // Do not normalize or smooth mouse values
+                axis.raw_value = raw_value * max_scale;
+                axis.value = raw_value * max_scale;
+            } else {
+                // Keep normalized and smoothed
+                axis.raw_value = math::max(-1.0f, math::min(1.0f, raw_value));
+                axis.scale = max_scale == 0 ? axis.scale : max_scale;
 
-// DEBUG TODO remove
-#include <iostream>
+                if (axis.snap && math::sign(axis.raw_value) != math::sign(axis.value)) {
+                    axis.value = 0;
+                }
 
-void Input_Manager::process_events() {
-    // TODO add actions processing
-
-    // Clear mouse move and scroll values
-    // TODO replace with smoothing
-    for (auto& axis_binding : axis_bindings) {
-        Key k = axis_binding.key;
-        if (k == Key::mouse_scroll || k == Key::mouse_x || k == Key::mouse_y) {
-            axis_binding.raw_value = 0;
-        }
-    }
-
-    for (Input_Event& event : input_event_queue) {
-        std::cout << key_to_string(event.key) << ": " << event.value << "\n";
-
-        for (auto& binding : axis_bindings) {
-            if (binding.key == event.key) {
-                binding.raw_value = event.value;
+                float axis_value_delta = axis.scale * Time::get_delta_time();
+                axis.value = math::step_to_value(axis.value, axis.raw_value, axis_value_delta);
             }
         }
 
-        for (auto& binding : action_bindings) {
-            if (binding.key == event.key) {
-            }
+        // DEBUG TODO remove
+        std::unordered_map<Input_Axis, std::string> axis_to_string({{Input_Axis::move_forward, "move_forward"},
+                                                                    {Input_Axis::move_sideways, "move_sideways"},
+                                                                    {Input_Axis::move_vertical, "move_vertical"},
+                                                                    {Input_Axis::mouse_x, "mouse_x"},
+                                                                    {Input_Axis::mouse_y, "mouse_y"}});
+
+        std::cout << "Time: " << Time::get_delta_time() << "\n";
+        for (Axis& axis : axes) {
+            std::cout << axis_to_string[axis.axis] << " scale: " << axis.scale << " raw: " << axis.raw_value << " value:" << axis.value << "\n";
         }
     }
-    input_event_queue.clear();
 
-    for (Axis& axis : axes) {
-        float raw_value = 0.0f;
-        float max_scale = 0.0f;
+    void Manager::process_mouse_events() {
+        Mouse_Event current_frame_mouse;
+
+        for (Mouse_Event& mouse_event : mouse_event_queue) {
+            current_frame_mouse.mouse_x += mouse_event.mouse_x;
+            current_frame_mouse.mouse_y += mouse_event.mouse_y;
+            current_frame_mouse.wheel += mouse_event.wheel;
+        }
+
+		mouse_event_queue.clear();
+
+        // TODO Mouse smoothing, not sure I'll ever implement it
+        // if (mouse_values_buffer.size() == mouse_buffer_size_limit) {
+        //     mouse_values_buffer.pop_front();
+        // }
+
+        // mouse_values_buffer.push_back(current_frame_mouse);
+
+        // Reset bindings
         for (auto& axis_binding : axis_bindings) {
-            if (axis.axis == axis_binding.axis) {
-                raw_value += axis_binding.raw_value * math::sign(axis_binding.scale);
-                max_scale = math::max(max_scale, math::abs(axis_binding.scale));
+            Key k = axis_binding.key;
+            if (k == Key::mouse_x) {
+                axis_binding.raw_value = current_frame_mouse.mouse_x;
+            } else if (k == Key::mouse_y) {
+                axis_binding.raw_value = current_frame_mouse.mouse_y;
+            } else if (k == Key::mouse_scroll) {
+                axis_binding.raw_value = current_frame_mouse.wheel;
             }
         }
-        axis.raw_value = math::max(-1.0f, math::min(1.0f, raw_value)); // Keep normalized
-        axis.scale = max_scale;
-
-        if (axis.snap && math::sign(axis.scale) != math::sign(axis.value)) {
-            axis.value = 0;
-        }
-
-        float axis_value_delta = axis.scale * Time::get_delta_time();
-        axis.value = math::step_to_value(axis.value, axis.raw_value, axis_value_delta);
     }
-
-    std::unordered_map<Input_Axis, std::string> axis_to_string({{Input_Axis::move_forward, "move_forward"},
-                                                                {Input_Axis::move_sideways, "move_sideways"},
-                                                                {Input_Axis::move_vertical, "move_vertical"},
-                                                                {Input_Axis::mouse_x, "mouse_x"},
-                                                                {Input_Axis::mouse_y, "mouse_y"}});
-
-    std::cout << "Time: " << Time::get_delta_time() << "\n";
-    for (Axis& axis : axes) {
-        std::cout << axis_to_string[axis.axis] << " " << axis.raw_value << " " << axis.value << "\n";
-    }
-}
+} // namespace Input
