@@ -99,7 +99,7 @@ void mouse_button_callback(GLFWwindow*, int button, int action, int mods) {
 
     Key key = mouse_button_map.at(button);
     float value = static_cast<float>(action); // GLFW_PRESS is 1, GLFW_RELEASE is  0
-    Input_Manager& input_manager = Engine::get_input_manager();
+    Input::Manager& input_manager = Engine::get_input_manager();
     input_manager.input_event_queue.emplace_back(key, value);
 }
 
@@ -119,14 +119,14 @@ void mouse_position_callback(GLFWwindow*, double param_x, double param_y) {
 
     //std::cout << "Mouse x: " << offset_x << "; Mouse y: " << offset_y << "\n";
 
-    Input_Manager& input_manager = Engine::get_input_manager();
-    input_manager.input_event_queue.emplace_back(Key::mouse_x, offset_x);
-    input_manager.input_event_queue.emplace_back(Key::mouse_y, offset_y);
+    Input::Manager& input_manager = Engine::get_input_manager();
+    input_manager.mouse_event_queue.emplace_back(offset_x, offset_y, 0);
 }
 
 void scroll_callback(GLFWwindow*, double offset_x, double offset_y) {
-    Input_Manager& input_manager = Engine::get_input_manager();
-    input_manager.input_event_queue.emplace_back(Key::mouse_scroll, static_cast<float>(offset_y));
+    Input::Manager& input_manager = Engine::get_input_manager();
+    std::cout << "scroll: " << offset_y << "\n";
+    input_manager.mouse_event_queue.emplace_back(0, 0, static_cast<float>(offset_y));
 }
 
 void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -197,13 +197,13 @@ void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, in
 
     Key mapped_key = keyboard_button_map.at(key);
 
-	// Temporary for debugging
+    // Temporary for debugging
     if (mapped_key == Key::escape)
         glfwSetWindowShouldClose(window, true);
 
     if (action == GLFW_PRESS || action == GLFW_RELEASE) {
-		float value = static_cast<float>(action); // GLFW_PRESS is 1, GLFW_RELEASE is  0
-		Input_Manager& input_manager = Engine::get_input_manager();
-		input_manager.input_event_queue.emplace_back(mapped_key, value);
+        float value = static_cast<float>(action); // GLFW_PRESS is 1, GLFW_RELEASE is  0
+        Input::Manager& input_manager = Engine::get_input_manager();
+        input_manager.input_event_queue.emplace_back(mapped_key, value);
     }
 }
