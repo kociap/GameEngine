@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-namespace time {
+namespace Time {
     // The time it took to complete the previous frame
     float get_delta_time();
 
@@ -18,6 +18,6 @@ namespace time {
 
     // The number of frames since the start of the game
     uint64_t get_frame_count();
-}; // namespace time
+}; // namespace Time
 
 #endif // !ENGINE_TIME_HPP_INCLUDE
