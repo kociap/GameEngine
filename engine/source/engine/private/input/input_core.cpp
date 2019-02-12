@@ -2,12 +2,14 @@
 
 #include "assets.hpp"
 #include "debug_macros.hpp"
+#include "math/math.hpp"
+#include "time.hpp"
 #include "utils/path.hpp"
 #include <cctype>
 #include <unordered_map>
 
 static void extract_bindings(std::string const& str, std::vector<Input_Axis_Binding>& axis_bindings, std::vector<Input_Action_Binding>& action_bindings) {
-	// clang-format off
+    // clang-format off
     std::unordered_map<std::string, Input_Axis> string_to_input_axis({
         {"move_forward", Input_Axis::move_forward},
         {"move_sideways", Input_Axis::move_sideways},
@@ -197,22 +199,65 @@ void Input_Manager::register_action_bindings(std::vector<Input_Action_Binding> c
     }
 }
 
+// DEBUG TODO remove
 #include <iostream>
 
 void Input_Manager::process_events() {
-    for (Input_Event event : input_event_queue) {
-        std::cout << key_to_string(event.key) << ": " << event.value << "\n";
-        for (auto& binding : axis_bindings) {
-            if (binding.key == event.key) {
-                for (Axis& axis : axes) {
-                    if (axis.axis == binding.axis) {
-                        axis.raw_value = event.value;
-                        break;
-                    }
-                }
-            }
+    // TODO add actions processing
+
+    // Clear mouse move and scroll values
+    // TODO replace with smoothing
+    for (auto& axis_binding : axis_bindings) {
+        Key k = axis_binding.key;
+        if (k == Key::mouse_scroll || k == Key::mouse_x || k == Key::mouse_y) {
+            axis_binding.raw_value = 0;
         }
     }
 
+    for (Input_Event& event : input_event_queue) {
+        std::cout << key_to_string(event.key) << ": " << event.value << "\n";
+
+        for (auto& binding : axis_bindings) {
+            if (binding.key == event.key) {
+                binding.raw_value = event.value;
+            }
+        }
+
+        for (auto& binding : action_bindings) {
+            if (binding.key == event.key) {
+            }
+        }
+    }
     input_event_queue.clear();
+
+    for (Axis& axis : axes) {
+        float raw_value = 0.0f;
+        float max_scale = 0.0f;
+        for (auto& axis_binding : axis_bindings) {
+            if (axis.axis == axis_binding.axis) {
+                raw_value += axis_binding.raw_value * math::sign(axis_binding.scale);
+                max_scale = math::max(max_scale, math::abs(axis_binding.scale));
+            }
+        }
+        axis.raw_value = math::max(-1.0f, math::min(1.0f, raw_value)); // Keep normalized
+        axis.scale = max_scale;
+
+        if (axis.snap && math::sign(axis.scale) != math::sign(axis.value)) {
+            axis.value = 0;
+        }
+
+        float axis_value_delta = axis.scale * Time::get_delta_time();
+        axis.value = math::step_to_value(axis.value, axis.raw_value, axis_value_delta);
+    }
+
+    std::unordered_map<Input_Axis, std::string> axis_to_string({{Input_Axis::move_forward, "move_forward"},
+                                                                {Input_Axis::move_sideways, "move_sideways"},
+                                                                {Input_Axis::move_vertical, "move_vertical"},
+                                                                {Input_Axis::mouse_x, "mouse_x"},
+                                                                {Input_Axis::mouse_y, "mouse_y"}});
+
+    std::cout << "Time: " << Time::get_delta_time() << "\n";
+    for (Axis& axis : axes) {
+        std::cout << axis_to_string[axis.axis] << " " << axis.raw_value << " " << axis.value << "\n";
+    }
 }

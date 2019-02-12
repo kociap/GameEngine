@@ -8,6 +8,7 @@
 struct Input_Action_Binding {
     Input_Action action;
     Key key;
+    float scale;
 
     Input_Action_Binding(Input_Action a, Key k) : action(a), key(k) {}
 };
@@ -15,6 +16,12 @@ struct Input_Action_Binding {
 struct Input_Axis_Binding {
     Input_Axis axis;
     Key key;
+
+    /*float sensitivity = 0.0f;
+    float gravity = 0.0f;*/
+
+	float scale = 1.0f;
+	float raw_value = 0.0f;
 
     Input_Axis_Binding(Input_Axis a, Key k) : axis(a), key(k) {}
 };
@@ -30,17 +37,21 @@ class Input_Manager {
 public:
     struct Axis {
         Input_Axis axis;
-        float raw_value;
-        float value;
+        float value = 0.0f;
+        float raw_value = 0.0f;
+        float scale = 0.0f;
+        int8_t snap : 1;
 
-        Axis(Input_Axis a) : axis(a), raw_value(0), value(0) {}
+        Axis(Input_Axis a) : axis(a), snap(0) {}
     };
 
     struct Action {
         Input_Action action;
-        float value;
+        float value = 0.0f;
+        float raw_value = 0.0f;
+        float scale = 0.0f;
 
-        Action(Input_Action a) : action(a), value(0) {}
+        Action(Input_Action a) : action(a) {}
     };
 
     std::vector<Input_Event> input_event_queue;
