@@ -3,7 +3,7 @@
 #include "engine.hpp"
 #include "input/input_core.hpp"
 
-float input::get_axis(Input_Axis axis_name) {
+float Input::get_axis(Input_Axis axis_name) {
     /*Input_Manager& input_manager = Engine::get_input_manager();
     for (Input_Manager::Axis& axis : input_manager.axes) {
         if (axis_name == axis.axis) {
@@ -14,7 +14,7 @@ float input::get_axis(Input_Axis axis_name) {
     return get_axis_raw(axis_name);
 }
 
-float input::get_axis_raw(Input_Axis axis_name) {
+float Input::get_axis_raw(Input_Axis axis_name) {
     Input_Manager& input_manager = Engine::get_input_manager();
     for (Input_Manager::Axis& axis : input_manager.axes) {
         if (axis_name == axis.axis) {
@@ -24,7 +24,7 @@ float input::get_axis_raw(Input_Axis axis_name) {
     return 0;
 }
 
-float input::get_action(Input_Action action_name) {
+float Input::get_action(Input_Action action_name) {
     Input_Manager& input_manager = Engine::get_input_manager();
     for (Input_Manager::Action& action : input_manager.actions) {
         if (action_name == action.action) {
