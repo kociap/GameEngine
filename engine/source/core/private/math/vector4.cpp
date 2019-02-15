@@ -1,10 +1,15 @@
 #include "math/vector4.hpp"
 
+#include "math/vector2.hpp"
+#include "math/vector3.hpp"
+
 #include "math/math.hpp"
 #include <cmath>
 #include <utility>
 
 Vector4::Vector4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+Vector4::Vector4(Vector2 const& vec, float z /* = 0 */, float w /* = 0 */) : x(vec.x), y(vec.y), z(z), w(w) {}
+Vector4::Vector4(Vector3 const& vec, float w /* = 0 */) : x(vec.x), y(vec.y), z(vec.z), w(w) {}
 
 float& Vector4::component(int index) {
     return (&x)[index];
