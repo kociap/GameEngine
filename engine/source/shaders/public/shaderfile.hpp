@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-enum class Shader_type {
+enum class Shader_Type {
     vertex,
     fragment,
     geometry,
@@ -20,7 +20,7 @@ public:
     Shader_File(Shader_File const&) = delete;
     Shader_File& operator=(Shader_File const&) = delete;
 
-    Shader_File(Shader_type type, std::string const& source);
+    Shader_File(Shader_Type type, std::string const& source);
     Shader_File(Shader_File&& shader) noexcept;
     Shader_File& operator=(Shader_File&& shader) noexcept;
     ~Shader_File();
@@ -28,7 +28,7 @@ public:
 private:
     friend class Shader;
 
-    Shader_type type;
+    Shader_Type type;
     GLuint shader;
 
     void create();

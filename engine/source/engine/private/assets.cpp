@@ -39,20 +39,20 @@ void Assets::read_file_raw(std::filesystem::path const& filename, std::string& o
     }
 }
 
-Shader_type Assets::shader_type_from_filename(std::filesystem::path const& filename) {
+Shader_Type Assets::shader_type_from_filename(std::filesystem::path const& filename) {
     std::string extension(filename.extension().string());
     if (extension == ".vert") {
-        return Shader_type::vertex;
+        return Shader_Type::vertex;
     } else if (extension == ".frag") {
-        return Shader_type::fragment;
+        return Shader_Type::fragment;
     } else if (extension == ".geom") {
-        return Shader_type::geometry;
+        return Shader_Type::geometry;
     } else if (extension == ".comp") {
-        return Shader_type::compute;
+        return Shader_Type::compute;
     } else if (extension == ".tese") {
-        return Shader_type::tessellation_evaluation;
+        return Shader_Type::tessellation_evaluation;
     } else if (extension == ".tesc") {
-        return Shader_type::tessellation_control;
+        return Shader_Type::tessellation_control;
     } else {
         throw std::invalid_argument("\"" + extension + "\" is not a known shader file extension");
     }
