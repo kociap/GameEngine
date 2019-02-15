@@ -1,25 +1,30 @@
 #include "shader.hpp"
 
+#include "color.hpp"
 #include "exceptions.hpp"
+#include "math/matrix4.hpp"
+#include "math/vector3.hpp"
+#include "shaderfile.hpp"
 
 #include <cassert>
 #include <fstream>
 #include <string>
 #include <vector>
 
-Shader::Shader(bool create_program) {
+Shader::Shader(bool create_program /* = true */) {
     if (create_program) {
         create();
     }
 }
 
-Shader::Shader(Shader&& shader) noexcept {
+Shader::Shader(Shader&& shader) noexcept : Object(std::move(shader)) {
     std::swap(shader.program, program);
 }
 
 Shader& Shader::operator=(Shader&& shader) noexcept {
+    Object::operator=(std::move(shader));
     std::swap(shader.program, program);
-	return *this;
+    return *this;
 }
 
 Shader::~Shader() {

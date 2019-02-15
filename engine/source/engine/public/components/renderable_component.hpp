@@ -7,13 +7,13 @@ class Shader;
 
 class Renderable_Component : public Base_Component {
 public:
-    Renderable_Component(Game_Object&);
+    Renderable_Component() = delete;
+    Renderable_Component(Game_Object& game_object);
+    Renderable_Component(Renderable_Component const&) = delete;
     Renderable_Component(Renderable_Component&&) noexcept = default;
-    Renderable_Component& operator=(Renderable_Component&&) noexcept = default;
-    virtual ~Renderable_Component();
-
-	// TODO remove shader parameter. Temporarily here to simplify things in renderer until I build a proper shader manager
-    virtual void render(Shader&) = 0;
+    Renderable_Component& operator=(Renderable_Component const&) = delete;
+    Renderable_Component& operator=(Renderable_Component&&) noexcept = delete;
+    virtual ~Renderable_Component(){};
 };
 
 #endif // !ENGINE_COMPONENTS_RENDERABLE_COMPONENT_HPP_INCLUDE

@@ -7,8 +7,12 @@
 #include "debug_macros.hpp"
 #include "engine.hpp"
 #include "framebuffer.hpp"
+#include "handle.hpp"
+#include "math/matrix4.hpp"
 #include "mesh/plane.hpp"
+#include "mesh/mesh_manager.hpp"
 #include "shader.hpp"
+#include "shader_manager.hpp"
 #include "window.hpp"
 
 namespace renderer {
@@ -31,29 +35,15 @@ namespace renderer {
         light_depth_buffer = new Framebuffer(framebuffer_construct_info);
     }
 
-    void Renderer::load_shaders() {
-        Assets::load_shader_file_and_attach(shader, "basicvertex.vert");
-        Assets::load_shader_file_and_attach(shader, "basicfrag.frag");
-        shader.link();
-
-        Assets::load_shader_file_and_attach(gamma_correction_shader, "postprocessing/postprocess_vertex.vert");
-        Assets::load_shader_file_and_attach(gamma_correction_shader, "postprocessing/gamma_correction.frag");
-        gamma_correction_shader.link();
-
-        Assets::load_shader_file_and_attach(quad_shader, "quad.vert");
-        Assets::load_shader_file_and_attach(quad_shader, "quad.frag");
-        quad_shader.link();
-
-        load_shaders_properties();
-    }
-
-    void Renderer::load_shaders_properties() {
-        auto set_shader_light_properties = [](Shader& shader, Component_System& component_sys) {
+    void Renderer::load_shader_light_properties() {
+        Component_System& component_system = Engine::get_component_system();
+        Shader_Manager& shader_manager = Engine::get_shader_manager();
+        for (Shader& shader : shader_manager) {
             shader.use();
             shader.set_float("ambient_strength", 0.02f);
             shader.set_vec3("ambient_color", Color(1.0f, 1.0f, 1.0f));
             uint32_t i = 0;
-            for (auto& directional_light : component_sys.directional_light_components) {
+            for (auto& directional_light : component_system.directional_light_components) {
                 shader.set_float("directional_lights[" + std::to_string(i) + "].attentuation_constant", 1.0f);
                 shader.set_float("directional_lights[" + std::to_string(i) + "].attentuation_linear", 0.09f);
                 shader.set_float("directional_lights[" + std::to_string(i) + "].attentuation_quadratic", 0.032f);
@@ -66,7 +56,7 @@ namespace renderer {
                 ++i;
             }
             i = 0;
-            for (auto& spot_light : component_sys.spot_light_components) {
+            for (auto& spot_light : component_system.spot_light_components) {
                 shader.set_float("spot_lights[" + std::to_string(i) + "].attentuation_constant", 1.0f);
                 shader.set_float("spot_lights[" + std::to_string(i) + "].attentuation_linear", 0.09f);
                 shader.set_float("spot_lights[" + std::to_string(i) + "].attentuation_quadratic", 0.032f);
@@ -81,7 +71,7 @@ namespace renderer {
                 ++i;
             }
             i = 0;
-            for (auto& point_light : component_sys.point_light_components) {
+            for (auto& point_light : component_system.point_light_components) {
                 shader.set_float("point_lights[" + std::to_string(i) + "].attentuation_constant", 1.0f);
                 shader.set_float("point_lights[" + std::to_string(i) + "].attentuation_linear", 0.09f);
                 shader.set_float("point_lights[" + std::to_string(i) + "].attentuation_quadratic", 0.032f);
@@ -92,13 +82,10 @@ namespace renderer {
                 shader.set_vec3("point_lights[" + std::to_string(i) + "].color", point_light.color);
                 ++i;
             }
-        };
 
-        Component_System& component_system = Engine::get_component_system();
-        set_shader_light_properties(shader, component_system);
-
-        // uhh?????????????????????
-        shader.set_float("material.shininess", 32.0f);
+            // uhh?????????????????????
+            shader.set_float("material.shininess", 32.0f);
+        }
     }
 
     Camera& Renderer::find_active_camera() {
@@ -112,16 +99,43 @@ namespace renderer {
         throw std::runtime_error("No active camera found");
     }
 
+    void Renderer::render_object(Static_Mesh_Component const& component, Shader& shader) {
+        Mesh_Manager& mesh_manager = Engine::get_mesh_manager();
+        Mesh& mesh = mesh_manager.get(component.mesh_handle);
+        mesh.draw(shader);
+    }
+
+    void Renderer::render_object(Line_Component const& component, Shader& shader) {
+        Mesh_Manager& mesh_manager = Engine::get_mesh_manager();
+        Mesh& mesh = mesh_manager.get(component.mesh_handle);
+        mesh.draw(shader);
+    }
+
     void Renderer::render_scene(Transform const& camera_transform, Matrix4 const& view, Matrix4 const& projection) {
-        shader.use();
-        shader.set_vec3("camera.position", camera_transform.local_position);
-        shader.set_matrix4("projection", projection);
-        shader.set_matrix4("view", view);
-        for (Renderable_Component* component : registered_components) {
-            Transform& transform = component->game_object.get_component<Transform>();
+        Shader_Manager& shader_manager = Engine::get_shader_manager();
+        Component_System& component_system = Engine::get_component_system();
+        for (Static_Mesh_Component& component : component_system.static_mesh_components) {
+            Shader& shader = shader_manager.get(component.shader_handle);
+            shader.use();
+            Transform& transform = component.game_object.get_component<Transform>();
             Matrix4 model(transform.to_matrix());
             shader.set_matrix4("model", model);
-            component->render(shader);
+            shader.set_vec3("camera.position", camera_transform.local_position);
+            shader.set_matrix4("projection", projection);
+            shader.set_matrix4("view", view);
+            render_object(component, shader);
+        }
+
+        for (Line_Component& component : component_system.line_components) {
+            Shader& shader = shader_manager.get(component.shader_handle);
+            shader.use();
+            Transform& transform = component.game_object.get_component<Transform>();
+            Matrix4 model(transform.to_matrix());
+            shader.set_matrix4("model", model);
+            shader.set_vec3("camera.position", camera_transform.local_position);
+            shader.set_matrix4("projection", projection);
+            shader.set_matrix4("view", view);
+            render_object(component, shader);
         }
     }
 
@@ -129,7 +143,7 @@ namespace renderer {
         static Plane scene_quad;
 
         glDisable(GL_FRAMEBUFFER_SRGB);
-        glEnable(GL_CULL_FACE);
+        //glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
 
         // glViewport(0, 0, shadow_width, shadow_height);
@@ -160,20 +174,5 @@ namespace renderer {
         gamma_correction_shader.set_int("scene_texture", 0);
         gamma_correction_shader.set_float("gamma", 1 / gamma_correction_value);
         scene_quad.draw(gamma_correction_shader);*/
-    }
-
-    void Renderer::register_component(Renderable_Component* component) {
-        registered_components.add(component);
-    }
-
-    void Renderer::unregister_component(Renderable_Component* component) {
-        Swapping_Pool<Renderable_Component*>::size_t i = 0;
-        for (auto ptr : registered_components) {
-            if (ptr == component) {
-                registered_components.remove(i);
-                break;
-            }
-            ++i;
-        }
     }
 } // namespace renderer

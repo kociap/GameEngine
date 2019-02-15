@@ -6,6 +6,7 @@
 #include "behaviour_component.hpp"
 #include "camera.hpp"
 #include "directional_light_component.hpp"
+#include "line_component.hpp"
 #include "point_light_component.hpp"
 #include "renderable_component.hpp"
 #include "spot_light_component.hpp"
@@ -39,6 +40,9 @@ public:
             T& component = camera_components.add(std::forward<Ctor_Args>(args)...);
             return component;
         } else if constexpr (std::is_same_v<T, Static_Mesh_Component>) {
+            T& component = static_mesh_components.add(std::forward<Ctor_Args>(args)...);
+            return component;
+        } else if constexpr (std::is_same_v<T, Line_Component>) {
             T& component = static_mesh_components.add(std::forward<Ctor_Args>(args)...);
             return component;
         } else if constexpr (std::is_same_v<T, Transform>) {
@@ -87,6 +91,8 @@ public:
             return find_component(go, camera_components);
         } else if constexpr (std::is_same_v<T, Static_Mesh_Component>) {
             return find_component(go, static_mesh_components);
+        } else if constexpr (std::is_same_v<T, Line_Component>) {
+            return find_component(go, line_components);
         } else if constexpr (std::is_same_v<T, Spot_Light_Component>) {
             return find_component(go, spot_light_components);
         } else if constexpr (std::is_same_v<T, Point_Light_Component>) {
@@ -139,6 +145,7 @@ private:
 public:
     Swapping_Pool<Camera> camera_components;
     Swapping_Pool<Static_Mesh_Component> static_mesh_components;
+    Swapping_Pool<Line_Component> line_components;
     Swapping_Pool<Directional_Light_Component> directional_light_components;
     Swapping_Pool<Spot_Light_Component> spot_light_components;
     Swapping_Pool<Point_Light_Component> point_light_components;
