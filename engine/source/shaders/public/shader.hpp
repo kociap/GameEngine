@@ -1,15 +1,16 @@
 #ifndef SHADERS_SHADER_HPP_INCLUDE
 #define SHADERS_SHADER_HPP_INCLUDE
 
-#include "color.hpp"
 #include "glad/glad.h"
-#include "math/matrix4.hpp"
-#include "math/vector3.hpp"
-#include "shaderfile.hpp"
-#include <filesystem>
+#include "object.hpp"
 #include <string>
 
-class Shader {
+class Vector3;
+class Color;
+class Matrix4;
+class Shader_File;
+
+class Shader : public Object {
 public:
     Shader(bool create_program = true);
     Shader(Shader const&) = delete;

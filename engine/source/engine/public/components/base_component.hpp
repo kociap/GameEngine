@@ -12,9 +12,9 @@ public:
     Base_Component() = delete;
     Base_Component(Game_Object& game_object);
     Base_Component(Base_Component const&) = delete;
-    Base_Component(Base_Component&&) = default;
+    Base_Component(Base_Component&&) noexcept = default;
     Base_Component& operator=(Base_Component const&) = delete;
-    Base_Component& operator=(Base_Component&&) = delete;
+    Base_Component& operator=(Base_Component&&) noexcept = delete;
     virtual ~Base_Component();
 
     Transform& get_transform();

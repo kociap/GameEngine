@@ -2,6 +2,7 @@ add_executable(${PROJECT_NAME}
     main.cpp
     engine.cpp
     engine.hpp
+    subsystem_forward_declarations.hpp
 )
 
 set(SOURCE_FILES)
