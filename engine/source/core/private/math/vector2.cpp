@@ -1,5 +1,8 @@
 #include "math/vector2.hpp"
 
+#include "math/vector3.hpp"
+#include "math/vector4.hpp"
+
 #include "math/math.hpp"
 #include <cmath>
 #include <utility>
@@ -14,6 +17,8 @@ float Vector2::dot(Vector2 const& vec1, Vector2 const& vec2) {
 }
 
 Vector2::Vector2(float x, float y) : x(x), y(y) {}
+Vector2::Vector2(Vector3 const& vec) : x(vec.x), y(vec.y) {}
+Vector2::Vector2(Vector4 const& vec) : x(vec.x), y(vec.y) {}
 
 Vector2& Vector2::operator-() {
     x = -x;

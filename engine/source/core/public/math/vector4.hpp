@@ -1,6 +1,9 @@
 #ifndef CORE_MATH_VECTOR4_HPP_INCLUDE
 #define CORE_MATH_VECTOR4_HPP_INCLUDE
 
+class Vector2;
+class Vector3;
+
 class Vector4 {
 public:
     float x = 0;
@@ -10,6 +13,8 @@ public:
 
     Vector4() = default;
     Vector4(float x, float y, float z, float w);
+    explicit Vector4(Vector2 const&, float z = 0, float w = 0);
+    explicit Vector4(Vector3 const&, float w = 0);
 
     float& component(int);
     float const& component(int) const;

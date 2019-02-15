@@ -1,5 +1,8 @@
 #include "math/vector3.hpp"
 
+#include "math/vector2.hpp"
+#include "math/vector4.hpp"
+
 #include "math/math.hpp"
 #include <cmath>
 #include <utility>
@@ -19,6 +22,8 @@ Vector3 Vector3::cross(Vector3 const& vec1, Vector3 const& vec2) {
 }
 
 Vector3::Vector3(float x, float y, float z) : x(x), y(y), z(z) {}
+Vector3::Vector3(Vector2 const& vec, float z /* = 0 */) : x(vec.x), y(vec.y), z(z) {}
+Vector3::Vector3(Vector4 const& vec) : x(vec.x), y(vec.y), z(vec.z) {}
 
 float& Vector3::component(int index) {
     return (&x)[index];
