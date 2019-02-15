@@ -34,11 +34,11 @@ Matrix4 Camera::get_projection_transform() {
 }
 
 void Camera::activate() {
-    active = false;
+    active = true;
 }
 
 void Camera::deactivate() {
-    active = true;
+    active = false;
 }
 
 bool Camera::is_active() {
