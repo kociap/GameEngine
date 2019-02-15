@@ -18,7 +18,7 @@ public:
     // Reads file as a string of chars without interpreting it
     static void read_file_raw(std::filesystem::path const& filename, std::string& out);
 
-    static Shader_type shader_type_from_filename(std::filesystem::path const& filename);
+    static Shader_Type shader_type_from_filename(std::filesystem::path const& filename);
 
     static Shader_File load_shader_file(std::filesystem::path const& path);
 
@@ -31,7 +31,7 @@ public:
     // Loads texture and returns a OpenGL handle
     static uint32_t load_texture(std::filesystem::path filename);
 
-	static std::vector<Mesh> load_model(std::filesystem::path const& filename);
+    static std::vector<Mesh> load_model(std::filesystem::path const& filename);
 
 private:
     static std::filesystem::path _current_path;

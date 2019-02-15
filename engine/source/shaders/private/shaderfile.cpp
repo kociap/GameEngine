@@ -1,9 +1,9 @@
-#include "shader.hpp"
+#include "shaderfile.hpp"
 
 #include "exceptions.hpp"
 #include <iostream>
 
-Shader_File::Shader_File(Shader_type type, std::string const& source) : type(type), shader(0) {
+Shader_File::Shader_File(Shader_Type type, std::string const& source) : type(type), shader(0) {
     create();
     set_source(source);
     compile();
@@ -26,15 +26,15 @@ Shader_File::~Shader_File() {
 }
 
 void Shader_File::create() {
-    if (type == Shader_type::vertex) {
+    if (type == Shader_Type::vertex) {
         shader = glCreateShader(GL_VERTEX_SHADER);
-    } else if (type == Shader_type::fragment) {
+    } else if (type == Shader_Type::fragment) {
         shader = glCreateShader(GL_FRAGMENT_SHADER);
-    } else if (type == Shader_type::geometry) {
+    } else if (type == Shader_Type::geometry) {
         shader = glCreateShader(GL_GEOMETRY_SHADER);
-    } else if (type == Shader_type::compute) {
+    } else if (type == Shader_Type::compute) {
         shader = glCreateShader(GL_COMPUTE_SHADER);
-    } else if (type == Shader_type::tessellation_control) {
+    } else if (type == Shader_Type::tessellation_control) {
         shader = glCreateShader(GL_TESS_CONTROL_SHADER);
     } else {
         shader = glCreateShader(GL_TESS_EVALUATION_SHADER);
