@@ -9,8 +9,8 @@
 #include "framebuffer.hpp"
 #include "handle.hpp"
 #include "math/matrix4.hpp"
-#include "mesh/plane.hpp"
 #include "mesh/mesh_manager.hpp"
+#include "mesh/plane.hpp"
 #include "shader.hpp"
 #include "shader_manager.hpp"
 #include "window.hpp"
@@ -33,6 +33,21 @@ namespace renderer {
         framebuffer_construct_info.depth_buffer_type = Framebuffer::Buffer_Type::texture;
         framebuffer_construct_info.color_buffer = false;
         light_depth_buffer = new Framebuffer(framebuffer_construct_info);
+
+        // TODO move to postprocessing
+        Assets::load_shader_file_and_attach(gamma_correction_shader, "postprocessing/postprocess_vertex.vert");
+        Assets::load_shader_file_and_attach(gamma_correction_shader, "postprocessing/gamma_correction.frag");
+        gamma_correction_shader.link();
+
+        Assets::load_shader_file_and_attach(quad_shader, "quad.vert");
+        Assets::load_shader_file_and_attach(quad_shader, "quad.frag");
+        quad_shader.link();
+    }
+
+    Renderer::~Renderer() {
+        delete framebuffer_multisampled;
+        delete framebuffer;
+        delete light_depth_buffer;
     }
 
     void Renderer::load_shader_light_properties() {
@@ -143,7 +158,7 @@ namespace renderer {
         static Plane scene_quad;
 
         glDisable(GL_FRAMEBUFFER_SRGB);
-        //glEnable(GL_CULL_FACE);
+        glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
 
         // glViewport(0, 0, shadow_width, shadow_height);
@@ -151,14 +166,11 @@ namespace renderer {
         // glClear(GL_DEPTH_BUFFER_BIT);
         // render_scene();
 
-        glEnable(GL_FRAMEBUFFER_SRGB);
-
         Window& window = Engine::get_window();
 
         glViewport(0, 0, window.width(), window.height());
-        //framebuffer_multisampled->bind();
-        //glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
-        glClearColor(0.11f, 0.11f, 0.11f, 1.0f);
+        framebuffer_multisampled->bind();
+        glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         Camera& camera = find_active_camera();
         Transform& camera_transform = camera.get_transform();
@@ -166,13 +178,13 @@ namespace renderer {
         Matrix4 projection = camera.get_projection_transform();
         render_scene(camera_transform, view, projection);
 
-        /*framebuffer_multisampled->blit(*framebuffer);
+        framebuffer_multisampled->blit(*framebuffer);
         glDisable(GL_DEPTH_TEST);
         gamma_correction_shader.use();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, framebuffer->get_texture());
         gamma_correction_shader.set_int("scene_texture", 0);
         gamma_correction_shader.set_float("gamma", 1 / gamma_correction_value);
-        scene_quad.draw(gamma_correction_shader);*/
+        scene_quad.draw(gamma_correction_shader);
     }
 } // namespace renderer
