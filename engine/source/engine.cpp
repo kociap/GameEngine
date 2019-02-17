@@ -16,6 +16,7 @@
 #include "components/camera.hpp"
 #include "components/point_light_component.hpp"
 #include "components/static_mesh_component.hpp"
+#include "mesh/cube.hpp"
 #include "mesh/plane.hpp"
 #include "scripts/camera_movement.hpp"
 
@@ -36,6 +37,9 @@ void Engine::init(int argc, char** argv) {
     std::filesystem::path shaders_path(utils::concat_paths(executable_path, "shaders"));
     Assets::init(executable_path, assets_path, shaders_path);
 
+    // Reserve tp prevent reallocations
+    game_objects.reserve(20);
+
     main_window = new Window(1000, 800);
     mesh_manager = new Mesh_Manager();
     shader_manager = new Shader_Manager();
@@ -46,10 +50,19 @@ void Engine::init(int argc, char** argv) {
     renderer = new renderer::Renderer();
 
     Shader default_shader;
+    /*Assets::load_shader_file_and_attach(default_shader, "normals.vert");
+    Assets::load_shader_file_and_attach(default_shader, "normals.geom");
+    Assets::load_shader_file_and_attach(default_shader, "normals.frag");*/
     Assets::load_shader_file_and_attach(default_shader, "basicvertex.vert");
     Assets::load_shader_file_and_attach(default_shader, "basicfrag.frag");
     default_shader.link();
+
     Handle<Shader> default_shader_handle = shader_manager->add(std::move(default_shader));
+    Shader unlit_default_shader;
+    Assets::load_shader_file_and_attach(unlit_default_shader, "unlit_default.vert");
+    Assets::load_shader_file_and_attach(unlit_default_shader, "unlit_default.frag");
+    unlit_default_shader.link();
+    Handle<Shader> unlit_default_shader_handle = shader_manager->add(std::move(unlit_default_shader));
 
     // BS code to output anything on the screen
     game_objects.emplace_back();
@@ -90,8 +103,13 @@ void Engine::init(int argc, char** argv) {
     Game_Object& lamp = game_objects.back();
     Transform& lamp_t = lamp.add_component<Transform>();
     Point_Light_Component& lamp_pl = lamp.add_component<Point_Light_Component>();
-    lamp_t.translate({3, 0.75f, 2});
-    lamp_pl.intensity = 5;
+    Static_Mesh_Component& lamp_sm = lamp.add_component<Static_Mesh_Component>();
+    auto lamp_cube_handle = mesh_manager->add(Cube());
+    lamp_sm.set_mesh(lamp_cube_handle);
+    lamp_sm.set_shader(unlit_default_shader_handle);
+    lamp_t.scale({0.2f, 0.2f, 0.2f});
+    lamp_t.translate({3, 1.5f, 2});
+    lamp_pl.intensity = 10;
 
     game_objects.emplace_back();
     Game_Object& camera = game_objects.back();
@@ -100,7 +118,7 @@ void Engine::init(int argc, char** argv) {
     Camera_Movement& camera_m = camera.add_component<Camera_Movement>();
     camera_t.translate({0, 0, 10});
 
-	renderer->load_shader_light_properties();
+    renderer->load_shader_light_properties();
 }
 
 void Engine::terminate() {

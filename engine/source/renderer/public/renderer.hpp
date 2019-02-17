@@ -16,6 +16,7 @@ namespace renderer {
     class Renderer {
     public:
         Renderer();
+        ~Renderer();
 
         void render_frame();
         void load_shader_light_properties();
