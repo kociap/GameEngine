@@ -3,7 +3,8 @@
 #include "assets.hpp"
 #include "components/component_system.hpp"
 #include "debug_macros.hpp"
-#include "game_object.hpp"
+#include "entity.hpp"
+#include "entity_manager.hpp"
 #include "input/input_core.hpp"
 #include "mesh/mesh_manager.hpp"
 #include "renderer.hpp"
@@ -16,6 +17,7 @@
 #include "components/camera.hpp"
 #include "components/point_light_component.hpp"
 #include "components/static_mesh_component.hpp"
+#include "math/math.hpp"
 #include "mesh/cube.hpp"
 #include "mesh/plane.hpp"
 #include "scripts/camera_movement.hpp"
@@ -27,8 +29,7 @@ Component_System* Engine::component_system = nullptr;
 Window* Engine::main_window = nullptr;
 Mesh_Manager* Engine::mesh_manager = nullptr;
 Shader_Manager* Engine::shader_manager = nullptr;
-
-std::vector<Game_Object> Engine::game_objects{};
+Entity_Manager* Engine::entity_manager = nullptr;
 
 void Engine::init(int argc, char** argv) {
     std::filesystem::path executable_path(argv[0]);
@@ -37,15 +38,13 @@ void Engine::init(int argc, char** argv) {
     std::filesystem::path shaders_path(utils::concat_paths(executable_path, "shaders"));
     Assets::init(executable_path, assets_path, shaders_path);
 
-    // Reserve tp prevent reallocations
-    game_objects.reserve(20);
-
     main_window = new Window(1000, 800);
     mesh_manager = new Mesh_Manager();
     shader_manager = new Shader_Manager();
     time_core = new Time_Core();
     input_manager = new Input::Manager();
     input_manager->load_bindings();
+    entity_manager = new Entity_Manager();
     component_system = new Component_System();
     renderer = new renderer::Renderer();
 
@@ -65,10 +64,9 @@ void Engine::init(int argc, char** argv) {
     Handle<Shader> unlit_default_shader_handle = shader_manager->add(std::move(unlit_default_shader));
 
     // BS code to output anything on the screen
-    game_objects.emplace_back();
-    Game_Object& box = game_objects.back();
-    Transform& box_t = box.add_component<Transform>();
-    Static_Mesh_Component& box_sm = box.add_component<Static_Mesh_Component>();
+    Entity box = Entity::instantiate();
+    Transform& box_t = add_component<Transform>(box);
+    Static_Mesh_Component& box_sm = add_component<Static_Mesh_Component>(box);
 
     std::vector<Mesh> meshes = Assets::load_model("cube.obj");
     Texture container_diffuse;
@@ -84,10 +82,9 @@ void Engine::init(int argc, char** argv) {
     box_sm.set_mesh(box_handle);
     box_sm.set_shader(default_shader_handle);
 
-    game_objects.emplace_back();
-    Game_Object& floor = game_objects.back();
-    Transform& floor_t = floor.add_component<Transform>();
-    Static_Mesh_Component& floor_sm = floor.add_component<Static_Mesh_Component>();
+    Entity floor = Entity::instantiate();
+    Transform& floor_t = add_component<Transform>(floor);
+    Static_Mesh_Component& floor_sm = add_component<Static_Mesh_Component>(floor);
     Texture floor_tex;
     floor_tex.id = Assets::load_texture("wood_floor.png");
     floor_tex.type = Texture_Type::diffuse;
@@ -99,11 +96,10 @@ void Engine::init(int argc, char** argv) {
     floor_t.rotate(Vector3::right, math::radians(-90));
     floor_t.translate({0, -2, 0});
 
-    game_objects.emplace_back();
-    Game_Object& lamp = game_objects.back();
-    Transform& lamp_t = lamp.add_component<Transform>();
-    Point_Light_Component& lamp_pl = lamp.add_component<Point_Light_Component>();
-    Static_Mesh_Component& lamp_sm = lamp.add_component<Static_Mesh_Component>();
+    Entity lamp = Entity::instantiate();
+    Transform& lamp_t = add_component<Transform>(lamp);
+    Point_Light_Component& lamp_pl = add_component<Point_Light_Component>(lamp);
+    Static_Mesh_Component& lamp_sm = add_component<Static_Mesh_Component>(lamp);
     auto lamp_cube_handle = mesh_manager->add(Cube());
     lamp_sm.set_mesh(lamp_cube_handle);
     lamp_sm.set_shader(unlit_default_shader_handle);
@@ -111,11 +107,10 @@ void Engine::init(int argc, char** argv) {
     lamp_t.translate({3, 1.5f, 2});
     lamp_pl.intensity = 10;
 
-    game_objects.emplace_back();
-    Game_Object& camera = game_objects.back();
-    Transform& camera_t = camera.add_component<Transform>();
-    Camera& camera_c = camera.add_component<Camera>();
-    Camera_Movement& camera_m = camera.add_component<Camera_Movement>();
+    Entity camera = Entity::instantiate();
+    Transform& camera_t = add_component<Transform>(camera);
+    Camera& camera_c = add_component<Camera>(camera);
+    Camera_Movement& camera_m = add_component<Camera_Movement>(camera);
     camera_t.translate({0, 0, 10});
 
     renderer->load_shader_light_properties();
@@ -177,4 +172,8 @@ Time_Core& Engine::get_time_manager() {
 
 Shader_Manager& Engine::get_shader_manager() {
     return *shader_manager;
+}
+
+Entity_Manager& Engine::get_entity_manager() {
+    return *entity_manager;
 }

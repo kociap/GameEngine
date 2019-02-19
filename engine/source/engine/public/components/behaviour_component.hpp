@@ -2,7 +2,7 @@
 #define ENGINE_COMPONENTS_BEHAVIOUR_COMPONENT_HPP_INCLUDE
 
 #include "base_component.hpp"
-#include "game_object.hpp"
+#include "entity.hpp"
 #include "transform.hpp"
 
 class Behaviour_Component : public Base_Component {

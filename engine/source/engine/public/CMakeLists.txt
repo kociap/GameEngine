@@ -1,7 +1,8 @@
 set(HEADER_FILES 
     ${HEADER_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/object.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/game_object.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/entity.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/entity_manager.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/base_component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/renderable_component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/static_mesh_component.hpp"
@@ -15,6 +16,7 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/components/component_system.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/assets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/guid.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/id.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/time.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/key.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/axis_action_names.hpp"

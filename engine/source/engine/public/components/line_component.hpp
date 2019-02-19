@@ -13,7 +13,7 @@ public:
     Color color = Color::white;
     float thickness = 1;
 
-    Line_Component(Game_Object&);
+    Line_Component(Entity const&);
     using Renderable_Component::Renderable_Component;
 
     void set_mesh(Handle<Mesh>);

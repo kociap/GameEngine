@@ -6,10 +6,11 @@
 
 class Mesh;
 class Shader;
+class Entity;
 
 class Static_Mesh_Component : public Renderable_Component {
 public:
-    Static_Mesh_Component(Game_Object&);
+    Static_Mesh_Component(Entity const&);
     using Renderable_Component::Renderable_Component;
     /*Static_Mesh_Component() = delete;
     Static_Mesh_Component(Static_Mesh_Component const&) = delete;

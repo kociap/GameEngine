@@ -2,8 +2,8 @@
 #define CORE_DEBUG_MACROS_HPP_INCLUDE
 
 #include "glad/glad.h"
-#include <stdexcept>
 #include <cassert>
+#include <stdexcept>
 
 #ifndef NDEBUG
 #define GE_assert(condition, msg) assert((msg, condition))
@@ -26,10 +26,10 @@ inline void check_gl_errors() {
         throw std::runtime_error("GL_STACK_OVERFLOW");
     }
 }
-#define CHECK_GL_ERRORS check_gl_errors();
+#define CHECK_GL_ERRORS() check_gl_errors()
 #else
 #define GE_assert(condition, msg) ((void)0)
-#define CHECK_GL_ERRORS
+#define CHECK_GL_ERRORS() ((void)0)
 #endif // _DEBUG
 
 #endif // !CORE_DEBUG_MACROS_HPP_INCLUDE

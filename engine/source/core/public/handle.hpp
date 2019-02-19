@@ -11,4 +11,9 @@ public:
     explicit Handle(uint64_t val) : value(val) {}
 };
 
+template <typename T>
+bool operator==(Handle<T> const& a, Handle<T> const& b) {
+    return a.value == b.value;
+}
+
 #endif //! CORE_HANDLE_HPP_INCLUDE

@@ -26,7 +26,7 @@ private:
     bool active = true; // Temporarily make active by default
 
 public:
-    Camera(Game_Object& game_object);
+    Camera(Entity const&);
     Camera(Camera&&) = default;
     Camera& operator=(Camera&&) = default;
     virtual ~Camera();
@@ -39,8 +39,8 @@ public:
 
     Vector3 get_front();
 
-    Matrix4 get_view_transform();
-    Matrix4 get_projection_transform();
+    Matrix4 get_view_matrix();
+    Matrix4 get_projection_matrix();
 };
 
 #endif // !ENGINE_COMPONENTS_CAMERA_HPP_INCLUDE
