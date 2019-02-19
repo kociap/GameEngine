@@ -14,7 +14,8 @@ void Transform::scale(Vector3 const& scale_vec) {
 
 void Transform::rotate(Vector3 axis, float angle) {
     float half_angle_sin = std::sinf(angle / 2);
-    local_rotation = Quaternion(axis.x * half_angle_sin, axis.y * half_angle_sin, axis.z * half_angle_sin, std::cosf(angle / 2)) * local_rotation;
+    Quaternion q(axis.x * half_angle_sin, axis.y * half_angle_sin, axis.z * half_angle_sin, std::cosf(angle / 2));
+    local_rotation = q * local_rotation;
 }
 
 Matrix4 Transform::to_matrix() const {

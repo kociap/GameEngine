@@ -3,7 +3,9 @@
 
 #include <cstdint>
 
-struct Guid {
+// Globally unique identifier class
+// value is never equal 0
+class Guid {
 public:
     Guid();
     Guid(Guid const&) = delete;

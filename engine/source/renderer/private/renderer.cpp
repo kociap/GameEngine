@@ -59,26 +59,28 @@ namespace renderer {
             shader.set_vec3("ambient_color", Color(1.0f, 1.0f, 1.0f));
             uint32_t i = 0;
             for (auto& directional_light : component_system.directional_light_components) {
+                Transform& transform = get_component<Transform>(directional_light.get_entity());
                 shader.set_float("directional_lights[" + std::to_string(i) + "].attentuation_constant", 1.0f);
                 shader.set_float("directional_lights[" + std::to_string(i) + "].attentuation_linear", 0.09f);
                 shader.set_float("directional_lights[" + std::to_string(i) + "].attentuation_quadratic", 0.032f);
                 shader.set_float("directional_lights[" + std::to_string(i) + "].intensity", directional_light.intensity);
                 shader.set_float("directional_lights[" + std::to_string(i) + "].diffuse_strength", 0.8f);
                 shader.set_float("directional_lights[" + std::to_string(i) + "].specular_strength", 1.0f);
-                shader.set_vec3("directional_lights[" + std::to_string(i) + "].position", directional_light.get_transform().local_position);
+                shader.set_vec3("directional_lights[" + std::to_string(i) + "].position", transform.local_position);
                 shader.set_vec3("directional_lights[" + std::to_string(i) + "].color", directional_light.color);
                 shader.set_vec3("directional_lights[" + std::to_string(i) + "].direction", directional_light.direction);
                 ++i;
             }
             i = 0;
             for (auto& spot_light : component_system.spot_light_components) {
+                Transform& transform = get_component<Transform>(spot_light.get_entity());
                 shader.set_float("spot_lights[" + std::to_string(i) + "].attentuation_constant", 1.0f);
                 shader.set_float("spot_lights[" + std::to_string(i) + "].attentuation_linear", 0.09f);
                 shader.set_float("spot_lights[" + std::to_string(i) + "].attentuation_quadratic", 0.032f);
                 shader.set_float("spot_lights[" + std::to_string(i) + "].intensity", spot_light.intensity);
                 shader.set_float("spot_lights[" + std::to_string(i) + "].diffuse_strength", 0.8f);
                 shader.set_float("spot_lights[" + std::to_string(i) + "].specular_strength", 1.0f);
-                shader.set_vec3("spot_lights[" + std::to_string(i) + "].position", spot_light.get_transform().local_position);
+                shader.set_vec3("spot_lights[" + std::to_string(i) + "].position", transform.local_position);
                 shader.set_vec3("spot_lights[" + std::to_string(i) + "].color", spot_light.color);
                 shader.set_vec3("spot_lights[" + std::to_string(i) + "].direction", spot_light.direction);
                 shader.set_float("spot_lights[" + std::to_string(i) + "].cutoff_angle", spot_light.cutoff_angle);
@@ -87,13 +89,14 @@ namespace renderer {
             }
             i = 0;
             for (auto& point_light : component_system.point_light_components) {
+                Transform& transform = get_component<Transform>(point_light.get_entity());
                 shader.set_float("point_lights[" + std::to_string(i) + "].attentuation_constant", 1.0f);
                 shader.set_float("point_lights[" + std::to_string(i) + "].attentuation_linear", 0.09f);
                 shader.set_float("point_lights[" + std::to_string(i) + "].attentuation_quadratic", 0.032f);
                 shader.set_float("point_lights[" + std::to_string(i) + "].intensity", point_light.intensity);
                 shader.set_float("point_lights[" + std::to_string(i) + "].diffuse_strength", 0.8f);
                 shader.set_float("point_lights[" + std::to_string(i) + "].specular_strength", 1.0f);
-                shader.set_vec3("point_lights[" + std::to_string(i) + "].position", point_light.get_transform().local_position);
+                shader.set_vec3("point_lights[" + std::to_string(i) + "].position", transform.local_position);
                 shader.set_vec3("point_lights[" + std::to_string(i) + "].color", point_light.color);
                 ++i;
             }
@@ -132,7 +135,7 @@ namespace renderer {
         for (Static_Mesh_Component& component : component_system.static_mesh_components) {
             Shader& shader = shader_manager.get(component.shader_handle);
             shader.use();
-            Transform& transform = component.game_object.get_component<Transform>();
+            Transform& transform = get_component<Transform>(component.get_entity());
             Matrix4 model(transform.to_matrix());
             shader.set_matrix4("model", model);
             shader.set_vec3("camera.position", camera_transform.local_position);
@@ -144,7 +147,7 @@ namespace renderer {
         for (Line_Component& component : component_system.line_components) {
             Shader& shader = shader_manager.get(component.shader_handle);
             shader.use();
-            Transform& transform = component.game_object.get_component<Transform>();
+            Transform& transform = get_component<Transform>(component.get_entity());
             Matrix4 model(transform.to_matrix());
             shader.set_matrix4("model", model);
             shader.set_vec3("camera.position", camera_transform.local_position);
@@ -173,9 +176,9 @@ namespace renderer {
         glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         Camera& camera = find_active_camera();
-        Transform& camera_transform = camera.get_transform();
-        Matrix4 view = camera.get_view_transform();
-        Matrix4 projection = camera.get_projection_transform();
+        Transform& camera_transform = get_component<Transform>(camera.get_entity());
+        Matrix4 view = camera.get_view_matrix();
+        Matrix4 projection = camera.get_projection_matrix();
         render_scene(camera_transform, view, projection);
 
         framebuffer_multisampled->blit(*framebuffer);

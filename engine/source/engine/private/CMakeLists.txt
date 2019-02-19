@@ -1,7 +1,7 @@
 set(SOURCE_FILES 
     ${SOURCE_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/object.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/game_object.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/entity.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/base_component.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/renderable_component.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/static_mesh_component.cpp"
@@ -11,6 +11,7 @@ set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/components/transform.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/component_system.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/guid.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/id.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/time/time.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/time/time_core.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input_core.cpp"

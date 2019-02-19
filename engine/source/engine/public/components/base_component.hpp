@@ -1,26 +1,23 @@
 #ifndef ENGINE_COMPONENTS_BASE_COMPONENT_HPP_INCLUDE
 #define ENGINE_COMPONENTS_BASE_COMPONENT_HPP_INCLUDE
 
+#include "entity.hpp"
 #include "object.hpp"
 #include <cstdint>
 
-class Game_Object;
-class Transform;
-
 class Base_Component : public Object {
 public:
-    Base_Component() = delete;
-    Base_Component(Game_Object& game_object);
+    Base_Component(Entity const&);
     Base_Component(Base_Component const&) = delete;
     Base_Component(Base_Component&&) noexcept = default;
     Base_Component& operator=(Base_Component const&) = delete;
-    Base_Component& operator=(Base_Component&&) noexcept = delete;
+    Base_Component& operator=(Base_Component&&) noexcept = default;
     virtual ~Base_Component();
 
-    Transform& get_transform();
+    Entity const& get_entity() const;
 
-public:
-    Game_Object& game_object;
+private:
+    Entity _entity;
 };
 
 #endif // !ENGINE_COMPONENTS_BASE_COMPONENT_HPP_INCLUDE

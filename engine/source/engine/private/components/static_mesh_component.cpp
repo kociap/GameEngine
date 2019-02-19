@@ -6,7 +6,7 @@
 #include "mesh/mesh.hpp"
 #include "mesh/mesh_manager.hpp"
 
-Static_Mesh_Component::Static_Mesh_Component(Game_Object& go) : Renderable_Component(go), mesh_handle(0), shader_handle(0) {}
+Static_Mesh_Component::Static_Mesh_Component(Entity const& entity) : Renderable_Component(entity), mesh_handle(0), shader_handle(0) {}
 
 void Static_Mesh_Component::set_mesh(Handle<Mesh> mesh) {
     mesh_handle = std::move(mesh);

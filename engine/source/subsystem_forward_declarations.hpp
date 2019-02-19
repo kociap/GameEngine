@@ -6,6 +6,7 @@ class Component_System;
 class Window;
 class Mesh_Manager;
 class Shader_Manager;
+class Entity_Manager;
 namespace renderer {
     class Renderer;
 }

@@ -3,10 +3,6 @@
 
 #include "subsystem_forward_declarations.hpp"
 
-// TODO temporary, remove
-class Game_Object;
-#include <vector>
-
 class Engine {
 private:
     static Input::Manager* input_manager;
@@ -16,6 +12,7 @@ private:
     static Window* main_window;
     static Mesh_Manager* mesh_manager;
     static Shader_Manager* shader_manager;
+    static Entity_Manager* entity_manager;
 
 public:
     static void init(int argc, char** argv);
@@ -31,9 +28,7 @@ public:
     static Mesh_Manager& get_mesh_manager();
     static Time_Core& get_time_manager();
     static Shader_Manager& get_shader_manager();
-
-    // TODO temporary, remove
-    static std::vector<Game_Object> game_objects;
+    static Entity_Manager& get_entity_manager();
 };
 
 #endif // !ENGINE_HPP_INCLUDE

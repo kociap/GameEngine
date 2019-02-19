@@ -3,13 +3,12 @@
 #include "glad/glad.h"
 #include "stb/stb_image.hpp"
 
-#include "debug_macros.hpp"
-#include "shader.hpp"
-#include "utils/path.hpp"
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
+#include "debug_macros.hpp"
 #include "mesh/mesh.hpp"
+#include "shader.hpp"
 #include "utils/path.hpp"
 
 #include <fstream>
@@ -117,15 +116,15 @@ uint32_t Assets::load_texture(std::filesystem::path filename) {
     }
     GLuint texture;
     glGenTextures(1, &texture);
-    CHECK_GL_ERRORS
+    CHECK_GL_ERRORS();
     glBindTexture(GL_TEXTURE_2D, texture);
-    CHECK_GL_ERRORS
+    CHECK_GL_ERRORS();
     glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
-    CHECK_GL_ERRORS
+    CHECK_GL_ERRORS();
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glGenerateMipmap(GL_TEXTURE_2D);
-    CHECK_GL_ERRORS
+    CHECK_GL_ERRORS();
     stbi_image_free(image_data);
     return texture;
 }

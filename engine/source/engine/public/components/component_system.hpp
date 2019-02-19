@@ -3,9 +3,12 @@
 
 #include "containers/swapping_pool.hpp"
 
+#include "base_component.hpp"
 #include "behaviour_component.hpp"
 #include "camera.hpp"
 #include "directional_light_component.hpp"
+#include "engine.hpp"
+#include "entity.hpp"
 #include "line_component.hpp"
 #include "point_light_component.hpp"
 #include "renderable_component.hpp"
@@ -13,7 +16,6 @@
 #include "static_mesh_component.hpp"
 #include "transform.hpp"
 
-#include <any>
 #include <map>
 #include <memory>
 #include <type_traits>
@@ -83,31 +85,31 @@ public:
     }
 
     template <typename T>
-    T& get_component(Game_Object const& go) {
+    T& get_component(Entity const& entity) {
         static_assert(!std::is_same_v<T, Renderable_Component>, "Renderable_Component is an abstract class");
         static_assert(!std::is_same_v<T, Behaviour_Component>, "Behaviour_Component is an abstract class");
 
         if constexpr (std::is_same_v<T, Camera>) {
-            return find_component(go, camera_components);
+            return find_component(entity, camera_components);
         } else if constexpr (std::is_same_v<T, Static_Mesh_Component>) {
-            return find_component(go, static_mesh_components);
+            return find_component(entity, static_mesh_components);
         } else if constexpr (std::is_same_v<T, Line_Component>) {
-            return find_component(go, line_components);
+            return find_component(entity, line_components);
         } else if constexpr (std::is_same_v<T, Spot_Light_Component>) {
-            return find_component(go, spot_light_components);
+            return find_component(entity, spot_light_components);
         } else if constexpr (std::is_same_v<T, Point_Light_Component>) {
-            return find_component(go, point_light_components);
+            return find_component(entity, point_light_components);
         } else if constexpr (std::is_same_v<T, Directional_Light_Component>) {
-            return find_component(go, directional_light_components);
+            return find_component(entity, directional_light_components);
         } else if constexpr (std::is_same_v<T, Transform>) {
-            return find_component(go, transform_components);
+            return find_component(entity, transform_components);
         } else if constexpr (std::is_base_of_v<Behaviour_Component, T>) {
             auto type_index = std::type_index(typeid(T));
             auto iter = behaviour_components.find(type_index);
             if (iter != behaviour_components.end()) {
                 for (Behaviour_Component_ptr& component : iter->second) {
                     T* component_ptr = static_cast<T*>(component.get());
-                    if (component_ptr->game_object == go) {
+                    if (component_ptr->get_entity() == entity) {
                         return *component_ptr;
                     }
                 }
@@ -119,7 +121,7 @@ public:
             if (iter != components.end()) {
                 for (Base_Component_ptr& component : iter->second) {
                     T* component_ptr = static_cast<T*>(component.get());
-                    if (component_ptr->game_object == go) {
+                    if (component_ptr->get_entity() == entity) {
                         return *component_ptr;
                     }
                 }
@@ -133,9 +135,9 @@ public:
 private:
     // Exists to reduce code duplication
     template <typename T>
-    auto find_component(Game_Object const& go, Swapping_Pool<T>& component_container) -> T& {
+    auto find_component(Entity const& entity, Swapping_Pool<T>& component_container) -> T& {
         for (auto& component : component_container) {
-            if (component.game_object == go) {
+            if (component.get_entity() == entity) {
                 return component;
             }
         }
@@ -155,5 +157,15 @@ private:
     std::map<std::type_index, Swapping_Pool<Behaviour_Component_ptr>> behaviour_components;
     std::map<std::type_index, Swapping_Pool<Base_Component_ptr>> components;
 };
+
+template <typename T, typename... Ctor_Args>
+T& add_component(Entity const& entity, Ctor_Args&&... args) {
+    return Engine::get_component_system().add_component<T>(entity, std::forward<Ctor_Args>(args)...);
+}
+
+template <typename T>
+T& get_component(Entity const& entity) {
+    return Engine::get_component_system().get_component<T>(entity);
+}
 
 #endif // !ENGINE_COMPONENTS_COMPONENT_SYSTEM_HPP_INCLUDE
