@@ -11,9 +11,6 @@
 #include <cctype>
 #include <unordered_map>
 
-// DEBUG TODO remove
-#include <iostream>
-
 namespace Input {
     static void extract_bindings(std::string const& str, std::vector<Axis_Binding>& axis_bindings, std::vector<Action_Binding>& action_bindings) {
         // clang-format off
@@ -32,8 +29,9 @@ namespace Input {
             std::string name;
             std::string key;
             float scale;
+            float sensitivity;
 
-            Binding(std::string const& n, std::string const& k, float s) : name(n), key(k), scale(s) {}
+            Binding(std::string const& n, std::string const& k, float s, float sens) : name(n), key(k), scale(s), sensitivity(sens) {}
         };
 
         auto parse_input_string = [](std::string const& str, std::vector<Binding>& axes, std::vector<Binding>& actions) {
@@ -57,16 +55,18 @@ namespace Input {
                 auto action_prop = find_property(tag.properties, [](auto& property) { return property.name == "action"; });
                 auto key_prop = find_property(tag.properties, [](auto& property) { return property.name == "key"; });
                 auto scale_prop = find_property(tag.properties, [](auto& property) { return property.name == "scale"; });
+                auto sensitivity_prop = find_property(tag.properties, [](auto& property) { return property.name == "sensitivity"; });
 
                 // TODO replace with logging
                 GE_assert(axis_prop != tag.properties.end() || action_prop != tag.properties.end(), "Missing action/axis property");
                 GE_assert(key_prop != tag.properties.end(), "Missing key property");
                 GE_assert(scale_prop != tag.properties.end(), "Missing scale property");
+                GE_assert(sensitivity_prop != tag.properties.end(), "Missing sensitivity property");
 
                 if (axis_prop != tag.properties.end()) {
-                    axes.emplace_back(axis_prop->value, key_prop->value, std::stof(scale_prop->value));
+                    axes.emplace_back(axis_prop->value, key_prop->value, std::stof(scale_prop->value), std::stof(sensitivity_prop->value));
                 } else {
-                    actions.emplace_back(action_prop->value, key_prop->value, std::stof(scale_prop->value));
+                    actions.emplace_back(action_prop->value, key_prop->value, std::stof(scale_prop->value), std::stof(sensitivity_prop->value));
                 }
             }
         };
@@ -81,7 +81,7 @@ namespace Input {
             GE_assert(name_iter != string_to_input_axis.end(),
                       "Attepmting to load unknown axis binding, skipping"); // TODO replace with logging
             if (name_iter != string_to_input_axis.end()) {
-                axis_bindings.emplace_back(name_iter->second, key, axis.scale);
+                axis_bindings.emplace_back(name_iter->second, key, axis.scale, axis.sensitivity);
             }
         }
 
@@ -91,7 +91,7 @@ namespace Input {
             GE_assert(name_iter != string_to_input_action.end(),
                       "Attepmting to load unknown axis binding, skipping"); // TODO replace with logging
             if (name_iter != string_to_input_action.end()) {
-                action_bindings.emplace_back(name_iter->second, key, action.scale);
+                action_bindings.emplace_back(name_iter->second, key, action.sensitivity);
             }
         }
     }
@@ -152,78 +152,56 @@ namespace Input {
     void Manager::process_events() {
         // TODO add actions processing
 
+        auto is_key_mouse_axis = [](Key key) { return key == Key::mouse_x || key == Key::mouse_y || key == Key::mouse_scroll; };
+
+        auto is_key_gamepad_axis = [](Key key) {
+            return key == Key::gamepad_right_stick_x_axis || key == Key::gamepad_right_stick_y_axis || key == Key::gamepad_left_stick_x_axis ||
+                   key == Key::gamepad_left_stick_y_axis || key == Key::gamepad_left_trigger || key == Key::gamepad_right_trigger;
+        };
+
         process_mouse_events();
         process_gamepad_events();
 
         for (Event& event : input_event_queue) {
-            // DEBUG TODO remove
-            //std::cout << key_to_string(event.key) << ": " << event.value << "\n";
-
             for (auto& binding : axis_bindings) {
                 if (binding.key == event.key) {
-                    binding.raw_value = event.value;
+                    binding.raw_value = event.value * binding.sensitivity;
                 }
             }
 
             for (auto& binding : action_bindings) {
                 if (binding.key == event.key) {
+                    binding.raw_value = event.value * binding.sensitivity;
                 }
             }
         }
         input_event_queue.clear();
 
-        // TODO different behaviour for gamepad
-        for (Axis& axis : axes) {
-            float raw_value = 0.0f;
-            float max_scale = 0.0f;
-            bool has_mouse_bound = false;
-            bool has_gamepad_axes_bound = false;
-            for (auto& axis_binding : axis_bindings) {
-                if (axis.axis == axis_binding.axis) {
-                    if (axis_binding.key == Key::mouse_x || axis_binding.key == Key::mouse_y || axis_binding.key == Key::mouse_scroll) {
-                        has_mouse_bound = true;
-                    } else if (axis_binding.key == Key::gamepad_right_stick_x_axis || axis_binding.key == Key::gamepad_right_stick_y_axis ||
-                               axis_binding.key == Key::gamepad_left_stick_x_axis || axis_binding.key == Key::gamepad_left_stick_y_axis ||
-                               axis_binding.key == Key::gamepad_left_trigger || axis_binding.key == Key::gamepad_right_trigger) {
-                        has_gamepad_axes_bound = true;
-                    }
-
-                    if (axis_binding.raw_value != 0) {
-                        raw_value += axis_binding.raw_value * math::sign(axis_binding.scale);
-                        max_scale = math::max(max_scale, math::abs(axis_binding.scale));
-                    }
-                }
-            }
-
-            if (has_mouse_bound || has_gamepad_axes_bound) {
-                // Do not normalize or smooth mouse values
-                axis.raw_value = raw_value;
-                axis.value = raw_value * max_scale;
+        float delta_time = Time::get_delta_time();
+        for (auto& axis_binding : axis_bindings) {
+            if (is_key_mouse_axis(axis_binding.key) || is_key_gamepad_axis(axis_binding.key)) {
+                // Force raw for those axes
+                axis_binding.value = math::sign(axis_binding.scale) * axis_binding.raw_value;
             } else {
-                // Keep normalized and smoothed
-                axis.raw_value = math::max(-1.0f, math::min(1.0f, raw_value));
-                axis.scale = max_scale == 0 ? axis.scale : max_scale;
-
-                if (axis.snap && math::sign(axis.raw_value) != math::sign(axis.value)) {
-                    axis.value = 0;
+                if (axis_binding.snap && axis_binding.raw_value != 0 && math::sign(axis_binding.value) != math::sign(axis_binding.raw_value)) {
+                    axis_binding.value = 0;
                 }
 
-                float axis_value_delta = axis.scale * Time::get_delta_time();
-                axis.value = math::step_to_value(axis.value, axis.raw_value, axis_value_delta);
+                float axis_value_delta = math::abs(axis_binding.scale) * delta_time;
+                axis_binding.value = math::step_to_value(axis_binding.value, math::sign(axis_binding.scale) * axis_binding.raw_value, axis_value_delta);
             }
         }
 
-        // DEBUG TODO remove
-        /*std::unordered_map<Input_Axis, std::string> axis_to_string({{Input_Axis::move_forward, "move_forward"},
-                                                                    {Input_Axis::move_sideways, "move_sideways"},
-                                                                    {Input_Axis::move_vertical, "move_vertical"},
-                                                                    {Input_Axis::mouse_x, "mouse_x"},
-                                                                    {Input_Axis::mouse_y, "mouse_y"}});
-
-        std::cout << "Time: " << Time::get_delta_time() << "\n";
         for (Axis& axis : axes) {
-            std::cout << axis_to_string[axis.axis] << " scale: " << axis.scale << " raw: " << axis.raw_value << " value:" << axis.value << "\n";
-        }*/
+            axis.raw_value = 0;
+            axis.value = 0;
+            for (auto& axis_binding : axis_bindings) {
+                if (axis.axis == axis_binding.axis) {
+                    axis.raw_value += axis_binding.raw_value;
+                    axis.value += axis_binding.value;
+                }
+            }
+        }
     }
 
     void Manager::process_mouse_events() {
@@ -241,11 +219,11 @@ namespace Input {
         for (auto& axis_binding : axis_bindings) {
             Key k = axis_binding.key;
             if (k == Key::mouse_x) {
-                axis_binding.raw_value = current_frame_mouse.mouse_x;
+                axis_binding.raw_value = current_frame_mouse.mouse_x * axis_binding.sensitivity;
             } else if (k == Key::mouse_y) {
-                axis_binding.raw_value = current_frame_mouse.mouse_y;
+                axis_binding.raw_value = current_frame_mouse.mouse_y * axis_binding.sensitivity;
             } else if (k == Key::mouse_scroll) {
-                axis_binding.raw_value = current_frame_mouse.wheel;
+                axis_binding.raw_value = current_frame_mouse.wheel * axis_binding.sensitivity;
             }
         }
     }
@@ -266,7 +244,7 @@ namespace Input {
             }
         }
 
-		// TODO radial dead zone makes axes never reach 1 (values are slightly less than 1, e.g. 0.99996)
+        // TODO radial dead zone makes axes never reach 1 (values are slightly less than 1, e.g. 0.99996)
 
         if (gamepad_sticks_radial_dead_zone) {
             // Radial dead zone
@@ -283,8 +261,6 @@ namespace Input {
             } else {
                 gamepad_right_stick = Vector2::zero;
             }
-
-			//std::cout << "left_stick: " << left_stick_length << " right stick: " << right_stick_length << "\n";
         } else {
             // Axial dead zone
             auto apply_dead_zone = [this](float& value) -> void {
@@ -303,25 +279,20 @@ namespace Input {
 
         for (auto& binding : axis_bindings) {
             if (binding.key == Key::gamepad_left_stick_x_axis) {
-                binding.raw_value = gamepad_left_stick.x;
+                binding.raw_value = gamepad_left_stick.x * binding.sensitivity;
             } else if (binding.key == Key::gamepad_left_stick_y_axis) {
-                binding.raw_value = gamepad_left_stick.y;
+                binding.raw_value = gamepad_left_stick.y * binding.sensitivity;
             } else if (binding.key == Key::gamepad_right_stick_x_axis) {
-                binding.raw_value = gamepad_right_stick.x;
+                binding.raw_value = gamepad_right_stick.x * binding.sensitivity;
             } else if (binding.key == Key::gamepad_right_stick_y_axis) {
-                binding.raw_value = gamepad_right_stick.y;
+                binding.raw_value = gamepad_right_stick.y * binding.sensitivity;
             }
         }
-
-        std::cout << "gamepad_left_stick.x: " << gamepad_left_stick.x << " "
-                  << "gamepad_left_stick.y: " << gamepad_left_stick.y << "\n"
-                  << "gamepad_right_stick.x: " << gamepad_right_stick.x << " "
-                  << "gamepad_right_stick.y: " << gamepad_right_stick.y << "\n";
 
         for (Gamepad_Event const& gamepad_event : gamepad_event_queue) {
             for (auto& binding : axis_bindings) {
                 if (binding.key == gamepad_event.key) {
-                    binding.raw_value = gamepad_event.value;
+                    binding.raw_value = gamepad_event.value * binding.sensitivity;
                 }
             }
         }

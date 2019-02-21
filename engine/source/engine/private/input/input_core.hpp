@@ -11,22 +11,28 @@ namespace Input {
     struct Action_Binding {
         Input_Action action;
         Key key;
-        float scale;
+        // Scale by which to multiply raw value
+        float sensitivity;
+        float raw_value = 0.0f;
 
-        Action_Binding(Input_Action a, Key k, float s) : action(a), key(k), scale(s) {}
+        Action_Binding(Input_Action a, Key k, float sens = 1.0f) : action(a), key(k), sensitivity(sens) {}
     };
 
     struct Axis_Binding {
         Input_Axis axis;
         Key key;
-
-        /*float sensitivity = 0.0f;
-        float gravity = 0.0f;*/
-
+		// Scale by which to multiply raw value
+        float sensitivity;
+		// How fast to accumulate value in units/s
         float scale;
         float raw_value = 0.0f;
+		// Smoothed binding value
+		float value = 0.0f;
 
-        Axis_Binding(Input_Axis a, Key k, float s) : axis(a), key(k), scale(s) {}
+		// If raw value changes sign, should we reset to 0 or continue from current value?
+        int8_t snap : 1;
+
+        Axis_Binding(Input_Axis a, Key k, float s, float sens = 1.0f) : axis(a), key(k), scale(s), sensitivity(sens), snap(0) {}
     };
 
     struct Event {
@@ -58,18 +64,14 @@ namespace Input {
             Input_Axis axis;
             float value = 0.0f;
             float raw_value = 0.0f;
-            float scale = 0.0f;
-            // If raw axis value changes sign, should we reset to 0 or continue from current value?
-            int8_t snap : 1;
 
-            Axis(Input_Axis a) : axis(a), snap(0) {}
+            Axis(Input_Axis a) : axis(a) {}
         };
 
         struct Action {
             Input_Action action;
             float value = 0.0f;
             float raw_value = 0.0f;
-            float scale = 0.0f;
 
             Action(Input_Action a) : action(a) {}
         };
