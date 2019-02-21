@@ -12,11 +12,16 @@
 #include <stdexcept>
 #include <unordered_map>
 
+// TODO DEBUG remove
+#include <iostream>
+#include <string>
+
 void framebuffer_size_callback(GLFWwindow*, int width, int height);
 void mouse_button_callback(GLFWwindow*, int button, int action, int mods);
 void mouse_position_callback(GLFWwindow*, double param_x, double param_y);
 void scroll_callback(GLFWwindow*, double offset_x, double offset_y);
 void keyboard_callback(GLFWwindow*, int, int, int, int);
+void joystick_config_callback(int, int);
 
 Window::Window(uint32_t width, uint32_t height) : window_width(width), window_height(height) {
     GE_assert(window_width > 0 && window_height > 0, "Window dimensions may not be 0");
@@ -45,6 +50,7 @@ Window::Window(uint32_t width, uint32_t height) : window_width(width), window_he
     glfwSetMouseButtonCallback(window_handle, mouse_button_callback);
     glfwSetScrollCallback(window_handle, scroll_callback);
     glfwSetKeyCallback(window_handle, keyboard_callback);
+    glfwSetJoystickCallback(joystick_config_callback);
 }
 
 Window::~Window() {
@@ -61,6 +67,32 @@ void Window::swap_buffers() const {
 
 void Window::poll_events() const {
     glfwPollEvents();
+
+	// Gamepad input
+    Input::Manager& input_manager = Engine::get_input_manager();
+    for (int32_t joystick_index = GLFW_JOYSTICK_1; joystick_index < GLFW_JOYSTICK_LAST; ++joystick_index) {
+        if (glfwJoystickPresent(joystick_index) && glfwJoystickIsGamepad(joystick_index)) {
+            int count;
+            float const* axes = glfwGetJoystickAxes(joystick_index, &count);
+			// Xbox controller mapping for windows build
+            input_manager.gamepad_stick_event_queue.emplace_back(joystick_index, Key::gamepad_left_stick_x_axis, axes[0]);
+            input_manager.gamepad_stick_event_queue.emplace_back(joystick_index, Key::gamepad_left_stick_y_axis, axes[1]);
+            input_manager.gamepad_stick_event_queue.emplace_back(joystick_index, Key::gamepad_right_stick_x_axis, axes[2]);
+            input_manager.gamepad_stick_event_queue.emplace_back(joystick_index, Key::gamepad_right_stick_y_axis, axes[3]);
+			// Triggers on windows have range -1 (released), 1 (pressed)
+			// Remap to 0 (released), 1 (pressed)
+            input_manager.gamepad_event_queue.emplace_back(joystick_index, Key::gamepad_left_trigger, (axes[4] + 1.0f) / 2.0f);
+            input_manager.gamepad_event_queue.emplace_back(joystick_index, Key::gamepad_right_trigger, (axes[5] + 1.0f) / 2.0f);
+
+			// TODO add mapping for linux build
+			// TODO add other controllers if I ever buy them
+
+			/*unsigned char const* buttons = glfwGetJoystickButtons(joystick_index, &count);
+            for (int32_t i = 0; i < count; ++i) {
+                std::cout << i << ": " << buttons[i] << "\n";
+			}*/
+		}
+	}
 }
 
 void Window::resize(uint32_t width, uint32_t height) {
@@ -102,9 +134,6 @@ void mouse_button_callback(GLFWwindow*, int button, int action, int mods) {
     Input::Manager& input_manager = Engine::get_input_manager();
     input_manager.input_event_queue.emplace_back(key, value);
 }
-
-#include <iostream>
-#include <string>
 
 void mouse_position_callback(GLFWwindow*, double param_x, double param_y) {
     static float last_x = Engine::get_window().height() / 2.0f;
@@ -158,7 +187,10 @@ void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, in
         {GLFW_KEY_X, Key::x},
         {GLFW_KEY_Y, Key::y},
         {GLFW_KEY_Z, Key::z},
-        {GLFW_KEY_ESCAPE, Key::escape}
+        {GLFW_KEY_ESCAPE, Key::escape},
+		{GLFW_KEY_LEFT_ALT, Key::left_alt},
+		{GLFW_KEY_RIGHT_ALT, Key::right_alt},
+		{GLFW_KEY_TAB, Key::tab}
     });
 
     static std::unordered_map<int32_t, std::string> keyboard_string_map({
@@ -188,7 +220,10 @@ void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, in
         {GLFW_KEY_X, "Key::x"},
         {GLFW_KEY_Y, "Key::y"},
         {GLFW_KEY_Z, "Key::z"},
-        {GLFW_KEY_ESCAPE, "Key::escape"}
+        {GLFW_KEY_ESCAPE, "Key::escape"},
+		{GLFW_KEY_LEFT_ALT, "Key::left_alt"},
+		{GLFW_KEY_RIGHT_ALT, "Key::right_alt"},
+		{GLFW_KEY_TAB, "Key::tab"}
     });
     // clang-format on
 
@@ -205,5 +240,12 @@ void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, in
         float value = static_cast<float>(action); // GLFW_PRESS is 1, GLFW_RELEASE is  0
         Input::Manager& input_manager = Engine::get_input_manager();
         input_manager.input_event_queue.emplace_back(mapped_key, value);
+    }
+}
+
+void joystick_config_callback(int joy, int joy_event) {
+    if (joy_event == GLFW_CONNECTED && glfwJoystickIsGamepad(joy)) {
+		std::string joy_name(glfwGetJoystickName(joy));
+		std::cout << "Gamepad connected: " << joy_name << " " << GLFW_JOYSTICK_1 << " " << joy << "\n";
     }
 }

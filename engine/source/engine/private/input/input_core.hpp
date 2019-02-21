@@ -3,6 +3,7 @@
 
 #include "input/axis_action_names.hpp"
 #include "key.hpp"
+#include <cstdint>
 #include <deque>
 #include <vector>
 
@@ -43,6 +44,14 @@ namespace Input {
         Mouse_Event(float m_x = 0.0f, float m_y = 0.0f, float w = 0.0f) : mouse_x(m_x), mouse_y(m_y), wheel(w) {}
     };
 
+    struct Gamepad_Event {
+        int32_t pad_index;
+        Key key;
+		float value;
+
+        Gamepad_Event(int32_t pad_inx, Key k, float val) : pad_index(pad_inx), key(k), value(val) {}
+    };
+
     class Manager {
     public:
         struct Axis {
@@ -67,15 +76,22 @@ namespace Input {
 
         std::vector<Event> input_event_queue;
         std::vector<Mouse_Event> mouse_event_queue;
+        std::vector<Gamepad_Event> gamepad_event_queue;
+        std::vector<Gamepad_Event> gamepad_stick_event_queue;
         std::vector<Axis_Binding> axis_bindings;
         std::vector<Action_Binding> action_bindings;
         std::vector<Axis> axes;
         std::vector<Action> actions;
 
-        // Buffer for storing values from previous frames used for mouse smoothing
-        std::deque<Mouse_Event> mouse_values_buffer;
+		// Use radial dead zone for gamepad sticks?
+		// Turned on by default
+		// If off, axial dead zone will be used instead
+        uint8_t gamepad_sticks_radial_dead_zone : 1;
 
-        uint32_t mouse_buffer_size_limit = 10;
+		// TODO TEMPORARY hardcoded deadzone for gamepad sticks
+        float gamepad_dead_zone = 0.25f;
+
+		Manager(): gamepad_sticks_radial_dead_zone(true) {}
 
         void load_bindings();
         void save_bindings();
@@ -87,6 +103,7 @@ namespace Input {
 
     private:
         void process_mouse_events();
+        void process_gamepad_events();
     };
 } // namespace Input
 

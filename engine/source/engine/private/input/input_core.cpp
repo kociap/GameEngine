@@ -3,6 +3,7 @@
 #include "assets.hpp"
 #include "debug_macros.hpp"
 #include "math/math.hpp"
+#include "math/vector2.hpp"
 #include "time.hpp"
 #include "utils/path.hpp"
 #include "utils/simple_xml_parser.hpp"
@@ -16,15 +17,15 @@
 namespace Input {
     static void extract_bindings(std::string const& str, std::vector<Axis_Binding>& axis_bindings, std::vector<Action_Binding>& action_bindings) {
         // clang-format off
-    std::unordered_map<std::string, Input_Axis> string_to_input_axis({
-        {"move_forward", Input_Axis::move_forward},
-        {"move_sideways", Input_Axis::move_sideways},
-        {"move_vertical", Input_Axis::move_vertical},
-	    {"mouse_x", Input_Axis::mouse_x},
-	    {"mouse_y", Input_Axis::mouse_y}
-    });
+        std::unordered_map<std::string, Input_Axis> string_to_input_axis({
+            {"move_forward", Input_Axis::move_forward},
+            {"move_sideways", Input_Axis::move_sideways},
+            {"move_vertical", Input_Axis::move_vertical},
+            {"mouse_x", Input_Axis::mouse_x},
+            {"mouse_y", Input_Axis::mouse_y}
+        });
 
-	std::unordered_map<std::string, Input_Action> string_to_input_action;
+        std::unordered_map<std::string, Input_Action> string_to_input_action;
         // clang-format on
 
         struct Binding {
@@ -152,8 +153,10 @@ namespace Input {
         // TODO add actions processing
 
         process_mouse_events();
+        process_gamepad_events();
 
         for (Event& event : input_event_queue) {
+            // DEBUG TODO remove
             //std::cout << key_to_string(event.key) << ": " << event.value << "\n";
 
             for (auto& binding : axis_bindings) {
@@ -174,10 +177,15 @@ namespace Input {
             float raw_value = 0.0f;
             float max_scale = 0.0f;
             bool has_mouse_bound = false;
+            bool has_gamepad_axes_bound = false;
             for (auto& axis_binding : axis_bindings) {
                 if (axis.axis == axis_binding.axis) {
                     if (axis_binding.key == Key::mouse_x || axis_binding.key == Key::mouse_y || axis_binding.key == Key::mouse_scroll) {
                         has_mouse_bound = true;
+                    } else if (axis_binding.key == Key::gamepad_right_stick_x_axis || axis_binding.key == Key::gamepad_right_stick_y_axis ||
+                               axis_binding.key == Key::gamepad_left_stick_x_axis || axis_binding.key == Key::gamepad_left_stick_y_axis ||
+                               axis_binding.key == Key::gamepad_left_trigger || axis_binding.key == Key::gamepad_right_trigger) {
+                        has_gamepad_axes_bound = true;
                     }
 
                     if (axis_binding.raw_value != 0) {
@@ -187,9 +195,9 @@ namespace Input {
                 }
             }
 
-            if (has_mouse_bound) {
+            if (has_mouse_bound || has_gamepad_axes_bound) {
                 // Do not normalize or smooth mouse values
-                axis.raw_value = raw_value * max_scale;
+                axis.raw_value = raw_value;
                 axis.value = raw_value * max_scale;
             } else {
                 // Keep normalized and smoothed
@@ -206,7 +214,7 @@ namespace Input {
         }
 
         // DEBUG TODO remove
-        std::unordered_map<Input_Axis, std::string> axis_to_string({{Input_Axis::move_forward, "move_forward"},
+        /*std::unordered_map<Input_Axis, std::string> axis_to_string({{Input_Axis::move_forward, "move_forward"},
                                                                     {Input_Axis::move_sideways, "move_sideways"},
                                                                     {Input_Axis::move_vertical, "move_vertical"},
                                                                     {Input_Axis::mouse_x, "mouse_x"},
@@ -215,26 +223,19 @@ namespace Input {
         std::cout << "Time: " << Time::get_delta_time() << "\n";
         for (Axis& axis : axes) {
             std::cout << axis_to_string[axis.axis] << " scale: " << axis.scale << " raw: " << axis.raw_value << " value:" << axis.value << "\n";
-        }
+        }*/
     }
 
     void Manager::process_mouse_events() {
         Mouse_Event current_frame_mouse;
 
-        for (Mouse_Event& mouse_event : mouse_event_queue) {
+        for (Mouse_Event const& mouse_event : mouse_event_queue) {
             current_frame_mouse.mouse_x += mouse_event.mouse_x;
             current_frame_mouse.mouse_y += mouse_event.mouse_y;
             current_frame_mouse.wheel += mouse_event.wheel;
         }
 
-		mouse_event_queue.clear();
-
-        // TODO Mouse smoothing, not sure I'll ever implement it
-        // if (mouse_values_buffer.size() == mouse_buffer_size_limit) {
-        //     mouse_values_buffer.pop_front();
-        // }
-
-        // mouse_values_buffer.push_back(current_frame_mouse);
+        mouse_event_queue.clear();
 
         // Reset bindings
         for (auto& axis_binding : axis_bindings) {
@@ -247,5 +248,85 @@ namespace Input {
                 axis_binding.raw_value = current_frame_mouse.wheel;
             }
         }
+    }
+
+    void Manager::process_gamepad_events() {
+        Vector2 gamepad_left_stick;
+        Vector2 gamepad_right_stick;
+
+        for (Gamepad_Event const& gamepad_stick_event : gamepad_stick_event_queue) {
+            if (gamepad_stick_event.key == Key::gamepad_right_stick_x_axis) {
+                gamepad_right_stick.x = gamepad_stick_event.value;
+            } else if (gamepad_stick_event.key == Key::gamepad_right_stick_y_axis) {
+                gamepad_right_stick.y = gamepad_stick_event.value;
+            } else if (gamepad_stick_event.key == Key::gamepad_left_stick_x_axis) {
+                gamepad_left_stick.x = gamepad_stick_event.value;
+            } else if (gamepad_stick_event.key == Key::gamepad_left_stick_y_axis) {
+                gamepad_left_stick.y = gamepad_stick_event.value;
+            }
+        }
+
+		// TODO radial dead zone makes axes never reach 1 (values are slightly less than 1, e.g. 0.99996)
+
+        if (gamepad_sticks_radial_dead_zone) {
+            // Radial dead zone
+            float left_stick_length = math::min(gamepad_left_stick.length(), 1.0f);
+            if (left_stick_length > gamepad_dead_zone) {
+                gamepad_left_stick = normalize(gamepad_left_stick) * (left_stick_length - gamepad_dead_zone) / (1 - gamepad_dead_zone);
+            } else {
+                gamepad_left_stick = Vector2::zero;
+            }
+
+            float right_stick_length = math::min(gamepad_right_stick.length(), 1.0f);
+            if (right_stick_length > gamepad_dead_zone) {
+                gamepad_right_stick = normalize(gamepad_right_stick) * (right_stick_length - gamepad_dead_zone) / (1 - gamepad_dead_zone);
+            } else {
+                gamepad_right_stick = Vector2::zero;
+            }
+
+			//std::cout << "left_stick: " << left_stick_length << " right stick: " << right_stick_length << "\n";
+        } else {
+            // Axial dead zone
+            auto apply_dead_zone = [this](float& value) -> void {
+                if (math::abs(value) > gamepad_dead_zone) {
+                    value = (value - math::sign(value) * gamepad_dead_zone) / (1 - gamepad_dead_zone);
+                } else {
+                    value = 0;
+                }
+            };
+
+            apply_dead_zone(gamepad_left_stick.x);
+            apply_dead_zone(gamepad_left_stick.y);
+            apply_dead_zone(gamepad_right_stick.x);
+            apply_dead_zone(gamepad_right_stick.y);
+        }
+
+        for (auto& binding : axis_bindings) {
+            if (binding.key == Key::gamepad_left_stick_x_axis) {
+                binding.raw_value = gamepad_left_stick.x;
+            } else if (binding.key == Key::gamepad_left_stick_y_axis) {
+                binding.raw_value = gamepad_left_stick.y;
+            } else if (binding.key == Key::gamepad_right_stick_x_axis) {
+                binding.raw_value = gamepad_right_stick.x;
+            } else if (binding.key == Key::gamepad_right_stick_y_axis) {
+                binding.raw_value = gamepad_right_stick.y;
+            }
+        }
+
+        std::cout << "gamepad_left_stick.x: " << gamepad_left_stick.x << " "
+                  << "gamepad_left_stick.y: " << gamepad_left_stick.y << "\n"
+                  << "gamepad_right_stick.x: " << gamepad_right_stick.x << " "
+                  << "gamepad_right_stick.y: " << gamepad_right_stick.y << "\n";
+
+        for (Gamepad_Event const& gamepad_event : gamepad_event_queue) {
+            for (auto& binding : axis_bindings) {
+                if (binding.key == gamepad_event.key) {
+                    binding.raw_value = gamepad_event.value;
+                }
+            }
+        }
+
+        gamepad_stick_event_queue.clear();
+        gamepad_event_queue.clear();
     }
 } // namespace Input
