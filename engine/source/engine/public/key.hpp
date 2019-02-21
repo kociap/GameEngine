@@ -27,6 +27,8 @@ enum class Key {
     caps_lock,
     spacebar,
     backspace,
+    left_alt,
+    right_alt,
 
     keypad_0,
     keypad_1,
@@ -116,6 +118,13 @@ enum class Key {
     f10,
     f11,
     f12,
+
+    gamepad_left_stick_x_axis,
+    gamepad_left_stick_y_axis,
+    gamepad_right_stick_x_axis,
+    gamepad_right_stick_y_axis,
+    gamepad_left_trigger,
+    gamepad_right_trigger,
 
     gamepad_button_0,
     gamepad_button_1,
