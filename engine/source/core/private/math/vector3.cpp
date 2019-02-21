@@ -112,6 +112,10 @@ Vector3 operator*(Vector3 const& a, float b) {
     return {a.x * b, a.y * b, a.z * b};
 }
 
+Vector3 operator/(Vector3 const& a, float b) {
+    return {a.x / b, a.y / b, a.z / b};
+}
+
 void swap(Vector3& a, Vector3& b) {
     std::swap(a.x, b.x);
     std::swap(a.y, b.y);
