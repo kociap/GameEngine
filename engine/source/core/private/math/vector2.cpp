@@ -92,6 +92,10 @@ Vector2 operator*(Vector2 const& a, float b) {
     return {a.x * b, a.y * b};
 }
 
+Vector2 operator/(Vector2 const& a, float b) {
+    return {a.x / b, a.y / b};
+}
+
 void swap(Vector2& a, Vector2& b) {
     std::swap(a.x, b.x);
     std::swap(a.y, b.y);

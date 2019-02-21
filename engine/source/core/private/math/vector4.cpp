@@ -109,6 +109,10 @@ Vector4 operator*(Vector4 const& a, float s) {
     return {a.x * s, a.y * s, a.z * s, a.w * s};
 }
 
+Vector4 operator/(Vector4 const& a, float s) {
+    return {a.x / s, a.y / s, a.z / s, a.w / s};
+}
+
 void swap(Vector4& a, Vector4& b) {
     std::swap(a.x, b.x);
     std::swap(a.y, b.y);

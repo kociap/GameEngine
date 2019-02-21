@@ -51,6 +51,7 @@ public:
 Vector3 operator+(Vector3 const&, Vector3 const&);
 Vector3 operator-(Vector3 const&, Vector3 const&);
 Vector3 operator*(Vector3 const&, float);
+Vector3 operator/(Vector3 const&, float);
 void swap(Vector3&, Vector3&);
 
 // If vector is non-zero, returns normalized copy of the vector.

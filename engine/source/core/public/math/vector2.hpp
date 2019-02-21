@@ -44,6 +44,7 @@ public:
 Vector2 operator+(Vector2 const&, Vector2 const&);
 Vector2 operator-(Vector2 const&, Vector2 const&);
 Vector2 operator*(Vector2 const&, float);
+Vector2 operator/(Vector2 const&, float);
 void swap(Vector2&, Vector2&);
 
 // If vector is non-zero, returns normalized copy of the vector.
