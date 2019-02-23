@@ -11,5 +11,6 @@ set(SOURCE_FILES ${SOURCE_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/utils/path.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/utils/simple_xml_parser.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/debug_macros.cpp"
     PARENT_SCOPE
 )

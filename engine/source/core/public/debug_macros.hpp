@@ -8,7 +8,11 @@
 #ifndef NDEBUG
 #define GE_assert(condition, msg) assert((msg, condition))
 
-inline void check_gl_errors() {
+void _GE_log(std::string);
+
+#define GE_log(msg) _GE_log((msg))
+
+inline void _GE_check_gl_errors() {
     GLenum error = glGetError();
     if (error == GL_INVALID_ENUM) {
         throw std::runtime_error("GL_INVALID_ENUM");
@@ -26,10 +30,11 @@ inline void check_gl_errors() {
         throw std::runtime_error("GL_STACK_OVERFLOW");
     }
 }
-#define CHECK_GL_ERRORS() check_gl_errors()
+#define CHECK_GL_ERRORS() _GE_check_gl_errors()
 #else
 #define GE_assert(condition, msg) ((void)0)
 #define CHECK_GL_ERRORS() ((void)0)
+#define GE_log ((void)0)
 #endif // _DEBUG
 
 #endif // !CORE_DEBUG_MACROS_HPP_INCLUDE
