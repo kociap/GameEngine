@@ -19,7 +19,6 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/id.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/time.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/key.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/input/axis_action_names.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/mesh_manager.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/mesh.hpp"

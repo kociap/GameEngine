@@ -13,18 +13,6 @@
 
 namespace Input {
     static void extract_bindings(std::string const& str, std::vector<Axis_Binding>& axis_bindings, std::vector<Action_Binding>& action_bindings) {
-        // clang-format off
-        std::unordered_map<std::string, Input_Axis> string_to_input_axis({
-            {"move_forward", Input_Axis::move_forward},
-            {"move_sideways", Input_Axis::move_sideways},
-            {"move_vertical", Input_Axis::move_vertical},
-            {"mouse_x", Input_Axis::mouse_x},
-            {"mouse_y", Input_Axis::mouse_y}
-        });
-
-        std::unordered_map<std::string, Input_Action> string_to_input_action;
-        // clang-format on
-
         struct Binding {
             std::string name;
             std::string key;
@@ -77,22 +65,12 @@ namespace Input {
 
         for (Binding& axis : axes) {
             auto key = key_from_string(axis.key);
-            auto name_iter = string_to_input_axis.find(axis.name);
-            GE_assert(name_iter != string_to_input_axis.end(),
-                      "Attepmting to load unknown axis binding, skipping"); // TODO replace with logging
-            if (name_iter != string_to_input_axis.end()) {
-                axis_bindings.emplace_back(name_iter->second, key, axis.scale, axis.sensitivity);
-            }
+            axis_bindings.emplace_back(axis.name, key, axis.scale, axis.sensitivity);
         }
 
         for (Binding& action : actions) {
             auto key = key_from_string(action.key);
-            auto name_iter = string_to_input_action.find(action.name);
-            GE_assert(name_iter != string_to_input_action.end(),
-                      "Attepmting to load unknown axis binding, skipping"); // TODO replace with logging
-            if (name_iter != string_to_input_action.end()) {
-                action_bindings.emplace_back(name_iter->second, key, action.sensitivity);
-            }
+            action_bindings.emplace_back(action.name, key, action.sensitivity);
         }
     }
 

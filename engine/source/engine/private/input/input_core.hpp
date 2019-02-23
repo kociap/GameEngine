@@ -1,38 +1,38 @@
 #ifndef ENGINE_INPUT_INPUT_CORE_HPP_INCLUDE
 #define ENGINE_INPUT_INPUT_CORE_HPP_INCLUDE
 
-#include "input/axis_action_names.hpp"
 #include "key.hpp"
 #include <cstdint>
-#include <deque>
+#include <string>
 #include <vector>
 
 namespace Input {
     struct Action_Binding {
-        Input_Action action;
+        std::string action;
         Key key;
         // Scale by which to multiply raw value
         float sensitivity;
         float raw_value = 0.0f;
 
-        Action_Binding(Input_Action a, Key k, float sens = 1.0f) : action(a), key(k), sensitivity(sens) {}
+        Action_Binding(std::string const& a, Key k, float sens = 1.0f) : action(a), key(k), sensitivity(sens) {}
     };
 
     struct Axis_Binding {
-        Input_Axis axis;
+        std::string axis;
         Key key;
-		// Scale by which to multiply raw value
+        // Scale by which to multiply raw value
         float sensitivity;
-		// How fast to accumulate value in units/s
+        // How fast to accumulate value in units/s
         float scale;
         float raw_value = 0.0f;
-		// Smoothed binding value
-		float value = 0.0f;
+        // Smoothed binding value
+        float value = 0.0f;
+        float dead_zone = 0.0f;
 
-		// If raw value changes sign, should we reset to 0 or continue from current value?
+        // If raw value changes sign, should we reset to 0 or continue from current value?
         int8_t snap : 1;
 
-        Axis_Binding(Input_Axis a, Key k, float s, float sens = 1.0f) : axis(a), key(k), scale(s), sensitivity(sens), snap(0) {}
+        Axis_Binding(std::string const& a, Key k, float s, float sens = 1.0f) : axis(a), key(k), scale(s), sensitivity(sens), snap(0) {}
     };
 
     struct Event {
@@ -53,7 +53,7 @@ namespace Input {
     struct Gamepad_Event {
         int32_t pad_index;
         Key key;
-		float value;
+        float value;
 
         Gamepad_Event(int32_t pad_inx, Key k, float val) : pad_index(pad_inx), key(k), value(val) {}
     };
@@ -61,19 +61,19 @@ namespace Input {
     class Manager {
     public:
         struct Axis {
-            Input_Axis axis;
+            std::string axis;
             float value = 0.0f;
             float raw_value = 0.0f;
 
-            Axis(Input_Axis a) : axis(a) {}
+            Axis(std::string const& a) : axis(a) {}
         };
 
         struct Action {
-            Input_Action action;
+            std::string action;
             float value = 0.0f;
             float raw_value = 0.0f;
 
-            Action(Input_Action a) : action(a) {}
+            Action(std::string const& a) : action(a) {}
         };
 
         std::vector<Event> input_event_queue;
@@ -85,15 +85,15 @@ namespace Input {
         std::vector<Axis> axes;
         std::vector<Action> actions;
 
-		// Use radial dead zone for gamepad sticks?
-		// Turned on by default
-		// If off, axial dead zone will be used instead
+        // Use radial dead zone for gamepad sticks?
+        // Turned on by default
+        // If off, axial dead zone will be used instead
         uint8_t gamepad_sticks_radial_dead_zone : 1;
 
-		// TODO TEMPORARY hardcoded deadzone for gamepad sticks
+        // TODO TEMPORARY hardcoded deadzone for gamepad sticks
         float gamepad_dead_zone = 0.25f;
 
-		Manager(): gamepad_sticks_radial_dead_zone(true) {}
+        Manager() : gamepad_sticks_radial_dead_zone(true) {}
 
         void load_bindings();
         void save_bindings();
