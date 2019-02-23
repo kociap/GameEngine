@@ -1,6 +1,7 @@
 #ifndef GAME_ENGINE_CORE_MATH_TRANSFORM_HPP_INCLUDE
 #define GAME_ENGINE_CORE_MATH_TRANSFORM_HPP_INCLUDE
 
+#include "macro_undefs.hpp"
 #include "matrix4.hpp"
 #include "vector3.hpp"
 #include "quaternion.hpp"
