@@ -37,10 +37,11 @@ public:
     bool is_active();
     void set_projection(Projection);
 
-    Vector3 get_front();
+	Vector3 get_top() const;
+    Vector3 get_front() const;
 
-    Matrix4 get_view_matrix();
-    Matrix4 get_projection_matrix();
+    Matrix4 get_view_matrix() const;
+    Matrix4 get_projection_matrix() const;
 };
 
 #endif // !ENGINE_COMPONENTS_CAMERA_HPP_INCLUDE
