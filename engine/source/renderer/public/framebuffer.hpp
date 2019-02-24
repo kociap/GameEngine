@@ -1,6 +1,7 @@
 #ifndef ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
 #define ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
 
+#include "enum_flag.hpp"
 #include <cstdint>
 
 namespace renderer {
@@ -30,6 +31,12 @@ namespace renderer {
             stencil,
         };
 
+        enum Buffer_Mask : uint32_t {
+            color = 1 << 0,
+            depth = 1 << 1,
+            stencil = 1 << 2,
+        };
+
         struct Construct_Info {
             uint32_t width = 0;
             uint32_t height = 0;
@@ -44,6 +51,9 @@ namespace renderer {
             bool multisampled = false;
         };
 
+        static void bind(Framebuffer&, Bind_Mode = Bind_Mode::read_draw);
+        static void bind_default(Bind_Mode = Bind_Mode::read_draw);
+
         Framebuffer(Construct_Info const&);
         Framebuffer(Framebuffer&&) noexcept;
         Framebuffer& operator=(Framebuffer&&) noexcept;
@@ -53,20 +63,17 @@ namespace renderer {
         Framebuffer(Framebuffer const&) = delete;
         Framebuffer& operator=(Framebuffer const&) = delete;
 
-        // Bind the framebuffer as current
-        void bind();
-        // Unbind any framebuffer and make the default current
-        void unbind();
         void clear();
-        void blit(Framebuffer&);
-        uint32_t get_texture();
+        void blit(Framebuffer&, Buffer_Mask);
+        uint32_t get_color_texture() const;
+        uint32_t get_depth_texture() const;
 
     private:
         Construct_Info info;
         uint32_t framebuffer = 0;
         uint32_t depth_buffer = 0;
         uint32_t stencil_buffer = 0;
-        uint32_t texture_color_buffer = 0;
+        uint32_t color_buffer = 0;
     };
 } // namespace renderer
 

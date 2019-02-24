@@ -14,6 +14,7 @@
 #include "shader.hpp"
 #include "shader_manager.hpp"
 #include "window.hpp"
+#include "math/transform.hpp"
 
 namespace renderer {
     Renderer::Renderer() {
@@ -30,6 +31,8 @@ namespace renderer {
         framebuffer_construct_info.multisampled = false;
         framebuffer = new Framebuffer(framebuffer_construct_info);
 
+		framebuffer_construct_info.width = shadow_width;
+        framebuffer_construct_info.height = shadow_height;
         framebuffer_construct_info.depth_buffer_type = Framebuffer::Buffer_Type::texture;
         framebuffer_construct_info.color_buffer = false;
         light_depth_buffer = new Framebuffer(framebuffer_construct_info);
@@ -42,6 +45,9 @@ namespace renderer {
         Assets::load_shader_file_and_attach(quad_shader, "quad.vert");
         Assets::load_shader_file_and_attach(quad_shader, "quad.frag");
         quad_shader.link();
+
+		setup_opengl();
+        set_gamma_value(gamma_correction_value);
     }
 
     Renderer::~Renderer() {
@@ -101,9 +107,23 @@ namespace renderer {
                 ++i;
             }
 
+			shader.set_int("point_lights_count", component_system.point_light_components.size());
+            shader.set_int("directional_lights_count", component_system.directional_light_components.size());
+
             // uhh?????????????????????
             shader.set_float("material.shininess", 32.0f);
         }
+    }
+
+    void Renderer::set_gamma_value(float gamma) {
+        gamma_correction_value = gamma;
+        gamma_correction_shader.set_float("gamma", 1 / gamma_correction_value);
+	}
+
+	void Renderer::setup_opengl() {
+        glDisable(GL_FRAMEBUFFER_SRGB);
+        glEnable(GL_CULL_FACE);
+        glEnable(GL_DEPTH_TEST);
     }
 
     Camera& Renderer::find_active_camera() {
@@ -160,19 +180,25 @@ namespace renderer {
     void Renderer::render_frame() {
         static Plane scene_quad;
 
-        glDisable(GL_FRAMEBUFFER_SRGB);
-        glEnable(GL_CULL_FACE);
-        glEnable(GL_DEPTH_TEST);
+		// Shadow mapping
+        Component_System& component_system = Engine::get_component_system();
+        Directional_Light_Component const& directional_light = component_system.directional_light_components.get(0);
 
-        // glViewport(0, 0, shadow_width, shadow_height);
-        // light_depth_buffer.bind();
-        // glClear(GL_DEPTH_BUFFER_BIT);
-        // render_scene();
+        glViewport(0, 0, shadow_width, shadow_height);
+        Framebuffer::bind(*light_depth_buffer);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glReadBuffer(GL_NONE);
+        glDrawBuffer(GL_NONE);
+        Transform& dl_transform = get_component<Transform>(directional_light.get_entity());
+		// TODO temporarily compute view transform of directional light. directional lights with direction up/down won't work properly
+        Matrix4 dl_view_transform(transform::look_at(dl_transform.local_position, dl_transform.local_position + directional_light.direction, Vector3::up));
+        Matrix4 dl_projection_transform(transform::orthographic(-10, 10, -10, 10, -100, 100));
+        render_scene(dl_transform, dl_view_transform, dl_projection_transform);
 
         Window& window = Engine::get_window();
 
         glViewport(0, 0, window.width(), window.height());
-        framebuffer_multisampled->bind();
+        Framebuffer::bind(*framebuffer_multisampled);
         glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         Camera& camera = find_active_camera();
@@ -181,13 +207,17 @@ namespace renderer {
         Matrix4 projection = camera.get_projection_matrix();
         render_scene(camera_transform, view, projection);
 
-        framebuffer_multisampled->blit(*framebuffer);
+		Framebuffer::bind(*framebuffer_multisampled, Framebuffer::Bind_Mode::read);
+        Framebuffer::bind(*framebuffer, Framebuffer::Bind_Mode::draw);
+        framebuffer_multisampled->blit(*framebuffer, Framebuffer::Buffer_Mask::color);
+        Framebuffer::bind_default();
+
         glDisable(GL_DEPTH_TEST);
         gamma_correction_shader.use();
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, framebuffer->get_texture());
+        glBindTexture(GL_TEXTURE_2D, framebuffer->get_depth_texture());
         gamma_correction_shader.set_int("scene_texture", 0);
-        gamma_correction_shader.set_float("gamma", 1 / gamma_correction_value);
         scene_quad.draw(gamma_correction_shader);
+        glEnable(GL_DEPTH_TEST);
     }
 } // namespace renderer

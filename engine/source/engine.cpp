@@ -113,6 +113,11 @@ void Engine::init(int argc, char** argv) {
     Camera_Movement& camera_m = add_component<Camera_Movement>(camera);
     camera_t.translate({0, 0, 10});
 
+	Entity directional_light = Entity::instantiate();
+    Transform& dl_t = add_component<Transform>(directional_light);
+    Directional_Light_Component& dl_c = add_component<Directional_Light_Component>(directional_light);
+	dl_c.direction = Vector3(1, -1, -1);
+
     renderer->load_shader_light_properties();
 }
 

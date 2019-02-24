@@ -20,12 +20,14 @@ namespace renderer {
 
         void render_frame();
         void load_shader_light_properties();
+        void set_gamma_value(float);
 
     private:
         void render_object(Static_Mesh_Component const&, Shader&);
         void render_object(Line_Component const&, Shader&);
         void render_scene(Transform const& camera_transform, Matrix4 const& view_transform, Matrix4 const& projection_transform);
         Camera& find_active_camera();
+        void setup_opengl();
 
     private:
         Framebuffer* framebuffer_multisampled;
@@ -39,6 +41,8 @@ namespace renderer {
 
     public:
         float gamma_correction_value = 2.2f;
+        uint32_t shadow_width = 1024;
+        uint32_t shadow_height = 1024;
     };
 } // namespace renderer
 

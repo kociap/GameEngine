@@ -6,6 +6,28 @@
 #include <utility>
 
 namespace renderer {
+    void Framebuffer::bind(Framebuffer& fb, Bind_Mode bm) {
+        if (bm == Bind_Mode::read_draw) {
+            glBindFramebuffer(GL_FRAMEBUFFER, fb.framebuffer);
+        } else if (bm == Bind_Mode::read) {
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, fb.framebuffer);
+        } else if (bm == Bind_Mode::draw) {
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb.framebuffer);
+        }
+        CHECK_GL_ERRORS();
+    }
+
+    void Framebuffer::bind_default(Bind_Mode bm) {
+        if (bm == Bind_Mode::read_draw) {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        } else if (bm == Bind_Mode::read) {
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+        } else if (bm == Bind_Mode::draw) {
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        }
+        CHECK_GL_ERRORS();
+    }
+
     Framebuffer::Framebuffer(Construct_Info const& i) : info(i) {
         if (info.width > GL_MAX_RENDERBUFFER_SIZE || info.height > GL_MAX_RENDERBUFFER_SIZE) {
             throw std::invalid_argument("Too big buffer size");
@@ -15,33 +37,32 @@ namespace renderer {
             throw std ::invalid_argument("One or both dimensions are 0");
         }
 
+        GE_assert(!info.multisampled || info.samples != 0, "Multisampled framebuffer must have more than 0 samples");
+
         glGenFramebuffers(1, &framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
         // Generate color buffer
         if (info.color_buffer) {
-            glGenTextures(1, &texture_color_buffer);
+            glGenTextures(1, &color_buffer);
             CHECK_GL_ERRORS();
             if (info.multisampled) {
-                if (info.samples == 0) {
-                    throw std::invalid_argument("Samples must not be 0");
-                }
-                glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture_color_buffer);
+                glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, color_buffer);
                 CHECK_GL_ERRORS();
                 glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, info.samples, GL_RGB, info.width, info.height, GL_TRUE);
                 CHECK_GL_ERRORS();
                 glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
                 CHECK_GL_ERRORS();
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, texture_color_buffer, 0);
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, color_buffer, 0);
                 CHECK_GL_ERRORS();
             } else {
-                glBindTexture(GL_TEXTURE_2D, texture_color_buffer);
+                glBindTexture(GL_TEXTURE_2D, color_buffer);
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, info.width, info.height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glBindTexture(GL_TEXTURE_2D, 0);
                 CHECK_GL_ERRORS();
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_color_buffer, 0);
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_buffer, 0);
                 CHECK_GL_ERRORS();
             }
         } else {
@@ -51,6 +72,7 @@ namespace renderer {
 
         if (info.depth_buffer) {
             if (info.depth_buffer_type == Buffer_Type::renderbuffer) {
+                // TODO change buffer type based on info instead of using depth_stencil
                 glGenRenderbuffers(1, &depth_buffer);
                 glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
                 if (info.multisampled) {
@@ -148,38 +170,42 @@ namespace renderer {
         if (stencil_buffer != 0) {
             glDeleteRenderbuffers(1, &stencil_buffer);
         }
-        if (texture_color_buffer != 0) {
-            glDeleteTextures(1, &texture_color_buffer);
+        if (color_buffer != 0) {
+            glDeleteTextures(1, &color_buffer);
         }
         if (framebuffer != 0) {
             glDeleteFramebuffers(1, &framebuffer);
         }
     }
 
-    void Framebuffer::bind() {
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    }
-
-    void Framebuffer::unbind() {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-
-    uint32_t Framebuffer::get_texture() {
+    uint32_t Framebuffer::get_color_texture() const {
         if (info.multisampled) {
             throw std::runtime_error("Framebuffer is multisampled. Unable to get texture");
         }
-        return texture_color_buffer;
+
+		if (!info.color_buffer) {
+            throw std::runtime_error("No color buffer bound");
+        }
+
+        return color_buffer;
     }
 
-    void Framebuffer::blit(Framebuffer& fb) {
-        CHECK_GL_ERRORS();
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
-        CHECK_GL_ERRORS();
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb.framebuffer);
-        CHECK_GL_ERRORS();
-        glBlitFramebuffer(0, 0, info.width, info.height, 0, 0, fb.info.width, fb.info.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-        CHECK_GL_ERRORS();
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	uint32_t Framebuffer::get_depth_texture() const {
+        if (info.multisampled) {
+            throw std::runtime_error("Framebuffer is multisampled. Unable to get texture");
+		}
+
+		if (!info.depth_buffer) {
+            throw std::runtime_error("No depth buffer bound");
+		}
+
+		return depth_buffer;
+	}
+
+    void Framebuffer::blit(Framebuffer& fb, Buffer_Mask bm) {
+        uint32_t gl_buffer_mask = (bm & Buffer_Mask::color ? GL_COLOR_BUFFER_BIT : 0) | (bm & Buffer_Mask::depth ? GL_DEPTH_BUFFER_BIT : 0) |
+                                  (bm & Buffer_Mask::stencil ? GL_STENCIL_BUFFER_BIT : 0);
+        glBlitFramebuffer(0, 0, info.width, info.height, 0, 0, fb.info.width, fb.info.height, gl_buffer_mask, GL_NEAREST);
         CHECK_GL_ERRORS();
     }
 } // namespace renderer
