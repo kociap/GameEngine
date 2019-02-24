@@ -24,6 +24,7 @@ public:
     void link();
     void use();
     void detach(Shader_File const&);
+    void delete_shader();
 
     GLint get_uniform(std::string const&);
     GLint get_uniform(char const*);

@@ -13,6 +13,8 @@ public:
     Shader& get(Handle<Shader> const&);
     void remove(Handle<Shader> const&);
 
+	void reload_shaders();
+
     iterator begin();
     iterator end();
 

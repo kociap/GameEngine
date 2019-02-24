@@ -1,9 +1,10 @@
 #include "shader.hpp"
 
 #include "color.hpp"
-#include "exceptions.hpp"
+#include "debug_macros.hpp"
 #include "math/matrix4.hpp"
 #include "math/vector3.hpp"
+#include "shader_exceptions.hpp"
 #include "shaderfile.hpp"
 
 #include <cassert>
@@ -28,9 +29,7 @@ Shader& Shader::operator=(Shader&& shader) noexcept {
 }
 
 Shader::~Shader() {
-    if (program != 0) {
-        glDeleteProgram(program);
-    }
+    delete_shader();
 }
 
 void Shader::create() {
@@ -42,10 +41,12 @@ void Shader::create() {
 
 void Shader::attach(Shader_File const& shader) {
     glAttachShader(program, shader.shader);
+    CHECK_GL_ERRORS();
 }
 
 void Shader::link() {
     glLinkProgram(program);
+    CHECK_GL_ERRORS();
     GLint link_status;
     glGetProgramiv(program, GL_LINK_STATUS, &link_status);
     if (link_status == GL_FALSE) {
@@ -56,14 +57,27 @@ void Shader::link() {
         std::string log_string(log.begin(), log.end());
         throw Program_Linking_Failed(std::move(log_string));
     }
+    CHECK_GL_ERRORS();
 }
 
 void Shader::use() {
     glUseProgram(program);
+    CHECK_GL_ERRORS();
 }
 
 void Shader::detach(Shader_File const& shader) {
     glDetachShader(program, shader.shader);
+    CHECK_GL_ERRORS();
+}
+
+void Shader::delete_shader() {
+    GE_conditional_log(program != 0, "Attempting to delete not exising program");
+
+    if (program != 0) {
+        glDeleteProgram(program);
+        program = 0;
+    }
+    CHECK_GL_ERRORS();
 }
 
 GLint Shader::get_uniform(std::string const& name) {

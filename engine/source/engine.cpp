@@ -17,6 +17,7 @@
 #include "components/camera.hpp"
 #include "components/point_light_component.hpp"
 #include "components/static_mesh_component.hpp"
+#include "debug_hotkeys.hpp"
 #include "math/math.hpp"
 #include "mesh/cube.hpp"
 #include "mesh/plane.hpp"
@@ -111,6 +112,7 @@ void Engine::init(int argc, char** argv) {
     Transform& camera_t = add_component<Transform>(camera);
     Camera& camera_c = add_component<Camera>(camera);
     Camera_Movement& camera_m = add_component<Camera_Movement>(camera);
+    add_component<Debug_Hotkeys>(camera);
     camera_t.translate({0, 0, 10});
 
 	Entity directional_light = Entity::instantiate();

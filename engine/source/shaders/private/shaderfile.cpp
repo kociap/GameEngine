@@ -1,6 +1,7 @@
 #include "shaderfile.hpp"
 
-#include "exceptions.hpp"
+#include "shader_exceptions.hpp"
+#include "debug_macros.hpp"
 #include <iostream>
 
 Shader_File::Shader_File(Shader_Type type, std::string const& source) : type(type), shader(0) {
@@ -23,6 +24,7 @@ Shader_File::~Shader_File() {
     if (shader != 0) {
         glDeleteShader(shader);
     }
+    CHECK_GL_ERRORS();
 }
 
 void Shader_File::create() {
@@ -40,6 +42,7 @@ void Shader_File::create() {
         shader = glCreateShader(GL_TESS_EVALUATION_SHADER);
     }
 
+	CHECK_GL_ERRORS();
     if (shader == 0) {
         throw Shader_Not_Created("");
     }
@@ -48,11 +51,12 @@ void Shader_File::create() {
 void Shader_File::set_source(std::string const& source) {
     const char* src = source.c_str();
     glShaderSource(shader, 1, &src, NULL);
+    CHECK_GL_ERRORS();
 }
 
 void Shader_File::compile() {
     glCompileShader(shader);
-
+    CHECK_GL_ERRORS();
     GLint compilation_status;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &compilation_status);
     if (compilation_status == GL_FALSE) {
@@ -63,4 +67,5 @@ void Shader_File::compile() {
         std::string log_string(log.begin(), log.end());
         throw Shader_Compilation_Failed(std::move(log_string));
     }
+    CHECK_GL_ERRORS();
 }

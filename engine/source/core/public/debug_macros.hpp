@@ -9,8 +9,12 @@
 #define GE_assert(condition, msg) assert((msg, condition))
 
 void _GE_log(std::string);
+void _GE_conditional_log(bool condition, std::string);
 
 #define GE_log(msg) _GE_log((msg))
+
+// If condition is false it will log message
+#define GE_conditional_log(cond, msg) _GE_conditional_log((cond), msg);
 
 inline void _GE_check_gl_errors() {
     GLenum error = glGetError();
@@ -35,6 +39,7 @@ inline void _GE_check_gl_errors() {
 #define GE_assert(condition, msg) ((void)0)
 #define CHECK_GL_ERRORS() ((void)0)
 #define GE_log ((void)0)
+#define GE_conditional_log ((void)0)
 #endif // _DEBUG
 
 #endif // !CORE_DEBUG_MACROS_HPP_INCLUDE
