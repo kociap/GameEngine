@@ -1,3 +1,6 @@
+#ifndef SCRIPTS_CAMERA_MOVEMENT_HPP_INCLUDE
+#define SCRIPTS_CAMERA_MOVEMENT_HPP_INCLUDE
+
 #include "components/behaviour_component.hpp"
 
 class Camera_Movement : public Behaviour_Component {
@@ -8,3 +11,5 @@ public:
 
     void update() override;
 };
+
+#endif // !SCRIPTS_CAMERA_MOVEMENT_HPP_INCLUDE

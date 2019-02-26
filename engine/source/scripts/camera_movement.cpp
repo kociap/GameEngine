@@ -5,6 +5,7 @@
 #include "input/input.hpp"
 #include "math/math.hpp"
 #include "math/transform.hpp"
+#include "time.hpp"
 
 #include "components/component_system.hpp"
 
@@ -22,7 +23,7 @@ void Camera_Movement::update() {
 
     // Move
     Vector3 camera_front = camera.get_front();
-    float camera_speed = 0.15f;
+    float camera_speed = 0.15f * 60 * Time::get_delta_time();
     float forward = Input::get_axis("move_forward");
     transform.translate(camera_front * camera_speed * forward);
     float sideways = Input::get_axis("move_sideways");
