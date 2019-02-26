@@ -35,19 +35,18 @@ void Shader_Manager::remove(Handle<Shader> const& handle) {
 
 void Shader_Manager::reload_shaders() {
     try {
-        Shader& default_shader = shaders.get(0);
-        default_shader.delete_shader();
-        default_shader.create();
+        Shader default_shader;
         Assets::load_shader_file_and_attach(default_shader, "basicvertex.vert");
         Assets::load_shader_file_and_attach(default_shader, "basicfrag.frag");
         default_shader.link();
 
-        Shader& unlit_default_shader = shaders.get(1);
-        unlit_default_shader.delete_shader();
-        unlit_default_shader.create();
+        Shader unlit_default_shader;
         Assets::load_shader_file_and_attach(unlit_default_shader, "unlit_default.vert");
         Assets::load_shader_file_and_attach(unlit_default_shader, "unlit_default.frag");
         unlit_default_shader.link();
+
+        Shader::swap_programs(shaders.get(0), default_shader);
+        Shader::swap_programs(shaders.get(1), unlit_default_shader);
     } catch (Program_Linking_Failed& e) {
         GE_log("Failed to reload shaders due to linking error");
         GE_log(e.what());

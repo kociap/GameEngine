@@ -12,6 +12,8 @@ class Shader_File;
 
 class Shader : public Object {
 public:
+    static void swap_programs(Shader&, Shader&);
+
     Shader(bool create_program = true);
     Shader(Shader const&) = delete;
     Shader& operator=(Shader const&) = delete;

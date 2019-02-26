@@ -14,6 +14,7 @@ public:
     float cutoff_angle = 25.0f;
     float blend_angle = 20.0f;
     float intensity = 1.0f;
+    bool dynamic = false;
 };
 
 #endif // !ENGINE_COMPONENTS_SPOTLIGHT_LIGHT_COMPONENT_HPP_INCLUDE

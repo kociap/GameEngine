@@ -83,19 +83,21 @@ void Engine::init(int argc, char** argv) {
     box_sm.set_mesh(box_handle);
     box_sm.set_shader(default_shader_handle);
 
-    Entity floor = Entity::instantiate();
-    Transform& floor_t = add_component<Transform>(floor);
-    Static_Mesh_Component& floor_sm = add_component<Static_Mesh_Component>(floor);
     Texture floor_tex;
     floor_tex.id = Assets::load_texture("wood_floor.png");
     floor_tex.type = Texture_Type::diffuse;
     Plane floor_mesh;
     floor_mesh.textures.push_back(floor_tex);
     Handle<Mesh> floor_handle = mesh_manager->add(std::move(floor_mesh));
-    floor_sm.set_mesh(floor_handle);
-    floor_sm.set_shader(default_shader_handle);
-    floor_t.rotate(Vector3::right, math::radians(-90));
-    floor_t.translate({0, -2, 0});
+    for (uint32_t i = 0; i < 121; ++i) {
+        Entity floor = Entity::instantiate();
+        Transform& floor_t = add_component<Transform>(floor);
+        Static_Mesh_Component& floor_sm = add_component<Static_Mesh_Component>(floor);
+        floor_sm.set_mesh(floor_handle);
+        floor_sm.set_shader(default_shader_handle);
+        floor_t.rotate(Vector3::right, math::radians(-90));
+        floor_t.translate({(static_cast<float>(i % 11) - 5.0f) * 2.0f, -2, (static_cast<float>(i / 11) - 5.0f) * 2.0f});
+    }
 
     Entity lamp = Entity::instantiate();
     Transform& lamp_t = add_component<Transform>(lamp);
@@ -106,7 +108,7 @@ void Engine::init(int argc, char** argv) {
     lamp_sm.set_shader(unlit_default_shader_handle);
     lamp_t.scale({0.2f, 0.2f, 0.2f});
     lamp_t.translate({3, 1.5f, 2});
-    lamp_pl.intensity = 10;
+    lamp_pl.intensity = 3;
 
     Entity camera = Entity::instantiate();
     Transform& camera_t = add_component<Transform>(camera);
@@ -115,10 +117,9 @@ void Engine::init(int argc, char** argv) {
     add_component<Debug_Hotkeys>(camera);
     camera_t.translate({0, 0, 10});
 
-	Entity directional_light = Entity::instantiate();
-    Transform& dl_t = add_component<Transform>(directional_light);
+    Entity directional_light = Entity::instantiate();
     Directional_Light_Component& dl_c = add_component<Directional_Light_Component>(directional_light);
-	dl_c.direction = Vector3(1, -1, -1);
+    dl_c.direction = Vector3(1, -1, -1);
 
     renderer->load_shader_light_properties();
 }

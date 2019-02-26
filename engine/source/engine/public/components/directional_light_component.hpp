@@ -11,7 +11,8 @@ public:
 
     Vector3 direction = -Vector3::up;
     Color color = Color::white;
-	float intensity = 1.0f;
+    float intensity = 1.0f;
+    bool dynamic = false;
 };
 
 #endif // !ENGINE_COMPONENTS_DIRECITONAL_LIGHT_COMPONENT_HPP_INCLUDE

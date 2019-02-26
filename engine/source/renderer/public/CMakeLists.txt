@@ -2,6 +2,7 @@ set(HEADER_FILES
     ${HEADER_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/renderer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/framebuffer.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/opengl.hpp"
     # "${CMAKE_CURRENT_SOURCE_DIR}/uniform_buffer.hpp"
     PARENT_SCOPE
 )

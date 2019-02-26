@@ -11,6 +11,7 @@ public:
 
     Color color = Color::white;
     float intensity = 1.0f;
+    bool dynamic = false;
 };
 
 #endif // !ENGINE_COMPONENTS_POINT_LIGHT_COMPONENT_HPP_INCLUDE

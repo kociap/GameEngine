@@ -25,7 +25,10 @@ namespace renderer {
     private:
         void render_object(Static_Mesh_Component const&, Shader&);
         void render_object(Line_Component const&, Shader&);
-        void render_scene(Transform const& camera_transform, Matrix4 const& view_transform, Matrix4 const& projection_transform);
+        void render_shadow_map(Matrix4 const& view_transform, Matrix4 const& projection_transform);
+        void render_scene(Transform const& camera_transform, Matrix4 const& view_transform, Matrix4 const& projection_transform,
+                          Matrix4 const& light_space_transform);
+        void update_dynamic_lights();
         Camera& find_active_camera();
         void setup_opengl();
 
@@ -43,6 +46,7 @@ namespace renderer {
         float gamma_correction_value = 2.2f;
         uint32_t shadow_width = 1024;
         uint32_t shadow_height = 1024;
+        bool output_shadow_map = false;
     };
 } // namespace renderer
 

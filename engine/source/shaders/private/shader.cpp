@@ -12,6 +12,10 @@
 #include <string>
 #include <vector>
 
+void Shader::swap_programs(Shader& a, Shader& b) {
+    std::swap(a.program, b.program);
+}
+
 Shader::Shader(bool create_program /* = true */) {
     if (create_program) {
         create();
@@ -100,20 +104,25 @@ GLint Shader::get_uniform(char const* name) {
 
 void Shader::set_int(std::string const& name, int a) {
     glUniform1i(get_uniform(name), a);
+    CHECK_GL_ERRORS();
 }
 
 void Shader::set_float(std::string const& name, float a) {
     glUniform1f(get_uniform(name), a);
+    CHECK_GL_ERRORS();
 }
 
 void Shader::set_vec3(std::string const& name, Vector3 const& vec) {
     glUniform3fv(get_uniform(name), 1, &vec.x);
+    CHECK_GL_ERRORS();
 }
 
 void Shader::set_vec3(std::string const& name, Color const& c) {
     glUniform3fv(get_uniform(name), 1, &c.r);
+    CHECK_GL_ERRORS();
 }
 
 void Shader::set_matrix4(std::string const& name, Matrix4 const& mat) {
     glUniformMatrix4fv(get_uniform(name), 1, GL_FALSE, mat.get_raw());
+    CHECK_GL_ERRORS();
 }

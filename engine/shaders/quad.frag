@@ -7,5 +7,5 @@ uniform sampler2D scene_texture;
 out vec4 frag_color;
 
 void main() {
-    frag_color = texture(scene_texture, texture_coordinates);
+    frag_color.rgb = vec3(texture(scene_texture, texture_coordinates).r);
 }
