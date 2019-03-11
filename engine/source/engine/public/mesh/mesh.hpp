@@ -10,6 +10,7 @@
 enum class Texture_Type {
     specular,
     diffuse,
+    normal,
 };
 
 struct Vertex {
@@ -18,7 +19,7 @@ struct Vertex {
     Vector2 uv_coordinates;
 
     Vertex() = default;
-    Vertex(Vector3, Vector3, Vector2);
+    Vertex(Vector3 pos, Vector3 normal, Vector2 uv);
 };
 
 struct Texture {

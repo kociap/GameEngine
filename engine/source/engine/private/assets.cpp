@@ -7,6 +7,7 @@
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
 #include "debug_macros.hpp"
+#include "math/vector3.hpp"
 #include "mesh/mesh.hpp"
 #include "shader.hpp"
 #include "utils/path.hpp"
@@ -61,14 +62,14 @@ Shader_File Assets::load_shader_file(std::filesystem::path const& path) {
     std::filesystem::path full_path = utils::concat_paths(_shaders_path, path);
     std::string shader_source;
     read_file_raw(full_path, shader_source);
-    return Shader_File(shader_type_from_filename(path), shader_source);
+    return Shader_File(path.string(), shader_type_from_filename(path), shader_source);
 }
 
 void Assets::load_shader_file_and_attach(Shader& shader, std::filesystem::path const& path) {
     std::filesystem::path full_path = utils::concat_paths(_shaders_path, path);
     std::string shader_source;
     read_file_raw(full_path, shader_source);
-    Shader_File s(shader_type_from_filename(path), shader_source);
+    Shader_File s(path.string(), shader_type_from_filename(path), shader_source);
     shader.attach(s);
 }
 
@@ -105,10 +106,10 @@ uint32_t Assets::load_cubemap(std::vector<std::filesystem::path> const& paths) {
     return cubemap;
 };
 
-uint32_t Assets::load_texture(std::filesystem::path filename) {
+uint32_t Assets::load_texture(std::filesystem::path filename, bool flip) {
     int width, height, channels;
     int32_t desired_channel_count = 4;
-    //stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(flip);
     std::string path = utils::concat_paths(_assets_path, filename).string();
     unsigned char* image_data = stbi_load(path.c_str(), &width, &height, &channels, 0);
     if (!image_data) {
@@ -136,7 +137,15 @@ static void load_material_textures(aiMaterial* mat, aiTextureType type, std::fil
         auto texture_path = utils::concat_paths(current_path, str.C_Str());
         Texture texture;
         texture.id = Assets::load_texture(texture_path);
-        texture.type = (type == aiTextureType_DIFFUSE ? Texture_Type::diffuse : Texture_Type::specular);
+        if (type == aiTextureType_DIFFUSE) {
+            texture.type = Texture_Type::diffuse;
+        } else if (type == aiTextureType_SPECULAR) {
+            texture.type = Texture_Type::specular;
+        } else if (type == aiTextureType_NORMALS) {
+            texture.type = Texture_Type::normal;
+        } else {
+            throw std::runtime_error("Unknown texture type");
+        }
         textures.push_back(std::move(texture));
     }
 }
@@ -147,8 +156,10 @@ static Mesh process_mesh(aiMesh* mesh, aiScene const* scene, std::filesystem::pa
     std::vector<Texture> textures;
 
     for (std::size_t i = 0; i < mesh->mNumVertices; ++i) {
-        vertices[i].position = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-        vertices[i].normal = Vector3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+        auto& vert = mesh->mVertices[i];
+        vertices[i].position = Vector3(vert.x, vert.y, vert.z);
+        auto& normal = mesh->mNormals[i];
+        vertices[i].normal = Vector3(normal.x, normal.y, normal.z);
         if (mesh->mTextureCoords[0]) {
             vertices[i].uv_coordinates = Vector2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
         }

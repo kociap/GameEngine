@@ -29,7 +29,7 @@ public:
     static uint32_t load_cubemap(std::vector<std::filesystem::path> const& paths);
 
     // Loads texture and returns a OpenGL handle
-    static uint32_t load_texture(std::filesystem::path filename);
+    static uint32_t load_texture(std::filesystem::path filename, bool flip_image);
 
     static std::vector<Mesh> load_model(std::filesystem::path const& filename);
 

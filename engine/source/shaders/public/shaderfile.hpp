@@ -1,9 +1,9 @@
 #ifndef SHADERS_SHADER_FILE_HPP_INCLUDE
 #define SHADERS_SHADER_FILE_HPP_INCLUDE
 
-#include "glad/glad.h"
 #include <string>
 #include <vector>
+#include <cstdint>
 
 enum class Shader_Type {
     vertex,
@@ -20,7 +20,7 @@ public:
     Shader_File(Shader_File const&) = delete;
     Shader_File& operator=(Shader_File const&) = delete;
 
-    Shader_File(Shader_Type type, std::string const& source);
+    Shader_File(std::string name, Shader_Type type, std::string const& source);
     Shader_File(Shader_File&& shader) noexcept;
     Shader_File& operator=(Shader_File&& shader) noexcept;
     ~Shader_File();
@@ -28,8 +28,9 @@ public:
 private:
     friend class Shader;
 
+	std::string name;
     Shader_Type type;
-    GLuint shader;
+    uint32_t shader;
 
     void create();
     void set_source(std::string const& source);

@@ -4,7 +4,7 @@
 #include "debug_macros.hpp"
 #include <iostream>
 
-Shader_File::Shader_File(Shader_Type type, std::string const& source) : type(type), shader(0) {
+Shader_File::Shader_File(std::string n, Shader_Type type, std::string const& source) : name(n), type(type), shader(0) {
     create();
     set_source(source);
     compile();
@@ -65,6 +65,7 @@ void Shader_File::compile() {
         std::vector<GLchar> log(log_length);
         glGetShaderInfoLog(shader, log_length, &log_length, &log[0]);
         std::string log_string(log.begin(), log.end());
+        log_string = "Shader compilation failed (" + name + ")\n" + log_string;
         throw Shader_Compilation_Failed(std::move(log_string));
     }
     CHECK_GL_ERRORS();
