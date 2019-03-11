@@ -42,15 +42,3 @@ Matrix4 Camera::get_projection_matrix() const {
         return transform::orthographic(-size * aspect_ratio, size * aspect_ratio, -size, size, near_plane, far_plane);
     }
 }
-
-void Camera::activate() {
-    active = true;
-}
-
-void Camera::deactivate() {
-    active = false;
-}
-
-bool Camera::is_active() {
-    return active;
-}

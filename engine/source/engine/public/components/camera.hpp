@@ -20,8 +20,6 @@ public:
     float fov = 70;
     float near_plane = 0.3f;
     float far_plane = 1000.0f;
-
-private:
     Projection projection = Projection::perspective;
     bool active = true; // Temporarily make active by default
 
@@ -31,13 +29,9 @@ public:
     Camera& operator=(Camera&&) = default;
     virtual ~Camera();
 
-    // Temporarily ???
-    void activate();
-    void deactivate();
-    bool is_active();
     void set_projection(Projection);
 
-	Vector3 get_top() const;
+    Vector3 get_top() const;
     Vector3 get_front() const;
 
     Matrix4 get_view_matrix() const;
