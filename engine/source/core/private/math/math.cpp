@@ -8,7 +8,7 @@ namespace math {
     }
 
     float sign(float a) {
-        return (a > 0.0f) - (a < 0.0f);
+        return static_cast<float>((a > 0.0f) - (a < 0.0f));
     }
 
     float max(float a, float b) {
