@@ -7,11 +7,3 @@
 #include "mesh/mesh_manager.hpp"
 
 Static_Mesh_Component::Static_Mesh_Component(Entity const& entity) : Renderable_Component(entity), mesh_handle(0), shader_handle(0) {}
-
-void Static_Mesh_Component::set_mesh(Handle<Mesh> mesh) {
-    mesh_handle = std::move(mesh);
-}
-
-void Static_Mesh_Component::set_shader(Handle<Shader> mat) {
-    shader_handle = std::move(mat);
-}

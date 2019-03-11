@@ -16,10 +16,6 @@ public:
     Line_Component(Entity const&);
     using Renderable_Component::Renderable_Component;
 
-    void set_mesh(Handle<Mesh>);
-    void set_shader(Handle<Shader>);
-
-public:
     Handle<Mesh> mesh_handle;
     Handle<Shader> shader_handle;
 };

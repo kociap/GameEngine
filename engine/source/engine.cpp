@@ -65,23 +65,39 @@ void Engine::init(int argc, char** argv) {
     Handle<Shader> unlit_default_shader_handle = shader_manager->add(std::move(unlit_default_shader));
 
     // BS code to output anything on the screen
-    Entity box = Entity::instantiate();
-    Transform& box_t = add_component<Transform>(box);
-    Static_Mesh_Component& box_sm = add_component<Static_Mesh_Component>(box);
 
-    std::vector<Mesh> meshes = Assets::load_model("cube.obj");
+    std::vector<Mesh> meshes = Assets::load_model("barrel.obj");
+    auto& container = meshes[0];
+    //Cube container;
     Texture container_diffuse;
-    container_diffuse.id = Assets::load_texture("container.jpg");
+    container_diffuse.id = Assets::load_texture("barrel_texture.jpg");
     container_diffuse.type = Texture_Type::diffuse;
-    Texture container_specular;
-    container_specular.id = Assets::load_texture("container_specular.jpg");
-    container_specular.type = Texture_Type::specular;
-    meshes[0].textures.pop_back();
-    meshes[0].textures.push_back(container_diffuse);
-    meshes[0].textures.push_back(container_specular);
-    Handle<Mesh> box_handle = mesh_manager->add(std::move(meshes[0]));
-    box_sm.set_mesh(box_handle);
-    box_sm.set_shader(default_shader_handle);
+    // Texture container_specular;
+    // container_specular.id = Assets::load_texture("container_specular.jpg");
+    // container_specular.type = Texture_Type::specular;
+    Texture container_normal;
+    container_normal.id = Assets::load_texture("barrel_normal_map.jpg");
+    container_normal.type = Texture_Type::normal;
+    container.textures.clear();
+    container.textures.push_back(container_diffuse);
+    // meshes[0].textures.push_back(container_specular);
+    container.textures.push_back(container_normal);
+    Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
+
+    auto instantiate_box = [&, default_shader_handle, box_handle](Vector3 position, float rotation = 0) {
+        Entity box = Entity::instantiate();
+        Transform& box_t = add_component<Transform>(box);
+        Static_Mesh_Component& box_sm = add_component<Static_Mesh_Component>(box);
+        box_sm.mesh_handle = box_handle;
+        box_sm.shader_handle = default_shader_handle;
+        box_t.translate(position);
+        box_t.rotate(Vector3::up, math::radians(rotation));
+    };
+
+    instantiate_box({0, -0.5f, 0});
+    instantiate_box({-5, 7, 2}, 30.0f);
+    instantiate_box({-3, -1, 4});
+    instantiate_box({0, -1, 4});
 
     Texture floor_tex;
     floor_tex.id = Assets::load_texture("wood_floor.png");
@@ -89,23 +105,23 @@ void Engine::init(int argc, char** argv) {
     Plane floor_mesh;
     floor_mesh.textures.push_back(floor_tex);
     Handle<Mesh> floor_handle = mesh_manager->add(std::move(floor_mesh));
-    for (uint32_t i = 0; i < 121; ++i) {
+    /*for (uint32_t i = 0; i < 121; ++i) {
         Entity floor = Entity::instantiate();
         Transform& floor_t = add_component<Transform>(floor);
         Static_Mesh_Component& floor_sm = add_component<Static_Mesh_Component>(floor);
-        floor_sm.set_mesh(floor_handle);
-        floor_sm.set_shader(default_shader_handle);
+        floor_sm.mesh_handle = floor_handle;
+        floor_sm.shader_handle = default_shader_handle;
         floor_t.rotate(Vector3::right, math::radians(-90));
         floor_t.translate({(static_cast<float>(i % 11) - 5.0f) * 2.0f, -2, (static_cast<float>(i / 11) - 5.0f) * 2.0f});
-    }
+    }*/
 
     Entity lamp = Entity::instantiate();
     Transform& lamp_t = add_component<Transform>(lamp);
     Point_Light_Component& lamp_pl = add_component<Point_Light_Component>(lamp);
     Static_Mesh_Component& lamp_sm = add_component<Static_Mesh_Component>(lamp);
     auto lamp_cube_handle = mesh_manager->add(Cube());
-    lamp_sm.set_mesh(lamp_cube_handle);
-    lamp_sm.set_shader(unlit_default_shader_handle);
+    lamp_sm.mesh_handle = lamp_cube_handle;
+    lamp_sm.shader_handle = unlit_default_shader_handle;
     lamp_t.scale({0.2f, 0.2f, 0.2f});
     lamp_t.translate({3, 1.5f, 2});
     lamp_pl.intensity = 3;
@@ -120,6 +136,7 @@ void Engine::init(int argc, char** argv) {
     Entity directional_light = Entity::instantiate();
     Directional_Light_Component& dl_c = add_component<Directional_Light_Component>(directional_light);
     dl_c.direction = Vector3(1, -1, -1);
+    dl_c.intensity = 0.0f;
 
     renderer->load_shader_light_properties();
 }
