@@ -8,6 +8,9 @@ namespace opengl {
 
     void active_texture(uint32_t index);
     void bind_texture(uint32_t tex_enum, uint32_t handle);
+    void bind_vertex_array(uint32_t handle);
+    void vertex_array_attribute(uint32_t index, uint32_t count, uint32_t type, uint32_t stride, uint32_t offset, bool normalized = false);
+    void enable_vertex_array_attribute(uint32_t index);
 
     void load_opengl_parameters();
 } // namespace opengl
