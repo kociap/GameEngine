@@ -1,5 +1,4 @@
 #include "components/transform.hpp"
-#include "debug_macros.hpp"
 #include "math/transform.hpp"
 
 #include <cmath>
