@@ -92,6 +92,10 @@ Vector2 operator*(Vector2 const& a, float b) {
     return {a.x * b, a.y * b};
 }
 
+Vector2 operator*(float b, Vector2 const& a) {
+    return {a.x * b, a.y * b};
+}
+
 Vector2 operator/(Vector2 const& a, float b) {
     return {a.x / b, a.y / b};
 }

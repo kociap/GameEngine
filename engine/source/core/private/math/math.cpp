@@ -8,13 +8,7 @@ namespace math {
     }
 
     float sign(float a) {
-        if (a > 0.0f) {
-            return 1.0f;
-        } else if (a < 0.0f) {
-            return -1.0f;
-        } else {
-            return 0.0f;
-        }
+        return (a > 0.0f) - (a < 0.0f);
     }
 
     float max(float a, float b) {
@@ -25,16 +19,16 @@ namespace math {
         return a < b ? a : b;
     }
 
-	float abs(float a) {
+    float abs(float a) {
         return a >= 0 ? a : -a;
-	}
+    }
 
     float step_to_value(float current, float target, float change) {
         float delta = target - current;
         if (abs(delta) > change) {
             return current + sign(delta) * change;
-		} else {
+        } else {
             return target;
-		}
+        }
     }
 } // namespace math

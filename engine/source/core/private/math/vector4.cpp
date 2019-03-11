@@ -109,6 +109,10 @@ Vector4 operator*(Vector4 const& a, float s) {
     return {a.x * s, a.y * s, a.z * s, a.w * s};
 }
 
+Vector4 operator*(float s, Vector4 const& a) {
+    return {a.x * s, a.y * s, a.z * s, a.w * s};
+}
+
 Vector4 operator/(Vector4 const& a, float s) {
     return {a.x / s, a.y / s, a.z / s, a.w / s};
 }

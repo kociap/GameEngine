@@ -42,6 +42,7 @@ public:
 Vector4 operator+(Vector4 const&, Vector4 const&);
 Vector4 operator-(Vector4 const&, Vector4 const&);
 Vector4 operator*(Vector4 const&, float);
+Vector4 operator*(float, Vector4 const&);
 Vector4 operator/(Vector4 const&, float);
 void swap(Vector4&, Vector4&);
 

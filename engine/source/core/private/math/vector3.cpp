@@ -112,6 +112,10 @@ Vector3 operator*(Vector3 const& a, float b) {
     return {a.x * b, a.y * b, a.z * b};
 }
 
+Vector3 operator*(float b, Vector3 const& a) {
+    return {a.x * b, a.y * b, a.z * b};
+}
+
 Vector3 operator/(Vector3 const& a, float b) {
     return {a.x / b, a.y / b, a.z / b};
 }
@@ -120,6 +124,14 @@ void swap(Vector3& a, Vector3& b) {
     std::swap(a.x, b.x);
     std::swap(a.y, b.y);
     std::swap(a.z, b.z);
+}
+
+bool operator==(Vector3 const& a, Vector3 const& b) {
+    return a.x == b.x && a.y == b.y && a.z == b.z;
+}
+
+bool operator!=(Vector3 const& a, Vector3 const& b) {
+    return a.x != b.x || a.y != b.y || a.z != b.z;
 }
 
 Vector3 normalize(Vector3 vec) {
