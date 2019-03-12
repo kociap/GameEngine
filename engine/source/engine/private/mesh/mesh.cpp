@@ -3,8 +3,10 @@
 #include "glad/glad.h"
 #include "opengl.hpp"
 #include "shader.hpp"
+#include "renderer.hpp"
 
-Vertex::Vertex(Vector3 pos, Vector3 norm, Vector2 tex) : position(std::move(pos)), normal(std::move(norm)), uv_coordinates(std::move(tex)) {}
+Vertex::Vertex(Vector3 pos, Vector3 norm, Vector3 tan, Vector3 bitan, Vector2 tex)
+    : position(std::move(pos)), normal(std::move(norm)), tangent(std::move(tan)), bitangent(std::move(bitan)), uv_coordinates(std::move(tex)) {}
 
 Mesh::Mesh() {}
 
@@ -48,58 +50,8 @@ Mesh::~Mesh() {
     }
 }
 
-void Mesh::draw(Shader& shader) {
-    CHECK_GL_ERRORS();
-    std::size_t specular = 0;
-    std::size_t diffuse = 0;
-    for (std::size_t i = 0; i < textures.size(); ++i) {
-        opengl::active_texture(i);
-        if (textures[i].type == Texture_Type::diffuse) {
-            shader.set_int("material.texture_diffuse" + std::to_string(diffuse), i);
-            ++diffuse;
-        } else {
-            shader.set_int("material.texture_specular" + std::to_string(specular), i);
-            ++specular;
-        }
-        opengl::bind_texture(GL_TEXTURE_2D, textures[i].id);
-    }
-    opengl::bind_vertex_array(vao);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-    CHECK_GL_ERRORS();
-    opengl::bind_vertex_array(0);
-}
-
-void Mesh::draw_instanced(Shader& shader, uint32_t count) {
-    CHECK_GL_ERRORS();
-    std::size_t specular = 0;
-    std::size_t diffuse = 0;
-    for (std::size_t i = 0; i < textures.size(); ++i) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        CHECK_GL_ERRORS();
-        if (textures[i].type == Texture_Type::diffuse) {
-            shader.set_int("material.texture_diffuse" + std::to_string(diffuse), i);
-            ++diffuse;
-        } else {
-            shader.set_int("material.texture_specular" + std::to_string(specular), i);
-            ++specular;
-        }
-        glBindTexture(GL_TEXTURE_2D, textures[i].id);
-        CHECK_GL_ERRORS();
-    }
-    CHECK_GL_ERRORS();
-    glBindVertexArray(vao);
-    CHECK_GL_ERRORS();
-    glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0, count);
-    CHECK_GL_ERRORS();
-    glBindVertexArray(0);
-    CHECK_GL_ERRORS();
-}
-
-void Mesh::bind() {
-    opengl::bind_vertex_array(vao);
-}
-void Mesh::unbind() {
-    opengl::bind_vertex_array(0);
+uint32_t Mesh::get_vao() const {
+    return vao;
 }
 
 void Mesh::prepare_mesh() {
@@ -119,9 +71,15 @@ void Mesh::prepare_mesh() {
     // normal
     opengl::vertex_array_attribute(1, 3, GL_FLOAT, sizeof(Vertex), sizeof(Vector3));
     opengl::enable_vertex_array_attribute(1);
-    // texture coordinates
-    opengl::vertex_array_attribute(2, 2, GL_FLOAT, sizeof(Vertex), 2 * sizeof(Vector3));
+    // tangent
+    opengl::vertex_array_attribute(2, 3, GL_FLOAT, sizeof(Vertex), 2 * sizeof(Vector3));
     opengl::enable_vertex_array_attribute(2);
+    // bitangent
+    opengl::vertex_array_attribute(3, 3, GL_FLOAT, sizeof(Vertex), 3 * sizeof(Vector3));
+    opengl::enable_vertex_array_attribute(3);
+    // texture coordinates
+    opengl::vertex_array_attribute(4, 2, GL_FLOAT, sizeof(Vertex), 4 * sizeof(Vector3));
+    opengl::enable_vertex_array_attribute(4);
 
     opengl::bind_vertex_array(0);
 }

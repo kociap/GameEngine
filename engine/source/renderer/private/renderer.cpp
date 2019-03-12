@@ -203,16 +203,59 @@ namespace renderer {
         throw std::runtime_error("No active camera found"); // TODO ???
     }
 
+	void Renderer::render_mesh(Mesh& mesh, Shader& shader) {
+        CHECK_GL_ERRORS();
+        shader.set_int("material.normal_map_attached", 0);
+        uint32_t specular = 0;
+        uint32_t diffuse = 0;
+        for (uint32_t i = 0; i < mesh.textures.size(); ++i) {
+            opengl::active_texture(i);
+            if (mesh.textures[i].type == Texture_Type::diffuse) {
+                shader.set_int("material.texture_diffuse" + std::to_string(diffuse), i);
+                ++diffuse;
+            } else if (mesh.textures[i].type == Texture_Type::specular) {
+                shader.set_int("material.texture_specular" + std::to_string(specular), i);
+                ++specular;
+            } else {
+                shader.set_int("material.normal_map", i);
+                shader.set_int("material.normal_map_attached", 1);
+            }
+            opengl::bind_texture(GL_TEXTURE_2D, mesh.textures[i].id);
+        }
+        uint32_t vao = mesh.get_vao();
+        opengl::bind_vertex_array(vao);
+        opengl::draw_elements(GL_TRIANGLES, mesh.indices.size());
+    }
+
+    void Renderer::render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count) {
+        for (uint32_t i = 0; i < mesh.textures.size(); ++i) {
+            opengl::active_texture(i);
+            if (mesh.textures[i].type == Texture_Type::diffuse) {
+                shader.set_int("material.texture_diffuse", i);
+            } else if (mesh.textures[i].type == Texture_Type::specular) {
+                shader.set_int("material.texture_specular", i);
+            } else {
+                shader.set_int("material.normal_map", i);
+                shader.set_int("material.normal_map_attached", 1);
+            }
+            opengl::bind_texture(GL_TEXTURE_2D, mesh.textures[i].id);
+        }
+        
+		uint32_t vao = mesh.get_vao();
+        opengl::bind_vertex_array(vao);
+        opengl::draw_elements_instanced(GL_TRIANGLES, mesh.indices.size(), count);
+    }
+
     void Renderer::render_object(Static_Mesh_Component const& component, Shader& shader) {
         Mesh_Manager& mesh_manager = Engine::get_mesh_manager();
         Mesh& mesh = mesh_manager.get(component.mesh_handle);
-        mesh.draw(shader);
+        render_mesh(mesh, shader);
     }
 
     void Renderer::render_object(Line_Component const& component, Shader& shader) {
         Mesh_Manager& mesh_manager = Engine::get_mesh_manager();
         Mesh& mesh = mesh_manager.get(component.mesh_handle);
-        mesh.draw(shader);
+        render_mesh(mesh, shader);
     }
 
     void Renderer::render_shadow_map(Matrix4 const& view, Matrix4 const& projection) {
@@ -282,6 +325,9 @@ namespace renderer {
             shader.set_matrix4("model", model);
             render_object(component, shader);
         }
+
+		// Unbind just in case
+		opengl::bind_vertex_array(0);
     }
 
     void Renderer::render_with_shader(Shader& shader, Transform const& camera_transform, Matrix4 const& view, Matrix4 const& projection) {
@@ -352,11 +398,11 @@ namespace renderer {
         if (output_shadow_map) {
             opengl::bind_texture(GL_TEXTURE_2D, light_depth_buffer->get_depth_texture());
             quad_shader.use();
-            scene_quad.draw(quad_shader);
+            render_mesh(scene_quad, quad_shader);
         } else {
             opengl::bind_texture(GL_TEXTURE_2D, framebuffer->get_color_texture());
             gamma_correction_shader.use();
-            scene_quad.draw(gamma_correction_shader);
+            render_mesh(scene_quad, gamma_correction_shader);
         }
 
         glEnable(GL_DEPTH_TEST);

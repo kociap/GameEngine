@@ -130,13 +130,27 @@ uint32_t Assets::load_texture(std::filesystem::path filename, bool flip) {
     return texture;
 }
 
+static void compute_tangents(Vertex& vert1, Vertex& vert2, Vertex& vert3) {
+    Vector3 delta_pos1 = vert2.position - vert1.position;
+    Vector3 delta_pos2 = vert3.position - vert1.position;
+    Vector2 delta_uv1 = vert2.uv_coordinates - vert1.uv_coordinates;
+    Vector2 delta_uv2 = vert3.uv_coordinates - vert1.uv_coordinates;
+    float determinant = delta_uv1.x * delta_uv2.y - delta_uv1.y * delta_uv2.x;
+    Vector3 tangent = normalize((delta_uv2.y * delta_pos1 - delta_uv1.y * delta_pos2) / determinant);
+    Vector3 bitangent = normalize((delta_uv1.x * delta_pos2 - delta_uv2.x * delta_pos1) / determinant);
+
+    vert1.tangent = vert2.tangent = vert3.tangent = tangent;
+    vert1.bitangent = vert2.bitangent = vert3.bitangent = bitangent;
+    //vert1.bitangent = vert2.bitangent = vert3.bitangent = Vector3::cross(vert1.normal, vert1.tangent);
+}
+
 static void load_material_textures(aiMaterial* mat, aiTextureType type, std::filesystem::path const& current_path, std::vector<Texture>& textures) {
     for (std::size_t i = 0, texture_count = mat->GetTextureCount(type); i < texture_count; ++i) {
         aiString str;
         mat->GetTexture(type, static_cast<unsigned int>(i), &str);
         auto texture_path = utils::concat_paths(current_path, str.C_Str());
         Texture texture;
-        texture.id = Assets::load_texture(texture_path);
+        texture.id = Assets::load_texture(texture_path, false);
         if (type == aiTextureType_DIFFUSE) {
             texture.type = Texture_Type::diffuse;
         } else if (type == aiTextureType_SPECULAR) {
@@ -170,6 +184,10 @@ static Mesh process_mesh(aiMesh* mesh, aiScene const* scene, std::filesystem::pa
         for (std::size_t j = 0; j < face.mNumIndices; ++j) {
             indices.push_back(face.mIndices[j]);
         }
+    }
+
+    for (std::size_t i = 0; i < indices.size(); i += 3) {
+        compute_tangents(vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]);
     }
 
     if (mesh->mMaterialIndex >= 0) {

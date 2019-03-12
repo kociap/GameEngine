@@ -1,6 +1,6 @@
 #version 450 core
 
-in Frag_data {
+in Frag_Data {
     vec3 fragment_position;
     vec3 normal;
     vec2 texture_coordinates;
@@ -29,5 +29,4 @@ out vec4 frag_color;
 
 void main() {
     frag_color = texture(material.texture_diffuse0, fragment_data.texture_coordinates);
-    // vec4 tex_color = texture(material.texture_diffuse0, fragment_data.texture_coordinates);
 }

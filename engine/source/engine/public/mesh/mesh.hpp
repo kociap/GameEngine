@@ -16,10 +16,12 @@ enum class Texture_Type {
 struct Vertex {
     Vector3 position;
     Vector3 normal;
+    Vector3 tangent;
+    Vector3 bitangent;
     Vector2 uv_coordinates;
 
     Vertex() = default;
-    Vertex(Vector3 pos, Vector3 normal, Vector2 uv);
+    Vertex(Vector3 pos, Vector3 normal, Vector3 tangent, Vector3 bitangent, Vector2 uv);
 };
 
 struct Texture {
@@ -29,6 +31,9 @@ struct Texture {
 };
 
 class Shader;
+namespace renderer {
+    class Renderer;
+}
 
 class Mesh : public Object {
 public:
@@ -42,10 +47,7 @@ public:
     Mesh(Mesh const&) = delete;
     Mesh& operator=(Mesh const&) = delete;
 
-    void draw(Shader&);
-    void draw_instanced(Shader&, uint32_t count);
-    void bind();
-    void unbind();
+	uint32_t get_vao() const;
 
 private:
     void prepare_mesh();

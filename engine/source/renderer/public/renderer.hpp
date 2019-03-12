@@ -9,6 +9,7 @@ class Line_Component;
 class Static_Mesh_Component;
 class Matrix4;
 class Transform;
+class Mesh;
 
 namespace renderer {
     class Framebuffer;
@@ -23,6 +24,8 @@ namespace renderer {
         void set_gamma_value(float);
 
     private:
+        void render_mesh(Mesh& mesh, Shader& shader);
+        void render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count);
         void render_object(Static_Mesh_Component const&, Shader&);
         void render_object(Line_Component const&, Shader&);
         void render_shadow_map(Matrix4 const& view_transform, Matrix4 const& projection_transform);

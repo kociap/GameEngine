@@ -40,4 +40,14 @@ namespace opengl {
         glEnableVertexAttribArray(index);
         CHECK_GL_ERRORS();
     }
+
+    void draw_elements(uint32_t mode, uint32_t count) {
+        glDrawElements(mode, count, GL_UNSIGNED_INT, (void*)0);
+		CHECK_GL_ERRORS();
+    }
+
+    void draw_elements_instanced(uint32_t mode, uint32_t indices_count, uint32_t instances) {
+        glDrawElementsInstanced(mode, indices_count, GL_UNSIGNED_INT, (void*)0, instances);
+		CHECK_GL_ERRORS();
+	}
 } // namespace opengl

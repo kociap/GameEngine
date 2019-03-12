@@ -22,7 +22,6 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/mesh_manager.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/mesh.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/mesh/model.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/plane.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/cube.hpp"
     PARENT_SCOPE
