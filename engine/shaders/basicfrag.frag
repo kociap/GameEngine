@@ -66,14 +66,6 @@ vec3 color_to_normal(vec3 c);
 
 void main() {
     vec3 surface_normal = material.normal_map_attached ? get_surface_normal(material.normal_map, fs_in.tex_coords) : fs_in.normal;
-    frag_color.rgb = vec3(fs_in.tex_coords, 0);
-    // frag_color.rgb = color_to_normal(get_surface_normal(material.normal_map, fs_in.tex_coords));
-    frag_color.rgb = get_surface_normal(material.normal_map, fs_in.tex_coords);
-    // frag_color.rgb = fs_in.normal_raw;
-
-    // frag_color.rgb = normalize(fs_in.tbn * vec3(0, 0, 1));
-    // frag_color.rgb = vec3(fs_in.tex_coords, 0);
-    return;
     vec3 light_color = vec3(0);
     vec3 view_vec = normalize(camera.position - fs_in.fragment_position);
     vec3 tex_color = vec3(texture(material.texture_diffuse, fs_in.tex_coords));
@@ -93,18 +85,13 @@ void main() {
 }
 
 vec3 color_to_normal(vec3 c) {
-    return (c - 0.5) * 2.0;
+    return c * 2.0 - 1.0;
 }
 
 vec3 get_surface_normal(sampler2D normal_map, vec2 tex_pos) {
     vec3 tex_normal = textureLod(normal_map, tex_pos, 0.0).rgb;
-    // vec3 normal = color_to_normal(tex_normal);
-    vec3 normal = normalize(tex_normal);
-    return normal;
-    // return fs_in.normal;
+    vec3 normal = color_to_normal(tex_normal);
     return normalize(fs_in.tbn * normal);
-    // return normalize(fs_in.tbn * tex_normal);
-    // return fs_in.tbn * tex_normal;
 }
 
 vec3 compute_point_lighting(Point_Light light, vec3 surface_normal, vec3 view_vec, vec3 tex_color, vec3 specular_tex_color) {

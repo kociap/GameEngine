@@ -203,7 +203,7 @@ namespace renderer {
         throw std::runtime_error("No active camera found"); // TODO ???
     }
 
-	void Renderer::render_mesh(Mesh& mesh, Shader& shader) {
+    void Renderer::render_mesh(Mesh& mesh, Shader& shader) {
         CHECK_GL_ERRORS();
         shader.set_int("material.normal_map_attached", 0);
         uint32_t specular = 0;
@@ -240,8 +240,8 @@ namespace renderer {
             }
             opengl::bind_texture(GL_TEXTURE_2D, mesh.textures[i].id);
         }
-        
-		uint32_t vao = mesh.get_vao();
+
+        uint32_t vao = mesh.get_vao();
         opengl::bind_vertex_array(vao);
         opengl::draw_elements_instanced(GL_TRIANGLES, mesh.indices.size(), count);
     }
@@ -326,8 +326,8 @@ namespace renderer {
             render_object(component, shader);
         }
 
-		// Unbind just in case
-		opengl::bind_vertex_array(0);
+        // Unbind just in case
+        opengl::bind_vertex_array(0);
     }
 
     void Renderer::render_with_shader(Shader& shader, Transform const& camera_transform, Matrix4 const& view, Matrix4 const& projection) {
@@ -383,7 +383,9 @@ namespace renderer {
         Matrix4 view = camera.get_view_matrix();
         Matrix4 projection = camera.get_projection_matrix();
         render_scene(camera_transform, view, projection, dl_view_transform * dl_projection_transform);
-        render_with_shader(tangents, camera_transform, view, projection);
+
+        // Render normals and tangents
+        //render_with_shader(tangents, camera_transform, view, projection);
 
         // Framebuffer::bind(*framebuffer_multisampled, Framebuffer::Bind_Mode::read);
         // Framebuffer::bind(*framebuffer, Framebuffer::Bind_Mode::draw);

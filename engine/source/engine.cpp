@@ -70,7 +70,7 @@ void Engine::init(int argc, char** argv) {
     auto& container = meshes[0];
     //Cube container;
     Texture container_diffuse;
-    container_diffuse.id = Assets::load_texture("barrel_texture.jpg", false);
+    container_diffuse.id = Assets::load_srgb_texture("barrel_texture.jpg", false);
     container_diffuse.type = Texture_Type::diffuse;
     // Texture container_specular;
     // container_specular.id = Assets::load_texture("container_specular.jpg");
@@ -91,16 +91,16 @@ void Engine::init(int argc, char** argv) {
         box_sm.mesh_handle = box_handle;
         box_sm.shader_handle = default_shader_handle;
         box_t.translate(position);
-        box_t.rotate(Vector3::up, math::radians(rotation));
+        box_t.rotate(Vector3::forward, math::radians(rotation));
     };
 
     instantiate_box({0, -0.5f, 0});
-    instantiate_box({-5, 7, 2}, 30.0f);
+    instantiate_box({-5, 7, 2}, 55.0f);
     instantiate_box({-3, -1, 4});
     instantiate_box({0, -1, 4});
 
     Texture floor_tex;
-    floor_tex.id = Assets::load_texture("wood_floor.png", false);
+    floor_tex.id = Assets::load_srgb_texture("wood_floor.png", false);
     floor_tex.type = Texture_Type::diffuse;
     Plane floor_mesh;
     floor_mesh.textures.push_back(floor_tex);

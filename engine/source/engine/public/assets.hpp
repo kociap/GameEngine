@@ -30,6 +30,7 @@ public:
 
     // Loads texture and returns a OpenGL handle
     static uint32_t load_texture(std::filesystem::path filename, bool flip_image);
+    static uint32_t load_srgb_texture(std::filesystem::path filename, bool flip_image);
 
     static std::vector<Mesh> load_model(std::filesystem::path const& filename);
 
