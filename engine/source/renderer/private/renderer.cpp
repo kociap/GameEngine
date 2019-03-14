@@ -23,9 +23,10 @@ namespace renderer {
 
         Window& window = Engine::get_window();
         Framebuffer::Construct_Info framebuffer_construct_info;
+        framebuffer_construct_info.color_buffers[0].enabled = true;
+        framebuffer_construct_info.depth_buffer.enabled = true;
         framebuffer_construct_info.width = window.width();
         framebuffer_construct_info.height = window.height();
-        framebuffer_construct_info.depth_buffer = true;
         framebuffer_construct_info.multisampled = true;
         framebuffer_construct_info.samples = 4;
 
@@ -34,13 +35,14 @@ namespace renderer {
         framebuffer_construct_info.multisampled = false;
         framebuffer = new Framebuffer(framebuffer_construct_info);
 
-        framebuffer_construct_info.width = shadow_width;
-        framebuffer_construct_info.height = shadow_height;
-        framebuffer_construct_info.depth_buffer_type = Framebuffer::Buffer_Type::texture;
-        framebuffer_construct_info.color_buffer = false;
-        light_depth_buffer = new Framebuffer(framebuffer_construct_info);
+        //framebuffer_construct_info.width = shadow_width;
+        //framebuffer_construct_info.height = shadow_height;
+        //framebuffer_construct_info.depth_buffer_type = Framebuffer::Buffer_Type::texture;
+        //framebuffer_construct_info.color_buffer = false;
+        //light_depth_buffer = new Framebuffer(framebuffer_construct_info);
 
         Framebuffer::Construct_Info postprocess_construct_info;
+        postprocess_construct_info.color_buffers[0].enabled = true;
         postprocess_construct_info.width = window.width();
         postprocess_construct_info.height = window.height();
 
@@ -72,7 +74,7 @@ namespace renderer {
     Renderer::~Renderer() {
         delete framebuffer_multisampled;
         delete framebuffer;
-        delete light_depth_buffer;
+        //delete light_depth_buffer;
         delete postprocess_back_buffer;
         delete postprocess_front_buffer;
     }
@@ -402,7 +404,7 @@ namespace renderer {
             quad_shader.use();
             render_mesh(scene_quad, quad_shader);
         } else {
-            opengl::bind_texture(GL_TEXTURE_2D, framebuffer->get_color_texture());
+            opengl::bind_texture(GL_TEXTURE_2D, framebuffer->get_color_texture(0));
             gamma_correction_shader.use();
             render_mesh(scene_quad, gamma_correction_shader);
         }

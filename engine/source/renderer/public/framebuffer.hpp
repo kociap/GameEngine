@@ -1,7 +1,8 @@
 #ifndef ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
 #define ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
 
-#include "enum_flag.hpp"
+#include "opengl.hpp"
+#include <array>
 #include <cstdint>
 
 namespace renderer {
@@ -31,23 +32,44 @@ namespace renderer {
             stencil,
         };
 
+        enum class Internal_Format {
+            rgb,
+            rgb16f,
+            rgb32f,
+			rgba,
+        };
+
         enum Buffer_Mask : uint32_t {
             color = 1 << 0,
             depth = 1 << 1,
             stencil = 1 << 2,
         };
 
+        struct Color_Buffer_Info {
+            Internal_Format internal_format = Internal_Format::rgb;
+            Buffer_Type buffer_type = Buffer_Type::texture;
+            bool enabled = false;
+        };
+
+        struct Depth_Buffer_Info {
+            Attachment attachment = Attachment::depth;
+            Buffer_Type buffer_type = Buffer_Type::renderbuffer;
+            bool enabled = false;
+        };
+
+        struct Stencil_Buffer_Info {
+            Attachment attachment = Attachment::stencil;
+            Buffer_Type buffer_type = Buffer_Type::renderbuffer;
+            bool enabled = false;
+        };
+
         struct Construct_Info {
+            std::array<Color_Buffer_Info, opengl::min_color_attachments> color_buffers;
+            Depth_Buffer_Info depth_buffer;
+            Stencil_Buffer_Info stencil_buffer;
             uint32_t width = 0;
             uint32_t height = 0;
             uint32_t samples = 0;
-            Attachment depth_buffer_attachment = Attachment::depth;
-            Attachment stencil_buffer_attachment = Attachment::stencil;
-            Buffer_Type depth_buffer_type = Buffer_Type::renderbuffer;
-            Buffer_Type stencil_buffer_type = Buffer_Type::renderbuffer;
-            bool color_buffer = true;
-            bool depth_buffer = false;
-            bool stencil_buffer = false;
             bool multisampled = false;
         };
 
@@ -65,15 +87,17 @@ namespace renderer {
 
         void clear();
         void blit(Framebuffer&, Buffer_Mask);
-        uint32_t get_color_texture() const;
+        uint32_t get_color_texture(uint32_t index) const;
         uint32_t get_depth_texture() const;
 
     private:
         Construct_Info info;
+        std::array<uint32_t, opengl::min_color_attachments> color_buffers;
+        std::array<uint32_t, opengl::min_color_attachments> color_buffer_index_to_active_map;
+        uint32_t active_color_buffers = 0;
         uint32_t framebuffer = 0;
         uint32_t depth_buffer = 0;
         uint32_t stencil_buffer = 0;
-        uint32_t color_buffer = 0;
     };
 } // namespace renderer
 
