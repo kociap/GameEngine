@@ -9,12 +9,10 @@ layout(location = 4) in vec2 tex_coordinates;
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
-uniform mat4 light_space_transform;
 
 out Frag_Data {
     mat3 tbn;
     vec3 fragment_position;
-    vec3 light_space_frag_position;
     vec3 normal;
     vec2 tex_coords;
 } vs_out;
@@ -30,5 +28,4 @@ void main() {
     vs_out.normal = normal;
     vs_out.tex_coords = tex_coordinates;
     vs_out.tbn = mat3(tangent, bitangent, normal);
-    vs_out.light_space_frag_position = vec3(light_space_transform * vec4(vs_out.fragment_position, 1.0));
 }

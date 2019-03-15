@@ -51,6 +51,7 @@ namespace renderer {
         Shader gamma_correction_shader;
         Shader quad_shader;
         Shader tangents;
+		Shader deferred_shading_shader;
 
     public:
         float gamma_correction_value = 2.2f;

@@ -94,7 +94,7 @@ void Engine::init(int argc, char** argv) {
         box_t.rotate(Vector3::forward, math::radians(rotation));
     };
 
-    instantiate_box({0, -0.5f, 0});
+    instantiate_box({0, 0, 0});
     instantiate_box({-5, 7, 2}, 55.0f);
     instantiate_box({-3, -1, 4});
     instantiate_box({0, -1, 4});
@@ -115,16 +115,25 @@ void Engine::init(int argc, char** argv) {
         floor_t.translate({(static_cast<float>(i % 11) - 5.0f) * 2.0f, -2, (static_cast<float>(i / 11) - 5.0f) * 2.0f});
     }*/
 
-    Entity lamp = Entity::instantiate();
-    Transform& lamp_t = add_component<Transform>(lamp);
-    Point_Light_Component& lamp_pl = add_component<Point_Light_Component>(lamp);
-    Static_Mesh_Component& lamp_sm = add_component<Static_Mesh_Component>(lamp);
-    auto lamp_cube_handle = mesh_manager->add(Cube());
-    lamp_sm.mesh_handle = lamp_cube_handle;
-    lamp_sm.shader_handle = unlit_default_shader_handle;
-    lamp_t.scale({0.2f, 0.2f, 0.2f});
-    lamp_t.translate({3, 1.5f, 2});
-    lamp_pl.intensity = 3;
+    auto instantiate_point_lamp = [](Vector3 position, Color color, float intensity) {
+        Entity lamp = Entity::instantiate();
+        Transform& lamp_t = add_component<Transform>(lamp);
+        Point_Light_Component& lamp_pl = add_component<Point_Light_Component>(lamp);
+        //Static_Mesh_Component& lamp_sm = add_component<Static_Mesh_Component>(lamp);
+        //auto lamp_cube_handle = mesh_manager->add(Cube());
+        //lamp_sm.mesh_handle = lamp_cube_handle;
+        //lamp_sm.shader_handle = unlit_default_shader_handle;
+        //lamp_t.scale({0.2f, 0.2f, 0.2f});
+        lamp_t.translate(position);
+        lamp_pl.color = color;
+        lamp_pl.intensity = intensity;
+    };
+
+    instantiate_point_lamp({3, 1.5f, 2}, {1.0f, 0.5f, 0.0f}, 3);
+    instantiate_point_lamp({-6, 1.9f, -2}, {0.3f, 0.75f, 0.25f}, 3);
+    instantiate_point_lamp({0, 1.3f, 3}, {0.55f, 0.3f, 1.0f}, 3);
+    instantiate_point_lamp({-3, -2.0f, 0}, {0.4f, 0.5f, 0.75f}, 3);
+    instantiate_point_lamp({1.5f, 2.5f, 1.5f}, {0.0f, 1.0f, 0.5f}, 3);
 
     Entity camera = Entity::instantiate();
     Transform& camera_t = add_component<Transform>(camera);
