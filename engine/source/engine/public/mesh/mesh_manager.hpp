@@ -1,7 +1,7 @@
 #ifndef ENGINE_MESH_MESH_MANAGER_HPP_INCLUDE
 #define ENGINE_MESH_MESH_MANAGER_HPP_INCLUDE
 
-#include "containers/swapping_pool.hpp"
+#include "containers/vector.hpp"
 #include "handle.hpp"
 #include "mesh.hpp"
 
@@ -12,7 +12,7 @@ public:
     void remove(Handle<Mesh> const&);
 
 private:
-    Swapping_Pool<Mesh> meshes;
+    containers::Vector<Mesh> meshes;
 };
 
 #endif // !ENGINE_MESH_MESH_MANAGER_HPP_INCLUDE

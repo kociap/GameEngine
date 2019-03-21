@@ -8,7 +8,7 @@
 
 Handle<Shader> Shader_Manager::add(Shader&& shader) {
     Handle<Shader> handle(shader.id.value());
-    shaders.add(std::move(shader));
+    shaders.emplace_back(std::move(shader));
     return handle;
 }
 
@@ -23,10 +23,10 @@ Shader& Shader_Manager::get(Handle<Shader> const& handle) {
 }
 
 void Shader_Manager::remove(Handle<Shader> const& handle) {
-    Swapping_Pool<Shader>::size_t i = 0;
+    containers::Vector<Shader>::size_type i = 0;
     for (Shader& shader : shaders) {
         if (handle.value == shader.id.value()) {
-            shaders.remove_unchecked(i);
+            shaders.erase_unsorted_unchecked(i);
             break;
         }
         ++i;
@@ -45,8 +45,8 @@ void Shader_Manager::reload_shaders() {
         Assets::load_shader_file_and_attach(unlit_default_shader, "unlit_default.frag");
         unlit_default_shader.link();
 
-        Shader::swap_programs(shaders.get(0), default_shader);
-        Shader::swap_programs(shaders.get(1), unlit_default_shader);
+        Shader::swap_programs(shaders.at(0), default_shader);
+        Shader::swap_programs(shaders.at(1), unlit_default_shader);
     } catch (Program_Linking_Failed& e) {
         GE_log("Failed to reload shaders due to linking error");
         GE_log(e.what());

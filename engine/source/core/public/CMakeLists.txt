@@ -1,4 +1,8 @@
-set(HEADER_FILES ${HEADER_FILES}
+set(TEMPLATE_IMPLEMENTATION_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/containers/vector.tpp"
+)
+
+set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/math/math.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/matrix2.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/matrix3.hpp"
@@ -9,7 +13,7 @@ set(HEADER_FILES ${HEADER_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/math/vector4.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/transform.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/containers/pool.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/containers/swapping_pool.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/containers/vector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/iterator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/debug_macros.hpp"

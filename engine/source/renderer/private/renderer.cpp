@@ -361,7 +361,7 @@ namespace renderer {
 
         // Shadow mapping
         Component_System& component_system = Engine::get_component_system();
-        Directional_Light_Component const& directional_light = component_system.directional_light_components.get(0);
+        Directional_Light_Component const& directional_light = component_system.directional_light_components.at(0);
 
         //glViewport(0, 0, shadow_width, shadow_height);
         //Framebuffer::bind(*light_depth_buffer);

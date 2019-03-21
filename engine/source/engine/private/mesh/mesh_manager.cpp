@@ -2,7 +2,7 @@
 
 Handle<Mesh> Mesh_Manager::add(Mesh&& mesh) {
     Handle<Mesh> handle(mesh.id.value());
-    meshes.add(std::move(mesh));
+    meshes.emplace_back(std::move(mesh));
     return handle;
 }
 
@@ -17,10 +17,10 @@ Mesh& Mesh_Manager::get(Handle<Mesh> const& handle) {
 }
 
 void Mesh_Manager::remove(Handle<Mesh> const& handle) {
-    Swapping_Pool<Mesh>::size_t i = 0;
+    containers::Vector<Mesh>::size_type i = 0;
     for (Mesh& mesh : meshes) {
         if (handle.value == mesh.id.value()) {
-            meshes.remove_unchecked(i);
+            meshes.erase_unsorted_unchecked(i);
             break;
 		}
         ++i;

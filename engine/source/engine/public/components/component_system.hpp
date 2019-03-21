@@ -1,7 +1,7 @@
 #ifndef ENGINE_COMPONENTS_COMPONENT_SYSTEM_HPP_INCLUDE
 #define ENGINE_COMPONENTS_COMPONENT_SYSTEM_HPP_INCLUDE
 
-#include "containers/swapping_pool.hpp"
+#include "containers/vector.hpp"
 
 #include "base_component.hpp"
 #include "behaviour_component.hpp"
@@ -39,35 +39,35 @@ public:
         // TODO Disable double adding certain components
 
         if constexpr (std::is_same_v<T, Camera>) {
-            T& component = camera_components.add(std::forward<Ctor_Args>(args)...);
+            T& component = camera_components.emplace_back(std::forward<Ctor_Args>(args)...);
             return component;
         } else if constexpr (std::is_same_v<T, Static_Mesh_Component>) {
-            T& component = static_mesh_components.add(std::forward<Ctor_Args>(args)...);
+            T& component = static_mesh_components.emplace_back(std::forward<Ctor_Args>(args)...);
             return component;
         } else if constexpr (std::is_same_v<T, Line_Component>) {
-            T& component = static_mesh_components.add(std::forward<Ctor_Args>(args)...);
+            T& component = static_mesh_components.emplace_back(std::forward<Ctor_Args>(args)...);
             return component;
         } else if constexpr (std::is_same_v<T, Transform>) {
-            T& component = transform_components.add(std::forward<Ctor_Args>(args)...);
+            T& component = transform_components.emplace_back(std::forward<Ctor_Args>(args)...);
             return component;
         } else if constexpr (std::is_same_v<T, Point_Light_Component>) {
-            T& component = point_light_components.add(std::forward<Ctor_Args>(args)...);
+            T& component = point_light_components.emplace_back(std::forward<Ctor_Args>(args)...);
             return component;
         } else if constexpr (std::is_same_v<T, Directional_Light_Component>) {
-            T& component = directional_light_components.add(std::forward<Ctor_Args>(args)...);
+            T& component = directional_light_components.emplace_back(std::forward<Ctor_Args>(args)...);
             return component;
         } else if constexpr (std::is_same_v<T, Spot_Light_Component>) {
-            T& component = spot_light_components.add(std::forward<Ctor_Args>(args)...);
+            T& component = spot_light_components.emplace_back(std::forward<Ctor_Args>(args)...);
             return component;
         } else if constexpr (std::is_base_of_v<Behaviour_Component, T>) {
             Behaviour_Component_ptr component = std::make_unique<T>(std::forward<Ctor_Args>(args)...);
             auto type_index = std::type_index(typeid(T));
             auto iter = behaviour_components.find(type_index);
             if (iter == behaviour_components.end()) {
-                auto insertion_result = behaviour_components.emplace(type_index, Swapping_Pool<Behaviour_Component_ptr>());
+                auto insertion_result = behaviour_components.emplace(type_index, containers::Vector<Behaviour_Component_ptr>());
                 iter = insertion_result.first;
             }
-            Behaviour_Component_ptr& behaviour_component_ptr = iter->second.add(std::move(component));
+            Behaviour_Component_ptr& behaviour_component_ptr = iter->second.emplace_back(std::move(component));
             T* component_ptr = static_cast<T*>(behaviour_component_ptr.get());
             return *component_ptr;
         } else {
@@ -75,10 +75,10 @@ public:
             auto type_index = std::type_index(typeid(T));
             auto iter = components.find(type_index);
             if (iter == components.end()) {
-                auto insertion_result = components.emplace(type_index, Swapping_Pool<Base_Component_ptr>());
+                auto insertion_result = components.emplace(type_index, containers::Vector<Base_Component_ptr>());
                 iter = insertion_result.first;
             }
-            Base_Component_ptr& base_component_ptr = iter->second.add(std::move(component));
+            Base_Component_ptr& base_component_ptr = iter->second.emplace_back(std::move(component));
             T* component_ptr = static_cast<T*>(base_component_ptr.get());
             return *component_ptr;
         }
@@ -135,7 +135,7 @@ public:
 private:
     // Exists to reduce code duplication
     template <typename T>
-    auto find_component(Entity const& entity, Swapping_Pool<T>& component_container) -> T& {
+    auto find_component(Entity const& entity, containers::Vector<T>& component_container) -> T& {
         for (auto& component : component_container) {
             if (component.get_entity() == entity) {
                 return component;
@@ -145,17 +145,17 @@ private:
     }
 
 public:
-    Swapping_Pool<Camera> camera_components;
-    Swapping_Pool<Static_Mesh_Component> static_mesh_components;
-    Swapping_Pool<Line_Component> line_components;
-    Swapping_Pool<Directional_Light_Component> directional_light_components;
-    Swapping_Pool<Spot_Light_Component> spot_light_components;
-    Swapping_Pool<Point_Light_Component> point_light_components;
-    Swapping_Pool<Transform> transform_components;
+    containers::Vector<Camera> camera_components;
+    containers::Vector<Static_Mesh_Component> static_mesh_components;
+    containers::Vector<Line_Component> line_components;
+    containers::Vector<Directional_Light_Component> directional_light_components;
+    containers::Vector<Spot_Light_Component> spot_light_components;
+    containers::Vector<Point_Light_Component> point_light_components;
+    containers::Vector<Transform> transform_components;
 
 private:
-    std::map<std::type_index, Swapping_Pool<Behaviour_Component_ptr>> behaviour_components;
-    std::map<std::type_index, Swapping_Pool<Base_Component_ptr>> components;
+    std::map<std::type_index, containers::Vector<Behaviour_Component_ptr>> behaviour_components;
+    std::map<std::type_index, containers::Vector<Base_Component_ptr>> components;
 };
 
 template <typename T, typename... Ctor_Args>

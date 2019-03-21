@@ -1,23 +1,23 @@
 #ifndef ENGINE_ENTITY_MANAGER_HPP_INCLUDE
 #define ENGINE_ENTITY_MANAGER_HPP_INCLUDE
 
-#include "containers/swapping_pool.hpp"
+#include "containers/vector.hpp"
 #include "entity.hpp"
 
 class Entity_Manager {
 public:
-    using iterator = Swapping_Pool<Entity>::iterator;
+    using iterator = containers::Vector<Entity>::iterator;
 
-	template<typename... Args>
+    template <typename... Args>
     Entity emplace(Args&&... args) {
-        return entities.add(std::forward<Args>(args)...);
-	}
+        return entities.emplace_back(std::forward<Args>(args)...);
+    }
 
     iterator begin();
     iterator end();
 
 private:
-    Swapping_Pool<Entity> entities;
+    containers::Vector<Entity> entities;
 };
 
 #endif // !ENGINE_ENTITY_MANAGER_HPP_INCLUDE
