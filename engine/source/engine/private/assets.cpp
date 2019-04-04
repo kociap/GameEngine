@@ -160,8 +160,8 @@ static void compute_tangents(Vertex& vert1, Vertex& vert2, Vertex& vert3) {
     Vector2 delta_uv1 = vert2.uv_coordinates - vert1.uv_coordinates;
     Vector2 delta_uv2 = vert3.uv_coordinates - vert1.uv_coordinates;
     float determinant = delta_uv1.x * delta_uv2.y - delta_uv1.y * delta_uv2.x;
-    Vector3 tangent = normalize((delta_uv2.y * delta_pos1 - delta_uv1.y * delta_pos2) / determinant);
-    Vector3 bitangent = normalize((delta_uv1.x * delta_pos2 - delta_uv2.x * delta_pos1) / determinant);
+    Vector3 tangent = math::normalize((delta_uv2.y * delta_pos1 - delta_uv1.y * delta_pos2) / determinant);
+    Vector3 bitangent = math::normalize((delta_uv1.x * delta_pos2 - delta_uv2.x * delta_pos1) / determinant);
 
     vert1.tangent = vert2.tangent = vert3.tangent = tangent;
     vert1.bitangent = vert2.bitangent = vert3.bitangent = bitangent;

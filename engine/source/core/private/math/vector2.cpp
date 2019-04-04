@@ -12,13 +12,17 @@ const Vector2 Vector2::one = Vector2(1.0f, 1.0f);
 const Vector2 Vector2::up = Vector2(0.0f, 1.0f);
 const Vector2 Vector2::right = Vector2(1.0f, 0.0f);
 
-float Vector2::dot(Vector2 const& vec1, Vector2 const& vec2) {
-    return vec1.x * vec2.x + vec1.y * vec2.y;
-}
-
 Vector2::Vector2(float x, float y) : x(x), y(y) {}
 Vector2::Vector2(Vector3 const& vec) : x(vec.x), y(vec.y) {}
 Vector2::Vector2(Vector4 const& vec) : x(vec.x), y(vec.y) {}
+
+float& Vector2::component(int index) {
+    return (&x)[index];
+}
+
+float Vector2::component(int index) const {
+    return (&x)[index];
+}
 
 Vector2& Vector2::operator-() {
     x = -x;
@@ -52,6 +56,10 @@ bool Vector2::is_zero() const {
     return x == 0.0f && y == 0.0f;
 }
 
+bool Vector2::is_almost_zero(float tolerance) const {
+    return math::abs(x) <= tolerance && math::abs(y) <= tolerance;
+}
+
 float Vector2::length_squared() const {
     return x * x + y * y;
 }
@@ -65,12 +73,6 @@ Vector2& Vector2::normalize() {
         float inverse_vec_length = math::inv_sqrt(length_squared());
         *this *= inverse_vec_length;
     }
-    return *this;
-}
-
-Vector2& Vector2::scale(float s) {
-    x *= s;
-    y *= s;
     return *this;
 }
 
@@ -105,11 +107,17 @@ void swap(Vector2& a, Vector2& b) {
     std::swap(a.y, b.y);
 }
 
-Vector2 normalize(Vector2 vec) {
-    vec.normalize();
-    return vec;
-}
+namespace math {
+    float dot(Vector2 const& vec1, Vector2 const& vec2) {
+        return vec1.x * vec2.x + vec1.y * vec2.y;
+    }
 
-Vector2 multiply_componentwise(Vector2 const& a, Vector2 const& b) {
-    return {a.x * b.x, a.y * b.y};
-}
+    Vector2 normalize(Vector2 vec) {
+        vec.normalize();
+        return vec;
+    }
+
+    Vector2 multiply_componentwise(Vector2 const& a, Vector2 const& b) {
+        return {a.x * b.x, a.y * b.y};
+    }
+} // namespace math

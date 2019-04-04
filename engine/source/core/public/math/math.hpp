@@ -1,6 +1,8 @@
 #ifndef CORE_MATH_MATH_HPP_INCLUDE
 #define CORE_MATH_MATH_HPP_INCLUDE
 
+#include <limits>
+
 // Safety measures
 #undef max
 #undef min
@@ -14,6 +16,8 @@ namespace math {
         constexpr static float pi = 3.14159265f;
         constexpr static float deg_to_rad = pi / 180.0f;
         constexpr static float rad_to_deg = 180.0f / pi;
+        // Smallest number such that 1.0 + epsilon != 1.0
+        constexpr static float epsilon = std::numeric_limits<float>::epsilon();
     };
 
     template <>
@@ -21,6 +25,8 @@ namespace math {
         constexpr static double pi = 3.141592653589793;
         constexpr static double deg_to_rad = pi / 180.0;
         constexpr static double rad_to_deg = 180.0 / pi;
+        // Smallest number such that 1.0 + epsilon != 1.0
+        constexpr static double epsilon = std::numeric_limits<double>::epsilon();
     };
 
     constexpr float radians(float degrees) {

@@ -20,7 +20,7 @@ namespace math {
     }
 
     float abs(float a) {
-        return a >= 0 ? a : -a;
+        return std::abs(a);
     }
 
     float step_to_value(float current, float target, float change) {

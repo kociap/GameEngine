@@ -12,10 +12,6 @@ public:
     static Vector3 const right;
     static Vector3 const forward;
 
-    static float dot(Vector3 const& vec1, Vector3 const& vec2);
-    static Vector3 cross(Vector3 const& vec1, Vector3 const& vec2);
-    static Vector3 cross_direction(Vector3 const& vec1, Vector3 const& vec2) {}
-
     float x = 0;
     float y = 0;
     float z = 0;
@@ -26,7 +22,7 @@ public:
     explicit Vector3(Vector4 const&);
 
     float& component(int);
-    float const& component(int) const;
+    float component(int) const;
 
     Vector3& operator-();
     Vector3 operator-() const;
@@ -36,6 +32,7 @@ public:
 
     // Check if all components are equal 0
     bool is_zero() const;
+    bool is_almost_zero(float tolerance = 0.00001f) const;
 
     float length_squared() const;
     float length() const;
@@ -44,7 +41,6 @@ public:
     // Otherwise leaves it unchanged
     Vector3& normalize();
 
-    Vector3& scale(float);
     Vector3& multiply_componentwise(Vector3 const&);
 };
 
@@ -58,10 +54,15 @@ void swap(Vector3&, Vector3&);
 bool operator==(Vector3 const&, Vector3 const&);
 bool operator!=(Vector3 const&, Vector3 const&);
 
-// If vector is non-zero, returns normalized copy of the vector.
-// Otherwise returns zero vector
-Vector3 normalize(Vector3);
+namespace math {
+    float dot(Vector3 const& vec1, Vector3 const& vec2);
+    Vector3 cross(Vector3 const& vec1, Vector3 const& vec2);
 
-Vector3 multiply_componentwise(Vector3 const&, Vector3 const&);
+    // If vector is non-zero, returns normalized copy of the vector.
+    // Otherwise returns zero vector
+    Vector3 normalize(Vector3);
+
+    Vector3 multiply_componentwise(Vector3 const&, Vector3 const&);
+} // namespace math
 
 #endif // !CORE_MATH_VECTOR3_HPP_INCLUDE

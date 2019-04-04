@@ -228,14 +228,14 @@ namespace Input {
             // Radial dead zone
             float left_stick_length = math::min(gamepad_left_stick.length(), 1.0f);
             if (left_stick_length > gamepad_dead_zone) {
-                gamepad_left_stick = normalize(gamepad_left_stick) * (left_stick_length - gamepad_dead_zone) / (1 - gamepad_dead_zone);
+                gamepad_left_stick = math::normalize(gamepad_left_stick) * (left_stick_length - gamepad_dead_zone) / (1 - gamepad_dead_zone);
             } else {
                 gamepad_left_stick = Vector2::zero;
             }
 
             float right_stick_length = math::min(gamepad_right_stick.length(), 1.0f);
             if (right_stick_length > gamepad_dead_zone) {
-                gamepad_right_stick = normalize(gamepad_right_stick) * (right_stick_length - gamepad_dead_zone) / (1 - gamepad_dead_zone);
+                gamepad_right_stick = math::normalize(gamepad_right_stick) * (right_stick_length - gamepad_dead_zone) / (1 - gamepad_dead_zone);
             } else {
                 gamepad_right_stick = Vector2::zero;
             }

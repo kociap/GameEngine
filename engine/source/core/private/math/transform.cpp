@@ -65,12 +65,12 @@ namespace transform {
 
     Matrix4 look_at(Vector3 position, Vector3 target, Vector3 up_vec) {
         Vector3 forward = (target - position).normalize();
-        Vector3 right = Vector3::cross(forward, up_vec).normalize();
-        Vector3 up = Vector3::cross(right, forward);
+        Vector3 right = math::cross(forward, up_vec).normalize();
+        Vector3 up = math::cross(right, forward);
         return Matrix4{{right.x, up.x, -forward.x, 0}, //
                        {right.y, up.y, -forward.y, 0}, //
                        {right.z, up.z, -forward.z, 0}, //
-                       {-Vector3::dot(right, position), -Vector3::dot(up, position), Vector3::dot(forward, position), 1}};
+                       {-math::dot(right, position), -math::dot(up, position), math::dot(forward, position), 1}};
     }
 
     Vector3 get_translation(Matrix4 const& mat) {

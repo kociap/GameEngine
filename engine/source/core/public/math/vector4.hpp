@@ -17,7 +17,7 @@ public:
     explicit Vector4(Vector3 const&, float w = 0);
 
     float& component(int);
-    float const& component(int) const;
+    float component(int) const;
 
     Vector4& operator-();
     Vector4 operator-() const;
@@ -27,6 +27,7 @@ public:
 
     // Check if all components are equal 0
     bool is_zero() const;
+    bool is_almost_zero(float tolerance = 0.00001f) const;
 
     float length_squared() const;
     float length() const;
@@ -35,7 +36,6 @@ public:
     // Otherwise leaves it unchanged
     Vector4& normalize();
 
-    Vector4& scale(float);
     Vector4& multiply_componentwise(Vector4 const&);
 };
 
@@ -46,10 +46,14 @@ Vector4 operator*(float, Vector4 const&);
 Vector4 operator/(Vector4 const&, float);
 void swap(Vector4&, Vector4&);
 
-// If vector is non-zero, returns normalized copy of the vector.
-// Otherwise returns zero vector
-Vector4 normalize(Vector4);
+namespace math {
+    float dot(Vector4, Vector4);
 
-Vector4 multiply_componentwise(Vector4 const&, Vector4 const&);
+    // If vector is non-zero, returns normalized copy of the vector.
+    // Otherwise returns zero vector
+    Vector4 normalize(Vector4);
+
+    Vector4 multiply_componentwise(Vector4 const&, Vector4 const&);
+} // namespace math
 
 #endif // !CORE_MATH_VECTOR4_HPP_INCLUDE

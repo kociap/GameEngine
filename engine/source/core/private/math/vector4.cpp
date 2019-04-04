@@ -15,7 +15,7 @@ float& Vector4::component(int index) {
     return (&x)[index];
 }
 
-float const& Vector4::component(int index) const {
+float Vector4::component(int index) const {
     return (&x)[index];
 }
 
@@ -59,6 +59,10 @@ bool Vector4::is_zero() const {
     return x == 0.0f && y == 0.0f && z == 0.0f && w == 0.0f;
 }
 
+bool Vector4::is_almost_zero(float tolerance) const {
+    return math::abs(x) <= tolerance && math::abs(y) <= tolerance && math::abs(z) <= tolerance && math::abs(w) <= tolerance;
+}
+
 float Vector4::length_squared() const {
     return x * x + y * y + z * z + w * w;
 }
@@ -76,25 +80,12 @@ Vector4& Vector4::normalize() {
     return *this;
 }
 
-Vector4& Vector4::scale(float s) {
-    x *= s;
-    y *= s;
-    z *= s;
-    w *= s;
-    return *this;
-}
-
 Vector4& Vector4::multiply_componentwise(Vector4 const& a) {
     x *= a.x;
     y *= a.y;
     z *= a.z;
     w *= a.w;
     return *this;
-}
-
-Vector4 normalize(Vector4 vec) {
-    vec.normalize();
-    return vec;
 }
 
 Vector4 operator+(Vector4 const& a, Vector4 const& b) {
@@ -124,6 +115,17 @@ void swap(Vector4& a, Vector4& b) {
     std::swap(a.w, b.w);
 }
 
-Vector4 multiply_componentwise(Vector4 const& a, Vector4 const& b) {
-    return {a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w};
-}
+namespace math {
+    float dot(Vector4 a, Vector4 b) {
+        return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+    }
+
+    Vector4 normalize(Vector4 vec) {
+        vec.normalize();
+        return vec;
+    }
+
+    Vector4 multiply_componentwise(Vector4 const& a, Vector4 const& b) {
+        return {a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w};
+    }
+} // namespace math

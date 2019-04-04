@@ -11,8 +11,6 @@ public:
     static const Vector2 up;
     static const Vector2 right;
 
-    static float dot(Vector2 const& vec1, Vector2 const& vec2);
-
     float x = 0;
     float y = 0;
 
@@ -20,6 +18,9 @@ public:
     Vector2(float x, float y);
     explicit Vector2(Vector3 const&);
     explicit Vector2(Vector4 const&);
+
+    float& component(int);
+    float component(int) const;
 
     Vector2& operator-();
     Vector2 operator-() const;
@@ -29,6 +30,7 @@ public:
 
     // Check if all components are equal 0
     bool is_zero() const;
+    bool is_almost_zero(float tolerance = 0.00001f) const;
 
     float length_squared() const;
     float length() const;
@@ -37,7 +39,6 @@ public:
     // Otherwise leaves it unchanged
     Vector2& normalize();
 
-    Vector2& scale(float s);
     Vector2& multiply_componentwise(Vector2 const&);
 };
 
@@ -48,10 +49,14 @@ Vector2 operator*(float, Vector2 const&);
 Vector2 operator/(Vector2 const&, float);
 void swap(Vector2&, Vector2&);
 
-// If vector is non-zero, returns normalized copy of the vector.
-// Otherwise returns zero vector
-Vector2 normalize(Vector2);
+namespace math {
+    float dot(Vector2 const& vec1, Vector2 const& vec2);
 
-Vector2 multiply_componentwise(Vector2 const&, Vector2 const&);
+    // If vector is non-zero, returns normalized copy of the vector.
+    // Otherwise returns zero vector
+    Vector2 normalize(Vector2);
+
+    Vector2 multiply_componentwise(Vector2 const&, Vector2 const&);
+} // namespace math
 
 #endif // !CORE_MATH_VECTOR2_HPP_INCLUDE
