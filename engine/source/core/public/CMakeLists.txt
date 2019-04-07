@@ -1,5 +1,6 @@
 set(TEMPLATE_IMPLEMENTATION_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/containers/vector.tpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/containers/static_vector.tpp"
 )
 
 set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
@@ -12,9 +13,9 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/math/vector3.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/vector4.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/transform.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/containers/pool.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/containers/vector.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/iterator.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/containers/static_vector.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/iterators.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/debug_macros.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/macro_undefs.hpp"
