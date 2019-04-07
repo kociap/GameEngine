@@ -21,6 +21,7 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/macro_undefs.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/handle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/singleton.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/utils/enum.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/utils/path.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/utils/simple_xml_parser.hpp"
     PARENT_SCOPE

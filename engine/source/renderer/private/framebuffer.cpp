@@ -9,24 +9,29 @@
 #include <vector>
 
 namespace renderer {
-    static uint32_t internal_format_to_gl_constant(Framebuffer::Internal_Format format) {
-        // clang-format off
-        using Format = Framebuffer::Internal_Format;
-        if (format == Format::rgb) { return GL_RGB; }
-        if (format == Format::rgb16f) { return GL_RGB16F; }
-		if (format == Format::rgb32f) { return GL_RGB32F; }
-		if (format == Format::rgba) { return GL_RGBA; }
-		throw std::invalid_argument("Invalid framebuffer's internal format"); // In case I forget to add ifs for new enum values
-        // clang-format on
-    }
+    // GL_INVALID_OPERATION is generated if type is one of GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV, GL_UNSIGNED_SHORT_5_6_5,
+    //     GL_UNSIGNED_SHORT_5_6_5_REV, or GL_UNSIGNED_INT_10F_11F_11F_REV, and format is not GL_RGB.
+    // GL_INVALID_OPERATION is generated if type is one of GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, GL_UNSIGNED_SHORT_5_5_5_1,
+    //     GL_UNSIGNED_SHORT_1_5_5_5_REV, GL_UNSIGNED_INT_8_8_8_8, GL_UNSIGNED_INT_8_8_8_8_REV, GL_UNSIGNED_INT_10_10_10_2, GL_UNSIGNED_INT_2_10_10_10_REV,
+    //     or GL_UNSIGNED_INT_5_9_9_9_REV, and format is neither GL_RGBA nor GL_BGRA.
 
-	static uint32_t internal_format_to_gl_type(Framebuffer::Internal_Format format) {
-		// clang-format off
+    // GL_INVALID_OPERATION is generated if target is not GL_TEXTURE_2D, GL_PROXY_TEXTURE_2D, GL_TEXTURE_RECTANGLE, or GL_PROXY_TEXTURE_RECTANGLE,
+    //     and internalformat is GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, or GL_DEPTH_COMPONENT32F.
+
+    // [DONE] GL_INVALID_OPERATION is generated if internalformat is GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24,
+    //     or GL_DEPTH_COMPONENT32F, and format is not GL_DEPTH_COMPONENT.
+    // [DONE] GL_INVALID_OPERATION is generated if format is GL_DEPTH_COMPONENT and internalformat is not GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16,
+    //     GL_DEPTH_COMPONENT24, or GL_DEPTH_COMPONENT32F.
+
+    static opengl::texture::Format get_compatible_format(Framebuffer::Internal_Format internal_format) {
         using Format = Framebuffer::Internal_Format;
-        if (format == Format::rgb || format == Format::rgba) { return GL_UNSIGNED_BYTE; }
-        if (format == Format::rgb16f || format == Format::rgb32f) { return GL_FLOAT; }
-		// clang-format on
-	}
+        if (internal_format == Format::depth_component16 || internal_format == Format::depth_component24 || internal_format == Format::depth_component32f ||
+            internal_format == Format::depth_component32) {
+            return opengl::texture::Format::depth_component;
+        } else {
+            return opengl::texture::Format::rgb;
+        }
+    }
 
     void Framebuffer::bind(Framebuffer& fb, Bind_Mode bm) {
         if (bm == Bind_Mode::read_draw) {
@@ -64,60 +69,42 @@ namespace renderer {
         glGenFramebuffers(1, &framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-        for (uint32_t i = 0; i < info.color_buffers.size(); ++i) {
-            if (info.color_buffers[i].enabled) {
-                color_buffer_index_to_active_map[i] = active_color_buffers;
-                ++active_color_buffers;
-            } else {
-                color_buffer_index_to_active_map[i] = color_buffers.size() + 1;
-            }
-        }
+        active_color_buffers = info.color_buffers.size();
+        color_buffers.resize(active_color_buffers);
 
         // Generate color buffer
         if (active_color_buffers > 0) {
-            glGenTextures(active_color_buffers, &color_buffers[0]);
-            CHECK_GL_ERRORS();
+            opengl::gen_textures(active_color_buffers, &color_buffers[0]);
             if (info.multisampled) {
-                for (uint32_t i = 0; i < info.color_buffers.size(); ++i) {
-                    if (info.color_buffers[i].enabled) {
-                        uint32_t active = color_buffer_index_to_active_map[i];
-                        uint32_t color_buffer_handle = color_buffers[active];
-                        uint32_t internal_format = internal_format_to_gl_constant(info.color_buffers[i].internal_format);
-                        opengl::bind_texture(GL_TEXTURE_2D_MULTISAMPLE, color_buffer_handle);
-                        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, info.samples, internal_format, info.width, info.height, GL_TRUE);
-                        CHECK_GL_ERRORS();
-                        opengl::bind_texture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-                        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + active, GL_TEXTURE_2D_MULTISAMPLE, color_buffer_handle, 0);
-                        CHECK_GL_ERRORS();
-                    }
+                for (uint64_t i = 0; i < active_color_buffers; ++i) {
+                    uint32_t color_buffer_handle = color_buffers[i];
+                    auto internal_format = info.color_buffers[i].internal_format;
+                    opengl::bind_texture(GL_TEXTURE_2D_MULTISAMPLE, color_buffer_handle);
+                    opengl::tex_image_2D_multisample(GL_TEXTURE_2D_MULTISAMPLE, info.samples, internal_format, info.width, info.height);
+                    opengl::bind_texture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+                    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, color_buffer_handle, 0);
+                    CHECK_GL_ERRORS();
                 }
             } else {
                 for (uint32_t i = 0; i < info.color_buffers.size(); ++i) {
-                    if (info.color_buffers[i].enabled) {
-                        uint32_t active = color_buffer_index_to_active_map[i];
-                        uint32_t color_buffer_handle = color_buffers[active];
-                        uint32_t internal_format = internal_format_to_gl_constant(info.color_buffers[i].internal_format);
-                        uint32_t format = internal_format_to_gl_type(info.color_buffers[i].internal_format);
-                        opengl::bind_texture(GL_TEXTURE_2D, color_buffer_handle);
-                        glTexImage2D(GL_TEXTURE_2D, 0, internal_format, info.width, info.height, 0, internal_format == GL_RGBA ? GL_RGBA : GL_RGB, format, nullptr);
-                        CHECK_GL_ERRORS();
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                        CHECK_GL_ERRORS();
-                        opengl::bind_texture(GL_TEXTURE_2D, 0);
-                        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + active, GL_TEXTURE_2D, color_buffer_handle, 0);
-                        CHECK_GL_ERRORS();
-                    }
+                    uint32_t color_buffer_handle = color_buffers[i];
+                    auto internal_format = info.color_buffers[i].internal_format;
+                    auto compatible_format = get_compatible_format(internal_format);
+                    opengl::bind_texture(GL_TEXTURE_2D, color_buffer_handle);
+                    opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, info.width, info.height, compatible_format, opengl::texture::Type::signed_float,
+                                         nullptr);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                    CHECK_GL_ERRORS();
+                    opengl::bind_texture(GL_TEXTURE_2D, 0);
+                    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, color_buffer_handle, 0);
+                    CHECK_GL_ERRORS();
                 }
             }
 
-            std::vector<uint32_t> active_color_attachments;
-            active_color_attachments.reserve(active_color_buffers);
+            containers::Static_Vector<uint32_t, max_color_attachments> active_color_attachments;
             for (uint32_t i = 0; i < color_buffers.size(); ++i) {
-                uint32_t attachment_index = color_buffer_index_to_active_map[i];
-                if (attachment_index < color_buffers.size()) {
-                    active_color_attachments.push_back(GL_COLOR_ATTACHMENT0 + attachment_index);
-                }
+                active_color_attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
             }
             glDrawBuffers(active_color_buffers, &active_color_attachments[0]);
 
@@ -126,39 +113,39 @@ namespace renderer {
             glReadBuffer(GL_NONE);
         }
 
-        if (info.depth_buffer.enabled) {
-            if (info.depth_buffer.buffer_type == Buffer_Type::renderbuffer) {
-                // TODO change buffer type based on info instead of using depth_stencil
-                glGenRenderbuffers(1, &depth_buffer);
+        Depth_Buffer_Info depth_info = info.depth_buffer;
+        bool uses_depth_stencil =
+            depth_info.internal_format == Internal_Format::depth24_stencil8 || depth_info.internal_format == Internal_Format::depth32f_stencil8;
+        opengl::Attachment depth_buffer_attachment = uses_depth_stencil ? opengl::Attachment::depth_stencil : opengl::Attachment::depth;
+        if (depth_info.enabled) {
+            if (depth_info.buffer_type == Buffer_Type::renderbuffer) {
+                opengl::gen_renderbuffers(1, &depth_buffer);
                 opengl::bind_renderbuffer(depth_buffer);
                 if (info.multisampled) {
-                    glRenderbufferStorageMultisample(GL_RENDERBUFFER, info.samples, GL_DEPTH24_STENCIL8, info.width, info.height);
+                    opengl::renderbuffer_storage_multisample(GL_RENDERBUFFER, info.samples, depth_info.internal_format, info.width, info.height);
                 } else {
-                    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, info.width, info.height);
+                    opengl::renderbuffer_storage(GL_RENDERBUFFER, depth_info.internal_format, info.width, info.height);
                 }
-                CHECK_GL_ERRORS();
-                glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
-                CHECK_GL_ERRORS();
+
+                opengl::framebuffer_renderbuffer(GL_FRAMEBUFFER, depth_buffer_attachment, depth_buffer);
             } else {
-                glGenTextures(1, &depth_buffer);
+                opengl::gen_textures(1, &depth_buffer);
                 if (info.multisampled) {
                     opengl::bind_texture(GL_TEXTURE_2D_MULTISAMPLE, depth_buffer);
-                    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, info.samples, GL_DEPTH_COMPONENT, info.width, info.height, GL_TRUE);
-                    CHECK_GL_ERRORS();
+                    opengl::tex_image_2D_multisample(GL_TEXTURE_2D_MULTISAMPLE, info.samples, depth_info.internal_format, info.width, info.height);
                     opengl::bind_texture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-                    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, depth_buffer, 0);
-                    CHECK_GL_ERRORS();
+                    opengl::framebuffer_texture_2D(GL_FRAMEBUFFER, depth_buffer_attachment, GL_TEXTURE_2D_MULTISAMPLE, depth_buffer, 0);
                 } else {
                     opengl::bind_texture(GL_TEXTURE_2D, depth_buffer);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, info.width, info.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+                    opengl::tex_image_2D(GL_TEXTURE_2D, 0, depth_info.internal_format, info.width, info.height, opengl::texture::Format::depth_component,
+                                         opengl::texture::Type::signed_float, nullptr);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
                     CHECK_GL_ERRORS();
                     opengl::bind_texture(GL_TEXTURE_2D, 0);
-                    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_buffer, 0);
-                    CHECK_GL_ERRORS();
+                    opengl::framebuffer_texture_2D(GL_FRAMEBUFFER, depth_buffer_attachment, GL_TEXTURE_2D, depth_buffer, 0);
                 }
             }
         }
@@ -241,13 +228,11 @@ namespace renderer {
             throw std::runtime_error("Framebuffer is multisampled. Unable to get texture");
         }
 
-        uint32_t mapped_index = color_buffer_index_to_active_map[index];
-
-        if (mapped_index > color_buffers.size()) {
+        if (index >= active_color_buffers) {
             throw std::runtime_error("Color buffer with index " + std::to_string(index) + " is not bound");
         }
 
-        return color_buffers[mapped_index];
+        return color_buffers[index];
     }
 
     uint32_t Framebuffer::get_depth_texture() const {

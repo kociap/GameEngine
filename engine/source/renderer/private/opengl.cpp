@@ -3,6 +3,7 @@
 #include "glad/glad.h"
 
 #include "debug_macros.hpp"
+#include "utils/enum.hpp"
 
 namespace opengl {
     static int32_t max_combined_texture_units = 0;
@@ -42,10 +43,10 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
-	void bind_renderbuffer(uint32_t handle) {
+    void bind_renderbuffer(uint32_t handle) {
         glBindRenderbuffer(GL_RENDERBUFFER, handle);
         CHECK_GL_ERRORS();
-	}
+    }
 
     void bind_texture(uint32_t tex_enum, uint32_t handle) {
         glBindTexture(tex_enum, handle);
@@ -74,6 +75,57 @@ namespace opengl {
 
     void draw_elements_instanced(uint32_t mode, uint32_t indices_count, uint32_t instances) {
         glDrawElementsInstanced(mode, indices_count, GL_UNSIGNED_INT, (void*)0, instances);
+        CHECK_GL_ERRORS();
+    }
+
+    void framebuffer_renderbuffer(uint32_t target, Attachment attachment, uint32_t renderbuffer) {
+        uint32_t gl_attachment = utils::enum_to_value(attachment);
+        glFramebufferRenderbuffer(target, gl_attachment, GL_RENDERBUFFER, renderbuffer);
+        CHECK_GL_ERRORS();
+    }
+
+    void framebuffer_texture_2D(uint32_t target, Attachment attachment, uint32_t tex_target, uint32_t texture, int32_t level) {
+        uint32_t gl_attachment = utils::enum_to_value(attachment);
+        glFramebufferTexture2D(target, gl_attachment, tex_target, texture, level);
+        CHECK_GL_ERRORS();
+    }
+
+    void gen_textures(uint32_t count, uint32_t* textures) {
+        glGenTextures(count, textures);
+        CHECK_GL_ERRORS();
+    }
+
+    void gen_renderbuffers(uint32_t count, uint32_t* renderbuffers) {
+        glGenRenderbuffers(count, renderbuffers);
+        CHECK_GL_ERRORS();
+    }
+
+    void renderbuffer_storage(uint32_t target, texture::Sized_Internal_Format internal_format, uint32_t width, uint32_t height) {
+        glRenderbufferStorage(target, utils::enum_to_value(internal_format), width, height);
+        CHECK_GL_ERRORS();
+    }
+
+    void renderbuffer_storage_multisample(uint32_t target, uint32_t samples, texture::Sized_Internal_Format internal_format, uint32_t width, uint32_t height) {
+        glRenderbufferStorageMultisample(target, samples, utils::enum_to_value(internal_format), width, height);
+        CHECK_GL_ERRORS();
+    }
+
+    void tex_image_2D(uint32_t target, int32_t level, texture::Base_Internal_Format, uint32_t width, uint32_t height, texture::Format pixels_format,
+                      texture::Type pixels_type, void const* pixels);
+
+    void tex_image_2D(uint32_t target, int32_t level, texture::Sized_Internal_Format sized_internal_format, uint32_t width, uint32_t height,
+                      texture::Format pixels_format, texture::Type pixels_type, void const* pixels) {
+        uint32_t internal_format = utils::enum_to_value(sized_internal_format);
+        uint32_t format = utils::enum_to_value(pixels_format);
+        uint32_t type = utils::enum_to_value(pixels_type);
+        glTexImage2D(target, level, internal_format, width, height, 0, format, type, pixels);
+        CHECK_GL_ERRORS();
+    }
+
+    void tex_image_2D_multisample(uint32_t target, uint32_t samples, texture::Sized_Internal_Format sized_internal_format, uint32_t width, uint32_t height,
+                                  bool fixed_sample_locations /* = true */) {
+        auto internal_format = utils::enum_to_value(sized_internal_format);
+        glTexImage2DMultisample(target, samples, internal_format, width, height, fixed_sample_locations);
         CHECK_GL_ERRORS();
     }
 } // namespace opengl

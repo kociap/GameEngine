@@ -1,6 +1,7 @@
 #ifndef ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
 #define ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
 
+#include "containers/static_vector.hpp"
 #include "opengl.hpp"
 #include <array>
 #include <cstdint>
@@ -8,6 +9,10 @@
 namespace renderer {
     class Framebuffer {
     public:
+        static constexpr uint64_t max_color_attachments = opengl::min_color_attachments;
+
+        using Internal_Format = opengl::texture::Sized_Internal_Format;
+
         enum class Draw_Mode {
             static_draw,
             streamed_draw,
@@ -25,20 +30,6 @@ namespace renderer {
             texture,
         };
 
-        enum class Attachment {
-            color,
-            depth_stencil,
-            depth,
-            stencil,
-        };
-
-        enum class Internal_Format {
-            rgb,
-            rgb16f,
-            rgb32f,
-			rgba,
-        };
-
         enum Buffer_Mask : uint32_t {
             color = 1 << 0,
             depth = 1 << 1,
@@ -46,25 +37,24 @@ namespace renderer {
         };
 
         struct Color_Buffer_Info {
-            Internal_Format internal_format = Internal_Format::rgb;
+            Internal_Format internal_format = Internal_Format::rgb8;
             Buffer_Type buffer_type = Buffer_Type::texture;
-            bool enabled = false;
         };
 
         struct Depth_Buffer_Info {
-            Attachment attachment = Attachment::depth;
+            Internal_Format internal_format = Internal_Format::depth_component24;
             Buffer_Type buffer_type = Buffer_Type::renderbuffer;
             bool enabled = false;
         };
 
         struct Stencil_Buffer_Info {
-            Attachment attachment = Attachment::stencil;
+            Internal_Format internal_format = Internal_Format::stencil_index8;
             Buffer_Type buffer_type = Buffer_Type::renderbuffer;
             bool enabled = false;
         };
 
         struct Construct_Info {
-            std::array<Color_Buffer_Info, opengl::min_color_attachments> color_buffers;
+            containers::Static_Vector<Color_Buffer_Info, max_color_attachments> color_buffers;
             Depth_Buffer_Info depth_buffer;
             Stencil_Buffer_Info stencil_buffer;
             uint32_t width = 0;
@@ -86,14 +76,14 @@ namespace renderer {
         Framebuffer& operator=(Framebuffer const&) = delete;
 
         void clear();
+        // TODO make this static function
         void blit(Framebuffer&, Buffer_Mask);
         uint32_t get_color_texture(uint32_t index) const;
         uint32_t get_depth_texture() const;
 
     private:
         Construct_Info info;
-        std::array<uint32_t, opengl::min_color_attachments> color_buffers;
-        std::array<uint32_t, opengl::min_color_attachments> color_buffer_index_to_active_map;
+        containers::Static_Vector<uint32_t, max_color_attachments> color_buffers;
         uint32_t active_color_buffers = 0;
         uint32_t framebuffer = 0;
         uint32_t depth_buffer = 0;

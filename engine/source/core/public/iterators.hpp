@@ -3,6 +3,43 @@
 
 namespace iterators {
     template <typename Container>
+    class const_iterator;
+
+    template <typename Container>
+    class iterator {
+        friend Container;
+        friend class const_iterator<Container>;
+
+    public:
+        using value_type = typename Container::value_type;
+        using pointer = typename Container::pointer;
+        using reference = typename Container::reference;
+
+        iterator& operator++() {
+            ++storage_ptr;
+            return *this;
+        }
+
+        iterator& operator--() {
+            --storage_ptr;
+            return *this;
+        }
+
+        // clang-format off
+        reference operator*() const { return *storage_ptr; }
+        pointer operator->() const { return storage_ptr; }
+        friend bool operator==(iterator const& a, iterator const& b) { return a.storage_ptr == b.storage_ptr; }
+        friend bool operator!=(iterator const& a, iterator const& b) { return a.storage_ptr != b.storage_ptr; }
+        friend bool operator<(iterator const& a, iterator const& b) { return b.storage_ptr - a.storage_ptr > 0; }
+        friend bool operator>(iterator const& a, iterator const& b) { return b < a; }
+        // clang-format on
+
+    private:
+        pointer storage_ptr;
+        iterator(pointer ptr) : storage_ptr(ptr) {}
+    };
+
+    template <typename Container>
     class const_iterator {
         friend Container;
 
@@ -10,6 +47,8 @@ namespace iterators {
         using value_type = typename Container::value_type;
         using pointer = typename Container::const_pointer;
         using reference = typename Container::const_reference;
+
+        const_iterator(iterator<Container> iter) : storage_ptr(iter.storage_ptr) {}
 
         const_iterator& operator++() {
             ++storage_ptr;
@@ -31,38 +70,9 @@ namespace iterators {
         // clang-format on
 
     protected:
-        using ptr_t = typename Container::pointer;
-        ptr_t storage_ptr = nullptr;
+        pointer storage_ptr = nullptr;
 
-        const_iterator(ptr_t ptr) : storage_ptr(ptr) {}
-    };
-
-    template <typename Container>
-    class iterator : public const_iterator<Container> {
-        friend Container;
-
-    public:
-        using value_type = typename Container::value_type;
-        using pointer = typename Container::pointer;
-        using reference = typename Container::reference;
-
-        iterator& operator++() {
-            ++storage_ptr;
-            return *this;
-        }
-
-        iterator& operator--() {
-            --storage_ptr;
-            return *this;
-        }
-
-        // clang-format off
-        reference operator*() const { return *storage_ptr; }
-        pointer operator->() const { return storage_ptr; }
-        // clang-format on
-
-    private:
-        iterator(pointer ptr) : const_iterator<Container>(ptr) {}
+        const_iterator(pointer ptr) : storage_ptr(ptr) {}
     };
 
     template <typename Iterator>

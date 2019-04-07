@@ -26,31 +26,29 @@ namespace renderer {
         uint32_t window_width = window.width();
 
         Framebuffer::Construct_Info multisampled_framebuffer_info;
-        multisampled_framebuffer_info.color_buffers[0].enabled = true;
+        multisampled_framebuffer_info.color_buffers.resize(1);
         multisampled_framebuffer_info.depth_buffer.enabled = true;
         multisampled_framebuffer_info.width = window_width;
         multisampled_framebuffer_info.height = window_height;
         multisampled_framebuffer_info.multisampled = true;
         multisampled_framebuffer_info.samples = 4;
         framebuffer_multisampled = new Framebuffer(multisampled_framebuffer_info);
-	    
+
         Framebuffer::Construct_Info framebuffer_info;
         framebuffer_info.width = window_width;
         framebuffer_info.height = window_height;
         framebuffer_info.depth_buffer.enabled = true;
-		// Position
-        framebuffer_info.color_buffers[0].enabled = true;
+        framebuffer_info.color_buffers.resize(3);
+        // Position
         framebuffer_info.color_buffers[0].internal_format = Framebuffer::Internal_Format::rgb32f;
-		// Normal
-        framebuffer_info.color_buffers[1].enabled = true;
+        // Normal
         framebuffer_info.color_buffers[1].internal_format = Framebuffer::Internal_Format::rgb32f;
         // albedo-specular
-        framebuffer_info.color_buffers[2].enabled = true;
-        framebuffer_info.color_buffers[2].internal_format = Framebuffer::Internal_Format::rgba;
+        framebuffer_info.color_buffers[2].internal_format = Framebuffer::Internal_Format::rgba8;
         framebuffer = new Framebuffer(framebuffer_info);
 
         Framebuffer::Construct_Info postprocess_construct_info;
-        postprocess_construct_info.color_buffers[0].enabled = true;
+        postprocess_construct_info.color_buffers.resize(1);
         postprocess_construct_info.width = window_width;
         postprocess_construct_info.height = window_height;
         postprocess_back_buffer = new Framebuffer(postprocess_construct_info);
@@ -129,7 +127,7 @@ namespace renderer {
         shader.set_vec3("point_lights[" + index + "].color", point_light.color);
     }
 
-	static void set_shader_props(Component_System& component_system, Shader& shader) {
+    static void set_shader_props(Component_System& component_system, Shader& shader) {
         shader.use();
         shader.set_float("ambient_strength", 0.02f);
         shader.set_vec3("ambient_color", Color(1.0f, 1.0f, 1.0f));
@@ -154,7 +152,7 @@ namespace renderer {
 
         // uhh?????????????????????
         shader.set_float("material.shininess", 32.0f);
-	}
+    }
 
     void Renderer::load_shader_light_properties() {
         Component_System& component_system = Engine::get_component_system();
@@ -163,7 +161,7 @@ namespace renderer {
             set_shader_props(component_system, shader);
         }
 
-		set_shader_props(component_system, deferred_shading_shader);
+        set_shader_props(component_system, deferred_shading_shader);
     }
 
     void Renderer::update_dynamic_lights() {
@@ -173,7 +171,7 @@ namespace renderer {
             set_shader_props(component_system, shader);
         }
 
-		set_shader_props(component_system, deferred_shading_shader);
+        set_shader_props(component_system, deferred_shading_shader);
     }
 
     void Renderer::set_gamma_value(float gamma) {
@@ -400,7 +398,7 @@ namespace renderer {
 
         swap_postprocess_buffers();
         Framebuffer::bind_default();
-		opengl::active_texture(0);
+        opengl::active_texture(0);
         if (output_shadow_map) {
             opengl::bind_texture(GL_TEXTURE_2D, postprocess_front_buffer->get_depth_texture());
             quad_shader.use();

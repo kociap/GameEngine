@@ -34,7 +34,7 @@ namespace containers {
         const_reference front() const;
 
         reference back();
-        const_reference back();
+        const_reference back() const;
 
         pointer data();
         const_pointer data() const;
@@ -87,8 +87,10 @@ namespace containers {
         reference emplace_back(Args&&... args);
 
         void pop_back();
+        void resize(size_type count);
+        void resize(size_type count, T const& value);
 
-        void swap(Vector& vec) {
+        void swap(Static_Vector& vec) {
             using std::swap;
             swap(storage, vec.storage);
             swap(_size, vec._size);
@@ -96,7 +98,7 @@ namespace containers {
 
     private:
         Aligned_Buffer<sizeof(T), alignof(T)> storage[_capacity];
-        size_type _size;
+        size_type _size = 0;
 
         void attempt_move(T* from, T* to) {
             new (to) T(std::move(*from));
@@ -107,10 +109,16 @@ namespace containers {
                 throw std::length_error("Attempt to construct more than capacity() elements in Static_Vector");
             }
         }
+
+        template <typename... Args>
+        void construct(void* ptr, Args&&... args);
+        void destruct(value_type* ptr);
+        T* get_ptr(size_type index);
+        T const* get_ptr_const(size_type index) const;
     };
 
-    template <typename T, typename Alloc>
-    void swap(Vector<T, Alloc>&, Vector<T, Alloc>&);
+    template <typename T, uint64_t _capacity>
+    void swap(Static_Vector<T, _capacity>&, Static_Vector<T, _capacity>&);
 } // namespace containers
 
 #include "static_vector.tpp"
