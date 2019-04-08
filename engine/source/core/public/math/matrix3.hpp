@@ -1,7 +1,6 @@
 #ifndef GAME_ENGINE_CORE_MATH_MARTIX3_HPP_INCLUDE
 #define GAME_ENGINE_CORE_MATH_MARTIX3_HPP_INCLUDE
 
-#include "../coremacrodefinitions.hpp"
 #include "vector3.hpp"
 
 // Row major

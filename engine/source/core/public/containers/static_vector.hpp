@@ -104,7 +104,7 @@ namespace containers {
             new (to) T(std::move(*from));
         }
 
-        bool check_size() {
+        void check_size() {
             if (_size == _capacity) {
                 throw std::length_error("Attempt to construct more than capacity() elements in Static_Vector");
             }
