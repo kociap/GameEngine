@@ -138,10 +138,10 @@ namespace opengl {
     // Minimum number of framebuffer color attachments
     constexpr uint32_t min_color_attachments = 8;
 
-    int32_t get_max_combined_texture_units();
-    int32_t get_max_renderbuffer_size();
-    int32_t get_max_color_attachments();
-    int32_t get_max_draw_buffers();
+    uint32_t get_max_combined_texture_units();
+    uint32_t get_max_renderbuffer_size();
+    uint32_t get_max_color_attachments();
+    uint32_t get_max_draw_buffers();
 
     void active_texture(uint32_t index);
     void bind_renderbuffer(uint32_t handle);
@@ -153,6 +153,7 @@ namespace opengl {
     void draw_elements_instanced(uint32_t mode, uint32_t indices_count, uint32_t instances);
     void framebuffer_renderbuffer(uint32_t target, Attachment, uint32_t renderbuffer);
     void framebuffer_texture_2D(uint32_t target, Attachment, uint32_t tex_target, uint32_t texture, int32_t level);
+    void generate_mipmap(uint32_t target);
     void gen_textures(uint32_t count, uint32_t* textures);
     void gen_renderbuffers(uint32_t count, uint32_t* renderbuffers);
     void renderbuffer_storage(uint32_t target, texture::Sized_Internal_Format, uint32_t width, uint32_t height);

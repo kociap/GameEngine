@@ -6,9 +6,11 @@
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
+
 #include "debug_macros.hpp"
 #include "math/vector3.hpp"
 #include "mesh/mesh.hpp"
+#include "opengl.hpp"
 #include "shader.hpp"
 #include "utils/path.hpp"
 
@@ -73,6 +75,15 @@ void Assets::load_shader_file_and_attach(Shader& shader, std::filesystem::path c
     shader.attach(s);
 }
 
+static opengl::texture::Format get_matching_pixel_format(int channels) {
+    // clang-format off
+    if(channels == 1) { return opengl::texture::Format::red; } 
+    else if(channels == 2) { return opengl::texture::Format::rg; } 
+    else if(channels == 3) { return opengl::texture::Format::rgb; } 
+    else { return opengl::texture::Format::rgba; }
+    // clang-format on
+}
+
 uint32_t Assets::load_cubemap(std::vector<std::filesystem::path> const& paths) {
     if (paths.size() != 6) {
         throw std::invalid_argument("The number of paths provided is not 6");
@@ -108,48 +119,45 @@ uint32_t Assets::load_cubemap(std::vector<std::filesystem::path> const& paths) {
 
 uint32_t Assets::load_texture(std::filesystem::path filename, bool flip) {
     int width, height, channels;
-    int32_t desired_channel_count = 4;
     stbi_set_flip_vertically_on_load(flip);
     std::string path = utils::concat_paths(_assets_path, filename).string();
     unsigned char* image_data = stbi_load(path.c_str(), &width, &height, &channels, 0);
     if (!image_data) {
         throw std::runtime_error("Image not loaded");
     }
-    GLuint texture;
-    glGenTextures(1, &texture);
-    CHECK_GL_ERRORS();
-    glBindTexture(GL_TEXTURE_2D, texture);
-    CHECK_GL_ERRORS();
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
-    CHECK_GL_ERRORS();
+    uint32_t texture;
+    opengl::texture::Sized_Internal_Format internal_format = opengl::texture::Sized_Internal_Format::rgba8;
+    opengl::texture::Format format = get_matching_pixel_format(channels);
+    opengl::gen_textures(1, &texture);
+    opengl::bind_texture(GL_TEXTURE_2D, texture);
+    opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, width, height, format, opengl::texture::Type::unsigned_byte, image_data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
     CHECK_GL_ERRORS();
+    opengl::generate_mipmap(GL_TEXTURE_2D);
     stbi_image_free(image_data);
     return texture;
 }
 
 uint32_t Assets::load_srgb_texture(std::filesystem::path filename, bool flip) {
     int width, height, channels;
-    int32_t desired_channel_count = 4;
     stbi_set_flip_vertically_on_load(flip);
     std::string path = utils::concat_paths(_assets_path, filename).string();
     unsigned char* image_data = stbi_load(path.c_str(), &width, &height, &channels, 0);
     if (!image_data) {
         throw std::runtime_error("Image not loaded");
     }
-    GLuint texture;
-    glGenTextures(1, &texture);
-    CHECK_GL_ERRORS();
-    glBindTexture(GL_TEXTURE_2D, texture);
-    CHECK_GL_ERRORS();
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
-    CHECK_GL_ERRORS();
+    uint32_t texture;
+    opengl::gen_textures(1, &texture);
+    opengl::bind_texture(GL_TEXTURE_2D, texture);
+    // TODO
+    opengl::texture::Sized_Internal_Format internal_format = opengl::texture::Sized_Internal_Format::srgb8_alpha8;
+    opengl::texture::Format format = get_matching_pixel_format(channels);
+    opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, width, height, format, opengl::texture::Type::unsigned_byte, image_data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
     CHECK_GL_ERRORS();
+    opengl::generate_mipmap(GL_TEXTURE_2D);
     stbi_image_free(image_data);
     return texture;
 }

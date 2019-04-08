@@ -22,19 +22,19 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
-    int32_t get_max_combined_texture_units() {
+    uint32_t get_max_combined_texture_units() {
         return max_combined_texture_units;
     }
 
-    int32_t get_max_renderbuffer_size() {
+    uint32_t get_max_renderbuffer_size() {
         return max_renderbuffer_size;
     }
 
-    int32_t get_max_color_attachments() {
+    uint32_t get_max_color_attachments() {
         return max_color_attachments;
     }
 
-    int32_t get_max_draw_buffers() {
+    uint32_t get_max_draw_buffers() {
         return max_draw_buffers;
     }
 
@@ -59,7 +59,8 @@ namespace opengl {
     }
 
     void vertex_array_attribute(uint32_t index, uint32_t size, uint32_t type, uint32_t stride, uint32_t offset, bool normalized) {
-        glVertexAttribPointer(index, size, type, normalized ? GL_TRUE : GL_FALSE, stride, (void*)offset);
+        // Double cast is a hack to suppress C4312 on MSVC. It's safe to cast 32bit int to void* in this context
+        glVertexAttribPointer(index, size, type, normalized ? GL_TRUE : GL_FALSE, stride, reinterpret_cast<void*>(static_cast<uint64_t>(offset)));
         CHECK_GL_ERRORS();
     }
 
@@ -87,6 +88,11 @@ namespace opengl {
     void framebuffer_texture_2D(uint32_t target, Attachment attachment, uint32_t tex_target, uint32_t texture, int32_t level) {
         uint32_t gl_attachment = utils::enum_to_value(attachment);
         glFramebufferTexture2D(target, gl_attachment, tex_target, texture, level);
+        CHECK_GL_ERRORS();
+    }
+
+    void generate_mipmap(uint32_t target) {
+        glGenerateMipmap(target);
         CHECK_GL_ERRORS();
     }
 
