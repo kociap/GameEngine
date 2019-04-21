@@ -21,6 +21,7 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/macro_undefs.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/handle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/singleton.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/serialization.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory/aligned_buffer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory/memory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory/stack_allocate.hpp"
