@@ -38,6 +38,7 @@
 
 # Don't ask me, just don't push
 dump
+engine/buildtools
 
 # Tutorial things
 assets_main
