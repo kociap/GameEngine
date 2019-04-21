@@ -2,9 +2,8 @@
 #define CORE_CONTAINERS_VECTOR_HPP_INCLUDE
 
 #include "iterators.hpp"
-#include <memory>
+#include "serialization.hpp"
 #include <stdexcept>
-#include <string>
 #include <type_traits>
 
 namespace containers {
@@ -38,31 +37,19 @@ namespace containers {
         ~Vector();
 
     public:
-        void resize(size_type n);
-        void reserve(size_type n);
-        // Destroys all elements
-        // Doesn't shrink the container
-        void clear();
-
-        size_type size() const;
-        size_type capacity() const;
-
-        pointer data();
-        const_pointer data() const;
-
-        template <typename... CtorArgs>
-        reference emplace_back(CtorArgs&&... args);
-
-        void erase_unsorted(size_type index);
-        void erase_unsorted_unchecked(size_type index);
-
-        // Returns a reference to the object which will be invalidated after reallocation
-        reference operator[](size_type);
-        const_reference operator[](size_type) const;
         reference at(size_type index);
         const_reference at(size_type) const;
         reference at_unchecked(size_type);
         const_reference at_unchecked(size_type) const;
+        // Returns a reference to the object which will be invalidated after reallocation
+        reference operator[](size_type);
+        const_reference operator[](size_type) const;
+        reference front();
+        const_reference front() const;
+        reference back();
+        const_reference back() const;
+        pointer data();
+        const_pointer data() const;
 
         iterator begin();
         iterator end();
@@ -75,43 +62,53 @@ namespace containers {
         const_reverse_iterator crbegin() const;
         const_reverse_iterator crend() const;
 
-    private:
-        class Deleter {
-        private:
-            Allocator* allocator;
-            size_type capacity;
+        bool empty() const;
+        size_type size() const;
+        size_type capacity() const;
 
-        public:
-            Deleter(Allocator& alloc, size_type cap) : allocator(&alloc), capacity(cap) {}
-            Deleter(Deleter&) = default;
-            Deleter(Deleter&&) = default;
-            Deleter& operator=(Deleter& d) = default;
-            Deleter& operator=(Deleter&&) = default;
-            ~Deleter() {}
+        void resize(size_type n);
+        void resize(size_type n, value_type const&);
+        void reserve(size_type n);
+        void set_capacity(size_type n);
+        void shrink_to_fit();
 
-            void operator()(T* ptr) { allocator->deallocate(ptr, capacity); }
-        };
-
-        using storage_ptr = std::unique_ptr<T, Deleter>;
+        void push_back(value_type const&);
+        void push_back(value_type&&);
+        template <typename... CtorArgs>
+        reference emplace_back(CtorArgs&&... args);
+        void erase_unsorted(size_type index);
+        void erase_unsorted_unchecked(size_type index);
+        void clear();
 
     private:
         Allocator allocator;
         size_type _capacity = 64;
         size_type _size = 0;
-        storage_ptr storage;
+        T* storage = nullptr;
 
     private:
-        void attempt_construct(T* from, T* to);
+        void attempt_copy(T* from, T* to);
         void attempt_move(T* from, T* to);
+        template <typename... Ctor_Args>
+        void attempt_construct(T* in, Ctor_Args&&... args);
 
-        // Reallocates current storage
-        // Uses move constructor if T is nothrow move constructible
-        // Otherwise copies all elements
-        void reallocate(storage_ptr const& from, storage_ptr const& to);
+        T* get_ptr(size_type index = 0) const;
 
+        void move_contents(T* const& from, T* const& to, size_type number_of_elements_to_copy);
+        void grow(size_type new_capacity);
+        void shrink(size_type new_capacity);
         void check_size();
+
+        friend void serialization::deserialize(Vector<T, Allocator>&, std::ifstream&);
     };
 } // namespace containers
+
+namespace serialization {
+    template <typename T, typename Allocator>
+    void serialize(containers::Vector<T, Allocator> const&, std::ofstream&);
+    template <typename T, typename Allocator>
+    void deserialize(containers::Vector<T, Allocator>&, std::ifstream&);
+} // namespace serialization
 
 #include "vector.tpp"
 
