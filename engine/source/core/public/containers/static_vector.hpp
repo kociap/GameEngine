@@ -1,8 +1,8 @@
 #ifndef CORE_CONTAINERS_STATIC_VECTOR_HPP_INCLUDE
 #define CORE_CONTAINERS_STATIC_VECTOR_HPP_INCLUDE
 
-#include "aligned_buffer.hpp"
 #include "iterators.hpp"
+#include "memory/aligned_buffer.hpp"
 #include <cstdint>
 #include <stdexcept>
 #include <type_traits>
