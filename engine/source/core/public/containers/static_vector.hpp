@@ -3,6 +3,7 @@
 
 #include "iterators.hpp"
 #include "memory/aligned_buffer.hpp"
+#include "serialization.hpp"
 #include <cstdint>
 #include <stdexcept>
 #include <type_traits>
@@ -60,6 +61,8 @@ namespace containers {
         constexpr size_type max_size() const;
         constexpr size_type capacity() const;
 
+        void resize(size_type count, T const& value);
+        void resize(size_type count);
         void reserve(size_type new_cap);
         void shrink_to_fit();
         void clear();
@@ -79,6 +82,7 @@ namespace containers {
         iterator erase_unsorted(const_iterator position);
         iterator erase(size_type index);
         iterator erase_unsorted(size_type index);
+        iterator erase_unsorted_unchecked(size_type index);
 
         void push_back(T const& val);
         void push_back(T&& val);
@@ -87,8 +91,6 @@ namespace containers {
         reference emplace_back(Args&&... args);
 
         void pop_back();
-        void resize(size_type count);
-        void resize(size_type count, T const& value);
 
         void swap(Static_Vector& vec) {
             using std::swap;
@@ -100,26 +102,27 @@ namespace containers {
         Aligned_Buffer<sizeof(T), alignof(T)> storage[_capacity];
         size_type _size = 0;
 
-        void attempt_move(T* from, T* to) {
-            new (to) T(std::move(*from));
-        }
-
-        void check_size() {
-            if (_size == _capacity) {
-                throw std::length_error("Attempt to construct more than capacity() elements in Static_Vector");
-            }
-        }
-
+        T* get_ptr(size_type index = 0);
+        T const* get_ptr_const(size_type index = 0) const;
         template <typename... Args>
-        void construct(void* ptr, Args&&... args);
-        void destruct(value_type* ptr);
-        T* get_ptr(size_type index);
-        T const* get_ptr_const(size_type index) const;
+        void attempt_construct(void* ptr, Args&&... args);
+        void attempt_move(T* from, T* to);
+        void check_size();
+
+        template <typename T, uint64_t _capacity>
+        friend void deserialize(containers::Static_Vector<T, _capacity>& vec, std::ifstream& in);
     };
 
     template <typename T, uint64_t _capacity>
     void swap(Static_Vector<T, _capacity>&, Static_Vector<T, _capacity>&);
 } // namespace containers
+
+namespace serialization {
+    template <typename T, uint64_t _capacity>
+    void serialize(std::ofstream& out, containers::Static_Vector<T, _capacity> const& vec);
+    template <typename T, uint64_t _capacity>
+    void deserialize(containers::Static_Vector<T, _capacity>& vec, std::ifstream& in);
+} // namespace serialization
 
 #include "static_vector.tpp"
 
