@@ -1,10 +1,10 @@
 #ifndef ENGINE_INPUT_INPUT_CORE_HPP_INCLUDE
 #define ENGINE_INPUT_INPUT_CORE_HPP_INCLUDE
 
+#include "containers/vector.hpp"
 #include "key.hpp"
 #include <cstdint>
 #include <string>
-#include <vector>
 
 namespace Input {
     struct Action_Binding {
@@ -70,20 +70,19 @@ namespace Input {
 
         struct Action {
             std::string action;
-            float value = 0.0f;
             float raw_value = 0.0f;
 
             Action(std::string const& a) : action(a) {}
         };
 
-        std::vector<Event> input_event_queue;
-        std::vector<Mouse_Event> mouse_event_queue;
-        std::vector<Gamepad_Event> gamepad_event_queue;
-        std::vector<Gamepad_Event> gamepad_stick_event_queue;
-        std::vector<Axis_Binding> axis_bindings;
-        std::vector<Action_Binding> action_bindings;
-        std::vector<Axis> axes;
-        std::vector<Action> actions;
+        containers::Vector<Event> input_event_queue;
+        containers::Vector<Mouse_Event> mouse_event_queue;
+        containers::Vector<Gamepad_Event> gamepad_event_queue;
+        containers::Vector<Gamepad_Event> gamepad_stick_event_queue;
+        containers::Vector<Axis_Binding> axis_bindings;
+        containers::Vector<Action_Binding> action_bindings;
+        containers::Vector<Axis> axes;
+        containers::Vector<Action> actions;
 
         // Use radial dead zone for gamepad sticks?
         // Turned on by default
@@ -98,8 +97,8 @@ namespace Input {
         void load_bindings();
         void save_bindings();
 
-        void register_axis_bindings(std::vector<Axis_Binding> const&);
-        void register_action_bindings(std::vector<Action_Binding> const&);
+        void register_axis_bindings(containers::Vector<Axis_Binding> const&);
+        void register_action_bindings(containers::Vector<Action_Binding> const&);
 
         void process_events();
 

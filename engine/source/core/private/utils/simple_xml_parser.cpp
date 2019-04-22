@@ -6,7 +6,7 @@ namespace utils {
     namespace xml {
         enum class State { tag_open, tag_name, tag_name_end, tag_close, property_name, property_name_end, property_value, property_value_end };
 
-        static void parse_tag(std::string const& str, std::string::size_type& i, std::vector<Tag>& tags) {
+        static void parse_tag(std::string const& str, std::string::size_type& i, containers::Vector<Tag>& tags) {
             Tag tag;
             tag.type = Tag_Type::opening;
             State state = State::tag_open;
@@ -72,8 +72,8 @@ namespace utils {
             tags.push_back(std::move(tag));
         }
 
-        std::vector<Tag> parse(std::string const& str) {
-            std::vector<Tag> tags;
+        containers::Vector<Tag> parse(std::string const& str) {
+            containers::Vector<Tag> tags;
 
             for (std::string::size_type i = 0; i < str.size(); ++i) {
                 if (str[i] != '<') {

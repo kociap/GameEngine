@@ -30,7 +30,7 @@ float Input::get_action(std::string const& action_name) {
     Input::Manager& input_manager = Engine::get_input_manager();
     for (Input::Manager::Action& action : input_manager.actions) {
         if (action_name == action.action) {
-            return action.value;
+            return action.raw_value;
         }
     }
     GE_log("Unknown action " + action_name);

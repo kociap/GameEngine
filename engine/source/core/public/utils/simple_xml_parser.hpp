@@ -1,6 +1,6 @@
+#include "containers/vector.hpp"
 #include <istream>
 #include <string>
-#include <vector>
 
 namespace utils {
     namespace xml {
@@ -13,10 +13,10 @@ namespace utils {
 
         struct Tag {
             std::string name;
-            std::vector<Tag_Property> properties;
+            containers::Vector<Tag_Property> properties;
             Tag_Type type;
         };
 
-        std::vector<Tag> parse(std::string const&);
+        containers::Vector<Tag> parse(std::string const&);
     } // namespace xml
 } // namespace utils

@@ -2,9 +2,23 @@
 
 #include <unordered_map>
 
+namespace utils {
+    namespace key {
+        bool is_mouse_axis(Key key) {
+            return key == Key::mouse_x || key == Key::mouse_y || key == Key::mouse_scroll;
+        }
+
+        bool is_gamepad_axis(Key key) {
+            return key == Key::gamepad_right_stick_x_axis || key == Key::gamepad_right_stick_y_axis || key == Key::gamepad_left_stick_x_axis ||
+                   key == Key::gamepad_left_stick_y_axis || key == Key::gamepad_left_trigger || key == Key::gamepad_right_trigger;
+        }
+    } // namespace key
+} // namespace utils
+
 std::string key_to_string(Key key) {
     // clang-format off
     static std::unordered_map<Key, std::string> key_string({
+        {Key::none, "none"},
         {Key::any_key, "any_key"},
         {Key::mouse_x, "mouse_x"},
         {Key::mouse_y, "mouse_y"},
@@ -144,6 +158,7 @@ std::string key_to_string(Key key) {
 Key key_from_string(std::string const& str) {
     // clang-format off
     static std::unordered_map<std::string, Key> string_key({
+        {"none", Key::none},
         {"any_key", Key::any_key},
         {"mouse_x", Key::mouse_x},
         {"mouse_y", Key::mouse_y},
