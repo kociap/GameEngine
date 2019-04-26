@@ -5,7 +5,7 @@
 
 void Time_Core::update_time() {
     ++frame_count;
-    float current_time = static_cast<float>(glfwGetTime());
+    double current_time = glfwGetTime();
     unscaled_delta_time = time_scale * (current_time - unscaled_frame_time);
     unscaled_previous_frame_time = unscaled_frame_time;
     unscaled_frame_time = current_time;

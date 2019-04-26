@@ -5,6 +5,24 @@
 
 namespace Time {
     // The time it took to complete the previous frame
+    double get_delta_time();
+
+    // Time scale independent time it took to complete the previous frame
+    double get_unscaled_delta_time();
+
+    // Time since the start of the game
+    double get_time();
+
+    // Time scale independent time since the start of the game
+    double get_unscaled_time();
+
+    // The number of frames since the start of the game
+    uint64_t get_frame_count();
+}; // namespace Time
+
+// Time, but with floats instead of doubles
+namespace Timef {
+    // The time it took to complete the previous frame
     float get_delta_time();
 
     // Time scale independent time it took to complete the previous frame
@@ -17,7 +35,7 @@ namespace Time {
     float get_unscaled_time();
 
     // The number of frames since the start of the game
-    uint64_t get_frame_count();
-}; // namespace Time
+    using Time::get_frame_count;
+} // namespace Timef
 
 #endif // !ENGINE_TIME_HPP_INCLUDE

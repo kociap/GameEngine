@@ -126,7 +126,7 @@ namespace Input {
         }
         input_event_queue.clear();
 
-        float delta_time = Time::get_delta_time();
+        float delta_time = Timef::get_delta_time();
         for (auto& axis_binding : axis_bindings) {
             if (utils::key::is_mouse_axis(axis_binding.key) || utils::key::is_gamepad_axis(axis_binding.key)) {
                 // Force raw for those axes
