@@ -263,7 +263,11 @@ namespace containers {
     template <typename T, uint64_t _capacity>
     template <typename... Args>
     void Static_Vector<T, _capacity>::attempt_construct(void* ptr, Args&&... args) {
-        ::new (ptr) T(std::forward<Args>(args)...);
+        if constexpr (std::is_constructible_v<T, Args&&...>) {
+            ::new (ptr) T(std::forward<Args>(args)...);
+        } else {
+            ::new (ptr) T{std::forward<Args>(args)...};
+        }
     }
 
     template <typename T, uint64_t _capacity>
@@ -283,7 +287,7 @@ namespace serialization {
     template <typename T, uint64_t _capacity>
     void serialize(std::ofstream& out, containers::Static_Vector<T, _capacity> const& vec) {
         serialization::detail::write(vec.size(), out);
-        for (T const& elem : vec) {
+        for (T const& elem: vec) {
             serialization::serialize(out, elem);
         }
     }
@@ -297,7 +301,7 @@ namespace serialization {
             if constexpr (std::is_trivially_default_constructible_v<T>) {
                 vec.resize(size);
                 try {
-                    for (T& elem : vec) {
+                    for (T& elem: vec) {
                         serialization::deserialize(elem, in);
                     }
                 } catch (...) {

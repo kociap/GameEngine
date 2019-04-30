@@ -9,12 +9,12 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(size_type cap) : _capacity(cap) {
+    Vector<T, Allocator>::Vector(size_type cap): _capacity(cap) {
         storage = allocator.allocate(cap);
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(Vector const& v) : _capacity(v._capacity), allocator(v.allocator) {
+    Vector<T, Allocator>::Vector(Vector const& v): _capacity(v._capacity), allocator(v.allocator) {
         storage = allocator.allocate(_capacity);
         try {
             uninitialized_copy_n(v.storage, v._size, storage);
@@ -26,7 +26,7 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(Vector&& v) noexcept : storage(v.storage), allocator(std::move(v.allocator)), _capacity(v._capacity), _size(v._size) {
+    Vector<T, Allocator>::Vector(Vector&& v) noexcept: storage(v.storage), allocator(std::move(v.allocator)), _capacity(v._capacity), _size(v._size) {
         v.storage = nullptr;
         v._capacity = 0;
         v._size = 0;
@@ -312,7 +312,11 @@ namespace containers {
     template <typename T, typename Allocator>
     template <typename... Ctor_Args>
     void Vector<T, Allocator>::attempt_construct(T* in, Ctor_Args&&... args) {
-        ::new (in) T(std::forward<Ctor_Args>(args)...);
+        if constexpr (std::is_constructible_v<T, Ctor_Args&&...>) {
+            ::new (in) T(std::forward<Ctor_Args>(args)...);
+        } else {
+            ::new (in) T{std::forward<Ctor_Args>(args)...};
+        }
     }
 
     template <typename T, typename Allocator>
@@ -379,7 +383,7 @@ namespace serialization {
         size_type capacity = vec.capacity(), size = vec.size();
         serialization::detail::write(capacity, out);
         serialization::detail::write(size, out);
-        for (T const& elem : vec) {
+        for (T const& elem: vec) {
             serialization::serialize(elem, out);
         }
     }
@@ -396,7 +400,7 @@ namespace serialization {
             if constexpr (std::is_trivially_default_constructible_v<T>) {
                 vec.resize(size);
                 try {
-                    for (T& elem : vec) {
+                    for (T& elem: vec) {
                         serialization::deserialize(elem, in);
                     }
                 } catch (...) {
