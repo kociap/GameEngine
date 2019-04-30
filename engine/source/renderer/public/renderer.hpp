@@ -33,7 +33,6 @@ namespace renderer {
                           Matrix4 const& light_space_transform);
         void render_with_shader(Shader& shader, Transform const& camera_transform, Matrix4 const& view_transform, Matrix4 const& projection_transform);
         void update_dynamic_lights();
-        Camera& find_active_camera();
         void setup_opengl();
         void swap_postprocess_buffers();
 
@@ -51,7 +50,7 @@ namespace renderer {
         Shader gamma_correction_shader;
         Shader quad_shader;
         Shader tangents;
-		Shader deferred_shading_shader;
+        Shader deferred_shading_shader;
 
     public:
         float gamma_correction_value = 2.2f;

@@ -1,7 +1,7 @@
 #include "mesh/mesh_manager.hpp"
 
 Handle<Mesh> Mesh_Manager::add(Mesh&& mesh) {
-    Handle<Mesh> handle(mesh.id.value());
+    Handle<Mesh> handle{mesh.id.value()};
     meshes.emplace_back(std::move(mesh));
     return handle;
 }

@@ -3,18 +3,14 @@
 
 #include "color.hpp"
 #include "handle.hpp"
-#include "renderable_component.hpp"
 
 class Shader;
 class Mesh;
 
-class Line_Component : public Renderable_Component {
+class Line_Component {
 public:
     Color color = Color::white;
     float thickness = 1;
-
-    Line_Component(Entity const&);
-    using Renderable_Component::Renderable_Component;
 
     Handle<Mesh> mesh_handle;
     Handle<Shader> shader_handle;

@@ -7,7 +7,7 @@
 #include "renderer.hpp"
 
 Handle<Shader> Shader_Manager::add(Shader&& shader) {
-    Handle<Shader> handle(shader.id.value());
+    Handle<Shader> handle{shader.id.value()};
     shaders.emplace_back(std::move(shader));
     return handle;
 }

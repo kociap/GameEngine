@@ -1,15 +1,15 @@
 #ifndef SCRIPTS_CAMERA_MOVEMENT_HPP_INCLUDE
 #define SCRIPTS_CAMERA_MOVEMENT_HPP_INCLUDE
 
-#include "components/behaviour_component.hpp"
+#include "math/vector3.hpp"
+#include "components/camera.hpp"
+#include "components/transform.hpp"
 
-class Camera_Movement : public Behaviour_Component {
+class Camera_Movement {
 public:
-    using Behaviour_Component::Behaviour_Component;
+    static void update(Camera_Movement&, Camera&, Transform&);
 
     Vector3 camera_side = Vector3::right;
-
-    void update() override;
 };
 
 #endif // !SCRIPTS_CAMERA_MOVEMENT_HPP_INCLUDE

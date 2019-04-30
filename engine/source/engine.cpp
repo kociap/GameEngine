@@ -1,10 +1,9 @@
 #include "engine.hpp"
 
 #include "assets.hpp"
-#include "components/component_system.hpp"
 #include "debug_macros.hpp"
-#include "entity.hpp"
-#include "entity_manager.hpp"
+#include "ecs/ecs.hpp"
+#include "ecs/entity.hpp"
 #include "input/input_core.hpp"
 #include "mesh/mesh_manager.hpp"
 #include "renderer.hpp"
@@ -15,8 +14,10 @@
 #include "window.hpp"
 
 #include "components/camera.hpp"
+#include "components/directional_light_component.hpp"
 #include "components/point_light_component.hpp"
 #include "components/static_mesh_component.hpp"
+#include "components/transform.hpp"
 #include "debug_hotkeys.hpp"
 #include "math/math.hpp"
 #include "mesh/cube.hpp"
@@ -26,11 +27,10 @@
 Input::Manager* Engine::input_manager = nullptr;
 renderer::Renderer* Engine::renderer = nullptr;
 Time_Core* Engine::time_core = nullptr;
-Component_System* Engine::component_system = nullptr;
+ECS* Engine::ecs = nullptr;
 Window* Engine::main_window = nullptr;
 Mesh_Manager* Engine::mesh_manager = nullptr;
 Shader_Manager* Engine::shader_manager = nullptr;
-Entity_Manager* Engine::entity_manager = nullptr;
 
 void Engine::init(int argc, char** argv) {
     std::filesystem::path executable_path(argv[0]);
@@ -45,10 +45,15 @@ void Engine::init(int argc, char** argv) {
     time_core = new Time_Core();
     input_manager = new Input::Manager();
     input_manager->load_bindings();
-    entity_manager = new Entity_Manager();
-    component_system = new Component_System();
+    ecs = new ECS();
     renderer = new renderer::Renderer();
 
+    load_world();
+
+    renderer->load_shader_light_properties();
+}
+
+void Engine::load_world() {
     Shader default_shader;
     /*Assets::load_shader_file_and_attach(default_shader, "normals.vert");
     Assets::load_shader_file_and_attach(default_shader, "normals.geom");
@@ -85,9 +90,9 @@ void Engine::init(int argc, char** argv) {
     Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
 
     auto instantiate_box = [&, default_shader_handle, box_handle](Vector3 position, float rotation = 0) {
-        Entity box = Entity::instantiate();
-        Transform& box_t = add_component<Transform>(box);
-        Static_Mesh_Component& box_sm = add_component<Static_Mesh_Component>(box);
+        Entity box = ecs->create();
+        Transform& box_t = ecs->add_component<Transform>(box);
+        Static_Mesh_Component& box_sm = ecs->add_component<Static_Mesh_Component>(box);
         box_sm.mesh_handle = box_handle;
         box_sm.shader_handle = default_shader_handle;
         box_t.translate(position);
@@ -116,9 +121,9 @@ void Engine::init(int argc, char** argv) {
     }*/
 
     auto instantiate_point_lamp = [](Vector3 position, Color color, float intensity) {
-        Entity lamp = Entity::instantiate();
-        Transform& lamp_t = add_component<Transform>(lamp);
-        Point_Light_Component& lamp_pl = add_component<Point_Light_Component>(lamp);
+        Entity lamp = ecs->create();
+        Transform& lamp_t = ecs->add_component<Transform>(lamp);
+        Point_Light_Component& lamp_pl = ecs->add_component<Point_Light_Component>(lamp);
         //Static_Mesh_Component& lamp_sm = add_component<Static_Mesh_Component>(lamp);
         //auto lamp_cube_handle = mesh_manager->add(Cube());
         //lamp_sm.mesh_handle = lamp_cube_handle;
@@ -135,26 +140,24 @@ void Engine::init(int argc, char** argv) {
     instantiate_point_lamp({-3, -2.0f, 0}, {0.4f, 0.5f, 0.75f}, 3);
     instantiate_point_lamp({1.5f, 2.5f, 1.5f}, {0.0f, 1.0f, 0.5f}, 3);
 
-    Entity camera = Entity::instantiate();
-    Transform& camera_t = add_component<Transform>(camera);
-    Camera& camera_c = add_component<Camera>(camera);
-    Camera_Movement& camera_m = add_component<Camera_Movement>(camera);
-    add_component<Debug_Hotkeys>(camera);
+    Entity camera = ecs->create();
+    Transform& camera_t = ecs->add_component<Transform>(camera);
+    Camera& camera_c = ecs->add_component<Camera>(camera);
+    Camera_Movement& camera_m = ecs->add_component<Camera_Movement>(camera);
+    ecs->add_component<Debug_Hotkeys>(camera);
     camera_t.translate({0, 0, 10});
 
-    Entity directional_light = Entity::instantiate();
-    Directional_Light_Component& dl_c = add_component<Directional_Light_Component>(directional_light);
+    Entity directional_light = ecs->create();
+    Directional_Light_Component& dl_c = ecs->add_component<Directional_Light_Component>(directional_light);
     dl_c.direction = Vector3(1, -1, -1);
     dl_c.intensity = 0.0f;
-
-    renderer->load_shader_light_properties();
 }
 
 void Engine::terminate() {
     delete renderer;
     renderer = nullptr;
-    delete component_system;
-    component_system = nullptr;
+    delete ecs;
+    ecs = nullptr;
     delete input_manager;
     input_manager = nullptr;
     delete time_core;
@@ -169,9 +172,20 @@ void Engine::terminate() {
 
 void Engine::loop() {
     main_window->poll_events();
-    input_manager->process_events();
     time_core->update_time();
-    component_system->update_behaviours();
+    input_manager->process_events();
+
+    auto camera_mov_view = ecs->access<Camera_Movement, Camera, Transform>();
+    for (Entity const entity: camera_mov_view) {
+        auto& [camera_mov, camera, transform] = camera_mov_view.get<Camera_Movement, Camera, Transform>(entity);
+        Camera_Movement::update(camera_mov, camera, transform);
+    }
+
+    auto dbg_hotkeys = ecs->access<Debug_Hotkeys>();
+    for (Entity const entity: dbg_hotkeys) {
+        Debug_Hotkeys::update(dbg_hotkeys.get(entity));
+    }
+
     renderer->render_frame();
     main_window->swap_buffers();
 }
@@ -192,8 +206,8 @@ renderer::Renderer& Engine::get_renderer() {
     return *renderer;
 }
 
-Component_System& Engine::get_component_system() {
-    return *component_system;
+ECS& Engine::get_ecs() {
+    return *ecs;
 }
 
 Mesh_Manager& Engine::get_mesh_manager() {
@@ -206,8 +220,4 @@ Time_Core& Engine::get_time_manager() {
 
 Shader_Manager& Engine::get_shader_manager() {
     return *shader_manager;
-}
-
-Entity_Manager& Engine::get_entity_manager() {
-    return *entity_manager;
 }

@@ -2,9 +2,14 @@
 
 #include "assets.hpp"
 #include "components/camera.hpp"
-#include "components/component_system.hpp"
+#include "components/directional_light_component.hpp"
+#include "components/line_component.hpp"
+#include "components/point_light_component.hpp"
+#include "components/spot_light_component.hpp"
+#include "components/static_mesh_component.hpp"
 #include "components/transform.hpp"
 #include "debug_macros.hpp"
+#include "ecs/ecs.hpp"
 #include "engine.hpp"
 #include "framebuffer.hpp"
 #include "handle.hpp"
@@ -100,8 +105,7 @@ namespace renderer {
         shader.set_vec3("directional_lights[" + index + "].direction", directional_light.direction);
     }
 
-    static void set_light_properties(Shader& shader, std::string const& index, Spot_Light_Component const& spot_light) {
-        Transform& transform = get_component<Transform>(spot_light.get_entity());
+    static void set_light_properties(Shader& shader, std::string const& index, Transform& transform, Spot_Light_Component const& spot_light) {
         shader.set_float("spot_lights[" + index + "].attentuation_constant", 1.0f);
         shader.set_float("spot_lights[" + index + "].attentuation_linear", 0.09f);
         shader.set_float("spot_lights[" + index + "].attentuation_quadratic", 0.032f);
@@ -115,8 +119,7 @@ namespace renderer {
         shader.set_float("spot_lights[" + index + "].blend_angle", spot_light.blend_angle);
     }
 
-    static void set_light_properties(Shader& shader, std::string const& index, Point_Light_Component const& point_light) {
-        Transform& transform = get_component<Transform>(point_light.get_entity());
+    static void set_light_properties(Shader& shader, std::string const& index, Transform& transform, Point_Light_Component const& point_light) {
         shader.set_float("point_lights[" + index + "].attentuation_constant", 1.0f);
         shader.set_float("point_lights[" + index + "].attentuation_linear", 0.09f);
         shader.set_float("point_lights[" + index + "].attentuation_quadratic", 0.032f);
@@ -127,51 +130,56 @@ namespace renderer {
         shader.set_vec3("point_lights[" + index + "].color", point_light.color);
     }
 
-    static void set_shader_props(Component_System& component_system, Shader& shader) {
+    static void set_shader_props(ECS& ecs, Shader& shader) {
         shader.use();
         shader.set_float("ambient_strength", 0.02f);
         shader.set_vec3("ambient_color", Color(1.0f, 1.0f, 1.0f));
+        auto directional_lights = ecs.access<Directional_Light_Component>();
+        auto spot_lights = ecs.access<Transform, Spot_Light_Component>();
+        auto point_lights = ecs.access<Transform, Point_Light_Component>();
         uint32_t i = 0;
-        for (auto& directional_light : component_system.directional_light_components) {
-            set_light_properties(shader, std::to_string(i), directional_light);
+        for (Entity const entity: directional_lights) {
+            set_light_properties(shader, std::to_string(i), directional_lights.get(entity));
             ++i;
         }
         i = 0;
-        for (auto& spot_light : component_system.spot_light_components) {
-            set_light_properties(shader, std::to_string(i), spot_light);
+        for (Entity const entity: spot_lights) {
+            auto& [transform, spot_light] = spot_lights.get<Transform, Spot_Light_Component>(entity);
+            set_light_properties(shader, std::to_string(i), transform, spot_light);
             ++i;
         }
         i = 0;
-        for (auto& point_light : component_system.point_light_components) {
-            set_light_properties(shader, std::to_string(i), point_light);
+        for (Entity const entity: point_lights) {
+            auto& [transform, point_light] = point_lights.get<Transform, Point_Light_Component>(entity);
+            set_light_properties(shader, std::to_string(i), transform, point_light);
             ++i;
         }
 
-        shader.set_int("point_lights_count", component_system.point_light_components.size());
-        shader.set_int("directional_lights_count", component_system.directional_light_components.size());
+        shader.set_int("point_lights_count", point_lights.size());
+        shader.set_int("directional_lights_count", directional_lights.size());
 
         // uhh?????????????????????
         shader.set_float("material.shininess", 32.0f);
     }
 
     void Renderer::load_shader_light_properties() {
-        Component_System& component_system = Engine::get_component_system();
+        ECS& ecs = Engine::get_ecs();
         Shader_Manager& shader_manager = Engine::get_shader_manager();
-        for (Shader& shader : shader_manager) {
-            set_shader_props(component_system, shader);
+        for (Shader& shader: shader_manager) {
+            set_shader_props(ecs, shader);
         }
 
-        set_shader_props(component_system, deferred_shading_shader);
+        set_shader_props(ecs, deferred_shading_shader);
     }
 
     void Renderer::update_dynamic_lights() {
-        Component_System& component_system = Engine::get_component_system();
+        ECS& ecs = Engine::get_ecs();
         Shader_Manager& shader_manager = Engine::get_shader_manager();
-        for (Shader& shader : shader_manager) {
-            set_shader_props(component_system, shader);
+        for (Shader& shader: shader_manager) {
+            set_shader_props(ecs, shader);
         }
 
-        set_shader_props(component_system, deferred_shading_shader);
+        set_shader_props(ecs, deferred_shading_shader);
     }
 
     void Renderer::set_gamma_value(float gamma) {
@@ -190,17 +198,6 @@ namespace renderer {
 
     void Renderer::swap_postprocess_buffers() {
         std::swap(postprocess_front_buffer, postprocess_back_buffer);
-    }
-
-    Camera& Renderer::find_active_camera() {
-        Component_System& component_system = Engine::get_component_system();
-        for (Camera& camera : component_system.camera_components) {
-            if (camera.active) {
-                return camera;
-            }
-        }
-
-        throw std::runtime_error("No active camera found"); // TODO ???
     }
 
     void Renderer::render_mesh(Mesh& mesh, Shader& shader) {
@@ -259,37 +256,39 @@ namespace renderer {
 
     void Renderer::render_shadow_map(Matrix4 const& view, Matrix4 const& projection) {
         Shader_Manager& shader_manager = Engine::get_shader_manager();
-        Component_System& component_system = Engine::get_component_system();
+        ECS& ecs = Engine::get_ecs();
 
-        for (Shader& shader : shader_manager) {
+        for (Shader& shader: shader_manager) {
             shader.use();
             shader.set_vec3("camera.position", Vector3());
             shader.set_matrix4("projection", projection);
             shader.set_matrix4("view", view);
         }
 
-        for (Static_Mesh_Component& component : component_system.static_mesh_components) {
-            Shader& shader = shader_manager.get(component.shader_handle);
+        auto static_meshes = ecs.access<Transform, Static_Mesh_Component>();
+        for (Entity const entity: static_meshes) {
+            auto& [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
+            Shader& shader = shader_manager.get(static_mesh.shader_handle);
             shader.use();
-            Transform& transform = get_component<Transform>(component.get_entity());
             Matrix4 model(transform.to_matrix());
             shader.set_matrix4("model", model);
-            render_object(component, shader);
+            render_object(static_mesh, shader);
         }
 
-        for (Line_Component& component : component_system.line_components) {
-            Shader& shader = shader_manager.get(component.shader_handle);
+        auto lines = ecs.access<Transform, Line_Component>();
+        for (Entity const entity: lines) {
+            auto& [transform, line] = lines.get<Transform, Line_Component>(entity);
+            Shader& shader = shader_manager.get(line.shader_handle);
             shader.use();
-            Transform& transform = get_component<Transform>(component.get_entity());
             Matrix4 model(transform.to_matrix());
             shader.set_matrix4("model", model);
-            render_object(component, shader);
+            render_object(line, shader);
         }
     }
 
     void Renderer::render_scene(Transform const& camera_transform, Matrix4 const& view, Matrix4 const& projection, Matrix4 const& light_space_transform) {
         Shader_Manager& shader_manager = Engine::get_shader_manager();
-        Component_System& component_system = Engine::get_component_system();
+        ECS& ecs = Engine::get_ecs();
         int32_t max_texture_count = opengl::get_max_combined_texture_units();
 
         //opengl::active_texture(max_texture_count - 1);
@@ -298,7 +297,7 @@ namespace renderer {
         //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         //Vector4 border_color(1, 1, 1, 1);
         //glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &border_color.x);
-        for (Shader& shader : shader_manager) {
+        for (Shader& shader: shader_manager) {
             shader.use();
             shader.set_vec3("camera.position", camera_transform.local_position);
             shader.set_matrix4("projection", projection);
@@ -307,22 +306,24 @@ namespace renderer {
             //shader.set_int("shadow_map", max_texture_count - 1);
         }
 
-        for (Static_Mesh_Component& component : component_system.static_mesh_components) {
-            Shader& shader = shader_manager.get(component.shader_handle);
+        auto static_meshes = ecs.access<Transform, Static_Mesh_Component>();
+        for (Entity const entity: static_meshes) {
+            auto& [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
+            Shader& shader = shader_manager.get(static_mesh.shader_handle);
             shader.use();
-            Transform& transform = get_component<Transform>(component.get_entity());
             Matrix4 model(transform.to_matrix());
             shader.set_matrix4("model", model);
-            render_object(component, shader);
+            render_object(static_mesh, shader);
         }
 
-        for (Line_Component& component : component_system.line_components) {
-            Shader& shader = shader_manager.get(component.shader_handle);
+        auto lines = ecs.access<Transform, Line_Component>();
+        for (Entity const entity: lines) {
+            auto& [transform, line] = lines.get<Transform, Line_Component>(entity);
+            Shader& shader = shader_manager.get(line.shader_handle);
             shader.use();
-            Transform& transform = get_component<Transform>(component.get_entity());
             Matrix4 model(transform.to_matrix());
             shader.set_matrix4("model", model);
-            render_object(component, shader);
+            render_object(line, shader);
         }
 
         // Unbind just in case
@@ -330,26 +331,41 @@ namespace renderer {
     }
 
     void Renderer::render_with_shader(Shader& shader, Transform const& camera_transform, Matrix4 const& view, Matrix4 const& projection) {
-        Component_System& component_system = Engine::get_component_system();
+        ECS& ecs = Engine::get_ecs();
 
         shader.use();
         shader.set_vec3("camera.position", camera_transform.local_position);
         shader.set_matrix4("projection", projection);
         shader.set_matrix4("view", view);
 
-        for (Static_Mesh_Component& component : component_system.static_mesh_components) {
-            Transform& transform = get_component<Transform>(component.get_entity());
+        auto static_meshes = ecs.access<Transform, Static_Mesh_Component>();
+        for (Entity const entity: static_meshes) {
+            auto& [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
             Matrix4 model(transform.to_matrix());
             shader.set_matrix4("model", model);
-            render_object(component, shader);
+            render_object(static_mesh, shader);
         }
 
-        for (Line_Component& component : component_system.line_components) {
-            Transform& transform = get_component<Transform>(component.get_entity());
+        auto lines = ecs.access<Transform, Line_Component>();
+        for (Entity const entity: lines) {
+            auto& [transform, line] = lines.get<Transform, Line_Component>(entity);
             Matrix4 model(transform.to_matrix());
             shader.set_matrix4("model", model);
-            render_object(component, shader);
+            render_object(line, shader);
         }
+    }
+
+    static std::pair<Camera&, Transform&> find_active_camera() {
+        ECS& ecs = Engine::get_ecs();
+        auto cameras = ecs.access<Camera, Transform>();
+        for (Entity const entity: cameras) {
+            Camera& camera = cameras.get<Camera>(entity);
+            if (camera.active) {
+                return {camera, cameras.get<Transform>(entity)};
+            }
+        }
+
+        throw std::runtime_error("No active camera found"); // TODO ???
     }
 
     void Renderer::render_frame() {
@@ -358,8 +374,8 @@ namespace renderer {
         update_dynamic_lights();
 
         // Shadow mapping
-        Component_System& component_system = Engine::get_component_system();
-        Directional_Light_Component const& directional_light = component_system.directional_light_components.at(0);
+        ECS& ecs = Engine::get_ecs();
+        Directional_Light_Component const& directional_light = ecs.raw<Directional_Light_Component>()[0];
 
         //glViewport(0, 0, shadow_width, shadow_height);
         //Framebuffer::bind(*light_depth_buffer);
@@ -377,10 +393,9 @@ namespace renderer {
         //glClearColor(0.11f, 0.11f, 0.11f, 1.0f);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        Camera& camera = find_active_camera();
-        Transform& camera_transform = get_component<Transform>(camera.get_entity());
-        Matrix4 view = camera.get_view_matrix();
-        Matrix4 projection = camera.get_projection_matrix();
+        auto& [camera, camera_transform] = find_active_camera();
+        Matrix4 view = Camera::get_view_matrix(camera_transform);
+        Matrix4 projection = Camera::get_projection_matrix(camera, camera_transform);
         render_scene(camera_transform, view, projection, dl_view_transform * dl_projection_transform);
 
         glDisable(GL_DEPTH_TEST);
