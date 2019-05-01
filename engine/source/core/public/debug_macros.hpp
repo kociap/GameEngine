@@ -6,6 +6,8 @@
 #include <stdexcept>
 
 #ifndef NDEBUG
+#define GE_DEBUG
+
 #define GE_assert(condition, msg) assert((msg, condition))
 
 void _GE_log(std::string);
