@@ -10,11 +10,8 @@
 #include "key.hpp"
 
 #include <stdexcept>
-#include <unordered_map>
-
-// TODO DEBUG remove
-#include <iostream>
 #include <string>
+#include <unordered_map>
 
 void framebuffer_size_callback(GLFWwindow*, int width, int height);
 void mouse_button_callback(GLFWwindow*, int button, int action, int mods);
@@ -23,7 +20,7 @@ void scroll_callback(GLFWwindow*, double offset_x, double offset_y);
 void keyboard_callback(GLFWwindow*, int, int, int, int);
 void joystick_config_callback(int, int);
 
-Window::Window(uint32_t width, uint32_t height) : window_width(width), window_height(height) {
+Window::Window(uint32_t width, uint32_t height): window_width(width), window_height(height) {
     GE_assert(window_width > 0 && window_height > 0, "Window dimensions may not be 0");
 
     glfwInit();
@@ -130,8 +127,6 @@ void mouse_button_callback(GLFWwindow*, int button, int action, int mods) {
     });
     // clang-format on
 
-    GE_assert(action != GLFW_REPEAT, "Mouse repeat happened"); // For debugging
-
     Key key = mouse_button_map.at(button);
     float value = static_cast<float>(action); // GLFW_PRESS is 1, GLFW_RELEASE is  0
     Input::Manager& input_manager = Engine::get_input_manager();
@@ -155,7 +150,6 @@ void mouse_position_callback(GLFWwindow*, double param_x, double param_y) {
 
 void scroll_callback(GLFWwindow*, double offset_x, double offset_y) {
     Input::Manager& input_manager = Engine::get_input_manager();
-    std::cout << "scroll: " << offset_y << "\n";
     input_manager.mouse_event_queue.emplace_back(0, 0, static_cast<float>(offset_y));
 }
 
@@ -241,6 +235,6 @@ void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, in
 void joystick_config_callback(int joy, int joy_event) {
     if (joy_event == GLFW_CONNECTED && glfwJoystickIsGamepad(joy)) {
         std::string joy_name(glfwGetJoystickName(joy));
-        std::cout << "Gamepad connected: " << joy_name << " " << GLFW_JOYSTICK_1 << " " << joy << "\n";
+        GE_log("Gamepad connected: " + joy_name + " " + std::to_string(joy));
     }
 }
