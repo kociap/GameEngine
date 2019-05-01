@@ -78,6 +78,7 @@ namespace containers {
         reference emplace_back(CtorArgs&&... args);
         void erase_unsorted(size_type index);
         void erase_unsorted_unchecked(size_type index);
+        void pop_back();
         void clear();
 
     private:

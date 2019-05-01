@@ -198,7 +198,6 @@ namespace containers {
 
     template <typename T, typename Allocator>
     void Vector<T, Allocator>::resize(size_type n, value_type const& value) {
-        // TODO not exception safe (I guess??)
         if (n > _capacity) {
             grow(n); // TODO apply growing policy here?
         }
@@ -213,7 +212,6 @@ namespace containers {
 
     template <typename T, typename Allocator>
     void Vector<T, Allocator>::resize(size_type n) {
-        // TODO not exception safe (I guess??)
         if (n > _capacity) {
             grow(n); // TODO apply growing policy here?
         }
@@ -289,6 +287,13 @@ namespace containers {
         T* elem_ptr = get_ptr(index);
         T* last_elem_ptr = get_ptr(_size - 1);
         *elem_ptr = std::move(*last_elem_ptr);
+        destruct(last_elem_ptr);
+        --_size;
+    }
+
+    template <typename T, typename Allocator>
+    void Vector<T, Allocator>::pop_back() {
+        T* last_elem_ptr = get_ptr(_size - 1);
         destruct(last_elem_ptr);
         --_size;
     }
