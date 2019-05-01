@@ -30,12 +30,6 @@ namespace renderer {
             texture,
         };
 
-        enum Buffer_Mask : uint32_t {
-            color = 1 << 0,
-            depth = 1 << 1,
-            stencil = 1 << 2,
-        };
-
         struct Color_Buffer_Info {
             Internal_Format internal_format = Internal_Format::rgb8;
             Buffer_Type buffer_type = Buffer_Type::texture;
@@ -65,6 +59,7 @@ namespace renderer {
 
         static void bind(Framebuffer&, Bind_Mode = Bind_Mode::read_draw);
         static void bind_default(Bind_Mode = Bind_Mode::read_draw);
+        static void blit(Framebuffer& from, Framebuffer& to, opengl::Buffer_Mask);
 
         Framebuffer(Construct_Info const&);
         Framebuffer(Framebuffer&&) noexcept;
@@ -76,8 +71,6 @@ namespace renderer {
         Framebuffer& operator=(Framebuffer const&) = delete;
 
         void clear();
-        // TODO make this static function
-        void blit(Framebuffer&, Buffer_Mask);
         uint32_t get_color_texture(uint32_t index) const;
         uint32_t get_depth_texture() const;
 

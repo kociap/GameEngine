@@ -58,6 +58,12 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
+    void blit_framebuffer(uint32_t s_x0, uint32_t s_y0, uint32_t s_x1, uint32_t s_y1, uint32_t d_x0, uint32_t d_y0, uint32_t d_x1, uint32_t d_y1,
+                          Buffer_Mask mask, uint32_t filter) {
+        glBlitFramebuffer(s_x0, s_y0, s_x1, s_y1, d_x0, d_y0, d_x1, d_y1, utils::enum_to_value(mask), filter);
+        CHECK_GL_ERRORS();
+    }
+
     void vertex_array_attribute(uint32_t index, uint32_t size, uint32_t type, uint32_t stride, uint32_t offset, bool normalized) {
         // Double cast is a hack to suppress C4312 on MSVC. It's safe to cast 32bit int to void* in this context
         glVertexAttribPointer(index, size, type, normalized ? GL_TRUE : GL_FALSE, stride, reinterpret_cast<void*>(static_cast<uint64_t>(offset)));

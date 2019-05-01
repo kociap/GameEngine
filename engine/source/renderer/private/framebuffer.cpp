@@ -55,7 +55,7 @@ namespace renderer {
         CHECK_GL_ERRORS();
     }
 
-    Framebuffer::Framebuffer(Construct_Info const& i) : info(i) {
+    Framebuffer::Framebuffer(Construct_Info const& i): info(i) {
         if (info.width > opengl::get_max_renderbuffer_size() || info.height > opengl::get_max_renderbuffer_size()) {
             throw std::invalid_argument("Too big buffer size");
         }
@@ -247,10 +247,7 @@ namespace renderer {
         return depth_buffer;
     }
 
-    void Framebuffer::blit(Framebuffer& fb, Buffer_Mask bm) {
-        uint32_t gl_buffer_mask = (bm & Buffer_Mask::color ? GL_COLOR_BUFFER_BIT : 0) | (bm & Buffer_Mask::depth ? GL_DEPTH_BUFFER_BIT : 0) |
-                                  (bm & Buffer_Mask::stencil ? GL_STENCIL_BUFFER_BIT : 0);
-        glBlitFramebuffer(0, 0, info.width, info.height, 0, 0, fb.info.width, fb.info.height, gl_buffer_mask, GL_NEAREST);
-        CHECK_GL_ERRORS();
+    void Framebuffer::blit(Framebuffer& from, Framebuffer& to, opengl::Buffer_Mask mask) {
+        opengl::blit_framebuffer(0, 0, from.info.width, from.info.height, 0, 0, to.info.width, to.info.height, mask, GL_NEAREST);
     }
 } // namespace renderer

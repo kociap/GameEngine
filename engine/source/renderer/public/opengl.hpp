@@ -133,6 +133,12 @@ namespace opengl {
         stencil = GL_STENCIL_ATTACHMENT,
     };
 
+    enum class Buffer_Mask {
+        color_bit = GL_COLOR_BUFFER_BIT,
+        depth_bit = GL_DEPTH_BUFFER_BIT,
+        stencil_bit = GL_STENCIL_BUFFER_BIT,
+    };
+
     // OpenGL 4.5 Core Profile standard required constants
 
     // Minimum number of framebuffer color attachments
@@ -147,6 +153,8 @@ namespace opengl {
     void bind_renderbuffer(uint32_t handle);
     void bind_texture(uint32_t tex_enum, uint32_t handle);
     void bind_vertex_array(uint32_t handle);
+    void blit_framebuffer(uint32_t src_x0, uint32_t src_y0, uint32_t src_x1, uint32_t src_y1, uint32_t dst_x0, uint32_t dst_y0, uint32_t dst_x1,
+                          uint32_t dst_y1, Buffer_Mask, uint32_t filter);
     void vertex_array_attribute(uint32_t index, uint32_t count, uint32_t type, uint32_t stride, uint32_t offset, bool normalized = false);
     void enable_vertex_array_attribute(uint32_t index);
     void draw_elements(uint32_t mode, uint32_t count);
@@ -170,6 +178,16 @@ namespace opengl {
 
 template <>
 struct utils::enable_enum_add_operator<opengl::Attachment> {
+    static constexpr bool value = true;
+};
+
+template <>
+struct utils::enable_enum_bitwise_or<opengl::Buffer_Mask> {
+    static constexpr bool value = true;
+};
+
+template <>
+struct utils::enable_enum_bitwise_and<opengl::Buffer_Mask> {
     static constexpr bool value = true;
 };
 
