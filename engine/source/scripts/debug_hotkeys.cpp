@@ -71,23 +71,28 @@ static void swap_fxaa_shader() {
 }
 
 void Debug_Hotkeys::update(Debug_Hotkeys& debug_hotkeys) {
-    float reload = Input::get_axis_raw("reload_shaders");
-    if (debug_hotkeys.reload_old == 0.0f && reload == 1.0f) {
+    auto print_press = Input::get_action("print_press");
+    if (print_press.pressed) {
+        GE_log("Pressed");
+    }
+    if (print_press.released) {
+        GE_log("Released");
+    }
+
+    auto reload = Input::get_action("reload_shaders");
+    if (reload.released) {
         Engine::get_shader_manager().reload_shaders();
         reload_renderer_shaders(current_fxaa);
     }
-    debug_hotkeys.reload_old = reload;
 
-    float swap_fxaa = Input::get_axis_raw("swap_fxaa_shaders");
-    if (debug_hotkeys.swap_fxaa_old == 0.0f && swap_fxaa == 1.0f) {
+    auto swap_fxaa = Input::get_action("swap_fxaa_shaders");
+    if (swap_fxaa.released) {
         swap_fxaa_shader();
     }
-    debug_hotkeys.swap_fxaa_old = swap_fxaa;
 
-    float show_shadow_map = Input::get_axis_raw("show_shadow_map");
-    if (show_shadow_map == 1.0f && debug_hotkeys.show_shadow_map_old == 0.0f) {
+    auto show_shadow_map = Input::get_action("show_shadow_map");
+    if (show_shadow_map.released) {
         renderer::Renderer& renderer = Engine::get_renderer();
         renderer.output_shadow_map = !renderer.output_shadow_map;
     }
-    debug_hotkeys.show_shadow_map_old = show_shadow_map;
 }

@@ -75,14 +75,14 @@ void Window::poll_events() const {
             int count;
             float const* axes = glfwGetJoystickAxes(joystick_index, &count);
             // Xbox controller mapping for windows build
-            input_manager.gamepad_stick_event_queue.emplace_back(joystick_index, Key::gamepad_left_stick_x_axis, axes[0]);
-            input_manager.gamepad_stick_event_queue.emplace_back(joystick_index, Key::gamepad_left_stick_y_axis, axes[1]);
-            input_manager.gamepad_stick_event_queue.emplace_back(joystick_index, Key::gamepad_right_stick_x_axis, axes[2]);
-            input_manager.gamepad_stick_event_queue.emplace_back(joystick_index, Key::gamepad_right_stick_y_axis, axes[3]);
+            input_manager.add_gamepad_stick_event({joystick_index, Key::gamepad_left_stick_x_axis, axes[0]});
+            input_manager.add_gamepad_stick_event({joystick_index, Key::gamepad_left_stick_y_axis, axes[1]});
+            input_manager.add_gamepad_stick_event({joystick_index, Key::gamepad_right_stick_x_axis, axes[2]});
+            input_manager.add_gamepad_stick_event({joystick_index, Key::gamepad_right_stick_y_axis, axes[3]});
             // Triggers on windows have range -1 (released), 1 (pressed)
             // Remap to 0 (released), 1 (pressed)
-            input_manager.gamepad_event_queue.emplace_back(joystick_index, Key::gamepad_left_trigger, (axes[4] + 1.0f) / 2.0f);
-            input_manager.gamepad_event_queue.emplace_back(joystick_index, Key::gamepad_right_trigger, (axes[5] + 1.0f) / 2.0f);
+            input_manager.add_event({joystick_index, Key::gamepad_left_trigger, (axes[4] + 1.0f) / 2.0f});
+            input_manager.add_event({joystick_index, Key::gamepad_right_trigger, (axes[5] + 1.0f) / 2.0f});
 
             // TODO add mapping for linux build
             // TODO add other controllers if I ever buy them
@@ -130,7 +130,7 @@ void mouse_button_callback(GLFWwindow*, int button, int action, int mods) {
     Key key = mouse_button_map.at(button);
     float value = static_cast<float>(action); // GLFW_PRESS is 1, GLFW_RELEASE is  0
     Input::Manager& input_manager = Engine::get_input_manager();
-    input_manager.input_event_queue.emplace_back(key, value);
+    input_manager.add_event({key, value});
 }
 
 void mouse_position_callback(GLFWwindow*, double param_x, double param_y) {
@@ -145,12 +145,12 @@ void mouse_position_callback(GLFWwindow*, double param_x, double param_y) {
     last_y = y;
 
     Input::Manager& input_manager = Engine::get_input_manager();
-    input_manager.mouse_event_queue.emplace_back(offset_x, offset_y, 0);
+    input_manager.add_event({offset_x, offset_y, 0.0f});
 }
 
 void scroll_callback(GLFWwindow*, double offset_x, double offset_y) {
     Input::Manager& input_manager = Engine::get_input_manager();
-    input_manager.mouse_event_queue.emplace_back(0, 0, static_cast<float>(offset_y));
+    input_manager.add_event({0.0f, 0.0f, static_cast<float>(offset_y)});
 }
 
 void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -219,16 +219,14 @@ void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, in
     });
     // clang-format on
 
-    Key mapped_key = keyboard_button_map.at(key);
-
-    // Temporary for debugging
-    if (mapped_key == Key::escape)
-        glfwSetWindowShouldClose(window, true);
-
     if (action != GLFW_REPEAT) {
+        Key mapped_key = keyboard_button_map.at(key);
+        // TODO Temporary for debugging
+        if (mapped_key == Key::escape)
+            glfwSetWindowShouldClose(window, true);
         float value = static_cast<float>(action); // GLFW_PRESS is 1, GLFW_RELEASE is 0
         Input::Manager& input_manager = Engine::get_input_manager();
-        input_manager.input_event_queue.emplace_back(mapped_key, value);
+        input_manager.add_event({mapped_key, value});
     }
 }
 

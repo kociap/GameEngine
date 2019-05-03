@@ -16,7 +16,16 @@ namespace Input {
         return !utils::key::is_mouse_axis(key) && !utils::key::is_gamepad_axis(key);
     }
 
-    static void extract_bindings(std::string const& str, containers::Vector<Axis_Binding>& axis_bindings, containers::Vector<Action_Binding>& action_bindings) {
+    static Action_Mapping const* find_mapping_with_key(containers::Vector<Action_Mapping> const& mappings, std::string const& action, Key key) {
+        for (auto& mapping: mappings) {
+            if (mapping.key == key && mapping.action == action) {
+                return &mapping;
+            }
+        }
+        return nullptr;
+    }
+
+    static void extract_bindings(std::string const& str, containers::Vector<Axis_Mapping>& axis_mappings, containers::Vector<Action_Mapping>& action_mappings) {
         auto find_property = [](auto& properties, auto predicate) -> containers::Vector<utils::xml::Tag_Property>::iterator {
             auto end = properties.end();
             for (auto iter = properties.begin(); iter != end; ++iter) {
@@ -28,26 +37,40 @@ namespace Input {
         };
 
         containers::Vector<utils::xml::Tag> tags(utils::xml::parse(str));
-        for (utils::xml::Tag& tag : tags) {
-            GE_assert(tag.name == "axis" || tag.name == "action", "Unknown tag, skipping"); // TODO replace with logging
+        for (utils::xml::Tag& tag: tags) {
+            if (tag.name != "axis" && tag.name != "action") {
+                GE_log("Unknown tag, skipping...");
+                continue;
+            }
 
             auto axis_prop = find_property(tag.properties, [](auto& property) { return property.name == "axis"; });
             auto action_prop = find_property(tag.properties, [](auto& property) { return property.name == "action"; });
             auto key_prop = find_property(tag.properties, [](auto& property) { return property.name == "key"; });
-            auto scale_prop = find_property(tag.properties, [](auto& property) { return property.name == "scale"; });
+            auto accumulation_speed_prop = find_property(tag.properties, [](auto& property) { return property.name == "scale"; });
             auto sensitivity_prop = find_property(tag.properties, [](auto& property) { return property.name == "sensitivity"; });
 
-            // TODO replace with logging
-            GE_assert(axis_prop != tag.properties.end() || action_prop != tag.properties.end(), "Missing action/axis property");
-            GE_assert(key_prop != tag.properties.end(), "Missing key property");
-            GE_assert(sensitivity_prop != tag.properties.end(), "Missing sensitivity property");
+            if (axis_prop == tag.properties.end() && action_prop == tag.properties.end()) {
+                GE_log("Missing action/axis property, skipping...");
+                continue;
+            }
+            if (key_prop == tag.properties.end()) {
+                GE_log("Missing key property, skipping...");
+                continue;
+            }
 
             if (axis_prop != tag.properties.end()) {
-                GE_assert(scale_prop != tag.properties.end(), "Missing scale property");
-                axis_bindings.emplace_back(axis_prop->value, key_from_string(key_prop->value), std::stof(scale_prop->value),
+                if (sensitivity_prop == tag.properties.end()) {
+                    GE_log("Missing sensitivity property, skipping...");
+                    continue;
+                }
+                if (accumulation_speed_prop == tag.properties.end()) {
+                    GE_log("Missing scale property, skipping...");
+                    continue;
+                }
+                axis_mappings.emplace_back(axis_prop->value, key_from_string(key_prop->value), std::stof(accumulation_speed_prop->value),
                                            std::stof(sensitivity_prop->value));
             } else {
-                action_bindings.emplace_back(action_prop->value, key_from_string(key_prop->value), std::stof(sensitivity_prop->value));
+                action_mappings.emplace_back(action_prop->value, key_from_string(key_prop->value));
             }
         }
     }
@@ -56,27 +79,27 @@ namespace Input {
         std::string config_file;
         std::filesystem::path bindings_file_path(utils::concat_paths(Assets::current_path(), "input_bindings.config"));
         Assets::read_file_raw(bindings_file_path, config_file);
-        containers::Vector<Axis_Binding> axes;
-        containers::Vector<Action_Binding> actions;
+        containers::Vector<Axis_Mapping> axes;
+        containers::Vector<Action_Mapping> actions;
         extract_bindings(config_file, axes, actions);
-        register_axis_bindings(axes);
-        register_action_bindings(actions);
+        register_axis_mappings(axes);
+        register_action_mappings(actions);
     }
 
     void Manager::save_bindings() {}
 
-    void Manager::register_axis_bindings(containers::Vector<Axis_Binding> const& bindings) {
-        for (Axis_Binding const& new_binding : bindings) {
+    void Manager::register_axis_mappings(containers::Vector<Axis_Mapping> const& bindings) {
+        for (Axis_Mapping const& new_binding: bindings) {
             bool duplicate = false;
-            for (Axis_Binding& axis_binding : axis_bindings) {
+            for (Axis_Mapping& axis_binding: axis_mappings) {
                 duplicate = duplicate || (axis_binding.axis == new_binding.axis && axis_binding.key == new_binding.key);
             }
             if (!duplicate) {
-                axis_bindings.push_back(new_binding);
+                axis_mappings.push_back(new_binding);
             }
 
             duplicate = false;
-            for (Axis& axis : axes) {
+            for (Axis& axis: axes) {
                 duplicate = duplicate || (axis.axis == new_binding.axis);
             }
             if (!duplicate) {
@@ -85,18 +108,18 @@ namespace Input {
         }
     }
 
-    void Manager::register_action_bindings(containers::Vector<Action_Binding> const& bindings) {
-        for (Action_Binding const& new_binding : bindings) {
+    void Manager::register_action_mappings(containers::Vector<Action_Mapping> const& bindings) {
+        for (Action_Mapping const& new_binding: bindings) {
             bool duplicate = false;
-            for (Action_Binding& action_binding : action_bindings) {
+            for (Action_Mapping& action_binding: action_mappings) {
                 duplicate = duplicate || (action_binding.action == new_binding.action && action_binding.key == new_binding.key);
             }
             if (!duplicate) {
-                action_bindings.push_back(new_binding);
+                action_mappings.push_back(new_binding);
             }
 
             duplicate = false;
-            for (Action& action : actions) {
+            for (Action& action: actions) {
                 duplicate = duplicate || (action.action == new_binding.action);
             }
             if (!duplicate) {
@@ -105,127 +128,174 @@ namespace Input {
         }
     }
 
+    void Manager::add_event(Gamepad_Event e) {
+        gamepad_event_queue.push_back(e);
+        key_events_queue.push_back(e.key);
+    }
+    void Manager::add_event(Event e) {
+        input_event_queue.push_back(e);
+        key_events_queue.push_back(e.key);
+    }
+    void Manager::add_event(Mouse_Event e) {
+        mouse_event_queue.push_back(e);
+        if (e.mouse_x != 0.0f) {
+            key_events_queue.push_back(Key::mouse_x);
+        }
+        if (e.mouse_y != 0.0f) {
+            key_events_queue.push_back(Key::mouse_y);
+        }
+        if (e.wheel != 0.0f) {
+            key_events_queue.push_back(Key::mouse_scroll);
+        }
+    }
+    void Manager::add_gamepad_stick_event(Gamepad_Event e) {
+        gamepad_stick_event_queue.push_back(e);
+        key_events_queue.push_back(e.key);
+    }
+
     void Manager::process_events() {
-        // TODO add key capturing for actions
+        // TODO add any_key support
+
+        for (auto& [key, key_state]: key_states) {
+            key_state.up_down_transitioned = false;
+        }
 
         process_mouse_events();
         process_gamepad_events();
 
-        for (Event& event : input_event_queue) {
-            for (auto& binding : axis_bindings) {
-                if (binding.key == event.key || (binding.key == Key::any_key && is_not_axis(event.key))) {
-                    binding.raw_value = event.value * binding.sensitivity;
-                }
-            }
-
-            for (auto& binding : action_bindings) {
-                if (binding.key == event.key || (binding.key == Key::any_key && is_not_axis(event.key))) {
-                    binding.raw_value = event.value * binding.sensitivity;
-                }
-            }
+        for (auto [key, value]: input_event_queue) {
+            Key_State& key_state = key_states[key];
+            key_state.value = key_state.raw_value = value;
+            key_state.up_down_transitioned = (value != 0.0f) != key_state.down;
+            key_state.down = value != 0.0f;
         }
         input_event_queue.clear();
 
         float delta_time = Timef::get_delta_time();
-        for (auto& axis_binding : axis_bindings) {
-            if (utils::key::is_mouse_axis(axis_binding.key) || utils::key::is_gamepad_axis(axis_binding.key)) {
+        for (auto& mapping: axis_mappings) {
+            Key_State const& key_state = key_states[mapping.key];
+            if (utils::key::is_mouse_axis(mapping.key) || utils::key::is_gamepad_axis(mapping.key)) {
                 // Force raw for those axes
-                axis_binding.value = math::sign(axis_binding.scale) * axis_binding.raw_value;
+                mapping.raw_value = key_state.value;
+                mapping.value = math::sign(mapping.accumulation_speed) * mapping.raw_value_scale * key_state.value;
             } else {
-                if (axis_binding.snap && axis_binding.raw_value != 0 && math::sign(axis_binding.value) != math::sign(axis_binding.raw_value)) {
-                    axis_binding.value = 0;
+                mapping.raw_value = key_state.value;
+                float raw_scaled = mapping.raw_value_scale * mapping.raw_value;
+                if (mapping.snap && raw_scaled != 0 && math::sign(mapping.value) != math::sign(mapping.raw_value)) {
+                    mapping.value = 0;
                 }
 
-                float axis_value_delta = math::abs(axis_binding.scale) * delta_time;
-                axis_binding.value = math::step_to_value(axis_binding.value, math::sign(axis_binding.scale) * axis_binding.raw_value, axis_value_delta);
+                float value_delta = math::abs(mapping.accumulation_speed) * delta_time;
+                mapping.value = math::step_to_value(mapping.value, math::sign(mapping.accumulation_speed) * raw_scaled, value_delta);
             }
         }
 
-        for (auto& axis : axes) {
+        for (auto& axis: axes) {
             axis.raw_value = 0;
             axis.value = 0;
-            for (auto& binding : axis_bindings) {
-                if (axis.axis == binding.axis) {
-                    axis.raw_value += binding.raw_value;
-                    axis.value += binding.value;
+            for (auto& mapping: axis_mappings) {
+                if (axis.axis == mapping.axis) {
+                    axis.raw_value += mapping.raw_value_scale * mapping.raw_value;
+                    axis.value += mapping.value;
                 }
             }
         }
 
-        for (auto& action : actions) {
-            action.raw_value = 0;
-            for (auto& binding : action_bindings) {
-                if (action.action == binding.action) {
-                    action.raw_value += binding.raw_value;
+        for (auto& action: actions) {
+            GE_assert(action.bind_press_event || action.bind_release_event, "Action is not bound to any event");
+            bool paired_action = action.bind_press_event && action.bind_release_event;
+            action.down = paired_action && action.down; // If not paired, reset every time because we don't know the state
+            action.pressed = false;
+            action.released = false;
+            for (Key const k: key_events_queue) {
+                if (action.captured_key == k) {
+                    // If the captured key is not none, then we have a mapping that allowed us to capture the key,
+                    //   so action_mapping is never nullptr
+                    Action_Mapping const* action_mapping = find_mapping_with_key(action_mappings, action.action, k);
+                    Key_State const& key_state = key_states[k];
+                    action.down = key_state.down;
+                    action.pressed = key_state.up_down_transitioned && key_state.down;
+                    action.released = key_state.up_down_transitioned && !key_state.down;
+                    if (action.released) {
+                        action.captured_key = Key::none;
+                    }
+                }
+
+                if (action.captured_key == Key::none) {
+                    Action_Mapping const* action_mapping = find_mapping_with_key(action_mappings, action.action, k);
+                    if (action_mapping) {
+                        Key_State const& key_state = key_states[k];
+                        if (paired_action) {
+                            action.down = key_state.down;
+                            action.pressed = key_state.up_down_transitioned && key_state.down;
+                            action.captured_key = k;
+                        } else if (action.bind_release_event) {
+                            action.released = action.released || key_state.up_down_transitioned && !key_state.down;
+                        } else if (action.bind_press_event) {
+                            action.down = action.down || key_state.down;
+                            action.pressed = action.pressed || key_state.up_down_transitioned && key_state.down;
+                        }
+                    }
                 }
             }
         }
+        key_events_queue.clear();
     }
 
     void Manager::process_mouse_events() {
         Mouse_Event current_frame_mouse;
-
-        for (Mouse_Event const& mouse_event : mouse_event_queue) {
-            current_frame_mouse.mouse_x += mouse_event.mouse_x;
-            current_frame_mouse.mouse_y += mouse_event.mouse_y;
-            current_frame_mouse.wheel += mouse_event.wheel;
+        for (auto [mouse_x, mouse_y, wheel]: mouse_event_queue) {
+            current_frame_mouse.mouse_x += mouse_x;
+            current_frame_mouse.mouse_y += mouse_y;
+            current_frame_mouse.wheel += wheel;
         }
-
         mouse_event_queue.clear();
 
-        // Reset bindings
-        for (auto& binding : axis_bindings) {
-            if (binding.key == Key::mouse_x) {
-                binding.raw_value = current_frame_mouse.mouse_x * binding.sensitivity;
-            } else if (binding.key == Key::mouse_y) {
-                binding.raw_value = current_frame_mouse.mouse_y * binding.sensitivity;
-            } else if (binding.key == Key::mouse_scroll) {
-                binding.raw_value = current_frame_mouse.wheel * binding.sensitivity;
-            }
-        }
-
-        for (auto& binding : action_bindings) {
-            if (binding.key == Key::mouse_x) {
-                binding.raw_value = current_frame_mouse.mouse_x * binding.sensitivity;
-            } else if (binding.key == Key::mouse_y) {
-                binding.raw_value = current_frame_mouse.mouse_y * binding.sensitivity;
-            } else if (binding.key == Key::mouse_scroll) {
-                binding.raw_value = current_frame_mouse.wheel * binding.sensitivity;
-            }
-        }
+        key_states[Key::mouse_x].value = key_states[Key::mouse_x].raw_value = current_frame_mouse.mouse_x;
+        key_states[Key::mouse_y].value = key_states[Key::mouse_y].raw_value = current_frame_mouse.mouse_y;
+        key_states[Key::mouse_scroll].value = key_states[Key::mouse_scroll].raw_value = current_frame_mouse.wheel;
     }
 
     void Manager::process_gamepad_events() {
-        Vector2 gamepad_left_stick;
-        Vector2 gamepad_right_stick;
+        Vector2 left_stick;
+        Vector2 right_stick;
 
-        for (Gamepad_Event const& gamepad_stick_event : gamepad_stick_event_queue) {
-            if (gamepad_stick_event.key == Key::gamepad_right_stick_x_axis) {
-                gamepad_right_stick.x = gamepad_stick_event.value;
-            } else if (gamepad_stick_event.key == Key::gamepad_right_stick_y_axis) {
-                gamepad_right_stick.y = gamepad_stick_event.value;
-            } else if (gamepad_stick_event.key == Key::gamepad_left_stick_x_axis) {
-                gamepad_left_stick.x = gamepad_stick_event.value;
-            } else if (gamepad_stick_event.key == Key::gamepad_left_stick_y_axis) {
-                gamepad_left_stick.y = gamepad_stick_event.value;
+        Key_State& left_stick_x_state = key_states[Key::gamepad_left_stick_x_axis];
+        Key_State& left_stick_y_state = key_states[Key::gamepad_left_stick_y_axis];
+        Key_State& right_stick_x_state = key_states[Key::gamepad_right_stick_x_axis];
+        Key_State& right_stick_y_state = key_states[Key::gamepad_right_stick_y_axis];
+
+        for (Gamepad_Event const& stick_event: gamepad_stick_event_queue) {
+            if (stick_event.key == Key::gamepad_right_stick_x_axis) {
+                right_stick.x = stick_event.value;
+                right_stick_x_state.raw_value = stick_event.value;
+            } else if (stick_event.key == Key::gamepad_right_stick_y_axis) {
+                right_stick.y = stick_event.value;
+                right_stick_y_state.raw_value = stick_event.value;
+            } else if (stick_event.key == Key::gamepad_left_stick_x_axis) {
+                left_stick.x = stick_event.value;
+                left_stick_x_state.raw_value = stick_event.value;
+            } else if (stick_event.key == Key::gamepad_left_stick_y_axis) {
+                left_stick.y = stick_event.value;
+                left_stick_y_state.raw_value = stick_event.value;
             }
         }
 
         // TODO radial dead zone makes axes never reach 1 (values are slightly less than 1, e.g. 0.99996)
 
-        if (gamepad_sticks_radial_dead_zone) { // Radial dead zone
-            float left_stick_length = math::min(gamepad_left_stick.length(), 1.0f);
+        if (use_radial_deadzone_for_gamepad_sticks) { // Radial dead zone
+            float left_stick_length = math::min(left_stick.length(), 1.0f);
             if (left_stick_length > gamepad_dead_zone) {
-                gamepad_left_stick = math::normalize(gamepad_left_stick) * (left_stick_length - gamepad_dead_zone) / (1 - gamepad_dead_zone);
+                left_stick = math::normalize(left_stick) * (left_stick_length - gamepad_dead_zone) / (1 - gamepad_dead_zone);
             } else {
-                gamepad_left_stick = Vector2::zero;
+                left_stick = Vector2::zero;
             }
 
-            float right_stick_length = math::min(gamepad_right_stick.length(), 1.0f);
+            float right_stick_length = math::min(right_stick.length(), 1.0f);
             if (right_stick_length > gamepad_dead_zone) {
-                gamepad_right_stick = math::normalize(gamepad_right_stick) * (right_stick_length - gamepad_dead_zone) / (1 - gamepad_dead_zone);
+                right_stick = math::normalize(right_stick) * (right_stick_length - gamepad_dead_zone) / (1 - gamepad_dead_zone);
             } else {
-                gamepad_right_stick = Vector2::zero;
+                right_stick = Vector2::zero;
             }
         } else { // Axial dead zone
             auto apply_dead_zone = [this](float& value) -> void {
@@ -236,46 +306,22 @@ namespace Input {
                 }
             };
 
-            apply_dead_zone(gamepad_left_stick.x);
-            apply_dead_zone(gamepad_left_stick.y);
-            apply_dead_zone(gamepad_right_stick.x);
-            apply_dead_zone(gamepad_right_stick.y);
+            apply_dead_zone(left_stick.x);
+            apply_dead_zone(left_stick.y);
+            apply_dead_zone(right_stick.x);
+            apply_dead_zone(right_stick.y);
         }
 
-        for (auto& binding : axis_bindings) {
-            for (Gamepad_Event const& gamepad_event : gamepad_event_queue) {
-                if (binding.key == gamepad_event.key) {
-                    binding.raw_value = gamepad_event.value * binding.sensitivity;
-                }
-            }
+        left_stick_x_state.value = left_stick.x;
+        left_stick_y_state.value = left_stick.y;
+        right_stick_x_state.value = right_stick.x;
+        right_stick_y_state.value = right_stick.y;
 
-            if (binding.key == Key::gamepad_left_stick_x_axis) {
-                binding.raw_value = gamepad_left_stick.x * binding.sensitivity;
-            } else if (binding.key == Key::gamepad_left_stick_y_axis) {
-                binding.raw_value = gamepad_left_stick.y * binding.sensitivity;
-            } else if (binding.key == Key::gamepad_right_stick_x_axis) {
-                binding.raw_value = gamepad_right_stick.x * binding.sensitivity;
-            } else if (binding.key == Key::gamepad_right_stick_y_axis) {
-                binding.raw_value = gamepad_right_stick.y * binding.sensitivity;
-            }
-        }
-
-        for (auto& binding : action_bindings) {
-            for (Gamepad_Event const& gamepad_event : gamepad_event_queue) {
-                if (binding.key == gamepad_event.key) {
-                    binding.raw_value = gamepad_event.value * binding.sensitivity;
-                }
-            }
-
-            if (binding.key == Key::gamepad_left_stick_x_axis) {
-                binding.raw_value = gamepad_left_stick.x * binding.sensitivity;
-            } else if (binding.key == Key::gamepad_left_stick_y_axis) {
-                binding.raw_value = gamepad_left_stick.y * binding.sensitivity;
-            } else if (binding.key == Key::gamepad_right_stick_x_axis) {
-                binding.raw_value = gamepad_right_stick.x * binding.sensitivity;
-            } else if (binding.key == Key::gamepad_right_stick_y_axis) {
-                binding.raw_value = gamepad_right_stick.y * binding.sensitivity;
-            }
+        for (auto [pad_index, key, value]: gamepad_event_queue) {
+            Key_State& key_state = key_states[key];
+            key_state.value = key_state.raw_value = value;
+            key_state.down = value != 0.0f;
+            key_state.up_down_transitioned = true;
         }
 
         gamepad_stick_event_queue.clear();

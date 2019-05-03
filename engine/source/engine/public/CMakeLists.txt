@@ -15,6 +15,7 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/ecs.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/entity.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/input/key_state.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/cube.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/mesh_manager.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/mesh.hpp"
