@@ -9,7 +9,7 @@ target_sources(${PROJECT_NAME}
 )
 set_target_properties(${PROJECT_NAME}
     PROPERTIES
-    FOLDER "glad"
+    FOLDER "${ENGINE_DEPENDENCIES_FOLDER}/glad"
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")

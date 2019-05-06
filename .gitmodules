@@ -1,6 +1,9 @@
-[submodule "glfw"]
-	path = glfw
-	url = https://github.com/glfw/glfw
+[submodule "imgui"]
+	path = engine/dependencies/imgui
+	url = https://github.com/ocornut/imgui.git
 [submodule "assimp"]
-	path = assimp
-	url = https://github.com/assimp/assimp
+	path = engine/dependencies/assimp
+	url = https://github.com/assimp/assimp.git
+[submodule "glfw"]
+	path = engine/dependencies/glfw
+	url = https://github.com/glfw/glfw.git

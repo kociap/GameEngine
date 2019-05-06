@@ -1,2 +1,3 @@
+add_subdirectory(dependencies)
 add_subdirectory(source)
 add_subdirectory(shaders)
