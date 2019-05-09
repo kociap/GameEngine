@@ -12,9 +12,9 @@ const Vector2 Vector2::one = Vector2(1.0f, 1.0f);
 const Vector2 Vector2::up = Vector2(0.0f, 1.0f);
 const Vector2 Vector2::right = Vector2(1.0f, 0.0f);
 
-Vector2::Vector2(float x, float y) : x(x), y(y) {}
-Vector2::Vector2(Vector3 const& vec) : x(vec.x), y(vec.y) {}
-Vector2::Vector2(Vector4 const& vec) : x(vec.x), y(vec.y) {}
+Vector2::Vector2(float x, float y): x(x), y(y) {}
+Vector2::Vector2(Vector3 const& vec): x(vec.x), y(vec.y) {}
+Vector2::Vector2(Vector4 const& vec): x(vec.x), y(vec.y) {}
 
 float& Vector2::component(int index) {
     return (&x)[index];
@@ -105,6 +105,14 @@ Vector2 operator/(Vector2 const& a, float b) {
 void swap(Vector2& a, Vector2& b) {
     std::swap(a.x, b.x);
     std::swap(a.y, b.y);
+}
+
+bool operator==(Vector2 a, Vector2 b) {
+    return a.x == b.x && a.y == b.y;
+}
+
+bool operator!=(Vector2 a, Vector2 b) {
+    return a.x != b.x || a.y != b.y;
 }
 
 namespace math {

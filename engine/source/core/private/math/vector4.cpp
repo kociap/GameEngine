@@ -7,9 +7,9 @@
 #include <cmath>
 #include <utility>
 
-Vector4::Vector4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
-Vector4::Vector4(Vector2 const& vec, float z /* = 0 */, float w /* = 0 */) : x(vec.x), y(vec.y), z(z), w(w) {}
-Vector4::Vector4(Vector3 const& vec, float w /* = 0 */) : x(vec.x), y(vec.y), z(vec.z), w(w) {}
+Vector4::Vector4(float x, float y, float z, float w): x(x), y(y), z(z), w(w) {}
+Vector4::Vector4(Vector2 const& vec, float z /* = 0 */, float w /* = 0 */): x(vec.x), y(vec.y), z(z), w(w) {}
+Vector4::Vector4(Vector3 const& vec, float w /* = 0 */): x(vec.x), y(vec.y), z(vec.z), w(w) {}
 
 float& Vector4::component(int index) {
     return (&x)[index];
@@ -113,6 +113,14 @@ void swap(Vector4& a, Vector4& b) {
     std::swap(a.y, b.y);
     std::swap(a.z, b.z);
     std::swap(a.w, b.w);
+}
+
+bool operator==(Vector4 a, Vector4 b) {
+    return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w;
+}
+
+bool operator!=(Vector4 a, Vector4 b) {
+    return a.x != b.x || a.y != b.y || a.z != b.z || a.w != b.w;
 }
 
 namespace math {

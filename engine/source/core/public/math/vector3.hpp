@@ -51,8 +51,8 @@ Vector3 operator*(float, Vector3 const&);
 Vector3 operator/(Vector3 const&, float);
 void swap(Vector3&, Vector3&);
 
-bool operator==(Vector3 const&, Vector3 const&);
-bool operator!=(Vector3 const&, Vector3 const&);
+bool operator==(Vector3, Vector3);
+bool operator!=(Vector3, Vector3);
 
 namespace math {
     float dot(Vector3 const& vec1, Vector3 const& vec2);

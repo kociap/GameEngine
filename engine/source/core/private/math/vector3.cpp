@@ -13,9 +13,9 @@ Vector3 const Vector3::up = Vector3(0, 1, 0);
 Vector3 const Vector3::forward = Vector3(0, 0, -1);
 Vector3 const Vector3::right = Vector3(1, 0, 0);
 
-Vector3::Vector3(float x, float y, float z) : x(x), y(y), z(z) {}
-Vector3::Vector3(Vector2 const& vec, float z /* = 0 */) : x(vec.x), y(vec.y), z(z) {}
-Vector3::Vector3(Vector4 const& vec) : x(vec.x), y(vec.y), z(vec.z) {}
+Vector3::Vector3(float x, float y, float z): x(x), y(y), z(z) {}
+Vector3::Vector3(Vector2 const& vec, float z /* = 0 */): x(vec.x), y(vec.y), z(z) {}
+Vector3::Vector3(Vector4 const& vec): x(vec.x), y(vec.y), z(vec.z) {}
 
 float& Vector3::component(int index) {
     return (&x)[index];
@@ -114,11 +114,11 @@ void swap(Vector3& a, Vector3& b) {
     std::swap(a.z, b.z);
 }
 
-bool operator==(Vector3 const& a, Vector3 const& b) {
+bool operator==(Vector3 a, Vector3 b) {
     return a.x == b.x && a.y == b.y && a.z == b.z;
 }
 
-bool operator!=(Vector3 const& a, Vector3 const& b) {
+bool operator!=(Vector3 a, Vector3 b) {
     return a.x != b.x || a.y != b.y || a.z != b.z;
 }
 

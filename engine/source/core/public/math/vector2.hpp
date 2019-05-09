@@ -49,6 +49,9 @@ Vector2 operator*(float, Vector2 const&);
 Vector2 operator/(Vector2 const&, float);
 void swap(Vector2&, Vector2&);
 
+bool operator==(Vector2, Vector2);
+bool operator!=(Vector2, Vector2);
+
 namespace math {
     float dot(Vector2 const& vec1, Vector2 const& vec2);
 
