@@ -12,9 +12,10 @@ public:
     float r = 0;
     float g = 0;
     float b = 0;
+    float a = 1.0f;
 
     Color();
-    Color(float red, float green, float blue);
+    Color(float red, float green, float blue, float alpha = 1.0f);
 
     // Componentwise multiply
     Color& operator*=(Color const&);

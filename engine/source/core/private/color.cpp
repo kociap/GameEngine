@@ -7,7 +7,7 @@ Color const Color::green = Color(0.0f, 1.0f, 0.0f);
 Color const Color::blue = Color(0.0f, 0.0f, 1.0f);
 
 Color::Color() {}
-Color::Color(float red, float green, float blue) : r(red), g(green), b(blue) {}
+Color::Color(float red, float green, float blue, float alpha): r(red), g(green), b(blue), a(alpha) {}
 
 Color& Color::operator*=(Color const& c) {
     r *= c.r;
