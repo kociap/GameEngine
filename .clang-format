@@ -30,6 +30,8 @@ Cpp11BracedListStyle: true
 DerivePointerAlignment: false
 DisableFormat: false
 IndentCaseLabels: true
+# TODO change to BeforeHash once clang 9 is released
+IndentPPDirectives: AfterHash 
 IndentWidth: 4
 IndentWrappedFunctionNames: false
 KeepEmptyLinesAtTheStartOfBlocks: false
