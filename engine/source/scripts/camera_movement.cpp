@@ -11,7 +11,7 @@ void Camera_Movement::update(Camera_Movement& camera_mov, Camera& camera, Transf
     float horizontal_rotation = Input::get_axis("mouse_x");
     float vertical_rotation = Input::get_axis("mouse_y");
     transform.rotate(Vector3::up, math::radians(-horizontal_rotation));
-    camera_mov.camera_side = Vector3(Vector4(camera_mov.camera_side) * transform::rotate_y(math::radians(horizontal_rotation)));
+    camera_mov.camera_side = Vector3(Vector4(camera_mov.camera_side) * math::transform::rotate_y(math::radians(horizontal_rotation)));
     transform.rotate(camera_mov.camera_side, math::radians(vertical_rotation));
 
     // Move

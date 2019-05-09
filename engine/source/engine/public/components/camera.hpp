@@ -4,13 +4,14 @@
 #include "components/transform.hpp"
 #include "math/matrix4.hpp"
 #include "math/vector3.hpp"
+#include <cstdint>
 
 class Camera {
 public:
     static Vector3 get_top(Transform&);
     static Vector3 get_front(Transform&);
     static Matrix4 get_view_matrix(Transform&);
-    static Matrix4 get_projection_matrix(Camera&, Transform&);
+    static Matrix4 get_projection_matrix(Camera&, uint32_t viewport_width, uint32_t viewport_height);
 
     // Size of the camera in ortographic projection
     // float size = 5;

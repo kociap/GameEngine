@@ -18,6 +18,6 @@ void Transform::rotate(Vector3 axis, float angle) {
 }
 
 Matrix4 Transform::to_matrix() const {
-    Matrix4 mat = transform::scale(local_scale) * transform::rotate(local_rotation) * transform::translate(local_position);
+    Matrix4 mat = math::transform::scale(local_scale) * math::transform::rotate(local_rotation) * math::transform::translate(local_position);
     return mat;
 }

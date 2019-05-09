@@ -43,6 +43,10 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
+    void bind_buffer(Buffer_Type buffer, uint32_t handle) {
+        glBindBuffer(utils::enum_to_value(buffer), handle);
+    }
+
     void bind_renderbuffer(uint32_t handle) {
         glBindRenderbuffer(GL_RENDERBUFFER, handle);
         CHECK_GL_ERRORS();
@@ -64,24 +68,33 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
-    void vertex_array_attribute(uint32_t index, uint32_t size, uint32_t type, uint32_t stride, uint32_t offset, bool normalized) {
-        // Double cast is a hack to suppress C4312 on MSVC. It's safe to cast 32bit int to void* in this context
-        glVertexAttribPointer(index, size, type, normalized ? GL_TRUE : GL_FALSE, stride, reinterpret_cast<void*>(static_cast<uint64_t>(offset)));
+    void clear(Buffer_Mask buffers) {
+        glClear(utils::enum_to_value(buffers));
         CHECK_GL_ERRORS();
     }
 
-    void enable_vertex_array_attribute(uint32_t index) {
-        glEnableVertexAttribArray(index);
+    void clear_color(Color c) {
+        glClearColor(c.r, c.g, c.b, c.a);
         CHECK_GL_ERRORS();
     }
 
-    void draw_elements(uint32_t mode, uint32_t count) {
-        glDrawElements(mode, count, GL_UNSIGNED_INT, (void*)0);
+    void clear_color(float r, float g, float b, float a) {
+        glClearColor(r, g, b, a);
+        CHECK_GL_ERRORS();
+    }
+
+    void draw_elements(uint32_t mode, uint32_t count, uint64_t offset) {
+        glDrawElements(mode, count, GL_UNSIGNED_INT, reinterpret_cast<void*>(offset));
         CHECK_GL_ERRORS();
     }
 
     void draw_elements_instanced(uint32_t mode, uint32_t indices_count, uint32_t instances) {
         glDrawElementsInstanced(mode, indices_count, GL_UNSIGNED_INT, (void*)0, instances);
+        CHECK_GL_ERRORS();
+    }
+
+    void enable_vertex_array_attribute(uint32_t index) {
+        glEnableVertexAttribArray(index);
         CHECK_GL_ERRORS();
     }
 
@@ -102,6 +115,11 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
+    void gen_buffers(uint32_t count, uint32_t* buffers) {
+        glGenBuffers(count, buffers);
+        CHECK_GL_ERRORS();
+    }
+
     void gen_textures(uint32_t count, uint32_t* textures) {
         glGenTextures(count, textures);
         CHECK_GL_ERRORS();
@@ -109,6 +127,11 @@ namespace opengl {
 
     void gen_renderbuffers(uint32_t count, uint32_t* renderbuffers) {
         glGenRenderbuffers(count, renderbuffers);
+        CHECK_GL_ERRORS();
+    }
+
+    void gen_vertex_arrays(uint32_t count, uint32_t* vaos) {
+        glGenVertexArrays(count, vaos);
         CHECK_GL_ERRORS();
     }
 
@@ -140,4 +163,16 @@ namespace opengl {
         glTexImage2DMultisample(target, samples, internal_format, width, height, fixed_sample_locations);
         CHECK_GL_ERRORS();
     }
+
+    void vertex_array_attribute(uint32_t index, uint32_t size, uint32_t type, uint32_t stride, uint32_t offset, bool normalized) {
+        // Double cast is a hack to suppress C4312 on MSVC. It's safe to cast 32bit int to void* in this context
+        glVertexAttribPointer(index, size, type, normalized ? GL_TRUE : GL_FALSE, stride, reinterpret_cast<void*>(static_cast<uint64_t>(offset)));
+        CHECK_GL_ERRORS();
+    }
+
+    void viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+        glViewport(x, y, width, height);
+        CHECK_GL_ERRORS();
+    }
+
 } // namespace opengl

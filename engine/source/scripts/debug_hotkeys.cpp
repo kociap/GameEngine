@@ -8,6 +8,7 @@
 #include "renderer.hpp"
 #include "shader_exceptions.hpp"
 #include "shader_manager.hpp"
+#include "window.hpp"
 
 static void reload_shader(Shader& shader_to_reload, std::filesystem::path const& vertex, std::filesystem::path const& fragment) {
     try {
@@ -52,7 +53,7 @@ static void reload_shader(Shader& shader_to_reload, std::filesystem::path const&
 }
 
 static void reload_renderer_shaders(char const* fxaa) {
-    renderer::Renderer& rend = Engine::get_renderer();
+    Renderer& rend = Engine::get_renderer();
     //reload_shader(rend.fxaa_shader, "postprocessing/postprocess_vertex.vert", fxaa);
     reload_shader(rend.tangents, "tangents.vert", "tangents.geom", "tangents.frag");
     reload_shader(rend.deferred_shading_shader, "quad.vert", "deferred_shading.frag");
@@ -90,9 +91,14 @@ void Debug_Hotkeys::update(Debug_Hotkeys& debug_hotkeys) {
         swap_fxaa_shader();
     }
 
-    auto show_shadow_map = Input::get_action("show_shadow_map");
-    if (show_shadow_map.released) {
-        renderer::Renderer& renderer = Engine::get_renderer();
-        renderer.output_shadow_map = !renderer.output_shadow_map;
+    auto capture_mouse = Input::get_action("capture_mouse");
+    if (capture_mouse.released) {
+        if (debug_hotkeys.cursor_captured) {
+            debug_hotkeys.cursor_captured = false;
+            Engine::get_window().unlock_cursor();
+        } else {
+            debug_hotkeys.cursor_captured = true;
+            Engine::get_window().lock_cursor();
+        }
     }
 }

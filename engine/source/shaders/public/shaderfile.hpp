@@ -1,9 +1,8 @@
 #ifndef SHADERS_SHADER_FILE_HPP_INCLUDE
 #define SHADERS_SHADER_FILE_HPP_INCLUDE
 
-#include <string>
-#include <vector>
 #include <cstdint>
+#include <string>
 
 enum class Shader_Type {
     vertex,
@@ -28,13 +27,11 @@ public:
 private:
     friend class Shader;
 
-	std::string name;
+    std::string name;
     Shader_Type type;
     uint32_t shader;
 
-    void create();
     void set_source(std::string const& source);
-    void compile();
 };
 
 #endif // !SHADERS_SHADER_FILE_HPP_INCLUDE

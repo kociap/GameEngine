@@ -1,3 +1,6 @@
+#include "build_config.hpp"
+
+#if !GE_WITH_EDITOR
 #include "engine.hpp"
 
 int main(int argc, char** argv) {
@@ -9,3 +12,5 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+
+#endif // GE_WITH_EDITOR

@@ -6,9 +6,7 @@ class Window;
 class Mesh_Manager;
 class Shader_Manager;
 class ECS;
-namespace renderer {
-    class Renderer;
-}
+class Renderer;
 namespace Input {
     class Manager;
 }

@@ -3,6 +3,8 @@
 
 class Debug_Hotkeys {
 public:
+    bool cursor_captured = false;
+
     static void update(Debug_Hotkeys&);
 };
 

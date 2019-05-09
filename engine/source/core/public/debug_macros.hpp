@@ -1,11 +1,12 @@
 #ifndef CORE_DEBUG_MACROS_HPP_INCLUDE
 #define CORE_DEBUG_MACROS_HPP_INCLUDE
 
+#ifndef NDEBUG
+
 #include "glad/glad.h"
 #include <cassert>
 #include <stdexcept>
 
-#ifndef NDEBUG
 #define GE_DEBUG
 
 #define GE_assert(condition, msg) assert((msg, condition))

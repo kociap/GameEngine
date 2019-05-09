@@ -31,11 +31,9 @@ struct Texture {
 };
 
 class Shader;
-namespace renderer {
-    class Renderer;
-}
+class Renderer;
 
-class Mesh : public Object {
+class Mesh: public Object {
 public:
     Mesh();
     Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices, std::vector<Texture> const& textures);
@@ -47,7 +45,7 @@ public:
     Mesh(Mesh const&) = delete;
     Mesh& operator=(Mesh const&) = delete;
 
-	uint32_t get_vao() const;
+    uint32_t get_vao() const;
 
 private:
     void prepare_mesh();

@@ -1,9 +1,36 @@
 #ifndef RENDERER_OPENGL_HPP_INCLUDE
 #define RENDERER_OPENGL_HPP_INCLUDE
 
+#include "color.hpp"
 #include "opengl_enums_defs.hpp"
 #include "utils/enum.hpp"
 #include <cstdint>
+
+namespace opengl {
+    namespace detail {
+        enum class Buffer_Mask {
+            color_bit = GL_COLOR_BUFFER_BIT,
+            depth_bit = GL_DEPTH_BUFFER_BIT,
+            stencil_bit = GL_STENCIL_BUFFER_BIT,
+        };
+
+        enum class Buffer_Type {
+            array = GL_ARRAY_BUFFER,
+            atomic_counter = GL_ATOMIC_COUNTER_BUFFER,
+            copy_read = GL_COPY_READ_BUFFER,
+            copy_write = GL_COPY_WRITE_BUFFER,
+            dispatch_indirect = GL_DISPATCH_INDIRECT_BUFFER,
+            element_array = GL_ELEMENT_ARRAY_BUFFER,
+            pixel_pack = GL_PIXEL_PACK_BUFFER,
+            pixel_unpack = GL_PIXEL_UNPACK_BUFFER,
+            query = GL_QUERY_BUFFER,
+            shader_storage = GL_SHADER_STORAGE_BUFFER,
+            texture = GL_TEXTURE_BUFFER,
+            transform_feedback = GL_TRANSFORM_FEEDBACK_BUFFER,
+            uniform = GL_UNIFORM_BUFFER,
+        };
+    } // namespace detail
+} // namespace opengl
 
 namespace opengl {
     namespace texture {
@@ -133,11 +160,26 @@ namespace opengl {
         stencil = GL_STENCIL_ATTACHMENT,
     };
 
-    enum class Buffer_Mask {
-        color_bit = GL_COLOR_BUFFER_BIT,
-        depth_bit = GL_DEPTH_BUFFER_BIT,
-        stencil_bit = GL_STENCIL_BUFFER_BIT,
-    };
+    using Buffer_Mask = detail::Buffer_Mask;
+    constexpr Buffer_Mask color_buffer_bit = Buffer_Mask::color_bit;
+    constexpr Buffer_Mask depth_buffer_bit = Buffer_Mask::depth_bit;
+    constexpr Buffer_Mask stencil_buffer_bit = Buffer_Mask::stencil_bit;
+
+    // Buffer targets
+    using Buffer_Type = detail::Buffer_Type;
+    constexpr Buffer_Type array_buffer = Buffer_Type::array;
+    constexpr Buffer_Type atomic_counter_buffer = Buffer_Type::atomic_counter;
+    constexpr Buffer_Type copy_read_buffer = Buffer_Type::copy_read;
+    constexpr Buffer_Type copy_write_buffer = Buffer_Type::copy_write;
+    constexpr Buffer_Type dispatch_indirect_buffer = Buffer_Type::dispatch_indirect;
+    constexpr Buffer_Type element_array_buffer = Buffer_Type::element_array;
+    constexpr Buffer_Type pixel_pack_buffer = Buffer_Type::pixel_pack;
+    constexpr Buffer_Type pixel_unpack_buffer = Buffer_Type::pixel_unpack;
+    constexpr Buffer_Type query_buffer = Buffer_Type::query;
+    constexpr Buffer_Type shader_storage_buffer = Buffer_Type::shader_storage;
+    constexpr Buffer_Type texture_buffer = Buffer_Type::texture;
+    constexpr Buffer_Type transform_feedback_buffer = Buffer_Type::transform_feedback;
+    constexpr Buffer_Type uniform_buffer = Buffer_Type::uniform;
 
     // OpenGL 4.5 Core Profile standard required constants
 
@@ -150,20 +192,25 @@ namespace opengl {
     uint32_t get_max_draw_buffers();
 
     void active_texture(uint32_t index);
+    void bind_buffer(Buffer_Type, uint32_t handle);
     void bind_renderbuffer(uint32_t handle);
     void bind_texture(uint32_t tex_enum, uint32_t handle);
     void bind_vertex_array(uint32_t handle);
     void blit_framebuffer(uint32_t src_x0, uint32_t src_y0, uint32_t src_x1, uint32_t src_y1, uint32_t dst_x0, uint32_t dst_y0, uint32_t dst_x1,
                           uint32_t dst_y1, Buffer_Mask, uint32_t filter);
-    void vertex_array_attribute(uint32_t index, uint32_t count, uint32_t type, uint32_t stride, uint32_t offset, bool normalized = false);
-    void enable_vertex_array_attribute(uint32_t index);
-    void draw_elements(uint32_t mode, uint32_t count);
+    void clear(Buffer_Mask buffers);
+    void clear_color(Color);
+    void clear_color(float red, float green, float blue, float alpha);
+    void draw_elements(uint32_t mode, uint32_t count, uint64_t offset = 0);
     void draw_elements_instanced(uint32_t mode, uint32_t indices_count, uint32_t instances);
+    void enable_vertex_array_attribute(uint32_t index);
     void framebuffer_renderbuffer(uint32_t target, Attachment, uint32_t renderbuffer);
     void framebuffer_texture_2D(uint32_t target, Attachment, uint32_t tex_target, uint32_t texture, int32_t level);
     void generate_mipmap(uint32_t target);
+    void gen_buffers(uint32_t count, uint32_t* buffers);
     void gen_textures(uint32_t count, uint32_t* textures);
     void gen_renderbuffers(uint32_t count, uint32_t* renderbuffers);
+    void gen_vertex_arrays(uint32_t count, uint32_t* vertex_arrays);
     void renderbuffer_storage(uint32_t target, texture::Sized_Internal_Format, uint32_t width, uint32_t height);
     void renderbuffer_storage_multisample(uint32_t target, uint32_t samples, texture::Sized_Internal_Format, uint32_t width, uint32_t height);
     void tex_image_2D(uint32_t target, int32_t level, texture::Base_Internal_Format, uint32_t width, uint32_t height, texture::Format pixels_format,
@@ -172,6 +219,9 @@ namespace opengl {
                       texture::Type pixels_type, void const* pixels);
     void tex_image_2D_multisample(uint32_t target, uint32_t samples, texture::Sized_Internal_Format, uint32_t width, uint32_t height,
                                   bool fixed_sample_locations = true);
+    // Lower left corner of the viewport, its width and height
+    void vertex_array_attribute(uint32_t index, uint32_t count, uint32_t type, uint32_t stride, uint32_t offset, bool normalized = false);
+    void viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
     void load_opengl_parameters();
 } // namespace opengl

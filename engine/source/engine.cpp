@@ -25,7 +25,7 @@
 #include "scripts/camera_movement.hpp"
 
 Input::Manager* Engine::input_manager = nullptr;
-renderer::Renderer* Engine::renderer = nullptr;
+Renderer* Engine::renderer = nullptr;
 Time_Core* Engine::time_core = nullptr;
 ECS* Engine::ecs = nullptr;
 Window* Engine::main_window = nullptr;
@@ -39,14 +39,14 @@ void Engine::init(int argc, char** argv) {
     std::filesystem::path shaders_path(utils::concat_paths(executable_path, "shaders"));
     Assets::init(executable_path, assets_path, shaders_path);
 
-    main_window = new Window(1000, 800);
+    main_window = new Window(1280, 720);
     mesh_manager = new Mesh_Manager();
     shader_manager = new Shader_Manager();
     time_core = new Time_Core();
     input_manager = new Input::Manager();
     input_manager->load_bindings();
     ecs = new ECS();
-    renderer = new renderer::Renderer();
+    renderer = new Renderer(main_window->width(), main_window->height());
 
     load_world();
 
@@ -186,7 +186,7 @@ void Engine::loop() {
         Debug_Hotkeys::update(dbg_hotkeys.get(entity));
     }
 
-    renderer->render_frame();
+    renderer->render_frame(main_window->width(), main_window->height());
     main_window->swap_buffers();
 }
 
@@ -202,7 +202,7 @@ Window& Engine::get_window() {
     return *main_window;
 }
 
-renderer::Renderer& Engine::get_renderer() {
+Renderer& Engine::get_renderer() {
     return *renderer;
 }
 
