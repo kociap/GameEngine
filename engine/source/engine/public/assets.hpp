@@ -1,7 +1,7 @@
 #ifndef ENGINE_ASSETS_ASSETS_HPP_INCLUDE
 #define ENGINE_ASSETS_ASSETS_HPP_INCLUDE
 
-#include "shaderfile.hpp"
+#include "shader_file.hpp"
 
 #include <filesystem>
 #include <vector>

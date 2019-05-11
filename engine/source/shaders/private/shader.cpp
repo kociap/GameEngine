@@ -5,7 +5,7 @@
 #include "math/matrix4.hpp"
 #include "math/vector3.hpp"
 #include "shader_exceptions.hpp"
-#include "shaderfile.hpp"
+#include "shader_file.hpp"
 
 #include <cassert>
 #include <fstream>
@@ -22,7 +22,7 @@ Shader::Shader(bool create_program /* = true */) {
     }
 }
 
-Shader::Shader(Shader&& shader) noexcept : Object(std::move(shader)) {
+Shader::Shader(Shader&& shader) noexcept: Object(std::move(shader)) {
     std::swap(shader.program, program);
 }
 

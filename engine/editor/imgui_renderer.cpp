@@ -9,7 +9,7 @@
 #include "opengl.hpp"
 #include "renderer.hpp"
 #include "shader.hpp"
-#include "shaderfile.hpp"
+#include "shader_file.hpp"
 
 static uint32_t texture_from_font(ImGuiIO& io) {
     // TODO this code according to ImGui is shit, fix it

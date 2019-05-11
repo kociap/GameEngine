@@ -20,7 +20,6 @@
 #include "opengl.hpp"
 #include "shader.hpp"
 #include "shader_manager.hpp"
-#include "window.hpp"
 
 Renderer::Renderer(uint32_t width, uint32_t height) {
     opengl::load_opengl_parameters();

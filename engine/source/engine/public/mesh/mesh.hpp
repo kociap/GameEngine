@@ -30,9 +30,6 @@ struct Texture {
     uint32_t id;
 };
 
-class Shader;
-class Renderer;
-
 class Mesh: public Object {
 public:
     Mesh();
