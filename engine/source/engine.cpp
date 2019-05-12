@@ -37,7 +37,7 @@ void Engine::init(int argc, char** argv) {
     executable_path.remove_filename();
     std::filesystem::path assets_path(utils::concat_paths(executable_path, "assets"));
     std::filesystem::path shaders_path(utils::concat_paths(executable_path, "shaders"));
-    Assets::init(executable_path, assets_path, shaders_path);
+    assets::init(executable_path, assets_path, shaders_path);
 
     main_window = new Window(1280, 720);
     mesh_manager = new Mesh_Manager();
@@ -54,34 +54,32 @@ void Engine::init(int argc, char** argv) {
 }
 
 void Engine::load_world() {
-    Shader default_shader;
-    /*Assets::load_shader_file_and_attach(default_shader, "normals.vert");
-    Assets::load_shader_file_and_attach(default_shader, "normals.geom");
-    Assets::load_shader_file_and_attach(default_shader, "normals.frag");*/
-    Assets::load_shader_file_and_attach(default_shader, "basicvertex.vert");
-    Assets::load_shader_file_and_attach(default_shader, "basicfrag.frag");
-    default_shader.link();
-
+    /*assets::load_shader_file_and_attach(default_shader, "normals.vert");
+    assets::load_shader_file_and_attach(default_shader, "normals.geom");
+    assets::load_shader_file_and_attach(default_shader, "normals.frag");*/
+    auto basic_vert = assets::load_shader_file("basicvertex.vert");
+    auto basic_frag = assets::load_shader_file("basicfrag.frag");
+    Shader default_shader = create_shader(basic_vert, basic_frag);
     Handle<Shader> default_shader_handle = shader_manager->add(std::move(default_shader));
-    Shader unlit_default_shader;
-    Assets::load_shader_file_and_attach(unlit_default_shader, "unlit_default.vert");
-    Assets::load_shader_file_and_attach(unlit_default_shader, "unlit_default.frag");
-    unlit_default_shader.link();
+
+    auto unlit_vert = assets::load_shader_file("unlit_default.vert");
+    auto unlit_frag = assets::load_shader_file("unlit_default.frag");
+    Shader unlit_default_shader = create_shader(unlit_vert, unlit_frag);
     Handle<Shader> unlit_default_shader_handle = shader_manager->add(std::move(unlit_default_shader));
 
     // BS code to output anything on the screen
 
-    std::vector<Mesh> meshes = Assets::load_model("barrel.obj");
+    std::vector<Mesh> meshes = assets::load_model("barrel.obj");
     auto& container = meshes[0];
     //Cube container;
     Texture container_diffuse;
-    container_diffuse.id = Assets::load_srgb_texture("barrel_texture.jpg", false);
+    container_diffuse.id = assets::load_srgb_texture("barrel_texture.jpg", false);
     container_diffuse.type = Texture_Type::diffuse;
     // Texture container_specular;
-    // container_specular.id = Assets::load_texture("container_specular.jpg");
+    // container_specular.id = assets::load_texture("container_specular.jpg");
     // container_specular.type = Texture_Type::specular;
     Texture container_normal;
-    container_normal.id = Assets::load_texture("barrel_normal_map.jpg", false);
+    container_normal.id = assets::load_texture("barrel_normal_map.jpg", false);
     container_normal.type = Texture_Type::normal;
     container.textures.clear();
     container.textures.push_back(container_diffuse);
@@ -105,7 +103,7 @@ void Engine::load_world() {
     instantiate_box({0, -1, 4});
 
     Texture floor_tex;
-    floor_tex.id = Assets::load_srgb_texture("wood_floor.png", false);
+    floor_tex.id = assets::load_srgb_texture("wood_floor.png", false);
     floor_tex.type = Texture_Type::diffuse;
     Plane floor_mesh;
     floor_mesh.textures.push_back(floor_tex);

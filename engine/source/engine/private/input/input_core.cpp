@@ -77,8 +77,8 @@ namespace Input {
 
     void Manager::load_bindings() {
         std::string config_file;
-        std::filesystem::path bindings_file_path(utils::concat_paths(Assets::current_path(), "input_bindings.config"));
-        Assets::read_file_raw(bindings_file_path, config_file);
+        std::filesystem::path bindings_file_path(utils::concat_paths(assets::current_path(), "input_bindings.config"));
+        assets::read_file_raw(bindings_file_path, config_file);
         containers::Vector<Axis_Mapping> axes;
         containers::Vector<Action_Mapping> actions;
         extract_bindings(config_file, axes, actions);

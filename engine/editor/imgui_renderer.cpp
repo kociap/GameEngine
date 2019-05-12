@@ -57,8 +57,8 @@ Shader create_default_shader() {
         "    Out_Color = Frag_Color * texture(tex, Frag_UV.st);\n"
         "}\n";
 
-    Shader_File vertex_shader("ImGui Vertex Shader", Shader_Type::vertex, vertex_shader_glsl_450_core);
-    Shader_File fragment_shader("ImGui Fragment Shader", Shader_Type::fragment, fragment_shader_glsl_450_core);
+    Shader_File vertex_shader("ImGui Vertex Shader", opengl::vertex_shader, vertex_shader_glsl_450_core);
+    Shader_File fragment_shader("ImGui Fragment Shader", opengl::fragment_shader, fragment_shader_glsl_450_core);
 
     Shader shader;
     shader.attach(vertex_shader);

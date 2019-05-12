@@ -10,43 +10,18 @@
 #include "shader_manager.hpp"
 #include "window.hpp"
 
-static void reload_shader(Shader& shader_to_reload, std::filesystem::path const& vertex, std::filesystem::path const& fragment) {
+template <typename... T>
+void reload_shader(Shader& shader_to_reload, T&&... path) {
     try {
-        Shader shader;
-        Assets::load_shader_file_and_attach(shader, vertex);
-        Assets::load_shader_file_and_attach(shader, fragment);
-        shader.link();
-
-        Shader::swap_programs(shader_to_reload, shader);
-    } catch (Program_Linking_Failed& e) {
+        Shader shader = create_shader(assets::load_shader_file(std::forward<T>(path))...);
+        swap(shader_to_reload, shader);
+    } catch (Program_Linking_Failed const& e) {
         GE_log("Failed to reload shaders due to linking error");
         GE_log(e.what());
-    } catch (Shader_Compilation_Failed& e) {
+    } catch (Shader_Compilation_Failed const& e) {
         GE_log("Failed to reload shaders due to compilation error");
         GE_log(e.what());
-    } catch (std::runtime_error& e) {
-        GE_log("Failed to reload shaders due to unknown error");
-        GE_log(e.what());
-    }
-}
-
-static void reload_shader(Shader& shader_to_reload, std::filesystem::path const& vertex, std::filesystem::path const& geom,
-                          std::filesystem::path const& fragment) {
-    try {
-        Shader shader;
-        Assets::load_shader_file_and_attach(shader, vertex);
-        Assets::load_shader_file_and_attach(shader, geom);
-        Assets::load_shader_file_and_attach(shader, fragment);
-        shader.link();
-
-        Shader::swap_programs(shader_to_reload, shader);
-    } catch (Program_Linking_Failed& e) {
-        GE_log("Failed to reload shaders due to linking error");
-        GE_log(e.what());
-    } catch (Shader_Compilation_Failed& e) {
-        GE_log("Failed to reload shaders due to compilation error");
-        GE_log(e.what());
-    } catch (std::runtime_error& e) {
+    } catch (std::exception const& e) {
         GE_log("Failed to reload shaders due to unknown error");
         GE_log(e.what());
     }

@@ -83,6 +83,26 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
+    uint32_t create_shader(Shader_Type type) {
+        // glCreateShader may generate GL_INVALID_ENUM, but since Shader_Type is an enum we
+        //    will always have correct values (hopefully)
+        return glCreateShader(utils::enum_to_value(type));
+    }
+
+    void delete_program(uint32_t program) {
+        if (program != 0) {
+            glDeleteProgram(program);
+            CHECK_GL_ERRORS();
+        }
+    }
+
+    void delete_shader(uint32_t shader) {
+        if (shader != 0) {
+            glDeleteShader(shader);
+            CHECK_GL_ERRORS();
+        }
+    }
+
     void draw_elements(uint32_t mode, uint32_t count, uint64_t offset) {
         glDrawElements(mode, count, GL_UNSIGNED_INT, reinterpret_cast<void*>(offset));
         CHECK_GL_ERRORS();
@@ -135,6 +155,12 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
+    uint32_t get_uniform_location(uint32_t program, char const* name) {
+        uint32_t location = glGetUniformLocation(program, name);
+        CHECK_GL_ERRORS();
+        return location;
+    }
+
     void renderbuffer_storage(uint32_t target, texture::Sized_Internal_Format internal_format, uint32_t width, uint32_t height) {
         glRenderbufferStorage(target, utils::enum_to_value(internal_format), width, height);
         CHECK_GL_ERRORS();
@@ -142,6 +168,11 @@ namespace opengl {
 
     void renderbuffer_storage_multisample(uint32_t target, uint32_t samples, texture::Sized_Internal_Format internal_format, uint32_t width, uint32_t height) {
         glRenderbufferStorageMultisample(target, samples, utils::enum_to_value(internal_format), width, height);
+        CHECK_GL_ERRORS();
+    }
+
+    void shader_source(uint32_t shader, uint64_t count, char const** strings, int32_t const* lengths) {
+        glShaderSource(shader, count, strings, lengths);
         CHECK_GL_ERRORS();
     }
 

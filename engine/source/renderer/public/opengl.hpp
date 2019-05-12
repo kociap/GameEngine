@@ -29,6 +29,15 @@ namespace opengl {
             transform_feedback = GL_TRANSFORM_FEEDBACK_BUFFER,
             uniform = GL_UNIFORM_BUFFER,
         };
+
+        enum class Shader_Type {
+            vertex = GL_VERTEX_SHADER,
+            fragment = GL_FRAGMENT_SHADER,
+            geometry = GL_GEOMETRY_SHADER,
+            tessellation_evaluation = GL_TESS_EVALUATION_SHADER,
+            tessellation_control = GL_TESS_CONTROL_SHADER,
+            compute = GL_COMPUTE_SHADER,
+        };
     } // namespace detail
 } // namespace opengl
 
@@ -181,6 +190,14 @@ namespace opengl {
     constexpr Buffer_Type transform_feedback_buffer = Buffer_Type::transform_feedback;
     constexpr Buffer_Type uniform_buffer = Buffer_Type::uniform;
 
+    using Shader_Type = detail::Shader_Type;
+    constexpr Shader_Type vertex_shader = Shader_Type::vertex;
+    constexpr Shader_Type fragment_shader = Shader_Type::fragment;
+    constexpr Shader_Type geometry_shader = Shader_Type::geometry;
+    constexpr Shader_Type tessellation_evaluation_shader = Shader_Type::tessellation_evaluation;
+    constexpr Shader_Type tessellation_control_shader = Shader_Type::tessellation_control;
+    constexpr Shader_Type compute_shader = Shader_Type::compute;
+
     // OpenGL 4.5 Core Profile standard required constants
 
     // Minimum number of framebuffer color attachments
@@ -201,6 +218,9 @@ namespace opengl {
     void clear(Buffer_Mask buffers);
     void clear_color(Color);
     void clear_color(float red, float green, float blue, float alpha);
+    uint32_t create_shader(Shader_Type);
+    void delete_program(uint32_t program);
+    void delete_shader(uint32_t shader);
     void draw_elements(uint32_t mode, uint32_t count, uint64_t offset = 0);
     void draw_elements_instanced(uint32_t mode, uint32_t indices_count, uint32_t instances);
     void enable_vertex_array_attribute(uint32_t index);
@@ -211,8 +231,11 @@ namespace opengl {
     void gen_textures(uint32_t count, uint32_t* textures);
     void gen_renderbuffers(uint32_t count, uint32_t* renderbuffers);
     void gen_vertex_arrays(uint32_t count, uint32_t* vertex_arrays);
+    // -1 may mean a uniform removed by optimizations
+    uint32_t get_uniform_location(uint32_t program, char const* name);
     void renderbuffer_storage(uint32_t target, texture::Sized_Internal_Format, uint32_t width, uint32_t height);
     void renderbuffer_storage_multisample(uint32_t target, uint32_t samples, texture::Sized_Internal_Format, uint32_t width, uint32_t height);
+    void shader_source(uint32_t shader, uint64_t count, char const** strings, int32_t const* lengths);
     void tex_image_2D(uint32_t target, int32_t level, texture::Base_Internal_Format, uint32_t width, uint32_t height, texture::Format pixels_format,
                       texture::Type pixels_type, void const* pixels);
     void tex_image_2D(uint32_t target, int32_t level, texture::Sized_Internal_Format, uint32_t width, uint32_t height, texture::Format pixels_format,

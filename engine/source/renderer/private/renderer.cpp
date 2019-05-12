@@ -26,30 +26,29 @@ Renderer::Renderer(uint32_t width, uint32_t height) {
     build_framebuffers(width, height);
 
     // TODO move to postprocessing
-    Assets::load_shader_file_and_attach(gamma_correction_shader, "postprocessing/postprocess_vertex.vert");
-    Assets::load_shader_file_and_attach(gamma_correction_shader, "postprocessing/gamma_correction.frag");
-    gamma_correction_shader.link();
+    auto postprocess_vert = assets::load_shader_file("postprocessing/postprocess_vertex.vert");
+    auto gamma_correction = assets::load_shader_file("postprocessing/gamma_correction.frag");
+    gamma_correction_shader = create_shader(postprocess_vert, gamma_correction);
     gamma_correction_shader.use();
     gamma_correction_shader.set_int("scene_texture", 0);
 
-    Assets::load_shader_file_and_attach(passthrough_quad_shader, "quad.vert");
-    Assets::load_shader_file_and_attach(passthrough_quad_shader, "quad.frag");
-    passthrough_quad_shader.link();
+    auto quad_vert = assets::load_shader_file("quad.vert");
+    auto quad_frag = assets::load_shader_file("quad.frag");
+    passthrough_quad_shader = create_shader(quad_vert, quad_frag);
     passthrough_quad_shader.use();
     passthrough_quad_shader.set_int("scene_texture", 0);
 
-    Assets::load_shader_file_and_attach(deferred_shading_shader, "deferred_shading.frag");
-    Assets::load_shader_file_and_attach(deferred_shading_shader, "quad.vert");
-    deferred_shading_shader.link();
+    auto deferred_frag = assets::load_shader_file("deferred_shading.frag");
+    deferred_shading_shader = create_shader(deferred_frag, quad_vert);
     deferred_shading_shader.use();
     deferred_shading_shader.set_int("gbuffer_position", 0);
     deferred_shading_shader.set_int("gbuffer_normal", 1);
     deferred_shading_shader.set_int("gbuffer_albedo_spec", 2);
 
-    Assets::load_shader_file_and_attach(tangents, "tangents.vert");
-    Assets::load_shader_file_and_attach(tangents, "tangents.geom");
-    Assets::load_shader_file_and_attach(tangents, "tangents.frag");
-    tangents.link();
+    auto tangents_vert = assets::load_shader_file("tangents.vert");
+    auto tangents_geom = assets::load_shader_file("tangents.geom");
+    auto tangents_frag = assets::load_shader_file("tangents.frag");
+    tangents = create_shader(tangents_vert, tangents_geom, tangents_frag);
 
     setup_opengl();
     set_gamma_value(gamma_correction_value);

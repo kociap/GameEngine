@@ -2,8 +2,10 @@
 
 #include "color.hpp"
 #include "debug_macros.hpp"
+#include "glad/glad.h"
 #include "math/matrix4.hpp"
 #include "math/vector3.hpp"
+#include "opengl.hpp"
 #include "shader_exceptions.hpp"
 #include "shader_file.hpp"
 
@@ -12,13 +14,10 @@
 #include <string>
 #include <vector>
 
-void Shader::swap_programs(Shader& a, Shader& b) {
-    std::swap(a.program, b.program);
-}
-
-Shader::Shader(bool create_program /* = true */) {
-    if (create_program) {
-        create();
+Shader::Shader() {
+    program = glCreateProgram();
+    if (program == 0) {
+        throw Program_Not_Created("");
     }
 }
 
@@ -33,14 +32,7 @@ Shader& Shader::operator=(Shader&& shader) noexcept {
 }
 
 Shader::~Shader() {
-    delete_shader();
-}
-
-void Shader::create() {
-    program = glCreateProgram();
-    if (program == 0) {
-        throw Program_Not_Created("");
-    }
+    opengl::delete_program(program);
 }
 
 void Shader::attach(Shader_File const& shader) {
@@ -74,55 +66,66 @@ void Shader::detach(Shader_File const& shader) {
     CHECK_GL_ERRORS();
 }
 
-void Shader::delete_shader() {
-    GE_conditional_log(program != 0, "Attempting to delete not exising program");
-
-    if (program != 0) {
-        glDeleteProgram(program);
-        program = 0;
-    }
+void Shader::set_int(std::string const& name, int a) {
+    uint32_t location = opengl::get_uniform_location(program, name.c_str());
+    glUniform1i(location, a);
     CHECK_GL_ERRORS();
 }
 
-GLint Shader::get_uniform(std::string const& name) {
-    GLint location = glGetUniformLocation(program, name.c_str());
-    // -1 may also mean a uniform removed by optimizations
-    // Exception to catch typos
-    /*if (location == -1) {
-        throw std::runtime_error("Uniform location is -1");
-    }*/
-    return location;
-}
-
-GLint Shader::get_uniform(char const* name) {
-    GLint location = glGetUniformLocation(program, name);
-    if (location == -1) {
-        throw std::runtime_error("Uniform location is -1");
-    }
-    return location;
-}
-
-void Shader::set_int(std::string const& name, int a) {
-    glUniform1i(get_uniform(name), a);
+void Shader::set_int(char const* name, int a) {
+    uint32_t location = opengl::get_uniform_location(program, name);
+    glUniform1i(location, a);
     CHECK_GL_ERRORS();
 }
 
 void Shader::set_float(std::string const& name, float a) {
-    glUniform1f(get_uniform(name), a);
+    uint32_t location = opengl::get_uniform_location(program, name.c_str());
+    glUniform1f(location, a);
+    CHECK_GL_ERRORS();
+}
+
+void Shader::set_float(char const* name, float a) {
+    uint32_t location = opengl::get_uniform_location(program, name);
+    glUniform1f(location, a);
     CHECK_GL_ERRORS();
 }
 
 void Shader::set_vec3(std::string const& name, Vector3 const& vec) {
-    glUniform3fv(get_uniform(name), 1, &vec.x);
+    uint32_t location = opengl::get_uniform_location(program, name.c_str());
+    glUniform3fv(location, 1, &vec.x);
+    CHECK_GL_ERRORS();
+}
+
+void Shader::set_vec3(char const* name, Vector3 const& vec) {
+    uint32_t location = opengl::get_uniform_location(program, name);
+    glUniform3fv(location, 1, &vec.x);
     CHECK_GL_ERRORS();
 }
 
 void Shader::set_vec3(std::string const& name, Color const& c) {
-    glUniform3fv(get_uniform(name), 1, &c.r);
+    uint32_t location = opengl::get_uniform_location(program, name.c_str());
+    glUniform3fv(location, 1, &c.r);
+    CHECK_GL_ERRORS();
+}
+
+void Shader::set_vec3(char const* name, Color const& c) {
+    uint32_t location = opengl::get_uniform_location(program, name);
+    glUniform3fv(location, 1, &c.r);
     CHECK_GL_ERRORS();
 }
 
 void Shader::set_matrix4(std::string const& name, Matrix4 const& mat) {
-    glUniformMatrix4fv(get_uniform(name), 1, GL_FALSE, mat.get_raw());
+    uint32_t location = opengl::get_uniform_location(program, name.c_str());
+    glUniformMatrix4fv(location, 1, GL_FALSE, mat.get_raw());
     CHECK_GL_ERRORS();
+}
+
+void Shader::set_matrix4(char const* name, Matrix4 const& mat) {
+    uint32_t location = opengl::get_uniform_location(program, name);
+    glUniformMatrix4fv(location, 1, GL_FALSE, mat.get_raw());
+    CHECK_GL_ERRORS();
+}
+
+void swap(Shader& s1, Shader& s2) {
+    std::swap(s1.program, s2.program);
 }
