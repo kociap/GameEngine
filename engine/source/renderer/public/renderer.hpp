@@ -25,7 +25,6 @@ public:
     void set_gamma_value(float);
 
 private:
-    void render_mesh(Mesh& mesh, Shader& shader);
     void render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count);
     void render_object(Static_Mesh_Component const&, Shader&);
     void render_object(Line_Component const&, Shader&);
@@ -62,5 +61,8 @@ public:
     uint32_t shadow_width = 1024;
     uint32_t shadow_height = 1024;
 };
+
+void bind_mesh_textures(Mesh const&, Shader&);
+void render_mesh(Mesh const& mesh);
 
 #endif // !ENGINE_RENDERER_RENDERER_HPP_INCLUDE

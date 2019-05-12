@@ -205,29 +205,6 @@ void Renderer::swap_postprocess_buffers() {
     std::swap(postprocess_front_buffer, postprocess_back_buffer);
 }
 
-void Renderer::render_mesh(Mesh& mesh, Shader& shader) {
-    shader.set_int("material.normal_map_attached", 0);
-    uint32_t specular = 0;
-    uint32_t diffuse = 0;
-    for (uint32_t i = 0; i < mesh.textures.size(); ++i) {
-        opengl::active_texture(i);
-        if (mesh.textures[i].type == Texture_Type::diffuse) {
-            shader.set_int("material.texture_diffuse" + std::to_string(diffuse), i);
-            ++diffuse;
-        } else if (mesh.textures[i].type == Texture_Type::specular) {
-            shader.set_int("material.texture_specular" + std::to_string(specular), i);
-            ++specular;
-        } else {
-            shader.set_int("material.normal_map", i);
-            shader.set_int("material.normal_map_attached", 1);
-        }
-        opengl::bind_texture(GL_TEXTURE_2D, mesh.textures[i].id);
-    }
-    uint32_t vao = mesh.get_vao();
-    opengl::bind_vertex_array(vao);
-    opengl::draw_elements(GL_TRIANGLES, mesh.indices.size());
-}
-
 void Renderer::render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count) {
     for (uint32_t i = 0; i < mesh.textures.size(); ++i) {
         opengl::active_texture(i);
@@ -239,7 +216,7 @@ void Renderer::render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count)
             shader.set_int("material.normal_map", i);
             shader.set_int("material.normal_map_attached", 1);
         }
-        opengl::bind_texture(GL_TEXTURE_2D, mesh.textures[i].id);
+        opengl::bind_texture(opengl::Texture_Type::texture_2D, mesh.textures[i].id);
     }
 
     uint32_t vao = mesh.get_vao();
@@ -250,13 +227,15 @@ void Renderer::render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count)
 void Renderer::render_object(Static_Mesh_Component const& component, Shader& shader) {
     Mesh_Manager& mesh_manager = Engine::get_mesh_manager();
     Mesh& mesh = mesh_manager.get(component.mesh_handle);
-    render_mesh(mesh, shader);
+    bind_mesh_textures(mesh, shader);
+    render_mesh(mesh);
 }
 
 void Renderer::render_object(Line_Component const& component, Shader& shader) {
     Mesh_Manager& mesh_manager = Engine::get_mesh_manager();
     Mesh& mesh = mesh_manager.get(component.mesh_handle);
-    render_mesh(mesh, shader);
+    bind_mesh_textures(mesh, shader);
+    render_mesh(mesh);
 }
 
 void Renderer::render_shadow_map(Matrix4 const& view, Matrix4 const& projection) {
@@ -297,7 +276,7 @@ void Renderer::render_scene(Transform const& camera_transform, Matrix4 const& vi
     int32_t max_texture_count = opengl::get_max_combined_texture_units();
 
     //opengl::active_texture(max_texture_count - 1);
-    //opengl::bind_texture(GL_TEXTURE_2D, light_depth_buffer->get_depth_texture());
+    //opengl::bind_texture(opengl::Texture_Type::texture_2D, light_depth_buffer->get_depth_texture());
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     //Vector4 border_color(1, 1, 1, 1);
@@ -396,7 +375,7 @@ uint32_t Renderer::render_frame_as_texture(uint32_t viewport_width, uint32_t vie
     Framebuffer::bind(*framebuffer);
     //glClearColor(0.11f, 0.11f, 0.11f, 1.0f);
     opengl::clear_color(0.0f, 0.0f, 0.0f, 1.0f);
-    opengl::clear(opengl::color_buffer_bit | opengl::depth_buffer_bit);
+    opengl::clear(opengl::Buffer_Mask::color_buffer_bit | opengl::Buffer_Mask::depth_buffer_bit);
     auto& [camera, camera_transform] = find_active_camera();
     Matrix4 view = Camera::get_view_matrix(camera_transform);
     Matrix4 projection = Camera::get_projection_matrix(camera, viewport_width, viewport_height);
@@ -407,21 +386,21 @@ uint32_t Renderer::render_frame_as_texture(uint32_t viewport_width, uint32_t vie
     glDisable(GL_DEPTH_TEST);
     Framebuffer::bind(*postprocess_back_buffer);
     opengl::active_texture(0);
-    opengl::bind_texture(GL_TEXTURE_2D, framebuffer->get_color_texture(0));
+    opengl::bind_texture(opengl::Texture_Type::texture_2D, framebuffer->get_color_texture(0));
     opengl::active_texture(1);
-    opengl::bind_texture(GL_TEXTURE_2D, framebuffer->get_color_texture(1));
+    opengl::bind_texture(opengl::Texture_Type::texture_2D, framebuffer->get_color_texture(1));
     opengl::active_texture(2);
-    opengl::bind_texture(GL_TEXTURE_2D, framebuffer->get_color_texture(2));
+    opengl::bind_texture(opengl::Texture_Type::texture_2D, framebuffer->get_color_texture(2));
     deferred_shading_shader.use();
     deferred_shading_shader.set_vec3("camera.position", camera_transform.local_position);
-    render_mesh(scene_quad, deferred_shading_shader);
+    render_mesh(scene_quad);
 
     swap_postprocess_buffers();
     Framebuffer::bind(*postprocess_back_buffer);
     opengl::active_texture(0);
-    opengl::bind_texture(GL_TEXTURE_2D, postprocess_front_buffer->get_color_texture(0));
+    opengl::bind_texture(opengl::Texture_Type::texture_2D, postprocess_front_buffer->get_color_texture(0));
     gamma_correction_shader.use();
-    render_mesh(scene_quad, gamma_correction_shader);
+    render_mesh(scene_quad);
 
     swap_postprocess_buffers();
     return postprocess_front_buffer->get_color_texture(0);
@@ -433,7 +412,33 @@ void Renderer::render_frame(uint32_t viewport_width, uint32_t viewport_height) {
     uint32_t frame_texture = render_frame_as_texture(viewport_width, viewport_height);
     Framebuffer::bind_default();
     opengl::active_texture(0);
-    opengl::bind_texture(GL_TEXTURE_2D, frame_texture);
+    opengl::bind_texture(opengl::Texture_Type::texture_2D, frame_texture);
     passthrough_quad_shader.use();
-    render_mesh(scene_quad, passthrough_quad_shader);
+    render_mesh(scene_quad);
+}
+
+void bind_mesh_textures(Mesh const& mesh, Shader& shader) {
+    shader.set_int("material.normal_map_attached", 0);
+    uint32_t specular = 0;
+    uint32_t diffuse = 0;
+    for (uint32_t i = 0; i < mesh.textures.size(); ++i) {
+        opengl::active_texture(i);
+        if (mesh.textures[i].type == Texture_Type::diffuse) {
+            shader.set_int("material.texture_diffuse" + std::to_string(diffuse), i);
+            ++diffuse;
+        } else if (mesh.textures[i].type == Texture_Type::specular) {
+            shader.set_int("material.texture_specular" + std::to_string(specular), i);
+            ++specular;
+        } else {
+            shader.set_int("material.normal_map", i);
+            shader.set_int("material.normal_map_attached", 1);
+        }
+        opengl::bind_texture(opengl::Texture_Type::texture_2D, mesh.textures[i].id);
+    }
+}
+
+void render_mesh(Mesh const& mesh) {
+    uint32_t vao = mesh.get_vao();
+    opengl::bind_vertex_array(vao);
+    opengl::draw_elements(GL_TRIANGLES, mesh.indices.size());
 }

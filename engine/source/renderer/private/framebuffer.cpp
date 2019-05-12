@@ -22,13 +22,13 @@
 // [DONE] GL_INVALID_OPERATION is generated if format is GL_DEPTH_COMPONENT and internalformat is not GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16,
 //     GL_DEPTH_COMPONENT24, or GL_DEPTH_COMPONENT32F.
 
-static opengl::texture::Format get_compatible_format(Framebuffer::Internal_Format internal_format) {
+static opengl::Format get_compatible_format(Framebuffer::Internal_Format internal_format) {
     using Format = Framebuffer::Internal_Format;
     if (internal_format == Format::depth_component16 || internal_format == Format::depth_component24 || internal_format == Format::depth_component32f ||
         internal_format == Format::depth_component32) {
-        return opengl::texture::Format::depth_component;
+        return opengl::Format::depth_component;
     } else {
-        return opengl::texture::Format::rgb;
+        return opengl::Format::rgb;
     }
 }
 
@@ -78,9 +78,9 @@ Framebuffer::Framebuffer(Construct_Info const& i): info(i) {
             for (uint64_t i = 0; i < active_color_buffers; ++i) {
                 uint32_t color_buffer_handle = color_buffers[i];
                 auto internal_format = info.color_buffers[i].internal_format;
-                opengl::bind_texture(GL_TEXTURE_2D_MULTISAMPLE, color_buffer_handle);
+                opengl::bind_texture(opengl::Texture_Type::texture_2D_multisample, color_buffer_handle);
                 opengl::tex_image_2D_multisample(GL_TEXTURE_2D_MULTISAMPLE, info.samples, internal_format, info.width, info.height);
-                opengl::bind_texture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+                opengl::bind_texture(opengl::Texture_Type::texture_2D_multisample, 0);
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, color_buffer_handle, 0);
                 CHECK_GL_ERRORS();
             }
@@ -89,13 +89,13 @@ Framebuffer::Framebuffer(Construct_Info const& i): info(i) {
                 uint32_t color_buffer_handle = color_buffers[i];
                 auto internal_format = info.color_buffers[i].internal_format;
                 auto compatible_format = get_compatible_format(internal_format);
-                opengl::bind_texture(GL_TEXTURE_2D, color_buffer_handle);
-                opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, info.width, info.height, compatible_format, opengl::texture::Type::signed_float,
+                opengl::bind_texture(opengl::Texture_Type::texture_2D, color_buffer_handle);
+                opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, info.width, info.height, compatible_format, opengl::Type::signed_float,
                                      nullptr);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 CHECK_GL_ERRORS();
-                opengl::bind_texture(GL_TEXTURE_2D, 0);
+                opengl::bind_texture(opengl::Texture_Type::texture_2D, 0);
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, color_buffer_handle, 0);
                 CHECK_GL_ERRORS();
             }
@@ -115,7 +115,7 @@ Framebuffer::Framebuffer(Construct_Info const& i): info(i) {
     Depth_Buffer_Info depth_info = info.depth_buffer;
     bool uses_depth_stencil =
         depth_info.internal_format == Internal_Format::depth24_stencil8 || depth_info.internal_format == Internal_Format::depth32f_stencil8;
-    opengl::Attachment depth_buffer_attachment = uses_depth_stencil ? opengl::Attachment::depth_stencil : opengl::Attachment::depth;
+    opengl::Attachment depth_buffer_attachment = uses_depth_stencil ? opengl::Attachment::depth_stencil_attachment : opengl::Attachment::depth_attachment;
     if (depth_info.enabled) {
         if (depth_info.buffer_type == Buffer_Type::renderbuffer) {
             opengl::gen_renderbuffers(1, &depth_buffer);
@@ -130,20 +130,20 @@ Framebuffer::Framebuffer(Construct_Info const& i): info(i) {
         } else {
             opengl::gen_textures(1, &depth_buffer);
             if (info.multisampled) {
-                opengl::bind_texture(GL_TEXTURE_2D_MULTISAMPLE, depth_buffer);
+                opengl::bind_texture(opengl::Texture_Type::texture_2D_multisample, depth_buffer);
                 opengl::tex_image_2D_multisample(GL_TEXTURE_2D_MULTISAMPLE, info.samples, depth_info.internal_format, info.width, info.height);
-                opengl::bind_texture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+                opengl::bind_texture(opengl::Texture_Type::texture_2D_multisample, 0);
                 opengl::framebuffer_texture_2D(GL_FRAMEBUFFER, depth_buffer_attachment, GL_TEXTURE_2D_MULTISAMPLE, depth_buffer, 0);
             } else {
-                opengl::bind_texture(GL_TEXTURE_2D, depth_buffer);
-                opengl::tex_image_2D(GL_TEXTURE_2D, 0, depth_info.internal_format, info.width, info.height, opengl::texture::Format::depth_component,
-                                     opengl::texture::Type::signed_float, nullptr);
+                opengl::bind_texture(opengl::Texture_Type::texture_2D, depth_buffer);
+                opengl::tex_image_2D(GL_TEXTURE_2D, 0, depth_info.internal_format, info.width, info.height, opengl::Format::depth_component,
+                                     opengl::Type::signed_float, nullptr);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
                 CHECK_GL_ERRORS();
-                opengl::bind_texture(GL_TEXTURE_2D, 0);
+                opengl::bind_texture(opengl::Texture_Type::texture_2D, 0);
                 opengl::framebuffer_texture_2D(GL_FRAMEBUFFER, depth_buffer_attachment, GL_TEXTURE_2D, depth_buffer, 0);
             }
         }

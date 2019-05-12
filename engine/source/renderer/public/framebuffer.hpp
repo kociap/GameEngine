@@ -10,7 +10,7 @@ class Framebuffer {
 public:
     static constexpr uint64_t max_color_attachments = opengl::min_color_attachments;
 
-    using Internal_Format = opengl::texture::Sized_Internal_Format;
+    using Internal_Format = opengl::Sized_Internal_Format;
 
     enum class Draw_Mode {
         static_draw,

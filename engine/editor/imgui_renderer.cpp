@@ -57,13 +57,10 @@ Shader create_default_shader() {
         "    Out_Color = Frag_Color * texture(tex, Frag_UV.st);\n"
         "}\n";
 
-    Shader_File vertex_shader("ImGui Vertex Shader", opengl::vertex_shader, vertex_shader_glsl_450_core);
-    Shader_File fragment_shader("ImGui Fragment Shader", opengl::fragment_shader, fragment_shader_glsl_450_core);
+    Shader_File vertex_shader("ImGui Vertex Shader", opengl::Shader_Type::vertex_shader, vertex_shader_glsl_450_core);
+    Shader_File fragment_shader("ImGui Fragment Shader", opengl::Shader_Type::fragment_shader, fragment_shader_glsl_450_core);
 
-    Shader shader;
-    shader.attach(vertex_shader);
-    shader.attach(fragment_shader);
-    shader.link();
+    Shader shader = create_shader(fragment_shader, vertex_shader);
     shader.use();
     shader.set_int("tex", 0);
 
@@ -77,8 +74,8 @@ Imgui_Renderer::Imgui_Renderer(): shader(create_default_shader()) {
     opengl::gen_buffers(1, &ebo);
     opengl::gen_vertex_arrays(1, &vao);
     opengl::bind_vertex_array(vao);
-    opengl::bind_buffer(opengl::array_buffer, vbo);
-    opengl::bind_buffer(opengl::element_array_buffer, ebo);
+    opengl::bind_buffer(opengl::Buffer_Type::array_buffer, vbo);
+    opengl::bind_buffer(opengl::Buffer_Type::element_array_buffer, ebo);
     opengl::vertex_array_attribute(0, 2, GL_FLOAT, sizeof(ImDrawVert), 0);
     opengl::enable_vertex_array_attribute(0);
     opengl::vertex_array_attribute(1, 2, GL_FLOAT, sizeof(ImDrawVert), offsetof(ImDrawVert, uv));
@@ -151,12 +148,12 @@ void Imgui_Renderer::render_ui() {
     Framebuffer::bind_default();
     opengl::viewport(0, 0, draw_data->DisplaySize.x, draw_data->DisplaySize.y);
     opengl::clear_color(0.0f, 0.0f, 0.0f, 1.0f);
-    opengl::clear(opengl::color_buffer_bit);
+    opengl::clear(opengl::Buffer_Mask::color_buffer_bit);
 
     setup_renderer_state();
     opengl::bind_vertex_array(vao);
-    opengl::bind_buffer(opengl::array_buffer, vbo);
-    opengl::bind_buffer(opengl::element_array_buffer, ebo);
+    opengl::bind_buffer(opengl::Buffer_Type::array_buffer, vbo);
+    opengl::bind_buffer(opengl::Buffer_Type::element_array_buffer, ebo);
 
     float left = draw_data->DisplayPos.x;
     float right = left + draw_data->DisplaySize.x;
@@ -204,7 +201,7 @@ void Imgui_Renderer::render_ui() {
                     glScissor((int)clip_rect.x, (int)(fb_height - clip_rect.w), (int)(clip_rect.z - clip_rect.x), (int)(clip_rect.w - clip_rect.y));
 
                     opengl::active_texture(0);
-                    opengl::bind_texture(GL_TEXTURE_2D, reinterpret_cast<uint32_t>(pcmd->TextureId));
+                    opengl::bind_texture(opengl::Texture_Type::texture_2D, reinterpret_cast<uint32_t>(pcmd->TextureId));
                     opengl::draw_elements(GL_TRIANGLES, pcmd->ElemCount, idx_buffer_offset);
                 }
             }

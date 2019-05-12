@@ -52,8 +52,8 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
-    void bind_texture(uint32_t tex_enum, uint32_t handle) {
-        glBindTexture(tex_enum, handle);
+    void bind_texture(Texture_Type texture, uint32_t handle) {
+        glBindTexture(utils::enum_to_value(texture), handle);
         CHECK_GL_ERRORS();
     }
 
@@ -161,12 +161,12 @@ namespace opengl {
         return location;
     }
 
-    void renderbuffer_storage(uint32_t target, texture::Sized_Internal_Format internal_format, uint32_t width, uint32_t height) {
+    void renderbuffer_storage(uint32_t target, Sized_Internal_Format internal_format, uint32_t width, uint32_t height) {
         glRenderbufferStorage(target, utils::enum_to_value(internal_format), width, height);
         CHECK_GL_ERRORS();
     }
 
-    void renderbuffer_storage_multisample(uint32_t target, uint32_t samples, texture::Sized_Internal_Format internal_format, uint32_t width, uint32_t height) {
+    void renderbuffer_storage_multisample(uint32_t target, uint32_t samples, Sized_Internal_Format internal_format, uint32_t width, uint32_t height) {
         glRenderbufferStorageMultisample(target, samples, utils::enum_to_value(internal_format), width, height);
         CHECK_GL_ERRORS();
     }
@@ -176,11 +176,11 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
-    void tex_image_2D(uint32_t target, int32_t level, texture::Base_Internal_Format, uint32_t width, uint32_t height, texture::Format pixels_format,
-                      texture::Type pixels_type, void const* pixels);
+    void tex_image_2D(uint32_t target, int32_t level, Base_Internal_Format, uint32_t width, uint32_t height, Format pixels_format, Type pixels_type,
+                      void const* pixels);
 
-    void tex_image_2D(uint32_t target, int32_t level, texture::Sized_Internal_Format sized_internal_format, uint32_t width, uint32_t height,
-                      texture::Format pixels_format, texture::Type pixels_type, void const* pixels) {
+    void tex_image_2D(uint32_t target, int32_t level, Sized_Internal_Format sized_internal_format, uint32_t width, uint32_t height, Format pixels_format,
+                      Type pixels_type, void const* pixels) {
         uint32_t internal_format = utils::enum_to_value(sized_internal_format);
         uint32_t format = utils::enum_to_value(pixels_format);
         uint32_t type = utils::enum_to_value(pixels_type);
@@ -188,7 +188,7 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
-    void tex_image_2D_multisample(uint32_t target, uint32_t samples, texture::Sized_Internal_Format sized_internal_format, uint32_t width, uint32_t height,
+    void tex_image_2D_multisample(uint32_t target, uint32_t samples, Sized_Internal_Format sized_internal_format, uint32_t width, uint32_t height,
                                   bool fixed_sample_locations /* = true */) {
         auto internal_format = utils::enum_to_value(sized_internal_format);
         glTexImage2DMultisample(target, samples, internal_format, width, height, fixed_sample_locations);

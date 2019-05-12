@@ -7,196 +7,175 @@
 #include <cstdint>
 
 namespace opengl {
-    namespace detail {
-        enum class Buffer_Mask {
-            color_bit = GL_COLOR_BUFFER_BIT,
-            depth_bit = GL_DEPTH_BUFFER_BIT,
-            stencil_bit = GL_STENCIL_BUFFER_BIT,
-        };
-
-        enum class Buffer_Type {
-            array = GL_ARRAY_BUFFER,
-            atomic_counter = GL_ATOMIC_COUNTER_BUFFER,
-            copy_read = GL_COPY_READ_BUFFER,
-            copy_write = GL_COPY_WRITE_BUFFER,
-            dispatch_indirect = GL_DISPATCH_INDIRECT_BUFFER,
-            element_array = GL_ELEMENT_ARRAY_BUFFER,
-            pixel_pack = GL_PIXEL_PACK_BUFFER,
-            pixel_unpack = GL_PIXEL_UNPACK_BUFFER,
-            query = GL_QUERY_BUFFER,
-            shader_storage = GL_SHADER_STORAGE_BUFFER,
-            texture = GL_TEXTURE_BUFFER,
-            transform_feedback = GL_TRANSFORM_FEEDBACK_BUFFER,
-            uniform = GL_UNIFORM_BUFFER,
-        };
-
-        enum class Shader_Type {
-            vertex = GL_VERTEX_SHADER,
-            fragment = GL_FRAGMENT_SHADER,
-            geometry = GL_GEOMETRY_SHADER,
-            tessellation_evaluation = GL_TESS_EVALUATION_SHADER,
-            tessellation_control = GL_TESS_CONTROL_SHADER,
-            compute = GL_COMPUTE_SHADER,
-        };
-    } // namespace detail
-} // namespace opengl
-
-namespace opengl {
-    namespace texture {
-        // Uses unsigned normalized type.
-        // Size of the obtained texture is driver dependent
-        enum class Base_Internal_Format {
-            depth_component = GL_DEPTH_COMPONENT,
-            depth_stencil = GL_DEPTH_STENCIL,
-            stencil_index = GL_STENCIL_INDEX,
-            red = GL_RED,
-            rg = GL_RG,
-            rgb = GL_RGB,
-            rgba = GL_RGBA,
-        };
-
-        enum class Sized_Internal_Format {
-            // unsigned normalized
-            r8 = GL_R8,
-            r16 = GL_R16,
-            rg8 = GL_RG8,
-            rg16 = GL_RG16,
-            rgb4 = GL_RGB4,
-            rgb8 = GL_RGB8,
-            rgba2 = GL_RGBA2,
-            rgba4 = GL_RGBA4,
-            rgba8 = GL_RGBA8,
-            rgba16 = GL_RGBA16,
-            // signed normalized
-            r8_snorm = GL_R8_SNORM,
-            r16_snorm = GL_R16_SNORM,
-            rg8_snorm = GL_RG8_SNORM,
-            rg16_snorm = GL_RG16_SNORM,
-            rgb8_snorm = GL_RGB8_SNORM,
-            rgb16_snorm = GL_RGB16_SNORM,
-            rgba16_snorm = GL_RGBA16_SNORM,
-            // float
-            r16f = GL_R16F,
-            rg16f = GL_RG16F,
-            rgb16f = GL_RGB16F,
-            rgba16f = GL_RGBA16F,
-            r32f = GL_R32F,
-            rg32f = GL_RG32F,
-            rgb32f = GL_RGB32F,
-            rgba32f = GL_RGBA32F,
-            // signed integer
-            r8i = GL_R8I,
-            r16i = GL_R16I,
-            r32i = GL_R32I,
-            rg8i = GL_RG8I,
-            rg16i = GL_RG16I,
-            rg32i = GL_RG32I,
-            rgb8i = GL_RGB8I,
-            rgb16i = GL_RGB16I,
-            rgb32i = GL_RGB32I,
-            rgba16i = GL_RGBA16I,
-            rgba32i = GL_RGBA32I,
-            // unsigned integer
-            r8ui = GL_R8UI,
-            r16ui = GL_R16UI,
-            r32ui = GL_R32UI,
-            rg8ui = GL_RG8UI,
-            rg16ui = GL_RG16UI,
-            rg32ui = GL_RG32UI,
-            rgb8ui = GL_RGB8UI,
-            rgb16ui = GL_RGB16UI,
-            rgb32ui = GL_RGB32UI,
-            rgba16ui = GL_RGBA16UI,
-            rgba32ui = GL_RGBA32UI,
-            // SRGB
-            srgb8 = GL_SRGB8,
-            srgb8_alpha8 = GL_SRGB8_ALPHA8,
-            // Depth and Stencil
-            depth_component16 = GL_DEPTH_COMPONENT16,
-            depth_component24 = GL_DEPTH_COMPONENT24,
-            depth_component32 = GL_DEPTH_COMPONENT32, // Not required
-            depth_component32f = GL_DEPTH_COMPONENT32F,
-            depth24_stencil8 = GL_DEPTH24_STENCIL8,
-            depth32f_stencil8 = GL_DEPTH32F_STENCIL8,
-            stencil_index1 = GL_STENCIL_INDEX1, // Not required
-            stencil_index4 = GL_STENCIL_INDEX4, // Not required
-            stencil_index8 = GL_STENCIL_INDEX8,
-            stencil_index16 = GL_STENCIL_INDEX16, // Not required
-        };
-
-        enum class Compressed_Internal_Format {
-            // TODO compressed
-        };
-
-        enum class Format {
-            stencil_index = GL_STENCIL_INDEX,
-            depth_component = GL_DEPTH_COMPONENT,
-            depth_stencil = GL_DEPTH_STENCIL,
-            red = GL_RED,
-            green = GL_GREEN,
-            blue = GL_BLUE,
-            rg = GL_RG,
-            rgb = GL_RGB,
-            rgba = GL_RGBA,
-            bgr = GL_BGR,
-            bgra = GL_BGRA,
-            red_integer = GL_RED_INTEGER,
-            green_integer = GL_GREEN_INTEGER,
-            blue_integer = GL_BLUE_INTEGER,
-            rg_integer = GL_RG_INTEGER,
-            rgb_integer = GL_RGB_INTEGER,
-            rgba_integer = GL_RGBA_INTEGER,
-            bgr_integer = GL_BGR_INTEGER,
-            bgra_integer = GL_BGRA_INTEGER,
-        };
-
-        enum class Type {
-            unsigned_byte = GL_UNSIGNED_BYTE,
-            signed_byte = GL_BYTE,
-            unsigned_short = GL_UNSIGNED_SHORT,
-            signed_short = GL_SHORT,
-            unsigned_int = GL_UNSIGNED_INT,
-            signed_int = GL_INT,
-            half_float = GL_HALF_FLOAT,
-            signed_float = GL_FLOAT,
-        };
-    } // namespace texture
-
-    enum class Attachment {
-        color0 = GL_COLOR_ATTACHMENT0,
-        depth = GL_DEPTH_ATTACHMENT,
-        depth_stencil = GL_DEPTH_STENCIL_ATTACHMENT,
-        stencil = GL_STENCIL_ATTACHMENT,
+    // Uses unsigned normalized type.
+    // Size of the obtained texture is driver dependent
+    enum class Base_Internal_Format {
+        depth_component = GL_DEPTH_COMPONENT,
+        depth_stencil = GL_DEPTH_STENCIL,
+        stencil_index = GL_STENCIL_INDEX,
+        red = GL_RED,
+        rg = GL_RG,
+        rgb = GL_RGB,
+        rgba = GL_RGBA,
     };
 
-    using Buffer_Mask = detail::Buffer_Mask;
-    constexpr Buffer_Mask color_buffer_bit = Buffer_Mask::color_bit;
-    constexpr Buffer_Mask depth_buffer_bit = Buffer_Mask::depth_bit;
-    constexpr Buffer_Mask stencil_buffer_bit = Buffer_Mask::stencil_bit;
+    enum class Sized_Internal_Format {
+        // unsigned normalized
+        r8 = GL_R8,
+        r16 = GL_R16,
+        rg8 = GL_RG8,
+        rg16 = GL_RG16,
+        rgb4 = GL_RGB4,
+        rgb8 = GL_RGB8,
+        rgba2 = GL_RGBA2,
+        rgba4 = GL_RGBA4,
+        rgba8 = GL_RGBA8,
+        rgba16 = GL_RGBA16,
+        // signed normalized
+        r8_snorm = GL_R8_SNORM,
+        r16_snorm = GL_R16_SNORM,
+        rg8_snorm = GL_RG8_SNORM,
+        rg16_snorm = GL_RG16_SNORM,
+        rgb8_snorm = GL_RGB8_SNORM,
+        rgb16_snorm = GL_RGB16_SNORM,
+        rgba16_snorm = GL_RGBA16_SNORM,
+        // float
+        r16f = GL_R16F,
+        rg16f = GL_RG16F,
+        rgb16f = GL_RGB16F,
+        rgba16f = GL_RGBA16F,
+        r32f = GL_R32F,
+        rg32f = GL_RG32F,
+        rgb32f = GL_RGB32F,
+        rgba32f = GL_RGBA32F,
+        // signed integer
+        r8i = GL_R8I,
+        r16i = GL_R16I,
+        r32i = GL_R32I,
+        rg8i = GL_RG8I,
+        rg16i = GL_RG16I,
+        rg32i = GL_RG32I,
+        rgb8i = GL_RGB8I,
+        rgb16i = GL_RGB16I,
+        rgb32i = GL_RGB32I,
+        rgba16i = GL_RGBA16I,
+        rgba32i = GL_RGBA32I,
+        // unsigned integer
+        r8ui = GL_R8UI,
+        r16ui = GL_R16UI,
+        r32ui = GL_R32UI,
+        rg8ui = GL_RG8UI,
+        rg16ui = GL_RG16UI,
+        rg32ui = GL_RG32UI,
+        rgb8ui = GL_RGB8UI,
+        rgb16ui = GL_RGB16UI,
+        rgb32ui = GL_RGB32UI,
+        rgba16ui = GL_RGBA16UI,
+        rgba32ui = GL_RGBA32UI,
+        // SRGB
+        srgb8 = GL_SRGB8,
+        srgb8_alpha8 = GL_SRGB8_ALPHA8,
+        // Depth and Stencil
+        depth_component16 = GL_DEPTH_COMPONENT16,
+        depth_component24 = GL_DEPTH_COMPONENT24,
+        depth_component32 = GL_DEPTH_COMPONENT32, // Not required
+        depth_component32f = GL_DEPTH_COMPONENT32F,
+        depth24_stencil8 = GL_DEPTH24_STENCIL8,
+        depth32f_stencil8 = GL_DEPTH32F_STENCIL8,
+        stencil_index1 = GL_STENCIL_INDEX1, // Not required
+        stencil_index4 = GL_STENCIL_INDEX4, // Not required
+        stencil_index8 = GL_STENCIL_INDEX8,
+        stencil_index16 = GL_STENCIL_INDEX16, // Not required
+    };
 
-    // Buffer targets
-    using Buffer_Type = detail::Buffer_Type;
-    constexpr Buffer_Type array_buffer = Buffer_Type::array;
-    constexpr Buffer_Type atomic_counter_buffer = Buffer_Type::atomic_counter;
-    constexpr Buffer_Type copy_read_buffer = Buffer_Type::copy_read;
-    constexpr Buffer_Type copy_write_buffer = Buffer_Type::copy_write;
-    constexpr Buffer_Type dispatch_indirect_buffer = Buffer_Type::dispatch_indirect;
-    constexpr Buffer_Type element_array_buffer = Buffer_Type::element_array;
-    constexpr Buffer_Type pixel_pack_buffer = Buffer_Type::pixel_pack;
-    constexpr Buffer_Type pixel_unpack_buffer = Buffer_Type::pixel_unpack;
-    constexpr Buffer_Type query_buffer = Buffer_Type::query;
-    constexpr Buffer_Type shader_storage_buffer = Buffer_Type::shader_storage;
-    constexpr Buffer_Type texture_buffer = Buffer_Type::texture;
-    constexpr Buffer_Type transform_feedback_buffer = Buffer_Type::transform_feedback;
-    constexpr Buffer_Type uniform_buffer = Buffer_Type::uniform;
+    enum class Compressed_Internal_Format {
+        // TODO compressed
+    };
 
-    using Shader_Type = detail::Shader_Type;
-    constexpr Shader_Type vertex_shader = Shader_Type::vertex;
-    constexpr Shader_Type fragment_shader = Shader_Type::fragment;
-    constexpr Shader_Type geometry_shader = Shader_Type::geometry;
-    constexpr Shader_Type tessellation_evaluation_shader = Shader_Type::tessellation_evaluation;
-    constexpr Shader_Type tessellation_control_shader = Shader_Type::tessellation_control;
-    constexpr Shader_Type compute_shader = Shader_Type::compute;
+    enum class Format {
+        stencil_index = GL_STENCIL_INDEX,
+        depth_component = GL_DEPTH_COMPONENT,
+        depth_stencil = GL_DEPTH_STENCIL,
+        red = GL_RED,
+        green = GL_GREEN,
+        blue = GL_BLUE,
+        rg = GL_RG,
+        rgb = GL_RGB,
+        rgba = GL_RGBA,
+        bgr = GL_BGR,
+        bgra = GL_BGRA,
+        red_integer = GL_RED_INTEGER,
+        green_integer = GL_GREEN_INTEGER,
+        blue_integer = GL_BLUE_INTEGER,
+        rg_integer = GL_RG_INTEGER,
+        rgb_integer = GL_RGB_INTEGER,
+        rgba_integer = GL_RGBA_INTEGER,
+        bgr_integer = GL_BGR_INTEGER,
+        bgra_integer = GL_BGRA_INTEGER,
+    };
+
+    enum class Type {
+        unsigned_byte = GL_UNSIGNED_BYTE,
+        signed_byte = GL_BYTE,
+        unsigned_short = GL_UNSIGNED_SHORT,
+        signed_short = GL_SHORT,
+        unsigned_int = GL_UNSIGNED_INT,
+        signed_int = GL_INT,
+        half_float = GL_HALF_FLOAT,
+        signed_float = GL_FLOAT,
+    };
+
+    enum class Attachment {
+        color_attachment_0 = GL_COLOR_ATTACHMENT0,
+        depth_attachment = GL_DEPTH_ATTACHMENT,
+        depth_stencil_attachment = GL_DEPTH_STENCIL_ATTACHMENT,
+        stencil_attachment = GL_STENCIL_ATTACHMENT,
+    };
+
+    enum class Buffer_Mask {
+        color_buffer_bit = GL_COLOR_BUFFER_BIT,
+        depth_buffer_bit = GL_DEPTH_BUFFER_BIT,
+        stencil_buffer_bit = GL_STENCIL_BUFFER_BIT,
+    };
+
+    enum class Buffer_Type {
+        array_buffer = GL_ARRAY_BUFFER,
+        atomic_counter_buffer = GL_ATOMIC_COUNTER_BUFFER,
+        copy_read_buffer = GL_COPY_READ_BUFFER,
+        copy_write_buffer = GL_COPY_WRITE_BUFFER,
+        dispatch_indirect_buffer = GL_DISPATCH_INDIRECT_BUFFER,
+        element_array_buffer = GL_ELEMENT_ARRAY_BUFFER,
+        pixel_pack_buffer = GL_PIXEL_PACK_BUFFER,
+        pixel_unpack_buffer = GL_PIXEL_UNPACK_BUFFER,
+        query_buffer = GL_QUERY_BUFFER,
+        shader_storage_buffer = GL_SHADER_STORAGE_BUFFER,
+        texture_buffer = GL_TEXTURE_BUFFER,
+        transform_feedback_buffer = GL_TRANSFORM_FEEDBACK_BUFFER,
+        uniform_buffer = GL_UNIFORM_BUFFER,
+    };
+
+    enum class Shader_Type {
+        vertex_shader = GL_VERTEX_SHADER,
+        fragment_shader = GL_FRAGMENT_SHADER,
+        geometry_shader = GL_GEOMETRY_SHADER,
+        tessellation_evaluation_shader = GL_TESS_EVALUATION_SHADER,
+        tessellation_control_shader = GL_TESS_CONTROL_SHADER,
+        compute_shader = GL_COMPUTE_SHADER,
+    };
+
+    enum class Texture_Type {
+        texture_1D = GL_TEXTURE_1D,
+        texture_2D = GL_TEXTURE_2D,
+        texture_3D = GL_TEXTURE_3D,
+        texture_1D_array = GL_TEXTURE_1D_ARRAY,
+        texture_2D_array = GL_TEXTURE_2D_ARRAY,
+        texture_rectangle = GL_TEXTURE_RECTANGLE,
+        texture_cube_map = GL_TEXTURE_CUBE_MAP,
+        texture_cube_map_array = GL_TEXTURE_CUBE_MAP_ARRAY,
+        texture_buffer = GL_TEXTURE_BUFFER,
+        texture_2D_multisample = GL_TEXTURE_2D_MULTISAMPLE,
+        texture_2D_multisample_array = GL_TEXTURE_2D_MULTISAMPLE_ARRAY,
+    };
 
     // OpenGL 4.5 Core Profile standard required constants
 
@@ -211,7 +190,7 @@ namespace opengl {
     void active_texture(uint32_t index);
     void bind_buffer(Buffer_Type, uint32_t handle);
     void bind_renderbuffer(uint32_t handle);
-    void bind_texture(uint32_t tex_enum, uint32_t handle);
+    void bind_texture(Texture_Type texture, uint32_t handle);
     void bind_vertex_array(uint32_t handle);
     void blit_framebuffer(uint32_t src_x0, uint32_t src_y0, uint32_t src_x1, uint32_t src_y1, uint32_t dst_x0, uint32_t dst_y0, uint32_t dst_x1,
                           uint32_t dst_y1, Buffer_Mask, uint32_t filter);
@@ -233,14 +212,14 @@ namespace opengl {
     void gen_vertex_arrays(uint32_t count, uint32_t* vertex_arrays);
     // -1 may mean a uniform removed by optimizations
     uint32_t get_uniform_location(uint32_t program, char const* name);
-    void renderbuffer_storage(uint32_t target, texture::Sized_Internal_Format, uint32_t width, uint32_t height);
-    void renderbuffer_storage_multisample(uint32_t target, uint32_t samples, texture::Sized_Internal_Format, uint32_t width, uint32_t height);
+    void renderbuffer_storage(uint32_t target, Sized_Internal_Format, uint32_t width, uint32_t height);
+    void renderbuffer_storage_multisample(uint32_t target, uint32_t samples, Sized_Internal_Format, uint32_t width, uint32_t height);
     void shader_source(uint32_t shader, uint64_t count, char const** strings, int32_t const* lengths);
-    void tex_image_2D(uint32_t target, int32_t level, texture::Base_Internal_Format, uint32_t width, uint32_t height, texture::Format pixels_format,
-                      texture::Type pixels_type, void const* pixels);
-    void tex_image_2D(uint32_t target, int32_t level, texture::Sized_Internal_Format, uint32_t width, uint32_t height, texture::Format pixels_format,
-                      texture::Type pixels_type, void const* pixels);
-    void tex_image_2D_multisample(uint32_t target, uint32_t samples, texture::Sized_Internal_Format, uint32_t width, uint32_t height,
+    void tex_image_2D(uint32_t target, int32_t level, Base_Internal_Format, uint32_t width, uint32_t height, Format pixels_format, Type pixels_type,
+                      void const* pixels);
+    void tex_image_2D(uint32_t target, int32_t level, Sized_Internal_Format, uint32_t width, uint32_t height, Format pixels_format, Type pixels_type,
+                      void const* pixels);
+    void tex_image_2D_multisample(uint32_t target, uint32_t samples, Sized_Internal_Format, uint32_t width, uint32_t height,
                                   bool fixed_sample_locations = true);
     // Lower left corner of the viewport, its width and height
     void vertex_array_attribute(uint32_t index, uint32_t count, uint32_t type, uint32_t stride, uint32_t offset, bool normalized = false);

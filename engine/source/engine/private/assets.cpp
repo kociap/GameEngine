@@ -45,17 +45,17 @@ namespace assets {
     opengl::Shader_Type shader_type_from_filename(std::filesystem::path const& filename) {
         std::string extension(filename.extension().string());
         if (extension == ".vert") {
-            return opengl::vertex_shader;
+            return opengl::Shader_Type::vertex_shader;
         } else if (extension == ".frag") {
-            return opengl::fragment_shader;
+            return opengl::Shader_Type::fragment_shader;
         } else if (extension == ".geom") {
-            return opengl::geometry_shader;
+            return opengl::Shader_Type::geometry_shader;
         } else if (extension == ".comp") {
-            return opengl::compute_shader;
+            return opengl::Shader_Type::compute_shader;
         } else if (extension == ".tese") {
-            return opengl::tessellation_evaluation_shader;
+            return opengl::Shader_Type::tessellation_evaluation_shader;
         } else if (extension == ".tesc") {
-            return opengl::tessellation_control_shader;
+            return opengl::Shader_Type::tessellation_control_shader;
         } else {
             throw std::invalid_argument("\"" + extension + "\" is not a known shader file extension");
         }
@@ -68,12 +68,12 @@ namespace assets {
         return Shader_File(path.string(), shader_type_from_filename(path), shader_source);
     }
 
-    static opengl::texture::Format get_matching_pixel_format(int channels) {
+    static opengl::Format get_matching_pixel_format(int channels) {
         // clang-format off
-    if(channels == 1) { return opengl::texture::Format::red; } 
-    else if(channels == 2) { return opengl::texture::Format::rg; } 
-    else if(channels == 3) { return opengl::texture::Format::rgb; } 
-    else { return opengl::texture::Format::rgba; }
+    if(channels == 1) { return opengl::Format::red; } 
+    else if(channels == 2) { return opengl::Format::rg; } 
+    else if(channels == 3) { return opengl::Format::rgb; } 
+    else { return opengl::Format::rgba; }
         // clang-format on
     }
 
@@ -119,11 +119,11 @@ namespace assets {
             throw std::runtime_error("Image not loaded");
         }
         uint32_t texture;
-        opengl::texture::Sized_Internal_Format internal_format = opengl::texture::Sized_Internal_Format::rgba8;
-        opengl::texture::Format format = get_matching_pixel_format(channels);
+        opengl::Sized_Internal_Format internal_format = opengl::Sized_Internal_Format::rgba8;
+        opengl::Format format = get_matching_pixel_format(channels);
         opengl::gen_textures(1, &texture);
-        opengl::bind_texture(GL_TEXTURE_2D, texture);
-        opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, width, height, format, opengl::texture::Type::unsigned_byte, image_data);
+        opengl::bind_texture(opengl::Texture_Type::texture_2D, texture);
+        opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, width, height, format, opengl::Type::unsigned_byte, image_data);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         CHECK_GL_ERRORS();
@@ -142,11 +142,11 @@ namespace assets {
         }
         uint32_t texture;
         opengl::gen_textures(1, &texture);
-        opengl::bind_texture(GL_TEXTURE_2D, texture);
+        opengl::bind_texture(opengl::Texture_Type::texture_2D, texture);
         // TODO
-        opengl::texture::Sized_Internal_Format internal_format = opengl::texture::Sized_Internal_Format::srgb8_alpha8;
-        opengl::texture::Format format = get_matching_pixel_format(channels);
-        opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, width, height, format, opengl::texture::Type::unsigned_byte, image_data);
+        opengl::Sized_Internal_Format internal_format = opengl::Sized_Internal_Format::srgb8_alpha8;
+        opengl::Format format = get_matching_pixel_format(channels);
+        opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, width, height, format, opengl::Type::unsigned_byte, image_data);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         CHECK_GL_ERRORS();
