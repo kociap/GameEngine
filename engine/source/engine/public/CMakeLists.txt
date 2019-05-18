@@ -1,5 +1,5 @@
 set(TEMPLATE_IMPLEMENTATION_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/ecs/component_container.tpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/resource_manager.tpp"
 )
 
 set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
@@ -17,13 +17,13 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/key_state.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/cube.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/mesh/mesh_manager.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/mesh.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/plane.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/assets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/guid.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/key.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/object.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/resource_manager.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/time.hpp"
     PARENT_SCOPE
 )

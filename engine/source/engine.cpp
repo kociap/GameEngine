@@ -5,8 +5,9 @@
 #include "ecs/ecs.hpp"
 #include "ecs/entity.hpp"
 #include "input/input_core.hpp"
-#include "mesh/mesh_manager.hpp"
+#include "mesh/mesh.hpp"
 #include "renderer.hpp"
+#include "resource_manager.hpp"
 #include "shader.hpp"
 #include "shader_manager.hpp"
 #include "time/time_core.hpp"
@@ -29,7 +30,7 @@ Renderer* Engine::renderer = nullptr;
 Time_Core* Engine::time_core = nullptr;
 ECS* Engine::ecs = nullptr;
 Window* Engine::main_window = nullptr;
-Mesh_Manager* Engine::mesh_manager = nullptr;
+Resource_Manager<Mesh>* Engine::mesh_manager = nullptr;
 Shader_Manager* Engine::shader_manager = nullptr;
 
 void Engine::init(int argc, char** argv) {
@@ -40,7 +41,7 @@ void Engine::init(int argc, char** argv) {
     assets::init(executable_path, assets_path, shaders_path);
 
     main_window = new Window(1280, 720);
-    mesh_manager = new Mesh_Manager();
+    mesh_manager = new Resource_Manager<Mesh>();
     shader_manager = new Shader_Manager();
     time_core = new Time_Core();
     input_manager = new Input::Manager();
@@ -215,7 +216,7 @@ ECS& Engine::get_ecs() {
     return *ecs;
 }
 
-Mesh_Manager& Engine::get_mesh_manager() {
+Resource_Manager<Mesh>& Engine::get_mesh_manager() {
     return *mesh_manager;
 }
 

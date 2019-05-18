@@ -1,18 +1,19 @@
 #include "level_editor.hpp"
 
+#include "resource_manager.hpp"
+#include "mesh/mesh.hpp"
 #include "collisions.hpp"
 #include "components/static_mesh_component.hpp"
 #include "components/transform.hpp"
+#include "debug_macros.hpp"
 #include "ecs/ecs.hpp"
 #include "engine.hpp"
 #include "gizmo.hpp"
 #include "input/input.hpp"
 #include "math/vector2.hpp"
-#include "mesh/mesh_manager.hpp"
 #include "physics.hpp"
 #include "renderer.hpp"
 #include "window.hpp"
-#include "debug_macros.hpp"
 #include <cstdint>
 
 #include "imgui.h"
@@ -51,7 +52,6 @@ void Level_Editor::prepare_editor_ui() {
     ImGui::End();
     imgui::PopStyleVar(ImGuiStyleVar_WindowPadding);
 
-
     Input::Key_State state = Input::get_key_state(Key::right_mouse_button);
     auto& [camera, camera_transform] = rendering.get<Camera, Transform>(camera_entity);
     static Transform selected_obj_transform;
@@ -62,7 +62,7 @@ void Level_Editor::prepare_editor_ui() {
         gizmo::draw_line(ray.origin, ray.origin + 20 * ray.direction, Color::green, 20.0f);
 
         ECS& ecs = Engine::get_ecs();
-        Mesh_Manager& mesh_manager = Engine::get_mesh_manager();
+        Resource_Manager<Mesh>& mesh_manager = Engine::get_mesh_manager();
         Component_Access access = ecs.access<Static_Mesh_Component, Transform>();
         Entity selected = null_entity;
         physics::Raycast_Hit closest_hit;
@@ -94,7 +94,7 @@ void Level_Editor::prepare_editor_ui() {
     imgui::InputFloat2("", &mouse_pos.x);
     imgui::End();
 
-	static Vector2 previous_window_content_size = Vector2(0.0f, 0.0f);
+    static Vector2 previous_window_content_size = Vector2(0.0f, 0.0f);
     Renderer& renderer = Engine::get_renderer();
     imgui::Begin("Level Editor");
     if (window_content_size.x != previous_window_content_size.x || window_content_size.y != previous_window_content_size.y) {

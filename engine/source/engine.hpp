@@ -10,7 +10,7 @@ private:
     static Time_Core* time_core;
     static ECS* ecs;
     static Window* main_window;
-    static Mesh_Manager* mesh_manager;
+    static Resource_Manager<Mesh>* mesh_manager;
     static Shader_Manager* shader_manager;
 
 public:
@@ -27,7 +27,7 @@ public:
     static Window& get_window();
     static Renderer& get_renderer();
     static ECS& get_ecs();
-    static Mesh_Manager& get_mesh_manager();
+    static Resource_Manager<Mesh>& get_mesh_manager();
     static Time_Core& get_time_manager();
     static Shader_Manager& get_shader_manager();
 };

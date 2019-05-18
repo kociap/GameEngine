@@ -17,7 +17,8 @@
 #include "handle.hpp"
 #include "math/matrix4.hpp"
 #include "math/transform.hpp"
-#include "mesh/mesh_manager.hpp"
+#include "resource_manager.hpp"
+#include "mesh/mesh.hpp"
 #include "mesh/plane.hpp"
 #include "opengl.hpp"
 #include "shader.hpp"
@@ -228,14 +229,14 @@ void Renderer::render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count)
 }
 
 void Renderer::render_object(Static_Mesh_Component const& component, Shader& shader) {
-    Mesh_Manager& mesh_manager = Engine::get_mesh_manager();
+    Resource_Manager<Mesh>& mesh_manager = Engine::get_mesh_manager();
     Mesh& mesh = mesh_manager.get(component.mesh_handle);
     bind_mesh_textures(mesh, shader);
     render_mesh(mesh);
 }
 
 void Renderer::render_object(Line_Component const& component, Shader& shader) {
-    Mesh_Manager& mesh_manager = Engine::get_mesh_manager();
+    Resource_Manager<Mesh>& mesh_manager = Engine::get_mesh_manager();
     Mesh& mesh = mesh_manager.get(component.mesh_handle);
     bind_mesh_textures(mesh, shader);
     render_mesh(mesh);

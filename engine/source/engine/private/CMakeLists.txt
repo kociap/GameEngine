@@ -8,7 +8,6 @@ set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input_core.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/cube.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/mesh/mesh_manager.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/mesh.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mesh/plane.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/time/time.cpp"

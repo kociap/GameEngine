@@ -3,12 +3,16 @@
 
 class Time_Core;
 class Window;
-class Mesh_Manager;
 class Shader_Manager;
 class ECS;
 class Renderer;
 namespace Input {
     class Manager;
 }
+
+class Mesh;
+class Material;
+template <typename T>
+class Resource_Manager;
 
 #endif // !SUBSYSTEM_FORWARD_DECLARATIONS_HPP_INCLUDE
