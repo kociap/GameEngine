@@ -4,6 +4,7 @@
 #include "object.hpp"
 #include <string>
 #include <type_traits>
+#include <unordered_map>
 
 class Vector3;
 class Color;
@@ -12,7 +13,7 @@ class Shader_File;
 
 class Shader: public Object {
 public:
-    Shader();
+    Shader(bool create = true);
     Shader(Shader const&) = delete;
     Shader& operator=(Shader const&) = delete;
     Shader(Shader&&) noexcept;
@@ -37,8 +38,12 @@ public:
 
     friend void swap(Shader&, Shader&);
 
+    // TODO use char const* as key?
+    std::unordered_map<std::string, int32_t> uniform_cache;
     uint32_t program = 0;
 };
+
+void delete_shader(Shader&);
 
 template <typename... Ts>
 // Return type causes internal compiler error on msvc
