@@ -9,6 +9,8 @@ public:
     id_type id;
 };
 
+constexpr Entity null_entity{static_cast<Entity::id_type>(-1)};
+
 bool operator==(Entity const&, Entity const&);
 bool operator!=(Entity const&, Entity const&);
 
