@@ -64,7 +64,7 @@ public:
     template <typename... Ts>
     decltype(auto) get_component(Entity const entity) {
         if constexpr (sizeof...(Ts) == 1) {
-            Component_Container<T>& components = *ensure_container<T>();
+            Component_Container<Ts...>& components = *ensure_container<Ts...>();
             return components.get(entity);
         } else {
             return std::make_tuple(get_component<Ts>(entity)...);
@@ -125,15 +125,5 @@ private:
     containers::Vector<Entity> entities;
     containers::Vector<Components_Container_Data> containers;
 };
-
-// template <typename T, typename... Ctor_Args>
-// T& add_component(Entity const& entity, Ctor_Args&&... args) {
-//     return Engine::get_component_system().add_component<T>(entity, std::forward<Ctor_Args>(args)...);
-// }
-
-// template <typename T>
-// T& get_component(Entity const& entity) {
-//     return Engine::get_component_system().get_component<T>(entity);
-// }
 
 #endif // !ENGINE_ENTITY_COMPONENT_SYSTEM_HPP_INCLUDE
