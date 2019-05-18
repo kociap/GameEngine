@@ -24,6 +24,7 @@ public:
     Vector4& operator+=(Vector4 const&);
     Vector4& operator-=(Vector4 const&);
     Vector4& operator*=(float);
+    Vector4& operator/=(float);
 
     // Check if all components are equal 0
     bool is_zero() const;

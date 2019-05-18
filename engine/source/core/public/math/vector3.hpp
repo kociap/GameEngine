@@ -29,6 +29,7 @@ public:
     Vector3& operator+=(Vector3 const&);
     Vector3& operator-=(Vector3 const&);
     Vector3& operator*=(float);
+    Vector3& operator/=(float);
 
     // Check if all components are equal 0
     bool is_zero() const;
@@ -61,6 +62,8 @@ namespace math {
     // If vector is non-zero, returns normalized copy of the vector.
     // Otherwise returns zero vector
     Vector3 normalize(Vector3);
+
+    float length(Vector3);
 
     Vector3 multiply_componentwise(Vector3 const&, Vector3 const&);
 } // namespace math

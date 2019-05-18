@@ -2,6 +2,7 @@
 #define GAME_ENGINE_CORE_MATH_MARTIX4_HPP_INCLUDE
 
 #include "vector4.hpp"
+#include <cstdint>
 
 // Row major
 class Matrix4 {
@@ -35,15 +36,11 @@ Matrix4 operator+(Matrix4 const&, Matrix4 const&);
 Matrix4 operator*(Matrix4 const&, Matrix4 const&);
 Vector4 operator*(Vector4 const&, Matrix4 const&);
 
-Matrix4 transpose(Matrix4);
-
-// float determinant(Matrix4 const& m) {
-//     return m(0, 0) * m(1, 1) * m(2, 2) + m(1, 0) * m(2, 1) * m(0, 2) + m(2, 0) * m(0, 1) * m(1, 2) - m(0, 0) * m(2, 1) * m(1, 2) - m(1, 0) * m(0, 1) * m(2, 2) -
-//            m(2, 0) * m(1, 1) * m(0, 2);
-// }
-
-Matrix4 adjoint(Matrix4 const& m);
-
-Matrix4 inverse(Matrix4 const& m);
+namespace math {
+    Matrix4 transpose(Matrix4);
+    float determinant(Matrix4 const& m);
+    Matrix4 adjugate(Matrix4 const& m);
+    Matrix4 inverse(Matrix4 const& m);
+} // namespace math
 
 #endif // !GAME_ENGINE_CORE_MATH_MARTIX4_HPP_INCLUDE

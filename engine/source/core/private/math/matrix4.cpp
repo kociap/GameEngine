@@ -4,7 +4,7 @@
 const Matrix4 Matrix4::zero = Matrix4();
 const Matrix4 Matrix4::identity = Matrix4{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
 
-Matrix4::Matrix4() : components{} {}
+Matrix4::Matrix4(): components{} {}
 
 Matrix4::Matrix4(Vector4 const& a, Vector4 const& b, Vector4 const& c, Vector4 const& d)
     : components{
@@ -119,7 +119,54 @@ Vector4 operator*(Vector4 const& lhs, Matrix4 const& rhs) {
     return {multiply_row_column(lhs, rhs, 0), multiply_row_column(lhs, rhs, 1), multiply_row_column(lhs, rhs, 2), multiply_row_column(lhs, rhs, 3)};
 }
 
-Matrix4 transpose(Matrix4 mat) {
-    mat.transpose();
-    return mat;
-}
+namespace math {
+    Matrix4 transpose(Matrix4 mat) {
+        mat.transpose();
+        return mat;
+    }
+
+    static float determinant3x3(float m00, float m01, float m02, float m10, float m11, float m12, float m20, float m21, float m22) {
+        return m00 * m11 * m22 + m01 * m12 * m20 + m02 * m10 * m21 - m02 * m11 * m20 - m01 * m10 * m22 - m00 * m12 * m21;
+    }
+
+    float determinant(Matrix4 const& m) {
+        float det0 = determinant3x3(m(1, 1), m(1, 2), m(1, 3), m(2, 1), m(2, 2), m(2, 3), m(3, 1), m(3, 2), m(3, 3));
+        float det1 = determinant3x3(m(1, 0), m(1, 2), m(1, 3), m(2, 0), m(2, 2), m(2, 3), m(3, 0), m(3, 2), m(3, 3));
+        float det2 = determinant3x3(m(1, 0), m(1, 1), m(1, 3), m(2, 0), m(2, 1), m(2, 3), m(3, 0), m(3, 1), m(3, 3));
+        float det3 = determinant3x3(m(1, 0), m(1, 1), m(1, 2), m(2, 0), m(2, 1), m(2, 2), m(3, 0), m(3, 1), m(3, 2));
+        return m(0, 0) * det0 - m(0, 1) * det1 + m(0, 2) * det2 - m(0, 3) * det3;
+    }
+
+    Matrix4 adjugate(Matrix4 const& m) {
+        float m00 = determinant3x3(m(1, 1), m(1, 2), m(1, 3), m(2, 1), m(2, 2), m(2, 3), m(3, 1), m(3, 2), m(3, 3));
+        float m01 = determinant3x3(m(1, 0), m(1, 2), m(1, 3), m(2, 0), m(2, 2), m(2, 3), m(3, 0), m(3, 2), m(3, 3));
+        float m02 = determinant3x3(m(1, 0), m(1, 1), m(1, 3), m(2, 0), m(2, 1), m(2, 3), m(3, 0), m(3, 1), m(3, 3));
+        float m03 = determinant3x3(m(1, 0), m(1, 1), m(1, 2), m(2, 0), m(2, 1), m(2, 2), m(3, 0), m(3, 1), m(3, 2));
+
+        float m10 = determinant3x3(m(0, 1), m(0, 2), m(0, 3), m(2, 1), m(2, 2), m(2, 3), m(3, 1), m(3, 2), m(3, 3));
+        float m11 = determinant3x3(m(0, 0), m(0, 2), m(0, 3), m(2, 0), m(2, 2), m(2, 3), m(3, 0), m(3, 2), m(3, 3));
+        float m12 = determinant3x3(m(0, 0), m(0, 1), m(0, 3), m(2, 0), m(2, 1), m(2, 3), m(3, 0), m(3, 1), m(3, 3));
+        float m13 = determinant3x3(m(0, 0), m(0, 1), m(0, 2), m(2, 0), m(2, 1), m(2, 2), m(3, 0), m(3, 1), m(3, 2));
+
+        float m20 = determinant3x3(m(0, 1), m(0, 2), m(0, 3), m(1, 1), m(1, 2), m(1, 3), m(3, 1), m(3, 2), m(3, 3));
+        float m21 = determinant3x3(m(0, 0), m(0, 2), m(0, 3), m(1, 0), m(1, 2), m(1, 3), m(3, 0), m(3, 2), m(3, 3));
+        float m22 = determinant3x3(m(0, 0), m(0, 1), m(0, 3), m(1, 0), m(1, 1), m(1, 3), m(3, 0), m(3, 1), m(3, 3));
+        float m23 = determinant3x3(m(0, 0), m(0, 1), m(0, 2), m(1, 0), m(1, 1), m(1, 2), m(3, 0), m(3, 1), m(3, 2));
+
+        float m30 = determinant3x3(m(0, 1), m(0, 2), m(0, 3), m(1, 1), m(1, 2), m(1, 3), m(2, 1), m(2, 2), m(2, 3));
+        float m31 = determinant3x3(m(0, 0), m(0, 2), m(0, 3), m(1, 0), m(1, 2), m(1, 3), m(2, 0), m(2, 2), m(2, 3));
+        float m32 = determinant3x3(m(0, 0), m(0, 1), m(0, 3), m(1, 0), m(1, 1), m(1, 3), m(2, 0), m(2, 1), m(2, 3));
+        float m33 = determinant3x3(m(0, 0), m(0, 1), m(0, 2), m(1, 0), m(1, 1), m(1, 2), m(2, 0), m(2, 1), m(2, 2));
+        // clang-format off
+        return Matrix4(
+            {m00, -m10, m20, -m30}, 
+            {-m01, m11, -m21, m31}, 
+            {m02, -m12, m22, -m32}, 
+            {-m03, m13, -m23, m33});
+        // clang-format on
+    }
+
+    Matrix4 inverse(Matrix4 const& m) {
+        return adjugate(m) / determinant(m);
+    }
+} // namespace math

@@ -57,6 +57,13 @@ Vector3& Vector3::operator*=(float a) {
     return *this;
 }
 
+Vector3& Vector3::operator/=(float a) {
+    x /= a;
+    y /= a;
+    z /= a;
+    return *this;
+}
+
 bool Vector3::is_zero() const {
     return x == 0.0f && y == 0.0f && z == 0.0f;
 }
@@ -134,6 +141,10 @@ namespace math {
     Vector3 normalize(Vector3 vec) {
         vec.normalize();
         return vec;
+    }
+
+    float length(Vector3 vec) {
+        return vec.length();
     }
 
     Vector3 multiply_componentwise(Vector3 const& a, Vector3 const& b) {

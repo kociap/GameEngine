@@ -18,6 +18,7 @@ namespace math {
         constexpr static float rad_to_deg = 180.0f / pi;
         // Smallest number such that 1.0 + epsilon != 1.0
         constexpr static float epsilon = std::numeric_limits<float>::epsilon();
+        constexpr static float infinity = std::numeric_limits<float>::infinity();
     };
 
     template <>
@@ -27,6 +28,7 @@ namespace math {
         constexpr static double rad_to_deg = 180.0 / pi;
         // Smallest number such that 1.0 + epsilon != 1.0
         constexpr static double epsilon = std::numeric_limits<double>::epsilon();
+        constexpr static double infinity = std::numeric_limits<double>::infinity();
     };
 
     constexpr float radians(float degrees) {
