@@ -7,7 +7,6 @@ set(SOURCE_FILES
 set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/editor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/imgui_renderer.hpp"    
-    "${CMAKE_CURRENT_SOURCE_DIR}/imgui_build_config.hpp"    
 )
 
 add_subdirectory(leveleditor/public)

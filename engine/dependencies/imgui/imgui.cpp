@@ -6227,6 +6227,11 @@ ImVec2 ImGui::GetWindowPos()
     return window->Pos;
 }
 
+float ImGui::GetWindowTitleBarHeight() {
+    ImGuiWindow* window = GImGui->CurrentWindow;
+    return window->TitleBarHeight();
+}
+
 void ImGui::SetWindowScrollX(ImGuiWindow* window, float new_scroll_x)
 {
     window->DC.CursorMaxPos.x += window->Scroll.x; // SizeContents is generally computed based on CursorMaxPos which is affected by scroll position, so we need to apply our change to it.
