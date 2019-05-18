@@ -9,8 +9,15 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(size_type cap): _capacity(cap) {
-        storage = allocator.allocate(cap);
+    Vector<T, Allocator>::Vector(size_type size): _capacity(size) {
+        storage = allocator.allocate(_capacity);
+        try {
+            uninitialized_default_construct_n(storage, size);
+            _size = size;
+        } catch (...) {
+            allocator.deallocate(storage, _capacity);
+            throw;
+        }
     }
 
     template <typename T, typename Allocator>
@@ -30,6 +37,26 @@ namespace containers {
         v.storage = nullptr;
         v._capacity = 0;
         v._size = 0;
+    }
+
+    template <typename T, typename Allocator>
+    Vector<T, Allocator>::Vector(std::initializer_list<T> list): _capacity(list.size()) {
+        storage = allocator.allocate(_capacity);
+        try {
+            uninitialized_move(list.begin(), list.end(), storage);
+            _size = list.size();
+        } catch (...) {
+            allocator.deallocate(storage, _capacity);
+            throw;
+        }
+    }
+
+    template <typename T, typename Allocator>
+    Vector<T, Allocator>::~Vector() {
+        if (storage != nullptr) {
+            destruct_n(storage, _size);
+            allocator.deallocate(storage, _capacity);
+        }
     }
 
     template <typename T, typename Allocator>
@@ -54,14 +81,6 @@ namespace containers {
         std::swap(_capacity, v._capacity);
         std::swap(_size, v._size);
         return *this;
-    }
-
-    template <typename T, typename Allocator>
-    Vector<T, Allocator>::~Vector() {
-        if (storage != nullptr) {
-            destruct_n(storage, _size);
-            allocator.deallocate(storage, _capacity);
-        }
     }
 
     template <typename T, typename Allocator>
@@ -331,7 +350,7 @@ namespace containers {
 
     template <typename T, typename Allocator>
     void Vector<T, Allocator>::move_contents(T* const& from, T* const& to, size_type number_of_elements_to_copy) {
-        // TODO if is not nothrow movable and is not copyable, use move constructor
+        // TODO
         if constexpr (std::is_nothrow_move_constructible_v<T> /* || !std::is_copy_constructible_v<T> */) {
             uninitialized_move_n(from, number_of_elements_to_copy, to);
         } else {

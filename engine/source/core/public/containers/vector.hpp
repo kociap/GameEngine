@@ -3,13 +3,14 @@
 
 #include "iterators.hpp"
 #include "serialization.hpp"
+#include <initializer_list>
 #include <stdexcept>
 #include <type_traits>
 
 namespace containers {
     template <typename T, typename Allocator = std::allocator<T>>
     class Vector {
-        static_assert(std::is_nothrow_move_constructible_v<T> || std::is_copy_constructible_v<T>,
+        static_assert(std::is_nothrow_move_constructible_v<T> || std::is_copy_constructible_v<T> || std::is_trivially_copy_constructible_v<T>,
                       "Type is neither nothrow move constructible nor copy constructible");
 
     public:
@@ -27,14 +28,14 @@ namespace containers {
 
     public:
         Vector();
-        // Allocates storage for cap elements
-        // Does not construct elements
-        explicit Vector(size_type cap);
+        // TODO add only-allocate constructor
+        explicit Vector(size_type size);
         Vector(Vector const& original);
         Vector(Vector&& from) noexcept;
+        Vector(std::initializer_list<T>);
+        ~Vector();
         Vector& operator=(Vector const& original);
         Vector& operator=(Vector&& from) noexcept;
-        ~Vector();
 
     public:
         reference at(size_type index);

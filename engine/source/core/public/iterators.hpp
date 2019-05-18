@@ -2,14 +2,35 @@
 #define CORE_CONTAINERS_ITERATORS_HPP_INCLUDE
 
 #include <cstddef>
+#include <type_traits>
 
 namespace std {
+    struct input_iterator_tag;
+    struct output_iterator_tag;
     struct forward_iterator_tag;
     struct bidirectional_iterator_tag;
     struct random_access_iterator_tag;
 } // namespace std
 
 namespace iterators {
+    template <typename T>
+    struct iterator_traits {
+        using difference_type = typename T::difference_type;
+        using value_type = typename T::value_type;
+        using pointer = typename T::pointer;
+        using reference = typename T::reference;
+        using iterator_category = typename T::iterator_category;
+    };
+
+    template <typename T>
+    struct iterator_traits<T*> {
+        using difference_type = std::ptrdiff_t;
+        using value_type = std::remove_cv_t<T>;
+        using pointer = T*;
+        using reference = T&;
+        using iterator_category = std::random_access_iterator_tag;
+    };
+
     template <typename Container>
     class const_iterator;
 
