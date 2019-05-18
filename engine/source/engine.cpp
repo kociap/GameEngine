@@ -69,22 +69,22 @@ void Engine::load_world() {
 
     // BS code to output anything on the screen
 
-    std::vector<Mesh> meshes = assets::load_model("barrel.obj");
+    std::vector<Mesh> meshes = assets::load_model("cube.obj");
     auto& container = meshes[0];
     //Cube container;
-    Texture container_diffuse;
-    container_diffuse.id = assets::load_srgb_texture("barrel_texture.jpg", false);
-    container_diffuse.type = Texture_Type::diffuse;
+    //Texture container_diffuse;
+    //container_diffuse.id = assets::load_srgb_texture("barrel_texture.jpg", false);
+    //container_diffuse.type = Texture_Type::diffuse;
     // Texture container_specular;
     // container_specular.id = assets::load_texture("container_specular.jpg");
     // container_specular.type = Texture_Type::specular;
-    Texture container_normal;
-    container_normal.id = assets::load_texture("barrel_normal_map.jpg", false);
-    container_normal.type = Texture_Type::normal;
-    container.textures.clear();
-    container.textures.push_back(container_diffuse);
+    //Texture container_normal;
+    //container_normal.id = assets::load_texture("barrel_normal_map.jpg", false);
+    //container_normal.type = Texture_Type::normal;
+    //container.textures.clear();
+    //container.textures.push_back(container_diffuse);
     // meshes[0].textures.push_back(container_specular);
-    container.textures.push_back(container_normal);
+    //container.textures.push_back(container_normal);
     Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
 
     auto instantiate_box = [&, default_shader_handle, box_handle](Vector3 position, float rotation = 0) {
@@ -97,7 +97,7 @@ void Engine::load_world() {
         box_t.rotate(Vector3::forward, math::radians(rotation));
     };
 
-    instantiate_box({0, 0, 0});
+    instantiate_box({0, 0, -1});
     instantiate_box({-5, 7, 2}, 55.0f);
     instantiate_box({-3, -1, 4});
     instantiate_box({0, -1, 4});
@@ -143,7 +143,7 @@ void Engine::load_world() {
     Camera& camera_c = ecs->add_component<Camera>(camera);
     Camera_Movement& camera_m = ecs->add_component<Camera_Movement>(camera);
     ecs->add_component<Debug_Hotkeys>(camera);
-    camera_t.translate({0, 0, 10});
+    camera_t.translate({0, 0, 0});
 
     Entity directional_light = ecs->create();
     Directional_Light_Component& dl_c = ecs->add_component<Directional_Light_Component>(directional_light);
@@ -184,7 +184,14 @@ void Engine::loop() {
         Debug_Hotkeys::update(dbg_hotkeys.get(entity));
     }
 
-    renderer->render_frame(main_window->width(), main_window->height());
+    auto rendering = ecs->access<Camera, Transform>();
+    for (Entity const entity: rendering) {
+        auto& [camera, transform] = rendering.get<Camera, Transform>(entity);
+        if (camera.active) {
+            renderer->render_frame(camera, transform, main_window->width(), main_window->height());
+            break;
+        }
+    }
     main_window->swap_buffers();
 }
 

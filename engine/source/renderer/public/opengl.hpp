@@ -194,12 +194,15 @@ namespace opengl {
     void bind_vertex_array(uint32_t handle);
     void blit_framebuffer(uint32_t src_x0, uint32_t src_y0, uint32_t src_x1, uint32_t src_y1, uint32_t dst_x0, uint32_t dst_y0, uint32_t dst_x1,
                           uint32_t dst_y1, Buffer_Mask, uint32_t filter);
+    // Size in bytes
+    void buffer_data(Buffer_Type target, uint64_t size, void* data, uint32_t usage);
     void clear(Buffer_Mask buffers);
     void clear_color(Color);
     void clear_color(float red, float green, float blue, float alpha);
     uint32_t create_shader(Shader_Type);
     void delete_program(uint32_t program);
     void delete_shader(uint32_t shader);
+    void draw_arrays(uint32_t mode, uint64_t first, uint64_t count);
     void draw_elements(uint32_t mode, uint32_t count, uint64_t offset = 0);
     void draw_elements_instanced(uint32_t mode, uint32_t indices_count, uint32_t instances);
     void enable_vertex_array_attribute(uint32_t index);
@@ -221,8 +224,8 @@ namespace opengl {
                       void const* pixels);
     void tex_image_2D_multisample(uint32_t target, uint32_t samples, Sized_Internal_Format, uint32_t width, uint32_t height,
                                   bool fixed_sample_locations = true);
-    // Lower left corner of the viewport, its width and height
     void vertex_array_attribute(uint32_t index, uint32_t count, uint32_t type, uint32_t stride, uint32_t offset, bool normalized = false);
+    // Lower left corner of the viewport, its width and height
     void viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
     void load_opengl_parameters();

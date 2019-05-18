@@ -68,7 +68,8 @@ Shader create_default_shader() {
 }
 
 Imgui_Renderer::Imgui_Renderer(): shader(create_default_shader()) {
-    ImGui::CreateContext();
+    namespace imgui = ImGui;
+    imgui::CreateContext();
 
     opengl::gen_buffers(1, &vbo);
     opengl::gen_buffers(1, &ebo);
@@ -85,11 +86,15 @@ Imgui_Renderer::Imgui_Renderer(): shader(create_default_shader()) {
 
     // Create default font
     // TODO this code is not pinnacle of programming
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = imgui::GetIO();
     io.Fonts->AddFontDefault();
     texture_from_font(io);
 
     io.ConfigWindowsResizeFromEdges = true;
+
+    // Global window style settings
+    ImGuiStyle& style = imgui::GetStyle();
+    style.WindowRounding = 0.0f;
 }
 
 Imgui_Renderer::~Imgui_Renderer() {

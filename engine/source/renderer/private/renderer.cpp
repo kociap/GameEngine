@@ -1,6 +1,7 @@
 #include "renderer.hpp"
 
 #include "assets.hpp"
+#include "build_config.hpp"
 #include "components/camera.hpp"
 #include "components/directional_light_component.hpp"
 #include "components/line_component.hpp"
@@ -12,6 +13,7 @@
 #include "ecs/ecs.hpp"
 #include "engine.hpp"
 #include "framebuffer.hpp"
+#include "gizmo_internal.hpp"
 #include "handle.hpp"
 #include "math/matrix4.hpp"
 #include "math/transform.hpp"
@@ -205,6 +207,7 @@ void Renderer::swap_postprocess_buffers() {
     std::swap(postprocess_front_buffer, postprocess_back_buffer);
 }
 
+// TODO this is outdated, won't render correctly
 void Renderer::render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count) {
     for (uint32_t i = 0; i < mesh.textures.size(); ++i) {
         opengl::active_texture(i);
@@ -339,20 +342,7 @@ void Renderer::render_with_shader(Shader& shader, Transform const& camera_transf
     }
 }
 
-static std::pair<Camera&, Transform&> find_active_camera() {
-    ECS& ecs = Engine::get_ecs();
-    auto cameras = ecs.access<Camera, Transform>();
-    for (Entity const entity: cameras) {
-        Camera& camera = cameras.get<Camera>(entity);
-        if (camera.active) {
-            return {camera, cameras.get<Transform>(entity)};
-        }
-    }
-
-    throw std::runtime_error("No active camera found"); // TODO ???
-}
-
-uint32_t Renderer::render_frame_as_texture(uint32_t viewport_width, uint32_t viewport_height) {
+uint32_t Renderer::render_frame_as_texture(Camera camera, Transform camera_transform, uint32_t viewport_width, uint32_t viewport_height) {
     static Plane scene_quad;
 
     update_dynamic_lights();
@@ -376,10 +366,13 @@ uint32_t Renderer::render_frame_as_texture(uint32_t viewport_width, uint32_t vie
     //glClearColor(0.11f, 0.11f, 0.11f, 1.0f);
     opengl::clear_color(0.0f, 0.0f, 0.0f, 1.0f);
     opengl::clear(opengl::Buffer_Mask::color_buffer_bit | opengl::Buffer_Mask::depth_buffer_bit);
-    auto& [camera, camera_transform] = find_active_camera();
-    Matrix4 view = Camera::get_view_matrix(camera_transform);
-    Matrix4 projection = Camera::get_projection_matrix(camera, viewport_width, viewport_height);
+    Matrix4 view = get_camera_view_matrix(camera_transform);
+    Matrix4 projection = get_camera_projection_matrix(camera, viewport_width, viewport_height);
     render_scene(camera_transform, view, projection, dl_view_transform * dl_projection_transform);
+
+#if GE_WITH_EDITOR
+    gizmo::draw(view, projection);
+#endif
 
     // Postprocessing
 
@@ -406,10 +399,10 @@ uint32_t Renderer::render_frame_as_texture(uint32_t viewport_width, uint32_t vie
     return postprocess_front_buffer->get_color_texture(0);
 }
 
-void Renderer::render_frame(uint32_t viewport_width, uint32_t viewport_height) {
+void Renderer::render_frame(Camera camera, Transform camera_transform, uint32_t viewport_width, uint32_t viewport_height) {
     static Plane scene_quad;
 
-    uint32_t frame_texture = render_frame_as_texture(viewport_width, viewport_height);
+    uint32_t frame_texture = render_frame_as_texture(camera, camera_transform, viewport_width, viewport_height);
     Framebuffer::bind_default();
     opengl::active_texture(0);
     opengl::bind_texture(opengl::Texture_Type::texture_2D, frame_texture);

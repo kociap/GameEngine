@@ -1,7 +1,7 @@
 set(HEADER_FILES
     ${HEADER_FILES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/level_editor.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/gizmo.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/collisions.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/physics.hpp"
     PARENT_SCOPE
 )
 

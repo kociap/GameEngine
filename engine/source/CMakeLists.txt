@@ -17,6 +17,8 @@ add_subdirectory(renderer/public)
 add_subdirectory(renderer/private)
 add_subdirectory(engine/public)
 add_subdirectory(engine/private)
+add_subdirectory(physics/public)
+add_subdirectory(physics/private)
 add_subdirectory(windowing/public)
 add_subdirectory(windowing/private)
 add_subdirectory(scripts) # TODO Temporary directory to store a bunch of game scripts that e.g. move the camera around

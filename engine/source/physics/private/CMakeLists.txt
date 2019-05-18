@@ -1,0 +1,14 @@
+set(SOURCE_FILES
+    ${SOURCE_FILES}
+    "${CMAKE_CURRENT_SOURCE_DIR}/collisions.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/physics.cpp"
+    PARENT_SCOPE
+)
+
+set(HEADER_FILES 
+    ${HEADER_FILES}
+
+    PARENT_SCOPE
+)
+
+# target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")

@@ -2,7 +2,7 @@
 #define BUILD_CONFIG_HPP_INCLUDE
 
 #ifndef GE_WITH_EDITOR
-#    define GE_WITH_EDITOR 0
+#    define GE_WITH_EDITOR 1
 #endif
 
 #endif // !BUILD_CONFIG_HPP_INCLUDE

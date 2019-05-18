@@ -9,6 +9,7 @@
 #include "shader_exceptions.hpp"
 #include "shader_manager.hpp"
 #include "window.hpp"
+#include "editor.hpp"
 
 template <typename... T>
 void reload_shader(Shader& shader_to_reload, T&&... path) {
@@ -75,5 +76,6 @@ void Debug_Hotkeys::update(Debug_Hotkeys& debug_hotkeys) {
             debug_hotkeys.cursor_captured = true;
             Engine::get_window().lock_cursor();
         }
+        Editor::set_mouse_captured(debug_hotkeys.cursor_captured);
     }
 }

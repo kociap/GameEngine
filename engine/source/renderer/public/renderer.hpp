@@ -1,6 +1,8 @@
 #ifndef ENGINE_RENDERER_RENDERER_HPP_INCLUDE
 #define ENGINE_RENDERER_RENDERER_HPP_INCLUDE
 
+#include "components/camera.hpp"
+#include "components/transform.hpp"
 #include "shader.hpp"
 #include <cstdint>
 
@@ -19,8 +21,8 @@ public:
     ~Renderer();
 
     void resize(uint32_t width, uint32_t height);
-    void render_frame(uint32_t viewport_width, uint32_t viewport_height);
-    uint32_t render_frame_as_texture(uint32_t viewport_width, uint32_t viewport_height);
+    void render_frame(Camera, Transform camera_transform, uint32_t viewport_width, uint32_t viewport_height);
+    uint32_t render_frame_as_texture(Camera, Transform camera_transform, uint32_t viewport_width, uint32_t viewport_height);
     void load_shader_light_properties();
     void set_gamma_value(float);
 

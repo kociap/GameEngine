@@ -6,6 +6,7 @@
 #include "debug_hotkeys.hpp"
 #include "ecs/ecs.hpp"
 #include "engine.hpp"
+#include "gizmo_internal.hpp"
 #include "imgui.h"
 #include "imgui_renderer.hpp"
 #include "input/input.hpp"
@@ -17,6 +18,7 @@
 
 Level_Editor* Editor::level_editor = nullptr;
 Imgui_Renderer* Editor::imgui_renderer = nullptr;
+bool Editor::mouse_captured = false;
 
 static void resize_imgui(ImGuiIO& io, uint32_t width, uint32_t height) {
     io.DisplaySize = ImVec2(width, height);
@@ -43,6 +45,7 @@ static void update_imgui() {
 }
 
 void Editor::init() {
+    gizmo::init();
     imgui_renderer = new Imgui_Renderer();
     level_editor = new Level_Editor();
 }
@@ -52,12 +55,15 @@ void Editor::terminate() {
     level_editor = nullptr;
     delete imgui_renderer;
     imgui_renderer = nullptr;
+    gizmo::terminate();
 }
 
 void Editor::loop() {
     Engine::get_window().poll_events();
     Engine::get_time_manager().update_time();
     Engine::get_input_manager().process_events();
+
+    gizmo::update();
 
     auto camera_mov_view = Engine::get_ecs().access<Camera_Movement, Camera, Transform>();
     for (Entity const entity: camera_mov_view) {
@@ -84,4 +90,12 @@ bool Editor::should_close() {
 
 void Editor::resize(uint32_t width, uint32_t height) {
     resize_imgui(ImGui::GetIO(), width, height);
+}
+
+bool Editor::is_mouse_captured() {
+    return mouse_captured;
+}
+
+void Editor::set_mouse_captured(bool captured) {
+    mouse_captured = captured;
 }

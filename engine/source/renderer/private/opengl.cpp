@@ -68,6 +68,11 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
+    void buffer_data(Buffer_Type target, uint64_t size, void* data, uint32_t usage) {
+        glBufferData(utils::enum_to_value(target), size, data, usage);
+        CHECK_GL_ERRORS();
+    }
+
     void clear(Buffer_Mask buffers) {
         glClear(utils::enum_to_value(buffers));
         CHECK_GL_ERRORS();
@@ -101,6 +106,11 @@ namespace opengl {
             glDeleteShader(shader);
             CHECK_GL_ERRORS();
         }
+    }
+
+    void draw_arrays(uint32_t mode, uint64_t first, uint64_t count) {
+        glDrawArrays(mode, first, count);
+        CHECK_GL_ERRORS();
     }
 
     void draw_elements(uint32_t mode, uint32_t count, uint64_t offset) {
