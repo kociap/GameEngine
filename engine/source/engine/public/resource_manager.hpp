@@ -3,16 +3,23 @@
 
 #include "containers/vector.hpp"
 #include "handle.hpp"
+#include "id_generator.hpp"
 
 template <typename T>
 class Resource_Manager {
 public:
+    using iterator = typename containers::Vector<T>::iterator;
+
+    iterator begin();
+    iterator end();
+
     Handle<T> add(T&&);
     T& get(Handle<T>);
     void remove(Handle<T>);
 
 private:
     containers::Vector<T> resources;
+    containers::Vector<id_type> identifiers;
 };
 
 #include "resource_manager.tpp"

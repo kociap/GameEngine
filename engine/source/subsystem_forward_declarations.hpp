@@ -3,13 +3,13 @@
 
 class Time_Core;
 class Window;
-class Shader_Manager;
 class ECS;
 class Renderer;
 namespace Input {
     class Manager;
 }
 
+class Shader;
 class Mesh;
 class Material;
 template <typename T>

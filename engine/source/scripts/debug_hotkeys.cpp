@@ -7,7 +7,8 @@
 #include "engine.hpp"
 #include "renderer.hpp"
 #include "shader_exceptions.hpp"
-#include "shader_manager.hpp"
+#include "resource_manager.hpp"
+#include "shader.hpp"
 #include "window.hpp"
 #include "editor.hpp"
 
@@ -58,7 +59,8 @@ void Debug_Hotkeys::update(Debug_Hotkeys& debug_hotkeys) {
 
     auto reload = Input::get_action("reload_shaders");
     if (reload.released) {
-        Engine::get_shader_manager().reload_shaders();
+        // TODO reloading shaders
+		//Engine::get_shader_manager().reload_shaders();
         reload_renderer_shaders(current_fxaa);
     }
 

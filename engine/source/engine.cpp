@@ -9,7 +9,6 @@
 #include "renderer.hpp"
 #include "resource_manager.hpp"
 #include "shader.hpp"
-#include "shader_manager.hpp"
 #include "time/time_core.hpp"
 #include "utils/path.hpp"
 #include "window.hpp"
@@ -31,7 +30,7 @@ Time_Core* Engine::time_core = nullptr;
 ECS* Engine::ecs = nullptr;
 Window* Engine::main_window = nullptr;
 Resource_Manager<Mesh>* Engine::mesh_manager = nullptr;
-Shader_Manager* Engine::shader_manager = nullptr;
+Resource_Manager<Shader>* Engine::shader_manager = nullptr;
 
 void Engine::init(int argc, char** argv) {
     std::filesystem::path executable_path(argv[0]);
@@ -42,7 +41,7 @@ void Engine::init(int argc, char** argv) {
 
     main_window = new Window(1280, 720);
     mesh_manager = new Resource_Manager<Mesh>();
-    shader_manager = new Shader_Manager();
+    shader_manager = new Resource_Manager<Shader>();
     time_core = new Time_Core();
     input_manager = new Input::Manager();
     input_manager->load_bindings();
@@ -55,11 +54,17 @@ void Engine::init(int argc, char** argv) {
 }
 
 void Engine::load_world() {
+#define RENDER_CUBES
+
     /*assets::load_shader_file_and_attach(default_shader, "normals.vert");
     assets::load_shader_file_and_attach(default_shader, "normals.geom");
     assets::load_shader_file_and_attach(default_shader, "normals.frag");*/
-    auto basic_vert = assets::load_shader_file("basicvertex.vert");
+#ifdef RENDER_CUBES
+    auto basic_frag = assets::load_shader_file("basicfrag.2.frag");
+#else
     auto basic_frag = assets::load_shader_file("basicfrag.frag");
+#endif
+    auto basic_vert = assets::load_shader_file("basicvertex.vert");
     Shader default_shader = create_shader(basic_vert, basic_frag);
     Handle<Shader> default_shader_handle = shader_manager->add(std::move(default_shader));
 
@@ -69,23 +74,27 @@ void Engine::load_world() {
     Handle<Shader> unlit_default_shader_handle = shader_manager->add(std::move(unlit_default_shader));
 
     // BS code to output anything on the screen
-
+#ifdef RENDER_CUBES
     std::vector<Mesh> meshes = assets::load_model("cube.obj");
     auto& container = meshes[0];
+#else
+    std::vector<Mesh> meshes = assets::load_model("barrel.obj");
+    auto& container = meshes[0];
     //Cube container;
-    //Texture container_diffuse;
-    //container_diffuse.id = assets::load_srgb_texture("barrel_texture.jpg", false);
-    //container_diffuse.type = Texture_Type::diffuse;
+    Texture container_diffuse;
+    container_diffuse.id = assets::load_srgb_texture("barrel_texture.jpg", false);
+    container_diffuse.type = Texture_Type::diffuse;
     // Texture container_specular;
     // container_specular.id = assets::load_texture("container_specular.jpg");
     // container_specular.type = Texture_Type::specular;
-    //Texture container_normal;
-    //container_normal.id = assets::load_texture("barrel_normal_map.jpg", false);
-    //container_normal.type = Texture_Type::normal;
-    //container.textures.clear();
-    //container.textures.push_back(container_diffuse);
+    Texture container_normal;
+    container_normal.id = assets::load_texture("barrel_normal_map.jpg", false);
+    container_normal.type = Texture_Type::normal;
+    container.textures.clear();
+    container.textures.push_back(container_diffuse);
     // meshes[0].textures.push_back(container_specular);
-    //container.textures.push_back(container_normal);
+    container.textures.push_back(container_normal);
+#endif
     Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
 
     auto instantiate_box = [&, default_shader_handle, box_handle](Vector3 position, float rotation = 0) {
@@ -224,6 +233,6 @@ Time_Core& Engine::get_time_manager() {
     return *time_core;
 }
 
-Shader_Manager& Engine::get_shader_manager() {
+Resource_Manager<Shader>& Engine::get_shader_manager() {
     return *shader_manager;
 }

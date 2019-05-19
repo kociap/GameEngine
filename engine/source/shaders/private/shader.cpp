@@ -24,13 +24,12 @@ Shader::Shader(bool create) {
     }
 }
 
-Shader::Shader(Shader&& shader) noexcept: Object(std::move(shader)) {
+Shader::Shader(Shader&& shader) noexcept {
     std::swap(shader.program, program);
     std::swap(shader.uniform_cache, uniform_cache);
 }
 
 Shader& Shader::operator=(Shader&& shader) noexcept {
-    Object::operator=(std::move(shader));
     std::swap(shader.program, program);
     uniform_cache = std::move(shader.uniform_cache);
     return *this;

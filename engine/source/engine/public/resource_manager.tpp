@@ -1,15 +1,26 @@
 template <typename T>
+typename Resource_Manager<T>::iterator Resource_Manager<T>::begin() {
+    return resources.begin();
+}
+
+template <typename T>
+typename Resource_Manager<T>::iterator Resource_Manager<T>::end() {
+    return resources.end();
+}
+
+template <typename T>
 Handle<T> Resource_Manager<T>::add(T&& resource) {
-    Handle<T> handle{resource.id.value()};
     resources.emplace_back(std::forward<T>(resource));
-    return handle;
+    id_type resource_id = ID_Generator<T>::next();
+    identifiers.push_back(resource_id);
+    return {resource_id};
 }
 
 template <typename T>
 T& Resource_Manager<T>::get(Handle<T> handle) {
-    for (T& resource: resources) {
-        if (resource.id.value() == handle.value) {
-            return resource;
+    for (containers::Vector<T>::size_type i = 0; i < identifiers.size(); ++i) {
+        if (identifiers[i] == handle.value) {
+            return resources[i];
         }
     }
 
@@ -19,12 +30,11 @@ T& Resource_Manager<T>::get(Handle<T> handle) {
 template <typename T>
 void Resource_Manager<T>::remove(Handle<T> handle) {
     // TODO size_t ?
-    containers::Vector<T>::size_type i = 0;
-    for (T& resource: resources) {
-        if (handle.value == resource.id.value()) {
+    for (containers::Vector<T>::size_type i = 0; i < identifiers.size(); ++i) {
+        if (identifiers[i] == handle.value) {
+            identifiers.erase_unsorted_unchecked(i);
             resources.erase_unsorted_unchecked(i);
-            break;
+            return;
         }
-        ++i;
     }
 }

@@ -11,7 +11,7 @@ class Color;
 class Matrix4;
 class Shader_File;
 
-class Shader: public Object {
+class Shader {
 public:
     Shader(bool create = true);
     Shader(Shader const&) = delete;

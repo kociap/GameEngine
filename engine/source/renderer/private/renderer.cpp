@@ -17,12 +17,11 @@
 #include "handle.hpp"
 #include "math/matrix4.hpp"
 #include "math/transform.hpp"
-#include "resource_manager.hpp"
 #include "mesh/mesh.hpp"
 #include "mesh/plane.hpp"
 #include "opengl.hpp"
+#include "resource_manager.hpp"
 #include "shader.hpp"
-#include "shader_manager.hpp"
 
 Renderer::Renderer(uint32_t width, uint32_t height) {
     opengl::load_opengl_parameters();
@@ -172,7 +171,7 @@ static void set_shader_props(ECS& ecs, Shader& shader) {
 
 void Renderer::load_shader_light_properties() {
     ECS& ecs = Engine::get_ecs();
-    Shader_Manager& shader_manager = Engine::get_shader_manager();
+    Resource_Manager<Shader>& shader_manager = Engine::get_shader_manager();
     for (Shader& shader: shader_manager) {
         set_shader_props(ecs, shader);
     }
@@ -182,7 +181,7 @@ void Renderer::load_shader_light_properties() {
 
 void Renderer::update_dynamic_lights() {
     ECS& ecs = Engine::get_ecs();
-    Shader_Manager& shader_manager = Engine::get_shader_manager();
+    Resource_Manager<Shader>& shader_manager = Engine::get_shader_manager();
     for (Shader& shader: shader_manager) {
         set_shader_props(ecs, shader);
     }
@@ -243,7 +242,7 @@ void Renderer::render_object(Line_Component const& component, Shader& shader) {
 }
 
 void Renderer::render_shadow_map(Matrix4 const& view, Matrix4 const& projection) {
-    Shader_Manager& shader_manager = Engine::get_shader_manager();
+    Resource_Manager<Shader>& shader_manager = Engine::get_shader_manager();
     ECS& ecs = Engine::get_ecs();
 
     for (Shader& shader: shader_manager) {
@@ -275,7 +274,7 @@ void Renderer::render_shadow_map(Matrix4 const& view, Matrix4 const& projection)
 }
 
 void Renderer::render_scene(Transform const& camera_transform, Matrix4 const& view, Matrix4 const& projection, Matrix4 const& light_space_transform) {
-    Shader_Manager& shader_manager = Engine::get_shader_manager();
+    Resource_Manager<Shader>& shader_manager = Engine::get_shader_manager();
     ECS& ecs = Engine::get_ecs();
     int32_t max_texture_count = opengl::get_max_combined_texture_units();
 
