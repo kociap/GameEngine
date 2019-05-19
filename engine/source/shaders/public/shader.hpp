@@ -1,7 +1,6 @@
 #ifndef SHADERS_SHADER_HPP_INCLUDE
 #define SHADERS_SHADER_HPP_INCLUDE
 
-#include "object.hpp"
 #include <string>
 #include <type_traits>
 #include <unordered_map>

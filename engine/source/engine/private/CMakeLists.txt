@@ -15,7 +15,6 @@ set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/assets.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/guid.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/key.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/object.cpp"
     PARENT_SCOPE
 )
 

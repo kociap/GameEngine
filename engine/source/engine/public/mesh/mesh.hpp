@@ -3,7 +3,6 @@
 
 #include "math/vector2.hpp"
 #include "math/vector3.hpp"
-#include "object.hpp"
 #include <string>
 #include <vector>
 
@@ -30,7 +29,7 @@ struct Texture {
     uint32_t id;
 };
 
-class Mesh: public Object {
+class Mesh {
 public:
     Mesh();
     Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices, std::vector<Texture> const& textures);

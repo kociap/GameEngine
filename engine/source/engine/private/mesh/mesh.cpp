@@ -2,8 +2,8 @@
 #include "debug_macros.hpp"
 #include "glad/glad.h"
 #include "opengl.hpp"
-#include "shader.hpp"
 #include "renderer.hpp"
+#include "shader.hpp"
 
 Vertex::Vertex(Vector3 pos, Vector3 norm, Vector3 tan, Vector3 bitan, Vector2 tex)
     : position(std::move(pos)), normal(std::move(norm)), tangent(std::move(tan)), bitangent(std::move(bitan)), uv_coordinates(std::move(tex)) {}
@@ -20,15 +20,13 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, std::vector<uint32_t>&& indices, std:
     prepare_mesh();
 }
 
-Mesh::Mesh(Mesh&& from) noexcept
-    : Object(std::move(from)), vertices(std::move(from.vertices)), indices(std::move(from.indices)), textures(std::move(from.textures)) {
+Mesh::Mesh(Mesh&& from) noexcept: vertices(std::move(from.vertices)), indices(std::move(from.indices)), textures(std::move(from.textures)) {
     std::swap(ebo, from.ebo);
     std::swap(vbo, from.vbo);
     std::swap(vao, from.vao);
 }
 
 Mesh& Mesh::operator=(Mesh&& from) noexcept {
-    Object::operator=(std::move(from));
     vertices = std::move(from.vertices);
     indices = std::move(from.indices);
     textures = std::move(from.textures);
