@@ -11,6 +11,7 @@ set(HEADER_FILES
     ${HEADER_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/opengl_enums_defs.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/opengl_enums_undefs.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/renderer_internal.hpp"
     PARENT_SCOPE
 )
 

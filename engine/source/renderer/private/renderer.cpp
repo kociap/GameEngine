@@ -1,4 +1,5 @@
 #include "renderer.hpp"
+#include "renderer_internal.hpp"
 
 #include "assets.hpp"
 #include "build_config.hpp"
@@ -227,20 +228,6 @@ void Renderer::render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count)
     opengl::draw_elements_instanced(GL_TRIANGLES, mesh.indices.size(), count);
 }
 
-void Renderer::render_object(Static_Mesh_Component const& component, Shader& shader) {
-    Resource_Manager<Mesh>& mesh_manager = Engine::get_mesh_manager();
-    Mesh& mesh = mesh_manager.get(component.mesh_handle);
-    bind_material_properties(mesh.material, shader);
-    render_mesh(mesh);
-}
-
-void Renderer::render_object(Line_Component const& component, Shader& shader) {
-    Resource_Manager<Mesh>& mesh_manager = Engine::get_mesh_manager();
-    Mesh& mesh = mesh_manager.get(component.mesh_handle);
-    bind_material_properties(mesh.material, shader);
-    render_mesh(mesh);
-}
-
 void Renderer::render_shadow_map(Matrix4 const& view, Matrix4 const& projection) {
     Resource_Manager<Shader>& shader_manager = Engine::get_shader_manager();
     ECS& ecs = Engine::get_ecs();
@@ -428,4 +415,18 @@ void render_mesh(Mesh const& mesh) {
     uint32_t vao = mesh.get_vao();
     opengl::bind_vertex_array(vao);
     opengl::draw_elements(GL_TRIANGLES, mesh.indices.size());
+}
+
+void render_object(Static_Mesh_Component const& component, Shader& shader) {
+    Resource_Manager<Mesh>& mesh_manager = Engine::get_mesh_manager();
+    Mesh& mesh = mesh_manager.get(component.mesh_handle);
+    bind_material_properties(mesh.material, shader);
+    render_mesh(mesh);
+}
+
+void render_object(Line_Component const& component, Shader& shader) {
+    Resource_Manager<Mesh>& mesh_manager = Engine::get_mesh_manager();
+    Mesh& mesh = mesh_manager.get(component.mesh_handle);
+    bind_material_properties(mesh.material, shader);
+    render_mesh(mesh);
 }

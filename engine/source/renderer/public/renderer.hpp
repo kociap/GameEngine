@@ -29,8 +29,6 @@ public:
 
 private:
     void render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count);
-    void render_object(Static_Mesh_Component const&, Shader&);
-    void render_object(Line_Component const&, Shader&);
     void render_shadow_map(Matrix4 const& view_transform, Matrix4 const& projection_transform);
     void render_scene(Transform const& camera_transform, Matrix4 const& view_transform, Matrix4 const& projection_transform,
                       Matrix4 const& light_space_transform);
@@ -64,8 +62,5 @@ public:
     uint32_t shadow_width = 1024;
     uint32_t shadow_height = 1024;
 };
-
-void bind_material_properties(Material, Shader&);
-void render_mesh(Mesh const& mesh);
 
 #endif // !ENGINE_RENDERER_RENDERER_HPP_INCLUDE
