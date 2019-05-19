@@ -209,18 +209,18 @@ void Renderer::swap_postprocess_buffers() {
 
 // TODO this is outdated, won't render correctly
 void Renderer::render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count) {
-    for (uint32_t i = 0; i < mesh.textures.size(); ++i) {
-        opengl::active_texture(i);
-        if (mesh.textures[i].type == Texture_Type::diffuse) {
-            shader.set_int("material.texture_diffuse", i);
-        } else if (mesh.textures[i].type == Texture_Type::specular) {
-            shader.set_int("material.texture_specular", i);
-        } else {
-            shader.set_int("material.normal_map", i);
-            shader.set_int("material.normal_map_attached", 1);
-        }
-        opengl::bind_texture(opengl::Texture_Type::texture_2D, mesh.textures[i].id);
-    }
+    // for (uint32_t i = 0; i < mesh.textures.size(); ++i) {
+    //     opengl::active_texture(i);
+    //     if (mesh.textures[i].type == Texture_Type::diffuse) {
+    //         shader.set_int("material.texture_diffuse", i);
+    //     } else if (mesh.textures[i].type == Texture_Type::specular) {
+    //         shader.set_int("material.texture_specular", i);
+    //     } else {
+    //         shader.set_int("material.normal_map", i);
+    //         shader.set_int("material.normal_map_attached", 1);
+    //     }
+    //     opengl::bind_texture(opengl::Texture_Type::texture_2D, mesh.textures[i].id);
+    // }
 
     uint32_t vao = mesh.get_vao();
     opengl::bind_vertex_array(vao);
@@ -230,14 +230,14 @@ void Renderer::render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count)
 void Renderer::render_object(Static_Mesh_Component const& component, Shader& shader) {
     Resource_Manager<Mesh>& mesh_manager = Engine::get_mesh_manager();
     Mesh& mesh = mesh_manager.get(component.mesh_handle);
-    bind_mesh_textures(mesh, shader);
+    bind_material_properties(mesh.material, shader);
     render_mesh(mesh);
 }
 
 void Renderer::render_object(Line_Component const& component, Shader& shader) {
     Resource_Manager<Mesh>& mesh_manager = Engine::get_mesh_manager();
     Mesh& mesh = mesh_manager.get(component.mesh_handle);
-    bind_mesh_textures(mesh, shader);
+    bind_material_properties(mesh.material, shader);
     render_mesh(mesh);
 }
 
@@ -410,24 +410,18 @@ void Renderer::render_frame(Camera camera, Transform camera_transform, uint32_t 
     render_mesh(scene_quad);
 }
 
-void bind_mesh_textures(Mesh const& mesh, Shader& shader) {
-    shader.set_int("material.normal_map_attached", 0);
-    uint32_t specular = 0;
-    uint32_t diffuse = 0;
-    for (uint32_t i = 0; i < mesh.textures.size(); ++i) {
-        opengl::active_texture(i);
-        if (mesh.textures[i].type == Texture_Type::diffuse) {
-            shader.set_int("material.texture_diffuse" + std::to_string(diffuse), i);
-            ++diffuse;
-        } else if (mesh.textures[i].type == Texture_Type::specular) {
-            shader.set_int("material.texture_specular" + std::to_string(specular), i);
-            ++specular;
-        } else {
-            shader.set_int("material.normal_map", i);
-            shader.set_int("material.normal_map_attached", 1);
-        }
-        opengl::bind_texture(opengl::Texture_Type::texture_2D, mesh.textures[i].id);
-    }
+void bind_material_properties(Material mat, Shader& shader) {
+    shader.set_float("material.shininess", mat.shininess);
+    opengl::active_texture(0);
+    opengl::bind_texture(opengl::Texture_Type::texture_2D, mat.diffuse_texture.handle);
+    shader.set_int("material.texture_diffuse", 0);
+    opengl::active_texture(1);
+    opengl::bind_texture(opengl::Texture_Type::texture_2D, mat.specular_texture.handle);
+    shader.set_int("material.texture_specular", 1);
+    opengl::active_texture(2);
+    opengl::bind_texture(opengl::Texture_Type::texture_2D, mat.normal_map.handle);
+    shader.set_int("material.normal_map", 2);
+    shader.set_int("material.normal_map_attached", mat.normal_map.handle != 0);
 }
 
 void render_mesh(Mesh const& mesh) {

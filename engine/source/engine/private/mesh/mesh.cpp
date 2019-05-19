@@ -10,17 +10,16 @@ Vertex::Vertex(Vector3 pos, Vector3 norm, Vector3 tan, Vector3 bitan, Vector2 te
 
 Mesh::Mesh() {}
 
-Mesh::Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices, std::vector<Texture> const& textures)
-    : vertices(vertices), indices(indices), textures(textures) {
+Mesh::Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices, Material mat): vertices(vertices), indices(indices), material(mat) {
     prepare_mesh();
 }
 
-Mesh::Mesh(std::vector<Vertex>&& vertices, std::vector<uint32_t>&& indices, std::vector<Texture>&& textures)
-    : vertices(std::move(vertices)), indices(std::move(indices)), textures(std::move(textures)) {
+Mesh::Mesh(std::vector<Vertex>&& vertices, std::vector<uint32_t>&& indices, Material mat)
+    : vertices(std::move(vertices)), indices(std::move(indices)), material(mat) {
     prepare_mesh();
 }
 
-Mesh::Mesh(Mesh&& from) noexcept: vertices(std::move(from.vertices)), indices(std::move(from.indices)), textures(std::move(from.textures)) {
+Mesh::Mesh(Mesh&& from) noexcept: vertices(std::move(from.vertices)), indices(std::move(from.indices)), material(from.material) {
     std::swap(ebo, from.ebo);
     std::swap(vbo, from.vbo);
     std::swap(vao, from.vao);
@@ -29,7 +28,7 @@ Mesh::Mesh(Mesh&& from) noexcept: vertices(std::move(from.vertices)), indices(st
 Mesh& Mesh::operator=(Mesh&& from) noexcept {
     vertices = std::move(from.vertices);
     indices = std::move(from.indices);
-    textures = std::move(from.textures);
+    material = from.material;
     std::swap(ebo, from.ebo);
     std::swap(vbo, from.vbo);
     std::swap(vao, from.vao);

@@ -8,6 +8,7 @@
 #include "assimp/scene.h"
 
 #include "debug_macros.hpp"
+#include "material.hpp"
 #include "math/vector3.hpp"
 #include "mesh/mesh.hpp"
 #include "opengl.hpp"
@@ -169,32 +170,32 @@ namespace assets {
         //vert1.bitangent = vert2.bitangent = vert3.bitangent = Vector3::cross(vert1.normal, vert1.tangent);
     }
 
-    static void load_material_textures(aiMaterial* mat, aiTextureType type, std::filesystem::path const& current_path, std::vector<Texture>& textures) {
-        for (std::size_t i = 0, texture_count = mat->GetTextureCount(type); i < texture_count; ++i) {
+    static void load_material_textures(aiMaterial* mat, std::filesystem::path const& current_path, Material& material) {
+        if (mat->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
             aiString str;
-            mat->GetTexture(type, static_cast<unsigned int>(i), &str);
+            mat->GetTexture(aiTextureType_DIFFUSE, static_cast<unsigned int>(0), &str);
             auto texture_path = utils::concat_paths(current_path, str.C_Str());
-            Texture texture;
-            if (type == aiTextureType_DIFFUSE) {
-                texture.type = Texture_Type::diffuse;
-                texture.id = load_srgb_texture(texture_path, false);
-            } else if (type == aiTextureType_SPECULAR) {
-                texture.type = Texture_Type::specular;
-                texture.id = load_texture(texture_path, false);
-            } else if (type == aiTextureType_NORMALS) {
-                texture.type = Texture_Type::normal;
-                texture.id = load_texture(texture_path, false);
-            } else {
-                throw std::runtime_error("Unknown texture type");
-            }
-            textures.push_back(std::move(texture));
+            material.diffuse_texture.handle = load_srgb_texture(texture_path, false);
+        }
+
+        if (mat->GetTextureCount(aiTextureType_SPECULAR) != 0) {
+            aiString str;
+            mat->GetTexture(aiTextureType_SPECULAR, static_cast<unsigned int>(0), &str);
+            auto texture_path = utils::concat_paths(current_path, str.C_Str());
+            material.specular_texture.handle = load_texture(texture_path, false);
+        }
+
+        if (mat->GetTextureCount(aiTextureType_NORMALS) != 0) {
+            aiString str;
+            mat->GetTexture(aiTextureType_NORMALS, static_cast<unsigned int>(0), &str);
+            auto texture_path = utils::concat_paths(current_path, str.C_Str());
+            material.normal_map.handle = load_srgb_texture(texture_path, false);
         }
     }
 
     static Mesh process_mesh(aiMesh* mesh, aiScene const* scene, std::filesystem::path const& current_path) {
         std::vector<Vertex> vertices(mesh->mNumVertices);
         std::vector<uint32_t> indices;
-        std::vector<Texture> textures;
 
         for (std::size_t i = 0; i < mesh->mNumVertices; ++i) {
             auto& vert = mesh->mVertices[i];
@@ -217,13 +218,13 @@ namespace assets {
             compute_tangents(vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]);
         }
 
+        Material mat;
         if (mesh->mMaterialIndex >= 0) {
             aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-            load_material_textures(material, aiTextureType_DIFFUSE, current_path, textures);
-            load_material_textures(material, aiTextureType_SPECULAR, current_path, textures);
+            load_material_textures(material, current_path, mat);
         }
 
-        return Mesh(std::move(vertices), std::move(indices), std::move(textures));
+        return Mesh(std::move(vertices), std::move(indices), mat);
     }
 
     static void process_node(std::vector<Mesh>& meshes, aiNode* node, aiScene const* scene, std::filesystem::path const& current_path) {

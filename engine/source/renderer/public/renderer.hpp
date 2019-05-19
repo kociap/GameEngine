@@ -3,6 +3,7 @@
 
 #include "components/camera.hpp"
 #include "components/transform.hpp"
+#include "material.hpp"
 #include "shader.hpp"
 #include <cstdint>
 
@@ -64,7 +65,7 @@ public:
     uint32_t shadow_height = 1024;
 };
 
-void bind_mesh_textures(Mesh const&, Shader&);
+void bind_material_properties(Material, Shader&);
 void render_mesh(Mesh const& mesh);
 
 #endif // !ENGINE_RENDERER_RENDERER_HPP_INCLUDE

@@ -54,7 +54,7 @@ void Engine::init(int argc, char** argv) {
 }
 
 void Engine::load_world() {
-#define RENDER_CUBES
+// #define RENDER_CUBES
 
     /*assets::load_shader_file_and_attach(default_shader, "normals.vert");
     assets::load_shader_file_and_attach(default_shader, "normals.geom");
@@ -80,20 +80,8 @@ void Engine::load_world() {
 #else
     std::vector<Mesh> meshes = assets::load_model("barrel.obj");
     auto& container = meshes[0];
-    //Cube container;
-    Texture container_diffuse;
-    container_diffuse.id = assets::load_srgb_texture("barrel_texture.jpg", false);
-    container_diffuse.type = Texture_Type::diffuse;
-    // Texture container_specular;
-    // container_specular.id = assets::load_texture("container_specular.jpg");
-    // container_specular.type = Texture_Type::specular;
-    Texture container_normal;
-    container_normal.id = assets::load_texture("barrel_normal_map.jpg", false);
-    container_normal.type = Texture_Type::normal;
-    container.textures.clear();
-    container.textures.push_back(container_diffuse);
-    // meshes[0].textures.push_back(container_specular);
-    container.textures.push_back(container_normal);
+    container.material.diffuse_texture.handle = assets::load_srgb_texture("barrel_texture.jpg", false);
+    container.material.normal_map.handle = assets::load_texture("barrel_normal_map.jpg", false);
 #endif
     Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
 
@@ -112,11 +100,8 @@ void Engine::load_world() {
     instantiate_box({-3, -1, 4});
     instantiate_box({0, -1, 4});
 
-    Texture floor_tex;
-    floor_tex.id = assets::load_srgb_texture("wood_floor.png", false);
-    floor_tex.type = Texture_Type::diffuse;
     Plane floor_mesh;
-    floor_mesh.textures.push_back(floor_tex);
+    floor_mesh.material.diffuse_texture.handle = assets::load_srgb_texture("wood_floor.png", false);
     Handle<Mesh> floor_handle = mesh_manager->add(std::move(floor_mesh));
     /*for (uint32_t i = 0; i < 121; ++i) {
         Entity floor = Entity::instantiate();
