@@ -12,6 +12,7 @@ private:
     static Window* main_window;
     static Resource_Manager<Mesh>* mesh_manager;
     static Resource_Manager<Shader>* shader_manager;
+    static Resource_Manager<Material>* material_manager;
 
 public:
     static void init(int argc, char** argv);
@@ -30,6 +31,7 @@ public:
     static Resource_Manager<Mesh>& get_mesh_manager();
     static Time_Core& get_time_manager();
     static Resource_Manager<Shader>& get_shader_manager();
+    static Resource_Manager<Material>& get_material_manager();
 };
 
 #endif // !ENGINE_HPP_INCLUDE

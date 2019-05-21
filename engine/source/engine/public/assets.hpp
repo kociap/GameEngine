@@ -1,10 +1,10 @@
 #ifndef ENGINE_ASSETS_ASSETS_HPP_INCLUDE
 #define ENGINE_ASSETS_ASSETS_HPP_INCLUDE
 
+#include "containers/vector.hpp"
 #include "shader_file.hpp"
 
 #include <filesystem>
-#include <vector>
 
 class Mesh;
 
@@ -28,7 +28,7 @@ namespace assets {
     uint32_t load_texture(std::filesystem::path filename, bool flip_image);
     uint32_t load_srgb_texture(std::filesystem::path filename, bool flip_image);
 
-    std::vector<Mesh> load_model(std::filesystem::path const& filename);
+    containers::Vector<Mesh> load_model(std::filesystem::path const& filename);
 } // namespace assets
 
 #endif // !ENGINE_ASSETS_ASSETS_HPP_INCLUDE

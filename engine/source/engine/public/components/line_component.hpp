@@ -6,6 +6,7 @@
 
 class Shader;
 class Mesh;
+class Material;
 
 class Line_Component {
 public:
@@ -14,6 +15,7 @@ public:
 
     Handle<Mesh> mesh_handle;
     Handle<Shader> shader_handle;
+    Handle<Material> material_handle;
 };
 
 #endif // !ENGINE_COMPONENTS_LINE_COMPONENT_HPP_INCLUDE

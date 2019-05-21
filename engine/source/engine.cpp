@@ -31,6 +31,7 @@ ECS* Engine::ecs = nullptr;
 Window* Engine::main_window = nullptr;
 Resource_Manager<Mesh>* Engine::mesh_manager = nullptr;
 Resource_Manager<Shader>* Engine::shader_manager = nullptr;
+Resource_Manager<Material>* Engine::material_manager = nullptr;
 
 void Engine::init(int argc, char** argv) {
     std::filesystem::path executable_path(argv[0]);
@@ -42,6 +43,7 @@ void Engine::init(int argc, char** argv) {
     main_window = new Window(1280, 720);
     mesh_manager = new Resource_Manager<Mesh>();
     shader_manager = new Resource_Manager<Shader>();
+    material_manager = new Resource_Manager<Material>();
     time_core = new Time_Core();
     input_manager = new Input::Manager();
     input_manager->load_bindings();
@@ -75,22 +77,26 @@ void Engine::load_world() {
 
     // BS code to output anything on the screen
 #ifdef RENDER_CUBES
-    std::vector<Mesh> meshes = assets::load_model("cube.obj");
+    containers::Vector<Mesh> meshes = assets::load_model("sphere.obj");
     auto& container = meshes[0];
+    Handle<Material> material_handle = material_manager->add(Material());
 #else
-    std::vector<Mesh> meshes = assets::load_model("barrel.obj");
+    containers::Vector<Mesh> meshes = assets::load_model("barrel.obj");
     auto& container = meshes[0];
-    container.material.diffuse_texture.handle = assets::load_srgb_texture("barrel_texture.jpg", false);
-    container.material.normal_map.handle = assets::load_texture("barrel_normal_map.jpg", false);
+    Material barrel_mat;
+    barrel_mat.diffuse_texture.handle = assets::load_srgb_texture("barrel_texture.jpg", false);
+    barrel_mat.normal_map.handle = assets::load_texture("barrel_normal_map.jpg", false);
+    Handle<Material> material_handle = material_manager->add(std::move(barrel_mat));
 #endif
     Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
 
-    auto instantiate_box = [&, default_shader_handle, box_handle](Vector3 position, float rotation = 0) {
+    auto instantiate_box = [default_shader_handle, box_handle, material_handle](Vector3 position, float rotation = 0) {
         Entity box = ecs->create();
         Transform& box_t = ecs->add_component<Transform>(box);
         Static_Mesh_Component& box_sm = ecs->add_component<Static_Mesh_Component>(box);
         box_sm.mesh_handle = box_handle;
         box_sm.shader_handle = default_shader_handle;
+        box_sm.material_handle = material_handle;
         box_t.translate(position);
         box_t.rotate(Vector3::forward, math::radians(rotation));
     };
@@ -100,18 +106,18 @@ void Engine::load_world() {
     instantiate_box({-3, -1, 4});
     instantiate_box({0, -1, 4});
 
-    Plane floor_mesh;
-    floor_mesh.material.diffuse_texture.handle = assets::load_srgb_texture("wood_floor.png", false);
-    Handle<Mesh> floor_handle = mesh_manager->add(std::move(floor_mesh));
-    /*for (uint32_t i = 0; i < 121; ++i) {
-        Entity floor = Entity::instantiate();
-        Transform& floor_t = add_component<Transform>(floor);
-        Static_Mesh_Component& floor_sm = add_component<Static_Mesh_Component>(floor);
-        floor_sm.mesh_handle = floor_handle;
-        floor_sm.shader_handle = default_shader_handle;
-        floor_t.rotate(Vector3::right, math::radians(-90));
-        floor_t.translate({(static_cast<float>(i % 11) - 5.0f) * 2.0f, -2, (static_cast<float>(i / 11) - 5.0f) * 2.0f});
-    }*/
+    // Plane floor_mesh;
+    // floor_mesh.material.diffuse_texture.handle = assets::load_srgb_texture("wood_floor.png", false);
+    // Handle<Mesh> floor_handle = mesh_manager->add(std::move(floor_mesh));
+    // for (uint32_t i = 0; i < 121; ++i) {
+    //     Entity floor = Entity::instantiate();
+    //     Transform& floor_t = add_component<Transform>(floor);
+    //     Static_Mesh_Component& floor_sm = add_component<Static_Mesh_Component>(floor);
+    //     floor_sm.mesh_handle = floor_handle;
+    //     floor_sm.shader_handle = default_shader_handle;
+    //     floor_t.rotate(Vector3::right, math::radians(-90));
+    //     floor_t.translate({(static_cast<float>(i % 11) - 5.0f) * 2.0f, -2, (static_cast<float>(i / 11) - 5.0f) * 2.0f});
+    // }
 
     auto instantiate_point_lamp = [](Vector3 position, Color color, float intensity) {
         Entity lamp = ecs->create();
@@ -155,6 +161,8 @@ void Engine::terminate() {
     input_manager = nullptr;
     delete time_core;
     time_core = nullptr;
+    delete material_manager;
+    material_manager = nullptr;
     delete shader_manager;
     shader_manager = nullptr;
     delete mesh_manager;
@@ -216,6 +224,10 @@ Resource_Manager<Mesh>& Engine::get_mesh_manager() {
 
 Time_Core& Engine::get_time_manager() {
     return *time_core;
+}
+
+Resource_Manager<Material>& Engine::get_material_manager() {
+    return *material_manager;
 }
 
 Resource_Manager<Shader>& Engine::get_shader_manager() {

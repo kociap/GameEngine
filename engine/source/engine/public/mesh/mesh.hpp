@@ -1,11 +1,11 @@
 #ifndef ENGINE_MESH_HPP_INCLUDE
 #define ENGINE_MESH_HPP_INCLUDE
 
+#include "containers/vector.hpp"
 #include "material.hpp"
 #include "math/vector2.hpp"
 #include "math/vector3.hpp"
 #include <string>
-#include <vector>
 
 struct Vertex {
     Vector3 position;
@@ -21,8 +21,8 @@ struct Vertex {
 class Mesh {
 public:
     Mesh();
-    Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices, Material);
-    Mesh(std::vector<Vertex>&& vertices, std::vector<uint32_t>&& indices, Material);
+    Mesh(containers::Vector<Vertex> const& vertices, containers::Vector<uint32_t> const& indices);
+    Mesh(containers::Vector<Vertex>&& vertices, containers::Vector<uint32_t>&& indices);
     Mesh(Mesh&&) noexcept;
     Mesh& operator=(Mesh&&) noexcept;
     ~Mesh();
@@ -36,9 +36,8 @@ private:
     void prepare_mesh();
 
 public:
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-    Material material;
+    containers::Vector<Vertex> vertices;
+    containers::Vector<uint32_t> indices;
 
 private:
     uint32_t vao = 0;

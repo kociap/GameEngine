@@ -418,15 +418,19 @@ void render_mesh(Mesh const& mesh) {
 }
 
 void render_object(Static_Mesh_Component const& component, Shader& shader) {
+    auto& material_manager = Engine::get_material_manager();
+    Material material = material_manager.get(component.material_handle);
+    bind_material_properties(material, shader);
     Resource_Manager<Mesh>& mesh_manager = Engine::get_mesh_manager();
     Mesh& mesh = mesh_manager.get(component.mesh_handle);
-    bind_material_properties(mesh.material, shader);
     render_mesh(mesh);
 }
 
 void render_object(Line_Component const& component, Shader& shader) {
+    auto& material_manager = Engine::get_material_manager();
+    Material material = material_manager.get(component.material_handle);
+    bind_material_properties(material, shader);
     Resource_Manager<Mesh>& mesh_manager = Engine::get_mesh_manager();
     Mesh& mesh = mesh_manager.get(component.mesh_handle);
-    bind_material_properties(mesh.material, shader);
     render_mesh(mesh);
 }

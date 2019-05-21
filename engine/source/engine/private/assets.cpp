@@ -8,7 +8,6 @@
 #include "assimp/scene.h"
 
 #include "debug_macros.hpp"
-#include "material.hpp"
 #include "math/vector3.hpp"
 #include "mesh/mesh.hpp"
 #include "opengl.hpp"
@@ -78,7 +77,7 @@ namespace assets {
         // clang-format on
     }
 
-    uint32_t load_cubemap(std::vector<std::filesystem::path> const& paths) {
+    uint32_t load_cubemap(containers::Vector<std::filesystem::path> const& paths) {
         if (paths.size() != 6) {
             throw std::invalid_argument("The number of paths provided is not 6");
         }
@@ -145,6 +144,7 @@ namespace assets {
         opengl::gen_textures(1, &texture);
         opengl::bind_texture(opengl::Texture_Type::texture_2D, texture);
         // TODO
+        // What was that todo supposed to mean?????
         opengl::Sized_Internal_Format internal_format = opengl::Sized_Internal_Format::srgb8_alpha8;
         opengl::Format format = get_matching_pixel_format(channels);
         opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, width, height, format, opengl::Type::unsigned_byte, image_data);
@@ -170,32 +170,9 @@ namespace assets {
         //vert1.bitangent = vert2.bitangent = vert3.bitangent = Vector3::cross(vert1.normal, vert1.tangent);
     }
 
-    static void load_material_textures(aiMaterial* mat, std::filesystem::path const& current_path, Material& material) {
-        if (mat->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
-            aiString str;
-            mat->GetTexture(aiTextureType_DIFFUSE, static_cast<unsigned int>(0), &str);
-            auto texture_path = utils::concat_paths(current_path, str.C_Str());
-            material.diffuse_texture.handle = load_srgb_texture(texture_path, false);
-        }
-
-        if (mat->GetTextureCount(aiTextureType_SPECULAR) != 0) {
-            aiString str;
-            mat->GetTexture(aiTextureType_SPECULAR, static_cast<unsigned int>(0), &str);
-            auto texture_path = utils::concat_paths(current_path, str.C_Str());
-            material.specular_texture.handle = load_texture(texture_path, false);
-        }
-
-        if (mat->GetTextureCount(aiTextureType_NORMALS) != 0) {
-            aiString str;
-            mat->GetTexture(aiTextureType_NORMALS, static_cast<unsigned int>(0), &str);
-            auto texture_path = utils::concat_paths(current_path, str.C_Str());
-            material.normal_map.handle = load_srgb_texture(texture_path, false);
-        }
-    }
-
     static Mesh process_mesh(aiMesh* mesh, aiScene const* scene, std::filesystem::path const& current_path) {
-        std::vector<Vertex> vertices(mesh->mNumVertices);
-        std::vector<uint32_t> indices;
+        containers::Vector<Vertex> vertices(mesh->mNumVertices);
+        containers::Vector<uint32_t> indices;
 
         for (std::size_t i = 0; i < mesh->mNumVertices; ++i) {
             auto& vert = mesh->mVertices[i];
@@ -218,16 +195,10 @@ namespace assets {
             compute_tangents(vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]);
         }
 
-        Material mat;
-        if (mesh->mMaterialIndex >= 0) {
-            aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-            load_material_textures(material, current_path, mat);
-        }
-
-        return Mesh(std::move(vertices), std::move(indices), mat);
+        return Mesh(std::move(vertices), std::move(indices));
     }
 
-    static void process_node(std::vector<Mesh>& meshes, aiNode* node, aiScene const* scene, std::filesystem::path const& current_path) {
+    static void process_node(containers::Vector<Mesh>& meshes, aiNode* node, aiScene const* scene, std::filesystem::path const& current_path) {
         for (std::size_t i = 0; i < node->mNumMeshes; ++i) {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             meshes.push_back(process_mesh(mesh, scene, current_path));
@@ -238,7 +209,7 @@ namespace assets {
         }
     }
 
-    std::vector<Mesh> load_model(std::filesystem::path const& path) {
+    containers::Vector<Mesh> load_model(std::filesystem::path const& path) {
         auto asset_path = utils::concat_paths(_assets_path, path);
         Assimp::Importer importer;
         aiScene const* scene = importer.ReadFile(asset_path.string(), aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -248,7 +219,7 @@ namespace assets {
 
         asset_path.remove_filename();
 
-        std::vector<Mesh> meshes;
+        containers::Vector<Mesh> meshes;
         process_node(meshes, scene->mRootNode, scene, asset_path);
         return meshes;
     }
