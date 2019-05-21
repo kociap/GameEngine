@@ -21,8 +21,10 @@ public:
 
     Vector4& operator-();
     Vector4 operator-() const;
-    Vector4& operator+=(Vector4 const&);
-    Vector4& operator-=(Vector4 const&);
+    Vector4& operator+=(Vector4);
+    Vector4& operator-=(Vector4);
+    Vector4& operator+=(float);
+    Vector4& operator-=(float);
     Vector4& operator*=(float);
     Vector4& operator/=(float);
 
@@ -40,15 +42,17 @@ public:
     Vector4& multiply_componentwise(Vector4 const&);
 };
 
-Vector4 operator+(Vector4 const&, Vector4 const&);
-Vector4 operator-(Vector4 const&, Vector4 const&);
-Vector4 operator*(Vector4 const&, float);
-Vector4 operator*(float, Vector4 const&);
-Vector4 operator/(Vector4 const&, float);
-void swap(Vector4&, Vector4&);
-
+Vector4 operator+(Vector4, Vector4);
+Vector4 operator-(Vector4, Vector4);
+Vector4 operator+(Vector4, float);
+Vector4 operator-(Vector4, float);
+Vector4 operator*(Vector4, float);
+Vector4 operator*(float, Vector4);
+Vector4 operator/(Vector4, float);
 bool operator==(Vector4, Vector4);
 bool operator!=(Vector4, Vector4);
+
+void swap(Vector4&, Vector4&);
 
 namespace math {
     float dot(Vector4, Vector4);
@@ -56,6 +60,7 @@ namespace math {
     // If vector is non-zero, returns normalized copy of the vector.
     // Otherwise returns zero vector
     Vector4 normalize(Vector4);
+    float length(Vector4);
 
     Vector4 multiply_componentwise(Vector4 const&, Vector4 const&);
 } // namespace math

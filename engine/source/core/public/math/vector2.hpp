@@ -24,9 +24,12 @@ public:
 
     Vector2& operator-();
     Vector2 operator-() const;
-    Vector2& operator+=(Vector2 const&);
-    Vector2& operator-=(Vector2 const&);
+    Vector2& operator+=(Vector2);
+    Vector2& operator-=(Vector2);
+    Vector2& operator+=(float);
+    Vector2& operator-=(float);
     Vector2& operator*=(float);
+    Vector2& operator/=(float);
 
     // Check if all components are equal 0
     bool is_zero() const;
@@ -42,15 +45,17 @@ public:
     Vector2& multiply_componentwise(Vector2 const&);
 };
 
-Vector2 operator+(Vector2 const&, Vector2 const&);
-Vector2 operator-(Vector2 const&, Vector2 const&);
-Vector2 operator*(Vector2 const&, float);
-Vector2 operator*(float, Vector2 const&);
-Vector2 operator/(Vector2 const&, float);
-void swap(Vector2&, Vector2&);
-
+Vector2 operator+(Vector2, Vector2);
+Vector2 operator-(Vector2, Vector2);
+Vector2 operator+(Vector2, float);
+Vector2 operator-(Vector2, float);
+Vector2 operator*(Vector2, float);
+Vector2 operator*(float, Vector2);
+Vector2 operator/(Vector2, float);
 bool operator==(Vector2, Vector2);
 bool operator!=(Vector2, Vector2);
+
+void swap(Vector2&, Vector2&);
 
 namespace math {
     float dot(Vector2 const& vec1, Vector2 const& vec2);
@@ -58,6 +63,7 @@ namespace math {
     // If vector is non-zero, returns normalized copy of the vector.
     // Otherwise returns zero vector
     Vector2 normalize(Vector2);
+    float length(Vector2);
 
     Vector2 multiply_componentwise(Vector2 const&, Vector2 const&);
 } // namespace math

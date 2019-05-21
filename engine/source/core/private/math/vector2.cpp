@@ -34,21 +34,39 @@ Vector2 Vector2::operator-() const {
     return {-x, -y};
 }
 
-Vector2& Vector2::operator+=(Vector2 const& a) {
+Vector2& Vector2::operator+=(Vector2 a) {
     x += a.x;
     y += a.y;
     return *this;
 }
 
-Vector2& Vector2::operator-=(Vector2 const& a) {
-    x += a.x;
-    y += a.y;
+Vector2& Vector2::operator-=(Vector2 a) {
+    x -= a.x;
+    y -= a.y;
+    return *this;
+}
+
+Vector2& Vector2::operator+=(float a) {
+    x += a;
+    y += a;
+    return *this;
+}
+
+Vector2& Vector2::operator-=(float a) {
+    x -= a;
+    y -= a;
     return *this;
 }
 
 Vector2& Vector2::operator*=(float a) {
     x *= a;
     y *= a;
+    return *this;
+}
+
+Vector2& Vector2::operator/=(float a) {
+    x /= a;
+    y /= a;
     return *this;
 }
 
@@ -82,29 +100,39 @@ Vector2& Vector2::multiply_componentwise(Vector2 const& a) {
     return *this;
 }
 
-Vector2 operator+(Vector2 const& vec1, Vector2 const& vec2) {
-    return {vec1.x + vec2.x, vec1.y + vec2.y};
+Vector2 operator+(Vector2 a, Vector2 b) {
+    a += b;
+    return a;
 }
 
-Vector2 operator-(Vector2 const& vec1, Vector2 const& vec2) {
-    return {vec1.x - vec2.x, vec1.y - vec2.y};
+Vector2 operator-(Vector2 a, Vector2 b) {
+    a -= b;
+    return a;
 }
 
-Vector2 operator*(Vector2 const& a, float b) {
-    return {a.x * b, a.y * b};
+Vector2 operator+(Vector2 a, float b) {
+    a += b;
+    return a;
 }
 
-Vector2 operator*(float b, Vector2 const& a) {
-    return {a.x * b, a.y * b};
+Vector2 operator-(Vector2 a, float b) {
+    a -= b;
+    return a;
 }
 
-Vector2 operator/(Vector2 const& a, float b) {
-    return {a.x / b, a.y / b};
+Vector2 operator*(Vector2 a, float b) {
+    a *= b;
+    return a;
 }
 
-void swap(Vector2& a, Vector2& b) {
-    std::swap(a.x, b.x);
-    std::swap(a.y, b.y);
+Vector2 operator*(float b, Vector2 a) {
+    a *= b;
+    return a;
+}
+
+Vector2 operator/(Vector2 a, float b) {
+    a /= b;
+    return a;
 }
 
 bool operator==(Vector2 a, Vector2 b) {
@@ -115,6 +143,11 @@ bool operator!=(Vector2 a, Vector2 b) {
     return a.x != b.x || a.y != b.y;
 }
 
+void swap(Vector2& a, Vector2& b) {
+    std::swap(a.x, b.x);
+    std::swap(a.y, b.y);
+}
+
 namespace math {
     float dot(Vector2 const& vec1, Vector2 const& vec2) {
         return vec1.x * vec2.x + vec1.y * vec2.y;
@@ -123,6 +156,10 @@ namespace math {
     Vector2 normalize(Vector2 vec) {
         vec.normalize();
         return vec;
+    }
+
+    float length(Vector2 v) {
+        return std::sqrt(v.x * v.x + v.y * v.y);
     }
 
     Vector2 multiply_componentwise(Vector2 const& a, Vector2 const& b) {

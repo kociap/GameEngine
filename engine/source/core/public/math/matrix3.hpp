@@ -30,10 +30,12 @@ Matrix3 operator/(Matrix3 const&, float);
 Matrix3 operator+(Matrix3 const&, Matrix3 const&);
 Matrix3 operator-(Matrix3 const&, Matrix3 const&);
 Matrix3 operator*(Matrix3 const&, Matrix3 const&);
-Vector3 operator*(Vector3 const& , Matrix3 const&);
+Vector3 operator*(Vector3 const&, Matrix3 const&);
 
-float determinant(Matrix3 const& m);
-Matrix3 adjoint(Matrix3 const& m);
-Matrix3 inverse(Matrix3 const& m);
+namespace math {
+    float determinant(Matrix3 m);
+    Matrix3 adjugate(Matrix3 const& m);
+    Matrix3 inverse(Matrix3 const& m);
+} // namespace math
 
 #endif // !GAME_ENGINE_CORE_MATH_MARTIX3_HPP_INCLUDE

@@ -31,7 +31,7 @@ Vector4 Vector4::operator-() const {
     return {-x, -y, -z, -w};
 }
 
-Vector4& Vector4::operator+=(Vector4 const& a) {
+Vector4& Vector4::operator+=(Vector4 a) {
     x += a.x;
     y += a.y;
     z += a.z;
@@ -39,11 +39,27 @@ Vector4& Vector4::operator+=(Vector4 const& a) {
     return *this;
 }
 
-Vector4& Vector4::operator-=(Vector4 const& a) {
+Vector4& Vector4::operator-=(Vector4 a) {
     x -= a.x;
     y -= a.y;
     z -= a.z;
     w -= a.w;
+    return *this;
+}
+
+Vector4& Vector4::operator+=(float a) {
+    x += a;
+    y += a;
+    z += a;
+    w += a;
+    return *this;
+}
+
+Vector4& Vector4::operator-=(float a) {
+    x -= a;
+    y -= a;
+    z -= a;
+    w -= a;
     return *this;
 }
 
@@ -96,31 +112,39 @@ Vector4& Vector4::multiply_componentwise(Vector4 const& a) {
     return *this;
 }
 
-Vector4 operator+(Vector4 const& a, Vector4 const& b) {
-    return {a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w};
+Vector4 operator+(Vector4 a, Vector4 b) {
+    a += b;
+    return a;
 }
 
-Vector4 operator-(Vector4 const& a, Vector4 const& b) {
-    return {a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w};
+Vector4 operator-(Vector4 a, Vector4 b) {
+    a -= b;
+    return a;
 }
 
-Vector4 operator*(Vector4 const& a, float s) {
-    return {a.x * s, a.y * s, a.z * s, a.w * s};
+Vector4 operator+(Vector4 a, float b) {
+    a += b;
+    return a;
 }
 
-Vector4 operator*(float s, Vector4 const& a) {
-    return {a.x * s, a.y * s, a.z * s, a.w * s};
+Vector4 operator-(Vector4 a, float b) {
+    a -= b;
+    return a;
 }
 
-Vector4 operator/(Vector4 const& a, float s) {
-    return {a.x / s, a.y / s, a.z / s, a.w / s};
+Vector4 operator*(Vector4 a, float b) {
+    a *= b;
+    return a;
 }
 
-void swap(Vector4& a, Vector4& b) {
-    std::swap(a.x, b.x);
-    std::swap(a.y, b.y);
-    std::swap(a.z, b.z);
-    std::swap(a.w, b.w);
+Vector4 operator*(float b, Vector4 a) {
+    a *= b;
+    return a;
+}
+
+Vector4 operator/(Vector4 a, float b) {
+    a /= b;
+    return a;
 }
 
 bool operator==(Vector4 a, Vector4 b) {
@@ -131,6 +155,13 @@ bool operator!=(Vector4 a, Vector4 b) {
     return a.x != b.x || a.y != b.y || a.z != b.z || a.w != b.w;
 }
 
+void swap(Vector4& a, Vector4& b) {
+    std::swap(a.x, b.x);
+    std::swap(a.y, b.y);
+    std::swap(a.z, b.z);
+    std::swap(a.w, b.w);
+}
+
 namespace math {
     float dot(Vector4 a, Vector4 b) {
         return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
@@ -139,6 +170,10 @@ namespace math {
     Vector4 normalize(Vector4 vec) {
         vec.normalize();
         return vec;
+    }
+
+    float length(Vector4 v) {
+        return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
     }
 
     Vector4 multiply_componentwise(Vector4 const& a, Vector4 const& b) {

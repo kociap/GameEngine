@@ -3,8 +3,8 @@
 const Matrix3 Matrix3::zero = Matrix3();
 const Matrix3 Matrix3::identity = Matrix3({1, 0, 0}, {0, 1, 0}, {0, 0, 1});
 
-Matrix3::Matrix3() : components{} {}
-Matrix3::Matrix3(Vector3 const& a, Vector3 const& b, Vector3 const& c) : components{a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z} {}
+Matrix3::Matrix3(): components{} {}
+Matrix3::Matrix3(Vector3 const& a, Vector3 const& b, Vector3 const& c): components{a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z} {}
 
 float& Matrix3::operator()(int row, int column) {
     return components[row * 3 + column];
@@ -72,13 +72,40 @@ Vector3 operator*(Vector3 const& lhs, Matrix3 const& rhs) {
     return {multiply_row_column(lhs, rhs, 0), multiply_row_column(lhs, rhs, 1), multiply_row_column(lhs, rhs, 2)};
 }
 
-float determinant(Matrix3 const& m) {
-    return m(0, 0) * m(1, 1) * m(2, 2) + m(1, 0) * m(2, 1) * m(0, 2) + m(2, 0) * m(0, 1) * m(1, 2) - m(0, 0) * m(2, 1) * m(1, 2) - m(1, 0) * m(0, 1) * m(2, 2) -
-           m(2, 0) * m(1, 1) * m(0, 2);
-}
+namespace math {
+    static float determinant2x2(float m00, float m01, float m10, float m11) {
+        return m00 * m11 - m01 * m10;
+    }
 
-//Matrix3 adjoint(Matrix3 const& m) {}
+    float determinant(Matrix3 m) {
+        // clang-format off
+        return   m(0, 0) * (m(1, 1) * m(2, 2) - m(1, 2) * m(2, 1))
+               - m(0, 1) * (m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0))
+               + m(0, 2) * (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0));
+        // clang-format on
+    }
 
-//Matrix3 inverse(Matrix3 const& m) {
-//    return adjoint(m) / determinant(m);
-//}
+    Matrix3 adjugate(Matrix3 const& m) {
+        float m00 = determinant2x2(m(1, 1), m(1, 2), m(2, 1), m(2, 2));
+        float m01 = determinant2x2(m(1, 0), m(1, 2), m(2, 0), m(2, 2));
+        float m02 = determinant2x2(m(1, 0), m(1, 1), m(2, 0), m(2, 1));
+
+        float m10 = determinant2x2(m(0, 1), m(0, 2), m(2, 1), m(2, 2));
+        float m11 = determinant2x2(m(0, 0), m(0, 2), m(2, 0), m(2, 2));
+        float m12 = determinant2x2(m(0, 0), m(0, 1), m(2, 0), m(2, 1));
+
+        float m20 = determinant2x2(m(0, 1), m(0, 2), m(1, 1), m(1, 2));
+        float m21 = determinant2x2(m(0, 0), m(0, 2), m(1, 0), m(1, 2));
+        float m22 = determinant2x2(m(0, 0), m(0, 1), m(1, 0), m(1, 1));
+        // clang-format off
+        return Matrix3(
+            {m00, -m10, m20}, 
+            {-m01, m11, -m21}, 
+            {m02, -m12, m22});
+        // clang-format on
+    }
+
+    Matrix3 inverse(Matrix3 const& m) {
+        return adjugate(m) / determinant(m);
+    }
+} // namespace math

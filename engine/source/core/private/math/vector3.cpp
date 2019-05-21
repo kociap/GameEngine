@@ -36,17 +36,31 @@ Vector3 Vector3::operator-() const {
     return {-x, -y, -z};
 }
 
-Vector3& Vector3::operator+=(Vector3 const& a) {
+Vector3& Vector3::operator+=(Vector3 a) {
     x += a.x;
     y += a.y;
     z += a.z;
     return *this;
 }
 
-Vector3& Vector3::operator-=(Vector3 const& a) {
+Vector3& Vector3::operator-=(Vector3 a) {
     x -= a.x;
     y -= a.y;
     z -= a.z;
+    return *this;
+}
+
+Vector3& Vector3::operator+=(float a) {
+    x += a;
+    y += a;
+    z += a;
+    return *this;
+}
+
+Vector3& Vector3::operator-=(float a) {
+    x -= a;
+    y -= a;
+    z -= a;
     return *this;
 }
 
@@ -95,30 +109,39 @@ Vector3& Vector3::multiply_componentwise(Vector3 const& a) {
     return *this;
 }
 
-Vector3 operator+(Vector3 const& a, Vector3 const& b) {
-    return {a.x + b.x, a.y + b.y, a.z + b.z};
+Vector3 operator+(Vector3 a, Vector3 b) {
+    a += b;
+    return a;
 }
 
-Vector3 operator-(Vector3 const& a, Vector3 const& b) {
-    return {a.x - b.x, a.y - b.y, a.z - b.z};
+Vector3 operator-(Vector3 a, Vector3 b) {
+    a -= b;
+    return a;
 }
 
-Vector3 operator*(Vector3 const& a, float b) {
-    return {a.x * b, a.y * b, a.z * b};
+Vector3 operator+(Vector3 a, float b) {
+    a += b;
+    return a;
 }
 
-Vector3 operator*(float b, Vector3 const& a) {
-    return {a.x * b, a.y * b, a.z * b};
+Vector3 operator-(Vector3 a, float b) {
+    a -= b;
+    return a;
 }
 
-Vector3 operator/(Vector3 const& a, float b) {
-    return {a.x / b, a.y / b, a.z / b};
+Vector3 operator*(Vector3 a, float b) {
+    a *= b;
+    return a;
 }
 
-void swap(Vector3& a, Vector3& b) {
-    std::swap(a.x, b.x);
-    std::swap(a.y, b.y);
-    std::swap(a.z, b.z);
+Vector3 operator*(float b, Vector3 a) {
+    a *= b;
+    return a;
+}
+
+Vector3 operator/(Vector3 a, float b) {
+    a /= b;
+    return a;
 }
 
 bool operator==(Vector3 a, Vector3 b) {
@@ -127,6 +150,12 @@ bool operator==(Vector3 a, Vector3 b) {
 
 bool operator!=(Vector3 a, Vector3 b) {
     return a.x != b.x || a.y != b.y || a.z != b.z;
+}
+
+void swap(Vector3& a, Vector3& b) {
+    std::swap(a.x, b.x);
+    std::swap(a.y, b.y);
+    std::swap(a.z, b.z);
 }
 
 namespace math {
@@ -143,8 +172,8 @@ namespace math {
         return vec;
     }
 
-    float length(Vector3 vec) {
-        return vec.length();
+    float length(Vector3 v) {
+        return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
     }
 
     Vector3 multiply_componentwise(Vector3 const& a, Vector3 const& b) {

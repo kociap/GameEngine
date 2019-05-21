@@ -12,19 +12,32 @@
     <Type Name="Matrix4">
         <DisplayString>{{ {{ {*(components)}, {*(components + 1)}, {*(components + 2)}, {*(components + 3)} }}, {{ {*(components + 4)}, {*(components + 5)}, {*(components + 6)}, {*(components + 7)} }}, {{ {*(components + 8)}, {*(components + 9)}, {*(components + 10)}, {*(components + 11)} }}, {{ {*(components + 12)}, {*(components + 13)}, {*(components + 14)}, {*(components + 15)} }} }}</DisplayString>
         <Expand>
-            <ArrayItems>
-                <Size>16</Size>
-                <ValuePointer>components</ValuePointer>
-            </ArrayItems>
+            <Synthetic Name="row 0">
+                <DisplayString>{{ {*(components)}, {*(components + 1)}, {*(components + 2)}, {*(components + 3)} }}</DisplayString>
+            </Synthetic>
+            <Synthetic Name="row 1">
+                <DisplayString>{{ {*(components + 4)}, {*(components + 5)}, {*(components + 6)}, {*(components + 7)} }}</DisplayString>
+            </Synthetic>
+            <Synthetic Name="row 2">
+                <DisplayString>{{ {*(components + 8)}, {*(components + 9)}, {*(components + 10)}, {*(components + 11)} }}</DisplayString>
+            </Synthetic>
+            <Synthetic Name="row 3">
+                <DisplayString>{{ {*(components + 12)}, {*(components + 13)}, {*(components + 14)}, {*(components + 15)} }}</DisplayString>
+            </Synthetic>
         </Expand>
     </Type>
     <Type Name="Matrix3">
         <DisplayString>{{ {{ {*(components)}, {*(components + 1)}, {*(components + 2)} }}, {{ {*(components + 3)}, {*(components + 4)}, {*(components + 5)} }}, {{ {*(components + 6)}, {*(components + 7)}, {*(components + 8)} }} }}</DisplayString>
         <Expand>
-            <ArrayItems>
-                <Size>9</Size>
-                <ValuePointer>components</ValuePointer>
-            </ArrayItems>
+            <Synthetic Name="row 0">
+                <DisplayString>{{ {*(components)}, {*(components + 1)}, {*(components + 2)} }}</DisplayString>
+            </Synthetic>
+            <Synthetic Name="row 1">
+                <DisplayString>{{ {*(components + 3)}, {*(components + 4)}, {*(components + 5)} }}</DisplayString>
+            </Synthetic>
+            <Synthetic Name="row 2">
+                <DisplayString>{{ {*(components + 6)}, {*(components + 7)}, {*(components + 8)} }}</DisplayString>
+            </Synthetic>
         </Expand>
     </Type>
 </AutoVisualizer>
