@@ -350,15 +350,17 @@ uint32_t Renderer::render_frame_as_texture(Camera camera, Transform camera_trans
     opengl::viewport(0, 0, viewport_width, viewport_height);
     // Framebuffer::bind(*framebuffer_multisampled);
     Framebuffer::bind(*framebuffer);
-    //glClearColor(0.11f, 0.11f, 0.11f, 1.0f);
+    // glClearColor(0.11f, 0.11f, 0.11f, 1.0f);
     opengl::clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+    // opengl::clear_color(1.0f, 1.0f, 1.0f, 1.0f);
     opengl::clear(opengl::Buffer_Mask::color_buffer_bit | opengl::Buffer_Mask::depth_buffer_bit);
     Matrix4 view = get_camera_view_matrix(camera_transform);
     Matrix4 projection = get_camera_projection_matrix(camera, viewport_width, viewport_height);
     render_scene(camera_transform, view, projection, dl_view_transform * dl_projection_transform);
 
 #if GE_WITH_EDITOR
-    gizmo::draw(view, projection);
+    // TODO world position once parenting is done
+    gizmo::draw(camera_transform.local_position, view, projection);
 #endif
 
     // Postprocessing
