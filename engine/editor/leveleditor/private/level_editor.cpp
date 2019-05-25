@@ -1,7 +1,5 @@
 #include "level_editor.hpp"
 
-#include "resource_manager.hpp"
-#include "mesh/mesh.hpp"
 #include "collisions.hpp"
 #include "components/static_mesh_component.hpp"
 #include "components/transform.hpp"
@@ -11,12 +9,16 @@
 #include "gizmo.hpp"
 #include "input/input.hpp"
 #include "math/vector2.hpp"
+#include "mesh/mesh.hpp"
 #include "physics.hpp"
 #include "renderer.hpp"
+#include "resource_manager.hpp"
 #include "window.hpp"
 #include <cstdint>
 
 #include "imgui.h"
+
+constexpr float window_border_width = 1.0f;
 
 static Vector2 to_vec2(ImVec2 vec) {
     return {vec.x, vec.y};
@@ -47,8 +49,12 @@ void Level_Editor::prepare_editor_ui() {
     ImGui::Begin("Level Editor");
     ImVec2 window_size = imgui::GetWindowSize();
     Vector2 mouse_pos = get_mouse_position_relative_to_window();
-    mouse_pos.y = window_size.y - mouse_pos.y;
-    ImVec2 window_content_size = {window_size.x, window_size.y - imgui::GetWindowTitleBarHeight()};
+    // -1 because window_size is the number of pixels and mouse_pos is position relative to top-left corner
+    mouse_pos.y = window_size.y - mouse_pos.y - 1.0f;
+    mouse_pos -= window_border_width;
+    // border width is multiplied by 1 instead of 2 because who knows why.
+    // ImGui's documentation is poor a.k.a. doesn't exist
+    ImVec2 window_content_size = {window_size.x - 1.0f * window_border_width, window_size.y - imgui::GetWindowTitleBarHeight() - 1.0f * window_border_width};
     ImGui::End();
     imgui::PopStyleVar(ImGuiStyleVar_WindowPadding);
 
@@ -72,8 +78,10 @@ void Level_Editor::prepare_editor_ui() {
             Mesh const& mesh = mesh_manager.get(c.mesh_handle);
             physics::Raycast_Hit hit;
             if (physics::intersect_ray_mesh(ray, mesh, transform.to_matrix(), hit)) {
+                gizmo::draw_point(hit.hit_point, 0.05, Color::red, 20.0f);
+                float distance = math::length(hit.hit_point - ray.origin);
+                GE_log("Ray hit at distance " + std::to_string(hit.distance) + "; Real distance " + std::to_string(distance));
                 if (hit.distance < closest_hit.distance) {
-                    GE_log("Ray hit at distance " + std::to_string(hit.distance));
                     closest_hit = hit;
                     selected = entity;
                 }
@@ -90,6 +98,10 @@ void Level_Editor::prepare_editor_ui() {
     imgui::InputFloat("", &selected_obj_transform.local_position.x);
     imgui::InputFloat("", &selected_obj_transform.local_position.y);
     imgui::InputFloat("", &selected_obj_transform.local_position.z);
+    imgui::Text("Window size");
+    imgui::InputFloat2("", &window_size.x);
+    imgui::Text("Window content size");
+    imgui::InputFloat2("", &window_content_size.x);
     imgui::Text("Mouse Position");
     imgui::InputFloat2("", &mouse_pos.x);
     imgui::End();
@@ -102,6 +114,10 @@ void Level_Editor::prepare_editor_ui() {
         previous_window_content_size.y = window_content_size.y;
         renderer.resize(window_content_size.x, window_content_size.y);
     }
+
+    // Main world axes
+    gizmo::draw_line({-10.0f, 0.0f, 0.0f}, {10.0f, 0.0f, 0.0f}, {179.0f / 255.0f, 20.0f / 255.0f, 5.0f / 255.0f});
+    gizmo::draw_line({0.0f, 0.0f, -10.0f}, {0.0f, 0.0f, 10.0f}, {15.0f / 255.0f, 77.0f / 255.0f, 186.0f / 255.0f});
 
     uint32_t texture = renderer.render_frame_as_texture(camera, camera_transform, window_content_size.x, window_content_size.y);
     imgui::Image(reinterpret_cast<ImTextureID>(texture), window_content_size, ImVec2(0, 1), ImVec2(1, 0));

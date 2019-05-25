@@ -77,7 +77,7 @@ void Engine::load_world() {
 
     // BS code to output anything on the screen
 #ifdef RENDER_CUBES
-    containers::Vector<Mesh> meshes = assets::load_model("sphere.obj");
+    containers::Vector<Mesh> meshes = assets::load_model("cube.obj");
     auto& container = meshes[0];
     Handle<Material> material_handle = material_manager->add(Material());
 #else
