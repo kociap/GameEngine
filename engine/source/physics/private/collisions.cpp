@@ -1,6 +1,7 @@
 #include "collisions.hpp"
 
 #include "math/math.hpp"
+#include "math/matrix3.hpp"
 #include "mesh/mesh.hpp"
 
 namespace physics {
@@ -8,29 +9,17 @@ namespace physics {
         Vector3 ao = ray.origin - a;
         Vector3 ab = b - a;
         Vector3 ac = c - a;
-
-        Vector3 n = math::cross(ab, ac);
-        float d = -math::dot(ray.direction, n);
-        // TODO if d == 0, ray is parallel to the plane of the triangle
-        float t = math::dot(ao, n / d);
-        if (t < 0.0f) {
+        Matrix3 inv_mat = math::inverse({ab, ac, -ray.direction});
+        Vector3 result = ao * inv_mat;
+        float u = result.x;
+        float v = result.y;
+        float t = result.z;
+        if (u < 0 || v < 0 || u + v > 1 || t < 0) {
             return false;
         }
 
-        Vector3 e = math::cross(ray.direction, ao);
-        float u = -math::dot(e, ac);
-        if (u < 0.0f || u > d) {
-            return false;
-        }
-        float v = -math::dot(e, ab);
-        if (v < 0.0f || u + v > d) {
-            return false;
-        }
-        t /= d;
-        u /= d;
-        v /= d;
-
-        Point r(a + b * u + c * v);
+        Point r(a + u * ab + v * ac);
+        // float distance = math::length(r - ray.origin);
         out = {r, {u, v, 1 - u - v}, t};
         return true;
     }
