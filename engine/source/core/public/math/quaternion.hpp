@@ -25,18 +25,20 @@ public:
     void inverse();
 };
 
-Quaternion conjugate(Quaternion const&);
-// If quaternion is normalized, this function returns the same resuls as conjugate
-Quaternion inverse(Quaternion const&);
-float norm(Quaternion const&);
-float norm_squared(Quaternion const&);
-Quaternion normalize(Quaternion const&);
-
 Quaternion operator+(Quaternion const&, Quaternion const&);
 Quaternion operator-(Quaternion const&, Quaternion const&);
-// Implements Grassmann product
-Quaternion operator*(Quaternion const&, Quaternion const&);
+// Hamilton Product
+Quaternion operator*(Quaternion, Quaternion);
 Quaternion operator*(Quaternion const&, float);
 Quaternion operator/(Quaternion const&, float);
+
+namespace math {
+    Quaternion conjugate(Quaternion const&);
+    // If quaternion is normalized, this function returns the same resuls as conjugate
+    Quaternion inverse(Quaternion const&);
+    Quaternion normalize(Quaternion const&);
+    float length(Quaternion const&);
+    float length_squared(Quaternion const&);
+} // namespace math
 
 #endif // !GAME_ENGINE_CORE_MATH_QUATERNION_HPP_INCLUDE

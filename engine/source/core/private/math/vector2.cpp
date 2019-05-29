@@ -24,6 +24,14 @@ float Vector2::component(int index) const {
     return (&x)[index];
 }
 
+float& Vector2::operator[](int index) {
+    return (&x)[index];
+}
+
+float Vector2::operator[](int index) const {
+    return (&x)[index];
+}
+
 Vector2& Vector2::operator-() {
     x = -x;
     y = -y;

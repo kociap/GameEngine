@@ -19,6 +19,14 @@ namespace math {
         return a < b ? a : b;
     }
 
+    float sin(float angle) {
+        return std::sinf(angle);
+    }
+
+    float cos(float angle) {
+        return std::cosf(angle);
+    }
+
     float abs(float a) {
         return std::abs(a);
     }

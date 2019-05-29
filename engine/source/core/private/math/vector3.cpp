@@ -25,6 +25,14 @@ float Vector3::component(int index) const {
     return (&x)[index];
 }
 
+float& Vector3::operator[](int index) {
+    return (&x)[index];
+}
+
+float Vector3::operator[](int index) const {
+    return (&x)[index];
+}
+
 Vector3& Vector3::operator-() {
     x = -x;
     y = -y;

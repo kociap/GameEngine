@@ -21,6 +21,8 @@ public:
 
     float& component(int);
     float component(int) const;
+    float& operator[](int);
+    float operator[](int) const;
 
     Vector2& operator-();
     Vector2 operator-() const;

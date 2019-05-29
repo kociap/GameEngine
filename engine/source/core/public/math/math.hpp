@@ -44,6 +44,8 @@ namespace math {
     float max(float, float);
     float min(float, float);
     float abs(float);
+    float sin(float);
+    float cos(float);
     float step_to_value(float current, float target, float change);
 } // namespace math
 

@@ -23,6 +23,8 @@ public:
 
     float& component(int);
     float component(int) const;
+    float& operator[](int);
+    float operator[](int) const;
 
     Vector3& operator-();
     Vector3 operator-() const;

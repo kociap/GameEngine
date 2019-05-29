@@ -18,6 +18,8 @@ public:
 
     float& component(int);
     float component(int) const;
+    float& operator[](int);
+    float operator[](int) const;
 
     Vector4& operator-();
     Vector4 operator-() const;

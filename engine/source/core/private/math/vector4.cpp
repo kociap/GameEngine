@@ -19,6 +19,14 @@ float Vector4::component(int index) const {
     return (&x)[index];
 }
 
+float& Vector4::operator[](int index) {
+    return (&x)[index];
+}
+
+float Vector4::operator[](int index) const {
+    return (&x)[index];
+}
+
 Vector4& Vector4::operator-() {
     x = -x;
     y = -y;
