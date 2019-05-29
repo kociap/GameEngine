@@ -1,3 +1,4 @@
+#include "debug_macros.hpp"
 #include "math/math.hpp"
 #include "memory/memory.hpp"
 #include "memory/stack_allocate.hpp"
@@ -12,7 +13,7 @@ namespace containers {
     Vector<T, Allocator>::Vector(size_type size): _capacity(size) {
         storage = allocator.allocate(_capacity);
         try {
-            uninitialized_default_construct_n(storage, size);
+            memory::uninitialized_default_construct_n(storage, size);
             _size = size;
         } catch (...) {
             allocator.deallocate(storage, _capacity);
@@ -24,7 +25,7 @@ namespace containers {
     Vector<T, Allocator>::Vector(Vector const& v): _capacity(v._capacity), allocator(v.allocator) {
         storage = allocator.allocate(_capacity);
         try {
-            uninitialized_copy_n(v.storage, v._size, storage);
+            memory::uninitialized_copy_n(v.storage, v._size, storage);
             _size = v._size;
         } catch (...) {
             allocator.deallocate(storage, _capacity);
@@ -43,7 +44,7 @@ namespace containers {
     Vector<T, Allocator>::Vector(std::initializer_list<T> list): _capacity(list.size()) {
         storage = allocator.allocate(_capacity);
         try {
-            uninitialized_move(list.begin(), list.end(), storage);
+            memory::uninitialized_move(list.begin(), list.end(), storage);
             _size = list.size();
         } catch (...) {
             allocator.deallocate(storage, _capacity);
@@ -54,7 +55,7 @@ namespace containers {
     template <typename T, typename Allocator>
     Vector<T, Allocator>::~Vector() {
         if (storage != nullptr) {
-            destruct_n(storage, _size);
+            memory::destruct_n(storage, _size);
             allocator.deallocate(storage, _capacity);
         }
     }
@@ -65,7 +66,7 @@ namespace containers {
         _capacity = v._capacity;
         storage = allocator.allocate(_capacity);
         try {
-            uninitialized_copy_n(v.storage, v._size, storage);
+            memory::uninitialized_copy_n(v.storage, v._size, storage);
             _size = v._size;
         } catch (...) {
             allocator.deallocate(storage, _capacity);
@@ -222,9 +223,9 @@ namespace containers {
         }
 
         if (n > _size) {
-            uninitialized_fill(get_ptr(_size), get_ptr(n), value);
+            memory::uninitialized_fill(get_ptr(_size), get_ptr(n), value);
         } else {
-            destruct(get_ptr(n), get_ptr(_size));
+            memory::destruct(get_ptr(n), get_ptr(_size));
         }
         _size = n;
     }
@@ -236,9 +237,9 @@ namespace containers {
         }
 
         if (n > _size) {
-            uninitialized_default_construct(get_ptr(_size), get_ptr(n));
+            memory::uninitialized_default_construct(get_ptr(_size), get_ptr(n));
         } else {
-            destruct(get_ptr(n), get_ptr(_size));
+            memory::destruct(get_ptr(n), get_ptr(_size));
         }
         _size = n;
     }
@@ -263,6 +264,28 @@ namespace containers {
     void Vector<T, Allocator>::shrink_to_fit() {
         if (_size < _capacity) {
             shrink(_size);
+        }
+    }
+
+    template <typename T, typename Allocator>
+    void Vector<T, Allocator>::insert_unsorted(const_iterator position, value_type const& value) {
+        GE_assert(position.storage_ptr >= get_ptr() && position.storage_ptr <= get_ptr(_size), "Vector::insert invalid iterator");
+
+        size_type offset = position.storage_ptr - storage;
+        check_size();
+        if (offset == _size) {
+            attempt_construct(get_ptr(offset), value);
+            ++_size;
+        } else {
+            T* elem_ptr = get_ptr(offset);
+            if constexpr (std::is_nothrow_move_constructible_v<T>) {
+                attempt_move(elem_ptr, get_ptr(_size));
+            } else {
+                attempt_copy(elem_ptr, get_ptr(_size));
+            }
+            memory::destruct(elem_ptr);
+            attempt_construct(elem_ptr, value);
+            ++_size;
         }
     }
 
@@ -306,20 +329,20 @@ namespace containers {
         T* elem_ptr = get_ptr(index);
         T* last_elem_ptr = get_ptr(_size - 1);
         *elem_ptr = std::move(*last_elem_ptr);
-        destruct(last_elem_ptr);
+        memory::destruct(last_elem_ptr);
         --_size;
     }
 
     template <typename T, typename Allocator>
     void Vector<T, Allocator>::pop_back() {
         T* last_elem_ptr = get_ptr(_size - 1);
-        destruct(last_elem_ptr);
+        memory::destruct(last_elem_ptr);
         --_size;
     }
 
     template <typename T, typename Allocator>
     void Vector<T, Allocator>::clear() {
-        destruct(get_ptr(), get_ptr(_size));
+        memory::destruct(get_ptr(), get_ptr(_size));
         _size = 0;
     }
 
@@ -352,9 +375,9 @@ namespace containers {
     void Vector<T, Allocator>::move_contents(T* const& from, T* const& to, size_type number_of_elements_to_copy) {
         // TODO
         if constexpr (std::is_nothrow_move_constructible_v<T> /* || !std::is_copy_constructible_v<T> */) {
-            uninitialized_move_n(from, number_of_elements_to_copy, to);
+            memory::uninitialized_move_n(from, number_of_elements_to_copy, to);
         } else {
-            uninitialized_copy_n(from, number_of_elements_to_copy, to);
+            memory::uninitialized_copy_n(from, number_of_elements_to_copy, to);
         }
     }
 
@@ -370,7 +393,7 @@ namespace containers {
             throw;
         }
         std::swap(storage, new_storage);
-        destruct_n(new_storage, _size);
+        memory::destruct_n(new_storage, _size);
         allocator.deallocate(new_storage, _capacity);
         _capacity = new_capacity;
     }
@@ -386,7 +409,7 @@ namespace containers {
             throw;
         }
         std::swap(storage, new_storage);
-        destruct_n(new_storage, _size);
+        memory::destruct_n(new_storage, _size);
         _capacity = new_capacity;
         _size = min_cap_size;
     }
@@ -429,7 +452,7 @@ namespace serialization {
                     }
                 } catch (...) {
                     // TODO move stream backward to maintain weak guarantee
-                    destruct_n(vec.get_ptr(), size);
+                    memory::destruct_n(vec.get_ptr(), size);
                     throw;
                 }
             } else {
@@ -443,7 +466,7 @@ namespace serialization {
                     vec._size = size;
                 } catch (...) {
                     // TODO move stream backward to maintain weak guarantee
-                    destruct_n(vec.get_ptr(), size - n);
+                    memory::destruct_n(vec.get_ptr(), size - n);
                     throw;
                 }
             }
@@ -457,7 +480,7 @@ namespace serialization {
                 vec._size = size;
             } catch (...) {
                 // TODO move stream backward to maintain weak guarantee
-                destruct(vec.get_ptr(), first);
+                memory::destruct(vec.get_ptr(), first);
                 throw;
             }
         }

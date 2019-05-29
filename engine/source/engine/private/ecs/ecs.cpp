@@ -3,7 +3,7 @@
 
 ECS::~ECS() {
     for (auto& container_data: containers) {
-        destruct(container_data.pointer);
+        memory::destruct(container_data.pointer);
         container_data.pointer = nullptr;
     }
 }

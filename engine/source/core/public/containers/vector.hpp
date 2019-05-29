@@ -42,7 +42,6 @@ namespace containers {
         const_reference at(size_type) const;
         reference at_unchecked(size_type);
         const_reference at_unchecked(size_type) const;
-        // Returns a reference to the object which will be invalidated after reallocation
         reference operator[](size_type);
         const_reference operator[](size_type) const;
         reference front();
@@ -73,6 +72,7 @@ namespace containers {
         void set_capacity(size_type n);
         void shrink_to_fit();
 
+        void insert_unsorted(const_iterator position, value_type const& value);
         void push_back(value_type const&);
         void push_back(value_type&&);
         template <typename... CtorArgs>

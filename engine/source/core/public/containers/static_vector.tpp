@@ -145,10 +145,10 @@ namespace containers {
         }
 
         if (n > _size) { // Upsizing is the more likely case
-            uninitialized_fill(get_ptr(_size), get_ptr(n), value);
+            memory::uninitialized_fill(get_ptr(_size), get_ptr(n), value);
             _size = n;
         } else {
-            destruct(get_ptr(n), get_ptr(_size));
+            memory::destruct(get_ptr(n), get_ptr(_size));
             _size = n;
         }
     }
@@ -160,10 +160,10 @@ namespace containers {
         }
 
         if (n > _size) { // Upsizing is the more likely case
-            uninitialized_default_construct(get_ptr(_size), get_ptr(n));
+            memory::uninitialized_default_construct(get_ptr(_size), get_ptr(n));
             _size = n;
         } else {
-            destruct(get_ptr(n), get_ptr(_size));
+            memory::destruct(get_ptr(n), get_ptr(_size));
             _size = n;
         }
     }
@@ -176,7 +176,7 @@ namespace containers {
 
     template <typename T, uint64_t _capacity>
     void Static_Vector<T, _capacity>::clear() {
-        destruct_n(get_ptr(), _size);
+        memory::destruct_n(get_ptr(), _size);
         _size = 0;
     }
 
@@ -246,7 +246,7 @@ namespace containers {
 
     template <typename T, uint64_t _capacity>
     void Static_Vector<T, _capacity>::pop_back() {
-        destruct(get_ptr(_size - 1));
+        memory::destruct(get_ptr(_size - 1));
         --_size;
     }
 
@@ -306,7 +306,7 @@ namespace serialization {
                     }
                 } catch (...) {
                     // TODO move stream backward
-                    destruct_n(vec.get_ptr(), size);
+                    memory::destruct_n(vec.get_ptr(), size);
                     throw;
                 }
             } else {
@@ -320,7 +320,7 @@ namespace serialization {
                     vec._size = size;
                 } catch (...) {
                     // TODO move stream backward
-                    destruct_n(vec.get_ptr(), size - n);
+                    memory::destruct_n(vec.get_ptr(), size - n);
                     throw;
                 }
             }
@@ -334,7 +334,7 @@ namespace serialization {
                 vec._size = size;
             } catch (...) {
                 // TODO move stream backward
-                destruct(vec.get_ptr(), first);
+                memory::destruct(vec.get_ptr(), first);
                 throw;
             }
         }
