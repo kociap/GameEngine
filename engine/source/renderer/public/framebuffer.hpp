@@ -6,6 +6,7 @@
 #include <array>
 #include <cstdint>
 
+// TODO add resizing
 class Framebuffer {
 public:
     static constexpr uint64_t max_color_attachments = opengl::min_color_attachments;
@@ -69,11 +70,14 @@ public:
     Framebuffer(Framebuffer const&) = delete;
     Framebuffer& operator=(Framebuffer const&) = delete;
 
-    void clear();
+    void resize(uint32_t width, uint32_t height);
     uint32_t get_color_texture(uint32_t index) const;
     uint32_t get_depth_texture() const;
 
 private:
+    void create_framebuffer();
+    void delete_framebuffer();
+
     Construct_Info info;
     containers::Static_Vector<uint32_t, max_color_attachments> color_buffers;
     uint32_t active_color_buffers = 0;

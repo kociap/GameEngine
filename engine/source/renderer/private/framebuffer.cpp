@@ -54,7 +54,7 @@ void Framebuffer::bind_default(Bind_Mode bm) {
     CHECK_GL_ERRORS();
 }
 
-Framebuffer::Framebuffer(Construct_Info const& i): info(i) {
+void Framebuffer::create_framebuffer() {
     if (info.width > opengl::get_max_renderbuffer_size() || info.height > opengl::get_max_renderbuffer_size()) {
         throw std::invalid_argument("Too big buffer size");
     }
@@ -71,6 +71,8 @@ Framebuffer::Framebuffer(Construct_Info const& i): info(i) {
     active_color_buffers = info.color_buffers.size();
     color_buffers.resize(active_color_buffers);
 
+    // TODO add support for renderbuffer color attachments
+
     // Generate color buffer
     if (active_color_buffers > 0) {
         opengl::gen_textures(active_color_buffers, &color_buffers[0]);
@@ -80,6 +82,8 @@ Framebuffer::Framebuffer(Construct_Info const& i): info(i) {
                 auto internal_format = info.color_buffers[i].internal_format;
                 opengl::bind_texture(opengl::Texture_Type::texture_2D_multisample, color_buffer_handle);
                 opengl::tex_image_2D_multisample(GL_TEXTURE_2D_MULTISAMPLE, info.samples, internal_format, info.width, info.height);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                 opengl::bind_texture(opengl::Texture_Type::texture_2D_multisample, 0);
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, color_buffer_handle, 0);
                 CHECK_GL_ERRORS();
@@ -90,10 +94,11 @@ Framebuffer::Framebuffer(Construct_Info const& i): info(i) {
                 auto internal_format = info.color_buffers[i].internal_format;
                 auto compatible_format = get_compatible_format(internal_format);
                 opengl::bind_texture(opengl::Texture_Type::texture_2D, color_buffer_handle);
-                opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, info.width, info.height, compatible_format, opengl::Type::signed_float,
-                                     nullptr);
+                opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, info.width, info.height, compatible_format, opengl::Type::signed_float, nullptr);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                 CHECK_GL_ERRORS();
                 opengl::bind_texture(opengl::Texture_Type::texture_2D, 0);
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, color_buffer_handle, 0);
@@ -188,22 +193,7 @@ Framebuffer::Framebuffer(Construct_Info const& i): info(i) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-Framebuffer::Framebuffer(Framebuffer&& fbo) noexcept {
-    info = fbo.info;
-    std::swap(framebuffer, fbo.framebuffer);
-    std::swap(depth_buffer, fbo.depth_buffer);
-    std::swap(stencil_buffer, fbo.stencil_buffer);
-}
-
-Framebuffer& Framebuffer::operator=(Framebuffer&& fbo) noexcept {
-    info = fbo.info;
-    std::swap(framebuffer, fbo.framebuffer);
-    std::swap(depth_buffer, fbo.depth_buffer);
-    std::swap(stencil_buffer, fbo.stencil_buffer);
-    return *this;
-}
-
-Framebuffer::~Framebuffer() {
+void Framebuffer::delete_framebuffer() {
     if (depth_buffer != 0) {
         if (info.depth_buffer.buffer_type == Buffer_Type::renderbuffer) {
             glDeleteRenderbuffers(1, &depth_buffer);
@@ -220,6 +210,36 @@ Framebuffer::~Framebuffer() {
     if (framebuffer != 0) {
         glDeleteFramebuffers(1, &framebuffer);
     }
+}
+
+Framebuffer::Framebuffer(Construct_Info const& i): info(i) {
+    create_framebuffer();
+}
+
+Framebuffer::Framebuffer(Framebuffer&& fbo) noexcept {
+    info = fbo.info;
+    std::swap(framebuffer, fbo.framebuffer);
+    std::swap(depth_buffer, fbo.depth_buffer);
+    std::swap(stencil_buffer, fbo.stencil_buffer);
+}
+
+Framebuffer& Framebuffer::operator=(Framebuffer&& fbo) noexcept {
+    info = fbo.info;
+    std::swap(framebuffer, fbo.framebuffer);
+    std::swap(depth_buffer, fbo.depth_buffer);
+    std::swap(stencil_buffer, fbo.stencil_buffer);
+    return *this;
+}
+
+Framebuffer::~Framebuffer() {
+    delete_framebuffer();
+}
+
+void Framebuffer::resize(uint32_t width, uint32_t height) {
+    delete_framebuffer();
+    info.width = width;
+    info.height = height;
+    create_framebuffer();
 }
 
 uint32_t Framebuffer::get_color_texture(uint32_t index) const {
