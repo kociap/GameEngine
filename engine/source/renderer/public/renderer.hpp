@@ -3,7 +3,6 @@
 
 #include "components/camera.hpp"
 #include "components/transform.hpp"
-#include "material.hpp"
 #include "shader.hpp"
 #include <cstdint>
 
@@ -26,6 +25,9 @@ public:
     uint32_t render_frame_as_texture(Camera, Transform camera_transform, uint32_t viewport_width, uint32_t viewport_height);
     void load_shader_light_properties();
     void set_gamma_value(float);
+    void swap_postprocess_buffers();
+    uint32_t apply_gamma_correction(uint32_t texture);
+    void render_postprocess();
 
 private:
     void render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count);
@@ -35,20 +37,19 @@ private:
     void render_with_shader(Shader& shader, Transform const& camera_transform, Matrix4 const& view_transform, Matrix4 const& projection_transform);
     void update_dynamic_lights();
     void setup_opengl();
-    void swap_postprocess_buffers();
 
     void build_framebuffers(uint32_t width, uint32_t height);
     void delete_framebuffers();
 
 private:
     Framebuffer* framebuffer_multisampled;
-    Framebuffer* framebuffer;
     Framebuffer* light_depth_buffer;
 
+public:
+    Framebuffer* framebuffer;
     Framebuffer* postprocess_front_buffer;
     Framebuffer* postprocess_back_buffer;
 
-public:
     Shader default_shader;
     // Postprocessing shaders
     // TODO move to postprocessing
@@ -56,9 +57,10 @@ public:
     Shader passthrough_quad_shader;
     Shader tangents;
     Shader deferred_shading_shader;
+    Shader single_color_shader;
+    Shader outline_mix_shader;
 
 public:
-    float gamma_correction_value = 2.2f;
     uint32_t shadow_width = 1024;
     uint32_t shadow_height = 1024;
 };

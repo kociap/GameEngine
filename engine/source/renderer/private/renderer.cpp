@@ -14,7 +14,6 @@
 #include "ecs/ecs.hpp"
 #include "engine.hpp"
 #include "framebuffer.hpp"
-#include "gizmo_internal.hpp"
 #include "handle.hpp"
 #include "math/matrix4.hpp"
 #include "math/transform.hpp"
@@ -24,7 +23,7 @@
 #include "resource_manager.hpp"
 #include "shader.hpp"
 
-Renderer::Renderer(uint32_t width, uint32_t height) {
+Renderer::Renderer(uint32_t width, uint32_t height): single_color_shader(false), outline_mix_shader(false) {
     opengl::load_opengl_parameters();
     build_framebuffers(width, height);
 
@@ -34,6 +33,12 @@ Renderer::Renderer(uint32_t width, uint32_t height) {
     gamma_correction_shader = create_shader(postprocess_vert, gamma_correction);
     gamma_correction_shader.use();
     gamma_correction_shader.set_int("scene_texture", 0);
+
+    auto outline_mix_file = assets::load_shader_file("editor/outline_mix.frag");
+    outline_mix_shader = create_shader(outline_mix_file, postprocess_vert);
+    outline_mix_shader.use();
+    outline_mix_shader.set_int("scene_texture", 0);
+    outline_mix_shader.set_int("outline_texture", 1);
 
     auto quad_vert = assets::load_shader_file("quad.vert");
     auto quad_frag = assets::load_shader_file("quad.frag");
@@ -53,8 +58,12 @@ Renderer::Renderer(uint32_t width, uint32_t height) {
     auto tangents_frag = assets::load_shader_file("tangents.frag");
     tangents = create_shader(tangents_vert, tangents_geom, tangents_frag);
 
+    auto single_color_vert = assets::load_shader_file("single_color.vert");
+    auto single_color_frag = assets::load_shader_file("single_color.frag");
+    single_color_shader = create_shader(single_color_frag, single_color_vert);
+
     setup_opengl();
-    set_gamma_value(gamma_correction_value);
+    set_gamma_value(2.2f);
 }
 
 Renderer::~Renderer() {
@@ -191,9 +200,8 @@ void Renderer::update_dynamic_lights() {
 }
 
 void Renderer::set_gamma_value(float gamma) {
-    gamma_correction_value = gamma;
     gamma_correction_shader.use();
-    gamma_correction_shader.set_float("gamma", 1 / gamma_correction_value);
+    gamma_correction_shader.set_float("gamma", 1 / gamma);
 }
 
 void Renderer::setup_opengl() {
@@ -330,8 +338,6 @@ void Renderer::render_with_shader(Shader& shader, Transform const& camera_transf
 }
 
 uint32_t Renderer::render_frame_as_texture(Camera camera, Transform camera_transform, uint32_t viewport_width, uint32_t viewport_height) {
-    static Plane scene_quad;
-
     update_dynamic_lights();
 
     // Shadow mapping
@@ -345,7 +351,6 @@ uint32_t Renderer::render_frame_as_texture(Camera camera, Transform camera_trans
     Matrix4 dl_view_transform(math::transform::look_at(Vector3(), directional_light.direction, Vector3::up));
     Matrix4 dl_projection_transform(math::transform::orthographic(-10, 10, -10, 10, -100, 100));
     //render_shadow_map(dl_view_transform, dl_projection_transform);
-
     glEnable(GL_DEPTH_TEST);
     opengl::viewport(0, 0, viewport_width, viewport_height);
     // Framebuffer::bind(*framebuffer_multisampled);
@@ -357,11 +362,6 @@ uint32_t Renderer::render_frame_as_texture(Camera camera, Transform camera_trans
     Matrix4 view = get_camera_view_matrix(camera_transform);
     Matrix4 projection = get_camera_projection_matrix(camera, viewport_width, viewport_height);
     render_scene(camera_transform, view, projection, dl_view_transform * dl_projection_transform);
-
-#if GE_WITH_EDITOR
-    // TODO world position once parenting is done
-    gizmo::draw(camera_transform.local_position, view, projection);
-#endif
 
     // Postprocessing
 
@@ -375,27 +375,33 @@ uint32_t Renderer::render_frame_as_texture(Camera camera, Transform camera_trans
     opengl::bind_texture(opengl::Texture_Type::texture_2D, framebuffer->get_color_texture(2));
     deferred_shading_shader.use();
     deferred_shading_shader.set_vec3("camera.position", camera_transform.local_position);
-    render_mesh(scene_quad);
-
-    swap_postprocess_buffers();
-    Framebuffer::bind(*postprocess_back_buffer);
-    opengl::active_texture(0);
-    opengl::bind_texture(opengl::Texture_Type::texture_2D, postprocess_front_buffer->get_color_texture(0));
-    gamma_correction_shader.use();
-    render_mesh(scene_quad);
+    render_postprocess();
 
     swap_postprocess_buffers();
     return postprocess_front_buffer->get_color_texture(0);
 }
 
 void Renderer::render_frame(Camera camera, Transform camera_transform, uint32_t viewport_width, uint32_t viewport_height) {
-    static Plane scene_quad;
-
     uint32_t frame_texture = render_frame_as_texture(camera, camera_transform, viewport_width, viewport_height);
     Framebuffer::bind_default();
     opengl::active_texture(0);
     opengl::bind_texture(opengl::Texture_Type::texture_2D, frame_texture);
-    passthrough_quad_shader.use();
+    gamma_correction_shader.use();
+    render_postprocess();
+}
+
+uint32_t Renderer::apply_gamma_correction(uint32_t texture) {
+    Framebuffer::bind(*postprocess_back_buffer);
+    opengl::active_texture(0);
+    opengl::bind_texture(opengl::Texture_Type::texture_2D, texture);
+    gamma_correction_shader.use();
+    render_postprocess();
+    swap_postprocess_buffers();
+    return postprocess_front_buffer->get_color_texture(0);
+}
+
+void Renderer::render_postprocess() {
+    static Plane scene_quad;
     render_mesh(scene_quad);
 }
 
