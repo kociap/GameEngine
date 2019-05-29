@@ -14,4 +14,6 @@ constexpr Entity null_entity{static_cast<Entity::id_type>(-1)};
 bool operator==(Entity const&, Entity const&);
 bool operator!=(Entity const&, Entity const&);
 
+void swap(Entity&, Entity&);
+
 #endif // !ENGINE_ENTITY_HPP_INCLUDE

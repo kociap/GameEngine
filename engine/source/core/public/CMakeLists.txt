@@ -31,6 +31,7 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/serialization.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/singleton.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/type_family.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/utility.hpp"
     PARENT_SCOPE
 )
 

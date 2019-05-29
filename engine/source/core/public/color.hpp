@@ -24,4 +24,6 @@ public:
 // Componentwise multiply
 Color operator*(Color const&, Color const&);
 
+void swap(Color&, Color&);
+
 #endif // !CORE_COLOR_HPP_INCLUDE

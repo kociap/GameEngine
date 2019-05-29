@@ -1,4 +1,5 @@
 #include "color.hpp"
+#include "utility.hpp"
 
 Color const Color::white = Color(1.0f, 1.0f, 1.0f);
 Color const Color::black = Color(0.0f, 0.0f, 0.0f);
@@ -20,4 +21,11 @@ Color operator*(Color const& c1, Color const& c2) {
     Color c(c1);
     c *= c2;
     return c;
+}
+
+void swap(Color& a, Color& b) {
+    swap(a.r, b.r);
+    swap(a.g, b.g);
+    swap(a.b, b.b);
+    swap(a.a, b.a);
 }
