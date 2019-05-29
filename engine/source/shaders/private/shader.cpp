@@ -111,7 +111,7 @@ void Shader::set_float(char const* name, float a) {
     set_float(std::string(name), a);
 }
 
-void Shader::set_vec3(std::string const& name, Vector3 const& vec) {
+void Shader::set_vec3(std::string const& name, Vector3 vec) {
     auto iter = uniform_cache.find(name);
     if (iter != uniform_cache.end()) {
         glUniform3fv(iter->second, 1, &vec.x);
@@ -119,11 +119,11 @@ void Shader::set_vec3(std::string const& name, Vector3 const& vec) {
     }
 }
 
-void Shader::set_vec3(char const* name, Vector3 const& vec) {
+void Shader::set_vec3(char const* name, Vector3 vec) {
     set_vec3(std::string(name), vec);
 }
 
-void Shader::set_vec3(std::string const& name, Color const& c) {
+void Shader::set_vec3(std::string const& name, Color c) {
     auto iter = uniform_cache.find(name);
     if (iter != uniform_cache.end()) {
         glUniform3fv(iter->second, 1, &c.r);
@@ -131,8 +131,20 @@ void Shader::set_vec3(std::string const& name, Color const& c) {
     }
 }
 
-void Shader::set_vec3(char const* name, Color const& c) {
+void Shader::set_vec3(char const* name, Color c) {
     set_vec3(std::string(name), c);
+}
+
+void Shader::set_vec4(std::string const& name, Color c) {
+    auto iter = uniform_cache.find(name);
+    if (iter != uniform_cache.end()) {
+        glUniform4fv(iter->second, 1, &c.r);
+        CHECK_GL_ERRORS();
+    }
+}
+
+void Shader::set_vec4(char const* name, Color c) {
+    set_vec4(std::string(name), c);
 }
 
 void Shader::set_matrix4(std::string const& name, Matrix4 const& mat) {

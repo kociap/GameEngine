@@ -28,10 +28,12 @@ public:
     void set_int(char const*, int);
     void set_float(std::string const&, float);
     void set_float(char const*, float);
-    void set_vec3(std::string const&, Vector3 const&);
-    void set_vec3(char const*, Vector3 const&);
-    void set_vec3(std::string const&, Color const&);
-    void set_vec3(char const*, Color const&);
+    void set_vec3(std::string const&, Vector3);
+    void set_vec3(char const*, Vector3);
+    void set_vec3(std::string const&, Color);
+    void set_vec3(char const*, Color);
+    void set_vec4(std::string const&, Color);
+    void set_vec4(char const*, Color);
     void set_matrix4(std::string const&, Matrix4 const&);
     void set_matrix4(char const*, Matrix4 const&);
 
