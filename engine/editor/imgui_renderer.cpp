@@ -91,6 +91,7 @@ Imgui_Renderer::Imgui_Renderer(): shader(create_default_shader()) {
     texture_from_font(io);
 
     io.ConfigWindowsResizeFromEdges = true;
+    io.ConfigWindowsMoveFromTitleBarOnly = true;
 
     // Global window style settings
     ImGuiStyle& style = imgui::GetStyle();
