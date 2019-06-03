@@ -2,6 +2,8 @@
 
 #include "math/math.hpp"
 #include "math/matrix3.hpp"
+#include "math/matrix4.hpp"
+#include "math/transform.hpp"
 #include "mesh/mesh.hpp"
 
 namespace physics {
@@ -24,19 +26,48 @@ namespace physics {
         return true;
     }
 
-    // Raycast_Hit intersect_ray_triangle(Ray ray, Point a, Point b, Point c, Vector3 triangle_normal) {
-    //     float dot = math::dot(ray.direction, triangle_normal);
-    //     if (dot <= 0) {
-    //         // not backfacing
-    //         float t = 0;
-    //         if (t > 0) {
-    //         } else {
-    //             return {Point(), false};
-    //         }
-    //     } else {
-    //         return {Point(), false};
-    //     }
-    // }
+    bool test_ray_obb(Ray ray, OBB obb) {
+        Matrix4 rotation = Matrix4(Vector4{obb.local_x, 0}, Vector4{obb.local_y, 0}, Vector4{obb.local_z, 0}, Vector4{0, 0, 0, 1});
+        // Center OBB at 0
+        Matrix4 obb_space = math::transform::translate(-obb.center) * rotation;
+        Vector4 ray_dir = Vector4(ray.direction, 0) * rotation;
+        Vector4 ray_origin = Vector4(ray.origin, 1) * obb_space;
+        // AABB slab test
+        float tmin = -math::constants<float>::infinity;
+        float tmax = math::constants<float>::infinity;
+        for (int i = 0; i < 3; ++i) {
+            float tx1 = (obb.halfwidths[i] - ray_origin[i]) / ray_dir[i];
+            float tx2 = (-obb.halfwidths[i] - ray_origin[i]) / ray_dir[i];
+            tmax = math::min(tmax, math::max(tx1, tx2));
+            tmin = math::max(tmin, math::min(tx1, tx2));
+        }
+        return tmax >= 0 && tmax >= tmin;
+    }
+
+    bool intersect_ray_obb(Ray ray, OBB obb, Raycast_Hit& out) {
+        Matrix4 rotation = Matrix4(Vector4{obb.local_x, 0}, Vector4{obb.local_y, 0}, Vector4{obb.local_z, 0}, Vector4{0, 0, 0, 1});
+        // Center OBB at 0
+        Matrix4 obb_space = math::transform::translate(-obb.center) * rotation;
+        Vector4 ray_dir = Vector4(ray.direction, 0) * rotation;
+        Vector4 ray_origin = Vector4(ray.origin, 1) * obb_space;
+        // AABB slab test
+        float tmin = -math::constants<float>::infinity;
+        float tmax = math::constants<float>::infinity;
+        for (int i = 0; i < 3; ++i) {
+            float tx1 = (obb.halfwidths[i] - ray_origin[i]) / ray_dir[i];
+            float tx2 = (-obb.halfwidths[i] - ray_origin[i]) / ray_dir[i];
+            tmax = math::min(tmax, math::max(tx1, tx2));
+            tmin = math::max(tmin, math::min(tx1, tx2));
+        }
+
+        if (tmax >= 0 && tmax >= tmin) {
+            out.distance = tmax;
+            out.hit_point = ray.origin + ray.direction * tmax;
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     bool test_ray_mesh(Ray ray, Mesh const& mesh) {
         auto& verts = mesh.vertices;
