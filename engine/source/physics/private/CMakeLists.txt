@@ -1,8 +1,7 @@
 set(SOURCE_FILES
     ${SOURCE_FILES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/collisions.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/intersection_tests.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/line.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/physics.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ray.cpp"
     PARENT_SCOPE
 )

@@ -1,7 +1,6 @@
 #include "level_editor.hpp"
 
 #include "assets.hpp"
-#include "collisions.hpp"
 #include "components/camera.hpp"
 #include "components/static_mesh_component.hpp"
 #include "components/transform.hpp"
@@ -14,6 +13,7 @@
 #include "gizmo_internal.hpp"
 #include "glad/glad.h"
 #include "input/input.hpp"
+#include "intersection_tests.hpp"
 #include "line.hpp"
 #include "math/vector2.hpp"
 #include "mesh/mesh.hpp"
@@ -101,13 +101,13 @@ static Entity pick_object(Matrix4 const view, Matrix4 const projection, uint32_t
     Resource_Manager<Mesh>& mesh_manager = Engine::get_mesh_manager();
     Component_Access access = ecs.access<Static_Mesh_Component, Transform>();
     Entity selected = null_entity;
-    physics::Raycast_Hit closest_hit;
+    Raycast_Hit closest_hit;
     closest_hit.distance = math::constants<float>::infinity;
     for (Entity const entity: access) {
         auto const& [c, transform] = access.get<Static_Mesh_Component, Transform>(entity);
         Mesh const& mesh = mesh_manager.get(c.mesh_handle);
-        physics::Raycast_Hit hit;
-        if (physics::intersect_ray_mesh(ray, mesh, transform.to_matrix(), hit)) {
+        Raycast_Hit hit;
+        if (intersect_ray_mesh(ray, mesh, transform.to_matrix(), hit)) {
             // gizmo::draw_point(hit.hit_point, 0.05, Color::red, 200.0f);
             if (hit.distance < closest_hit.distance) {
                 closest_hit = hit;
@@ -241,7 +241,7 @@ void Level_Editor::prepare_editor_ui() {
         Transform transform = transform_ref;
         float distance_from_camera = (transform.local_position - camera_transform.local_position).length() / 11.0f;
         float cone_height = distance_from_camera * 0.23f;
-        physics::OBB obb[3];
+        OBB obb[3];
         obb[0].local_x = obb[1].local_x = obb[2].local_x = Vector3::right;
         obb[0].local_y = obb[1].local_y = obb[2].local_y = Vector3::up;
         obb[0].local_z = obb[1].local_z = obb[2].local_z = Vector3::forward;
@@ -264,15 +264,15 @@ void Level_Editor::prepare_editor_ui() {
                 Matrix4 const inv_proj_mat = math::inverse(camera_projection_mat);
                 Matrix4 const inv_view_mat = math::inverse(camera_view_mat);
                 Ray const ray = screen_to_ray(inv_view_mat, inv_proj_mat, window_content_size.x, window_content_size.y, mouse_pos);
-                if (physics::test_ray_obb(ray, obb[0])) {
+                if (test_ray_obb(ray, obb[0])) {
                     gizmo_grabbed = true;
                     cached_gizmo_transform = transform;
                     gizmo_grabbed_axis = Vector3::forward;
-                } else if (physics::test_ray_obb(ray, obb[1])) {
+                } else if (test_ray_obb(ray, obb[1])) {
                     gizmo_grabbed = true;
                     cached_gizmo_transform = transform;
                     gizmo_grabbed_axis = Vector3::right;
-                } else if (physics::test_ray_obb(ray, obb[2])) {
+                } else if (test_ray_obb(ray, obb[2])) {
                     gizmo_grabbed = true;
                     cached_gizmo_transform = transform;
                     gizmo_grabbed_axis = Vector3::up;

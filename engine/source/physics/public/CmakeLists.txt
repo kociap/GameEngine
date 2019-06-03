@@ -1,9 +1,8 @@
 set(HEADER_FILES
     ${HEADER_FILES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/collisions.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/intersection_tests.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/line.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/obb.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/physics.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ray.hpp"
     PARENT_SCOPE
 )
