@@ -27,6 +27,8 @@ enum class Key {
     backspace,
     left_alt,
     right_alt,
+    left_shift,
+    right_shift,
 
     numpad_0,
     numpad_1,

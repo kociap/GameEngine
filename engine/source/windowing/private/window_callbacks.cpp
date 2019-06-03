@@ -98,6 +98,8 @@ void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, in
 		{GLFW_KEY_RIGHT_ALT, Key::right_alt},
 		{GLFW_KEY_TAB, Key::tab},
 		{GLFW_KEY_SPACE, Key::spacebar},
+        {GLFW_KEY_LEFT_SHIFT, Key::left_shift},
+        {GLFW_KEY_RIGHT_SHIFT, Key::right_shift},
         {GLFW_KEY_F1, Key::f1},
         {GLFW_KEY_F2, Key::f2},
         {GLFW_KEY_F3, Key::f3},
