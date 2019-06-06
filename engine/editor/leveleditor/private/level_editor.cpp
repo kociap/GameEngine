@@ -18,7 +18,6 @@
 #include "math/vector2.hpp"
 #include "mesh/mesh.hpp"
 #include "obb.hpp"
-#include "physics.hpp"
 #include "renderer.hpp"
 #include "renderer_internal.hpp"
 #include "resource_manager.hpp"
@@ -91,10 +90,7 @@ static uint32_t draw_gizmo(Framebuffer* framebuffer, Vector3 const camera_pos, M
     return framebuffer->get_color_texture(0);
 }
 
-static Entity pick_object(Matrix4 const view, Matrix4 const projection, uint32_t const viewport_w, uint32_t const viewport_h, Vector2 const mouse_pos) {
-    Matrix4 const inv_proj_mat = math::inverse(projection);
-    Matrix4 const inv_view_mat = math::inverse(view);
-    Ray const ray = screen_to_ray(inv_view_mat, inv_proj_mat, viewport_w, viewport_h, mouse_pos);
+static Entity pick_object(Ray ray, uint32_t const viewport_w, uint32_t const viewport_h, Vector2 const mouse_pos) {
     // gizmo::draw_line(ray.origin, ray.origin + 20 * ray.direction, Color::green, 200.0f);
 
     ECS& ecs = Engine::get_ecs();
@@ -106,25 +102,34 @@ static Entity pick_object(Matrix4 const view, Matrix4 const projection, uint32_t
     for (Entity const entity: access) {
         auto const& [c, transform] = access.get<Static_Mesh_Component, Transform>(entity);
         Mesh const& mesh = mesh_manager.get(c.mesh_handle);
-        Raycast_Hit hit;
-        if (intersect_ray_mesh(ray, mesh, transform.to_matrix(), hit)) {
+        if (auto hit = intersect_ray_mesh(ray, mesh, transform.to_matrix()); hit && hit->distance < closest_hit.distance) {
             // gizmo::draw_point(hit.hit_point, 0.05, Color::red, 200.0f);
-            if (hit.distance < closest_hit.distance) {
-                closest_hit = hit;
-                selected = entity;
-            }
+            closest_hit = hit.value();
+            selected = entity;
         }
     }
 
     return selected;
 }
 
-static void draw_translate_handle(Vector3 position, Vector3 direction, Color color, float distance_from_camera) {
-    distance_from_camera /= 13.0f;
-    Vector3 line_end = position + distance_from_camera * direction;
-    float cone_height = distance_from_camera * 0.23f;
-    gizmo::draw_line(position, line_end, color, 0.0f, false);
-    gizmo::draw_cone(line_end, direction, distance_from_camera * 0.07f, 8, cone_height, color, 0.0f, false);
+static void draw_wireframe_cuboid(Vector3 pos, Vector3 x, Vector3 y, Vector3 z) {
+    gizmo::draw_line(pos - x + y - z, pos - x - y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    gizmo::draw_line(pos + x + y - z, pos + x - y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+
+    gizmo::draw_line(pos + x + y - z, pos - x + y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    gizmo::draw_line(pos + x - y - z, pos - x - y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+
+    gizmo::draw_line(pos - x + y + z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    gizmo::draw_line(pos + x + y + z, pos + x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+
+    gizmo::draw_line(pos + x + y + z, pos - x + y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    gizmo::draw_line(pos + x - y + z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+
+    gizmo::draw_line(pos - x + y - z, pos - x + y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    gizmo::draw_line(pos + x + y - z, pos + x + y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+
+    gizmo::draw_line(pos - x - y - z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    gizmo::draw_line(pos + x - y - z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
 }
 
 Level_Editor::Level_Editor() {
@@ -168,15 +173,18 @@ void Level_Editor::prepare_editor_ui() {
     ImGui::End();
     imgui::PopStyleVar(ImGuiStyleVar_WindowPadding);
 
-    Input::Key_State const state = Input::get_key_state(Key::right_mouse_button);
+    auto const state = Input::get_key_state(Key::right_mouse_button);
+    auto const shift_state = Input::get_key_state(Key::left_shift);
     auto& [camera, camera_transform] = rendering.get<Camera, Transform>(camera_entity);
     static containers::Vector<Entity> selected_entities;
     Matrix4 const camera_view_mat = get_camera_view_matrix(camera_transform);
     Matrix4 const camera_projection_mat = get_camera_projection_matrix(camera, window_content_size.x, window_content_size.y);
+    Matrix4 const inv_proj_mat = math::inverse(camera_projection_mat);
+    Matrix4 const inv_view_mat = math::inverse(camera_view_mat);
+    Ray const ray = screen_to_ray(inv_view_mat, inv_proj_mat, window_content_size.x, window_content_size.y, mouse_pos);
     if (!state.down && state.up_down_transitioned) {
-        auto const shift_state = Input::get_key_state(Key::left_shift);
         if (shift_state.down) {
-            Entity selected_entity = pick_object(camera_view_mat, camera_projection_mat, window_content_size.x, window_content_size.y, mouse_pos);
+            Entity selected_entity = pick_object(ray, window_content_size.x, window_content_size.y, mouse_pos);
             if (selected_entity != null_entity) {
                 bool already_selected = false;
                 if (!selected_entities.empty() && selected_entities.front() == selected_entity) {
@@ -197,7 +205,7 @@ void Level_Editor::prepare_editor_ui() {
                 }
             }
         } else {
-            Entity selected_entity = pick_object(camera_view_mat, camera_projection_mat, window_content_size.x, window_content_size.y, mouse_pos);
+            Entity selected_entity = pick_object(ray, window_content_size.x, window_content_size.y, mouse_pos);
             if (selected_entity != null_entity) {
                 selected_entities.clear();
                 selected_entities.push_back(selected_entity);
@@ -217,6 +225,38 @@ void Level_Editor::prepare_editor_ui() {
     imgui::InputFloat2("", &window_content_size.x);
     imgui::Text("Mouse Position");
     imgui::InputFloat2("", &mouse_pos.x);
+
+    static int gizmo_transform_space = 0;
+    static char const* space_prev_val = "World";
+    if (imgui::BeginCombo("Space", space_prev_val)) {
+        if (imgui::Selectable("World")) {
+            gizmo_transform_space = 0;
+            space_prev_val = "World";
+        }
+        if (imgui::Selectable("Local")) {
+            gizmo_transform_space = 1;
+            space_prev_val = "Local";
+        }
+        imgui::EndCombo();
+    }
+
+    static int gizmo_type = 0;
+    static char const* type_prev_val = "Translate";
+    if (imgui::BeginCombo("Type", type_prev_val)) {
+        if (imgui::Selectable("Translate")) {
+            gizmo_transform_space = 0;
+            type_prev_val = "Translate";
+        }
+        if (imgui::Selectable("Rotate")) {
+            gizmo_transform_space = 1;
+            type_prev_val = "Rotate";
+        }
+        if (imgui::Selectable("Scale")) {
+            gizmo_transform_space = 2;
+            type_prev_val = "Scale";
+        }
+        imgui::EndCombo();
+    }
     imgui::End();
 
     static Vector2 previous_window_content_size = Vector2(0.0f, 0.0f);
@@ -239,108 +279,164 @@ void Level_Editor::prepare_editor_ui() {
     if (selected_entities.size() > 0) {
         Transform& transform_ref = ecs.get_component<Transform>(selected_entities.front());
         Transform transform = transform_ref;
-        float distance_from_camera = (transform.local_position - camera_transform.local_position).length() / 11.0f;
-        float cone_height = distance_from_camera * 0.23f;
-        OBB obb[3];
-        obb[0].local_x = obb[1].local_x = obb[2].local_x = Vector3::right;
-        obb[0].local_y = obb[1].local_y = obb[2].local_y = Vector3::up;
-        obb[0].local_z = obb[1].local_z = obb[2].local_z = Vector3::forward;
-        obb[0].center = {transform.local_position.x, transform.local_position.y, transform.local_position.z - (distance_from_camera + cone_height) / 2.0f};
-        obb[1].center = {transform.local_position.x + (distance_from_camera + cone_height) / 2.0f, transform.local_position.y, transform.local_position.z};
-        obb[2].center = {transform.local_position.x, transform.local_position.y + (distance_from_camera + cone_height) / 2.0f, transform.local_position.z};
-        obb[0].halfwidths = {distance_from_camera * 0.07f * 0.5f, distance_from_camera * 0.07f * 0.5f, (distance_from_camera + cone_height) * 0.5f};
-        obb[1].halfwidths = {(distance_from_camera + cone_height) * 0.5f, distance_from_camera * 0.07f * 0.5f, distance_from_camera * 0.07f * 0.5f};
-        obb[2].halfwidths = {distance_from_camera * 0.07f * 0.5f, (distance_from_camera + cone_height) * 0.5f, distance_from_camera * 0.07f * 0.5f};
+        // Have to somehow make those truly fixed size (window_size independent)
+        float w_comp = (Vector4(0, 0, 0, 1) * transform.to_matrix() * camera_view_mat * camera_projection_mat).w;
+        float handle_scale = w_comp * 0.1f;
+        if (gizmo_transform_space == 0) { // translation
+            float handle_line_length = handle_scale * 1.0f;
+            float cone_height = handle_scale * 0.23f;
+            float cone_radius = handle_scale * 0.07f;
+            float constant_offset = handle_scale * 0.1f; // Makes obb bigger so that clicking is doesn't require insane precision
+            Vector3 obb_dimensions = {cone_radius + constant_offset, cone_radius + constant_offset, handle_line_length + cone_height + constant_offset};
+            OBB obb[3];
+            obb[0].local_x = Vector3::right;
+            obb[0].local_y = Vector3::up;
+            obb[0].local_z = Vector3::forward;
+            obb[1].local_x = -Vector3::forward;
+            obb[1].local_y = Vector3::up;
+            obb[1].local_z = Vector3::right;
+            obb[2].local_x = Vector3::right;
+            obb[2].local_y = -Vector3::forward;
+            obb[2].local_z = Vector3::up;
+            obb[0].center = {transform.local_position.x, transform.local_position.y, transform.local_position.z - obb_dimensions.z * 0.5f};
+            obb[1].center = {transform.local_position.x + obb_dimensions.z * 0.5f, transform.local_position.y, transform.local_position.z};
+            obb[2].center = {transform.local_position.x, transform.local_position.y + obb_dimensions.z * 0.5f, transform.local_position.z};
+            obb[0].halfwidths = obb[1].halfwidths = obb[2].halfwidths = obb_dimensions * 0.5f;
 
-        // draw_translate_handle(transform.local_position, Vector3::forward, {15.f / 255.f, 77.f / 255.f, 186.f / 255.f}, distance_from_camera);
-        // draw_translate_handle(transform.local_position, Vector3::right, {179.f / 255.f, 20.f / 255.f, 5.f / 255.f}, distance_from_camera);
-        // draw_translate_handle(transform.local_position, Vector3::up, {0, 220.0f / 255.0f, 0}, distance_from_camera);
-
-        Input::Key_State const lmb_state = Input::get_key_state(Key::left_mouse_button);
-        if (lmb_state.up_down_transitioned) {
-            if (lmb_state.down) {
-                // lmb pressed
-                // TODO Inverses and ray are computed twice in this function
-                Matrix4 const inv_proj_mat = math::inverse(camera_projection_mat);
-                Matrix4 const inv_view_mat = math::inverse(camera_view_mat);
-                Ray const ray = screen_to_ray(inv_view_mat, inv_proj_mat, window_content_size.x, window_content_size.y, mouse_pos);
-                if (test_ray_obb(ray, obb[0])) {
-                    gizmo_grabbed = true;
-                    cached_gizmo_transform = transform;
-                    gizmo_grabbed_axis = Vector3::forward;
-                } else if (test_ray_obb(ray, obb[1])) {
-                    gizmo_grabbed = true;
-                    cached_gizmo_transform = transform;
-                    gizmo_grabbed_axis = Vector3::right;
-                } else if (test_ray_obb(ray, obb[2])) {
-                    gizmo_grabbed = true;
-                    cached_gizmo_transform = transform;
-                    gizmo_grabbed_axis = Vector3::up;
+            Input::Key_State const lmb_state = Input::get_key_state(Key::left_mouse_button);
+            if (lmb_state.up_down_transitioned) {
+                if (lmb_state.down) {
+                    float distance = math::constants<float>::infinity;
+                    if (auto hit = intersect_ray_obb(ray, obb[0]); hit && hit->distance < distance) {
+                        distance = hit->distance;
+                        gizmo_grabbed = true;
+                        cached_gizmo_transform = transform;
+                        gizmo_grabbed_axis = Vector3::forward;
+                    }
+                    if (auto hit = intersect_ray_obb(ray, obb[1]); hit && hit->distance < distance) {
+                        distance = hit->distance;
+                        gizmo_grabbed = true;
+                        cached_gizmo_transform = transform;
+                        gizmo_grabbed_axis = Vector3::right;
+                    }
+                    if (auto hit = intersect_ray_obb(ray, obb[2]); hit && hit->distance < distance) {
+                        gizmo_grabbed = true;
+                        cached_gizmo_transform = transform;
+                        gizmo_grabbed_axis = Vector3::up;
+                    }
+                    Vector3 camera_pos_projected_on_translation_axis = math::dot(gizmo_grabbed_axis, camera_transform.local_position) * gizmo_grabbed_axis;
+                    gizmo_plane_normal = math::normalize(camera_transform.local_position - camera_pos_projected_on_translation_axis);
+                    gizmo_plane_distance = math::dot(transform.local_position, gizmo_plane_normal);
+                    gizmo_mouse_grab_point = intersect_line_plane({ray.origin, ray.direction}, gizmo_plane_normal, gizmo_plane_distance)->hit_point;
+                } else {
+                    gizmo_grabbed = false;
                 }
-                auto [s1, s2] = closest_points_on_lines({ray.origin, ray.direction}, {cached_gizmo_transform.local_position, gizmo_grabbed_axis});
-                gizmo_mouse_grab_point = gizmo_grabbed_axis * s2;
             } else {
-                gizmo_grabbed = false;
+                if (lmb_state.down && gizmo_grabbed) {
+                    Vector3 intersection = intersect_line_plane({ray.origin, ray.direction}, gizmo_plane_normal, gizmo_plane_distance)->hit_point;
+                    transform_ref.local_position =
+                        cached_gizmo_transform.local_position + math::dot(intersection - gizmo_mouse_grab_point, gizmo_grabbed_axis) * gizmo_grabbed_axis;
+                }
             }
-        } else {
-            if (lmb_state.down && gizmo_grabbed) {
-                // TODO Inverses and ray are computed twice in this function
-                Matrix4 const inv_proj_mat = math::inverse(camera_projection_mat);
-                Matrix4 const inv_view_mat = math::inverse(camera_view_mat);
-                Ray const ray = screen_to_ray(inv_view_mat, inv_proj_mat, window_content_size.x, window_content_size.y, mouse_pos);
-                auto [s1, s2] = closest_points_on_lines({ray.origin, ray.direction}, {cached_gizmo_transform.local_position, gizmo_grabbed_axis});
-                transform_ref.local_position = cached_gizmo_transform.local_position + gizmo_grabbed_axis * s2 - gizmo_mouse_grab_point;
-                // gizmo::draw_point(cached_gizmo_transform.local_position + gizmo_grabbed_axis * s2, 0.1f, Color::red, 100.0f, false);
-                // gizmo::draw_line(ray.origin, ray.origin + ray.direction * s1, Color::green, 100.f);
-                // gizmo::draw_line(cached_gizmo_transform.local_position, cached_gizmo_transform.local_position + gizmo_grabbed_axis * s2, Color::green, 100.f);
 
-                // imgui::Begin("Inspector");
-                // imgui::Text("Gizmo Mouse Delta");
-                // imgui::InputFloat3("", &delta_mouse.x);
-                // imgui::End();
+            // Global space handles
+            // blue handle
+            Vector3 line_end = transform_ref.local_position + handle_scale * Vector3::forward;
+            gizmo::draw_line(transform_ref.local_position, line_end, axis_blue, 1.0f, 0.0f, false);
+            gizmo::draw_cone(line_end, Vector3::forward, cone_radius, 8, cone_height, axis_blue, 0.0f, false);
+            // red handle
+            line_end = transform_ref.local_position + handle_scale * Vector3::right;
+            gizmo::draw_line(transform_ref.local_position, line_end, axis_red, 1.0f, 0.0f, false);
+            gizmo::draw_cone(line_end, Vector3::right, cone_radius, 8, cone_height, axis_red, 0.0f, false);
+            // green handle
+            line_end = transform_ref.local_position + handle_scale * Vector3::up;
+            gizmo::draw_line(transform_ref.local_position, line_end, axis_green, 1.0f, 0.0f, false);
+            gizmo::draw_cone(line_end, Vector3::up, cone_radius, 8, cone_height, axis_green, 0.0f, false);
+
+            draw_wireframe_cuboid(obb[0].center - transform.local_position + transform_ref.local_position, obb[0].local_x * obb[0].halfwidths.x,
+                                  obb[0].local_y * obb[0].halfwidths.y, obb[0].local_z * obb[0].halfwidths.z);
+            draw_wireframe_cuboid(obb[1].center - transform.local_position + transform_ref.local_position, obb[1].local_x * obb[1].halfwidths.x,
+                                  obb[1].local_y * obb[1].halfwidths.y, obb[1].local_z * obb[1].halfwidths.z);
+            draw_wireframe_cuboid(obb[2].center - transform.local_position + transform_ref.local_position, obb[2].local_x * obb[2].halfwidths.x,
+                                  obb[2].local_y * obb[2].halfwidths.y, obb[2].local_z * obb[2].halfwidths.z);
+        } else if (gizmo_transform_space == 1) { // rotation
+        } else {                                 // scale
+            float handle_line_length = handle_scale * 1.0f;
+            float cube_size = handle_scale * 0.14f;
+            float constant_offset = handle_scale * 0.1f; // Makes obb bigger so that clicking is doesn't require insane precision
+            Vector3 obb_dimensions = {cube_size + constant_offset, cube_size + constant_offset, handle_line_length + cube_size + constant_offset};
+            OBB obb[3];
+            obb[0].local_x = Vector3::right;
+            obb[0].local_y = Vector3::up;
+            obb[0].local_z = Vector3::forward;
+            obb[1].local_x = -Vector3::forward;
+            obb[1].local_y = Vector3::up;
+            obb[1].local_z = Vector3::right;
+            obb[2].local_x = Vector3::right;
+            obb[2].local_y = -Vector3::forward;
+            obb[2].local_z = Vector3::up;
+            obb[0].center = {transform.local_position.x, transform.local_position.y, transform.local_position.z - obb_dimensions.z * 0.5f};
+            obb[1].center = {transform.local_position.x + obb_dimensions.z * 0.5f, transform.local_position.y, transform.local_position.z};
+            obb[2].center = {transform.local_position.x, transform.local_position.y + obb_dimensions.z * 0.5f, transform.local_position.z};
+            obb[0].halfwidths = obb[1].halfwidths = obb[2].halfwidths = obb_dimensions * 0.5f;
+
+            Input::Key_State const lmb_state = Input::get_key_state(Key::left_mouse_button);
+            if (lmb_state.up_down_transitioned) {
+                if (lmb_state.down) {
+                    float distance = math::constants<float>::infinity;
+                    if (auto hit = intersect_ray_obb(ray, obb[0]); hit && hit->distance < distance) {
+                        distance = hit->distance;
+                        gizmo_grabbed = true;
+                        cached_gizmo_transform = transform;
+                        gizmo_grabbed_axis = Vector3::forward;
+                    }
+                    if (auto hit = intersect_ray_obb(ray, obb[1]); hit && hit->distance < distance) {
+                        distance = hit->distance;
+                        gizmo_grabbed = true;
+                        cached_gizmo_transform = transform;
+                        gizmo_grabbed_axis = Vector3::right;
+                    }
+                    if (auto hit = intersect_ray_obb(ray, obb[2]); hit && hit->distance < distance) {
+                        gizmo_grabbed = true;
+                        cached_gizmo_transform = transform;
+                        gizmo_grabbed_axis = Vector3::up;
+                    }
+                    Vector3 camera_pos_projected_on_translation_axis = math::dot(gizmo_grabbed_axis, camera_transform.local_position) * gizmo_grabbed_axis;
+                    gizmo_plane_normal = math::normalize(camera_transform.local_position - camera_pos_projected_on_translation_axis);
+                    gizmo_plane_distance = math::dot(transform.local_position, gizmo_plane_normal);
+                    gizmo_mouse_grab_point = intersect_line_plane({ray.origin, ray.direction}, gizmo_plane_normal, gizmo_plane_distance)->hit_point;
+                } else {
+                    gizmo_grabbed = false;
+                }
+            } else {
+                if (lmb_state.down && gizmo_grabbed) {
+                    Vector3 intersection = intersect_line_plane({ray.origin, ray.direction}, gizmo_plane_normal, gizmo_plane_distance)->hit_point;
+                    transform_ref.local_scale =
+                        cached_gizmo_transform.local_scale + math::dot(intersection - gizmo_mouse_grab_point, gizmo_grabbed_axis) * gizmo_grabbed_axis;
+                }
             }
+
+            // Global space handles
+            // blue handle
+            Vector3 line_end = transform_ref.local_position + handle_scale * Vector3::forward;
+            gizmo::draw_line(transform_ref.local_position, line_end, axis_blue, 1.0f, 0.0f, false);
+            gizmo::draw_cube(line_end, Vector3::forward, Vector3::right, Vector3::up, cube_size, axis_blue, 0.0f, false);
+            // red handle
+            line_end = transform_ref.local_position + handle_scale * Vector3::right;
+            gizmo::draw_line(transform_ref.local_position, line_end, axis_red, 1.0f, 0.0f, false);
+            gizmo::draw_cube(line_end, Vector3::forward, Vector3::right, Vector3::up, cube_size, axis_red, 0.0f, false);
+            // green handle
+            line_end = transform_ref.local_position + handle_scale * Vector3::up;
+            gizmo::draw_line(transform_ref.local_position, line_end, axis_green, 1.0f, 0.0f, false);
+            gizmo::draw_cube(line_end, Vector3::forward, Vector3::right, Vector3::up, cube_size, axis_green, 0.0f, false);
+
+            draw_wireframe_cuboid(obb[0].center - transform.local_position + transform_ref.local_position, obb[0].local_x * obb[0].halfwidths.x,
+                                  obb[0].local_y * obb[0].halfwidths.y, obb[0].local_z * obb[0].halfwidths.z);
+            draw_wireframe_cuboid(obb[1].center - transform.local_position + transform_ref.local_position, obb[1].local_x * obb[1].halfwidths.x,
+                                  obb[1].local_y * obb[1].halfwidths.y, obb[1].local_z * obb[1].halfwidths.z);
+            draw_wireframe_cuboid(obb[2].center - transform.local_position + transform_ref.local_position, obb[2].local_x * obb[2].halfwidths.x,
+                                  obb[2].local_y * obb[2].halfwidths.y, obb[2].local_z * obb[2].halfwidths.z);
         }
-
-        // Global space handles
-        // blue handle
-        Vector3 line_end = transform_ref.local_position + distance_from_camera * Vector3::forward;
-        gizmo::draw_line(transform_ref.local_position, line_end, axis_blue, 0.0f, false);
-        gizmo::draw_cone(line_end, Vector3::forward, distance_from_camera * 0.07f, 8, cone_height, axis_blue, 0.0f, false);
-        // red handle
-        line_end = transform_ref.local_position + distance_from_camera * Vector3::right;
-        gizmo::draw_line(transform_ref.local_position, line_end, axis_red, 0.0f, false);
-        gizmo::draw_cone(line_end, Vector3::right, distance_from_camera * 0.07f, 8, cone_height, axis_red, 0.0f, false);
-        // green handle
-        line_end = transform_ref.local_position + distance_from_camera * Vector3::up;
-        gizmo::draw_line(transform_ref.local_position, line_end, axis_green, 0.0f, false);
-        gizmo::draw_cone(line_end, Vector3::up, distance_from_camera * 0.07f, 8, cone_height, axis_green, 0.0f, false);
-
-        auto draw_wireframe_cuboid = [](Vector3 pos, Vector3 x, Vector3 y, Vector3 z) {
-            gizmo::draw_line(pos - x + y - z, pos - x - y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 0.0f, false);
-            gizmo::draw_line(pos + x + y - z, pos + x - y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 0.0f, false);
-
-            gizmo::draw_line(pos + x + y - z, pos - x + y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 0.0f, false);
-            gizmo::draw_line(pos + x - y - z, pos - x - y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 0.0f, false);
-
-            gizmo::draw_line(pos - x + y + z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 0.0f, false);
-            gizmo::draw_line(pos + x + y + z, pos + x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 0.0f, false);
-
-            gizmo::draw_line(pos + x + y + z, pos - x + y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 0.0f, false);
-            gizmo::draw_line(pos + x - y + z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 0.0f, false);
-
-            gizmo::draw_line(pos - x + y - z, pos - x + y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 0.0f, false);
-            gizmo::draw_line(pos + x + y - z, pos + x + y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 0.0f, false);
-
-            gizmo::draw_line(pos - x - y - z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 0.0f, false);
-            gizmo::draw_line(pos + x - y - z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 0.0f, false);
-        };
-
-        // draw_wireframe_cuboid(obb[0].center - transform.local_position + transform_ref.local_position, obb[0].local_x * obb[0].halfwidths.x,
-        //                       obb[0].local_y * obb[0].halfwidths.y, obb[0].local_z * obb[0].halfwidths.z);
-        // draw_wireframe_cuboid(obb[1].center - transform.local_position + transform_ref.local_position, obb[1].local_x * obb[1].halfwidths.x,
-        //                       obb[1].local_y * obb[1].halfwidths.y, obb[1].local_z * obb[1].halfwidths.z);
-        // draw_wireframe_cuboid(obb[2].center - transform.local_position + transform_ref.local_position, obb[2].local_x * obb[2].halfwidths.x,
-        //                       obb[2].local_y * obb[2].halfwidths.y, obb[2].local_z * obb[2].halfwidths.z);
     }
 
     uint32_t texture = renderer.render_frame_as_texture(camera, camera_transform, window_content_size.x, window_content_size.y);

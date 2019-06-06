@@ -16,6 +16,8 @@ public:
     Transform cached_gizmo_transform;
     Vector3 gizmo_mouse_grab_point;
     Vector3 gizmo_grabbed_axis;
+    Vector3 gizmo_plane_normal;
+    float gizmo_plane_distance;
     Framebuffer* framebuffer = nullptr;
     bool gizmo_grabbed = false;
 };
