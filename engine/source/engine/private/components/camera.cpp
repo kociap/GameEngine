@@ -1,6 +1,7 @@
 #include "components/camera.hpp"
 #include "components/transform.hpp"
 #include "engine.hpp"
+#include "math/math.hpp"
 #include "math/transform.hpp"
 
 Vector3 get_camera_top(Transform& transform) {
@@ -21,7 +22,7 @@ Matrix4 get_camera_view_matrix(Transform& transform) {
 
 Matrix4 get_camera_projection_matrix(Camera& camera, uint32_t width, uint32_t height) {
     float aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
-    return math::transform::perspective(camera.fov, aspect_ratio, camera.near_plane, camera.far_plane);
+    return math::transform::perspective(math::radians(camera.fov), aspect_ratio, camera.near_plane, camera.far_plane);
 
     // Ortographic camera stuff
     // return math::transform::orthographic(-size * aspect_ratio, size * aspect_ratio, -size, size, near_plane, far_plane);
