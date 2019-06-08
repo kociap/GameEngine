@@ -24,6 +24,8 @@
 #include "mesh/plane.hpp"
 #include "scripts/camera_movement.hpp"
 
+#include "build_config.hpp"
+
 Input::Manager* Engine::input_manager = nullptr;
 Renderer* Engine::renderer = nullptr;
 Time_Core* Engine::time_core = nullptr;
@@ -55,8 +57,10 @@ void Engine::init(int argc, char** argv) {
     renderer->load_shader_light_properties();
 }
 
+#include "serialization.hpp"
+
 void Engine::load_world() {
-// #define RENDER_CUBES
+    // #define RENDER_CUBES
 
     /*assets::load_shader_file_and_attach(default_shader, "normals.vert");
     assets::load_shader_file_and_attach(default_shader, "normals.geom");
@@ -90,6 +94,10 @@ void Engine::load_world() {
 #endif
     Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
 
+#if DESERIALIZE
+    std::ifstream file("ecs.bin", std::ios::binary);
+    serialization::deserialize(file, *ecs);
+#else
     auto instantiate_box = [default_shader_handle, box_handle, material_handle](Vector3 position, float rotation = 0) {
         Entity box = ecs->create();
         Transform& box_t = ecs->add_component<Transform>(box);
@@ -150,6 +158,7 @@ void Engine::load_world() {
     Directional_Light_Component& dl_c = ecs->add_component<Directional_Light_Component>(directional_light);
     dl_c.direction = Vector3(1, -1, -1);
     dl_c.intensity = 0.0f;
+#endif
 }
 
 void Engine::terminate() {

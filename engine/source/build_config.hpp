@@ -5,4 +5,7 @@
 #    define GE_WITH_EDITOR 1
 #endif
 
+#define SERIALIZE_ON_QUIT 1
+#define DESERIALIZE 1
+
 #endif // !BUILD_CONFIG_HPP_INCLUDE

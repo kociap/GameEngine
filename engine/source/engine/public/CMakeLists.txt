@@ -1,4 +1,5 @@
 set(TEMPLATE_IMPLEMENTATION_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/ecs/component_container.tpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/resource_manager.tpp"
 )
 
@@ -12,6 +13,7 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/components/transform.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/component_access.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/component_container.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ecs/component_registry.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/ecs.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/entity.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input.hpp"

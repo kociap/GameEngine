@@ -2,19 +2,41 @@
 #define CORE_TYPE_FAMILY_HPP_INCLUDE
 
 #include "config.hpp"
+#include <string_view>
 #include <type_traits>
 
 class Type_Family {
-    inline static id_type identifier = static_cast<id_type>(-1);
-
-    template <typename...>
-    inline static const id_type family_identifier = ++identifier;
-
 public:
-    using family_type = id_type;
+    using family_t = id_type;
 
     template <typename... Ts>
-    inline static const family_type family_id = family_identifier<std::decay_t<Ts>...>;
+    static family_t family_id() {
+        static family_t hash = hash_types<std::decay_t<Ts>...>();
+        return hash;
+    }
+
+private:
+    template <typename... Ts>
+    static family_t hash_types() {
+        auto hasher = std::hash<std::string_view>();
+        return hasher(get_types<Ts...>());
+    }
+
+    template <typename... Ts>
+    static std::string_view get_types() {
+        // TODO use only types instead of the entire signature
+#if defined(__clang__)
+        std::string_view signature = __PRETTY_FUNCTION__;
+#elif defined(__GNUC__)
+        std::string_view signature = __PRETTY_FUNCTION__;
+#elif defined(_MSC_VER)
+        // return_type calling_convention func_name<template_parameters>(arguments)
+        std::string_view signature = __FUNCSIG__;
+#else
+        static_assert(false, "Compiling with unknown compiler. Cannot stringify template arguments");
+#endif
+        return signature;
+    }
 };
 
 #endif // !CORE_TYPE_FAMILY_HPP_INCLUDE

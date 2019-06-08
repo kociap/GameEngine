@@ -425,22 +425,22 @@ namespace containers {
 
 namespace serialization {
     template <typename T, typename Allocator>
-    void serialize(containers::Vector<T, Allocator> const& vec, std::ofstream& out) {
+    void serialize(std::ostream& out, containers::Vector<T, Allocator> const& vec) {
         using size_type = typename containers::Vector<T, Allocator>::size_type;
         size_type capacity = vec.capacity(), size = vec.size();
-        serialization::detail::write(capacity, out);
-        serialization::detail::write(size, out);
+        serialization::detail::write(out, capacity);
+        serialization::detail::write(out, size);
         for (T const& elem: vec) {
-            serialization::serialize(elem, out);
+            serialization::serialize(out, elem);
         }
     }
 
     template <typename T, typename Allocator>
-    void deserialize(containers::Vector<T, Allocator>& vec, std::ifstream& in) {
+    void deserialize(std::istream& in, containers::Vector<T, Allocator>& vec) {
         using size_type = typename containers::Vector<T, Allocator>::size_type;
         size_type capacity, size;
-        serialization::detail::read(capacity, in);
-        serialization::detail::read(size, in);
+        serialization::detail::read(in, capacity);
+        serialization::detail::read(in, size);
         vec.clear();
         vec.set_capacity(capacity);
         if constexpr (serialization::is_in_place_deserializable_v<T>) {
@@ -448,7 +448,7 @@ namespace serialization {
                 vec.resize(size);
                 try {
                     for (T& elem: vec) {
-                        serialization::deserialize(elem, in);
+                        serialization::deserialize(in, elem);
                     }
                 } catch (...) {
                     // TODO move stream backward to maintain weak guarantee
@@ -461,7 +461,7 @@ namespace serialization {
                     for (; n > 0; --n) {
                         Stack_Allocate<T> elem;
                         vec.push_back(std::move(elem.reference()));
-                        serialization::deserialize(vec.back(), in);
+                        serialization::deserialize(in, vec.back());
                     }
                     vec._size = size;
                 } catch (...) {
@@ -475,7 +475,7 @@ namespace serialization {
             size_type n = size;
             try {
                 for (; n > 0; --n, ++first) {
-                    serialization::deserialize(first, in);
+                    serialization::deserialize(in, first);
                 }
                 vec._size = size;
             } catch (...) {

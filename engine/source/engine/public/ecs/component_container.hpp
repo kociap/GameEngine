@@ -5,6 +5,7 @@
 #include "debug_macros.hpp"
 #include "ecs/entity.hpp"
 #include "iterators.hpp"
+#include "serialization.hpp"
 
 #include <type_traits>
 
@@ -19,6 +20,9 @@ public:
 protected:
     constexpr static size_type npos = static_cast<size_type>(-1);
 
+    static void serialize(std::ostream&, Component_Container_Base*);
+    static void deserialize(std::istream&, Component_Container_Base*&);
+
 public:
     virtual ~Component_Container_Base();
 
@@ -28,16 +32,16 @@ public:
     [[nodiscard]] iterator begin();
     [[nodiscard]] iterator end();
 
-    [[nodiscard]] bool has(Entity const entity);
+    [[nodiscard]] bool has(Entity entity);
     [[nodiscard]] size_type size() const;
 
 protected:
-    void add_entity(Entity const entity);
-    size_type get_index(Entity const entity);
-    void remove_entity(Entity const entity);
+    void add_entity(Entity entity);
+    size_type get_index(Entity entity);
+    void remove_entity(Entity entity);
 
 private:
-    size_type indirect_index(Entity const entity);
+    size_type indirect_index(Entity entity);
     void ensure(size_type index);
 
 private:
@@ -98,6 +102,9 @@ private:
 public:
     using iterator = Iterator<>;
 
+    static void serialize(std::ostream& archive, Component_Container_Base*);
+    static void deserialize(std::istream& archive, Component_Container_Base*&);
+
     virtual ~Component_Container() {}
 
     [[nodiscard]] Component const* raw() const {
@@ -127,12 +134,7 @@ public:
             add_entity(entity);
             return components;
         } else {
-            if constexpr (std::is_aggregate_v<Component>) {
-                components.push_back(Component(std::forward<Args>(args)...));
-            } else {
-                components.emplace_back(std::forward<Args>(args)...);
-            }
-
+            components.emplace_back(std::forward<Args>(args)...);
             add_entity(entity);
             return components.back();
         }
@@ -167,6 +169,6 @@ private:
     std::conditional_t<std::is_empty_v<Component>, Component, containers::Vector<Component>> components;
 };
 
-#include "component_container.hpp"
+#include "component_container.tpp"
 
 #endif // !ENGINE_ECS_COMPONENT_CONTAINER_HPP_INCLUDE

@@ -101,15 +101,15 @@ namespace containers {
         void shrink(size_type new_capacity);
         void check_size();
 
-        friend void serialization::deserialize(Vector<T, Allocator>&, std::ifstream&);
+        friend void serialization::deserialize(std::istream&, Vector<T, Allocator>&);
     };
 } // namespace containers
 
 namespace serialization {
     template <typename T, typename Allocator>
-    void serialize(containers::Vector<T, Allocator> const&, std::ofstream&);
+    void serialize(std::ostream&, containers::Vector<T, Allocator> const&);
     template <typename T, typename Allocator>
-    void deserialize(containers::Vector<T, Allocator>&, std::ifstream&);
+    void deserialize(std::istream&, containers::Vector<T, Allocator>&);
 } // namespace serialization
 
 #include "vector.tpp"

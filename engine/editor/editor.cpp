@@ -16,6 +16,8 @@
 #include "time/time_core.hpp"
 #include "window.hpp"
 
+#include "build_config.hpp"
+
 Level_Editor* Editor::level_editor = nullptr;
 Imgui_Renderer* Editor::imgui_renderer = nullptr;
 bool Editor::mouse_captured = false;
@@ -51,6 +53,10 @@ void Editor::init() {
 }
 
 void Editor::terminate() {
+#if SERIALIZE_ON_QUIT
+    std::ofstream file("ecs.bin", std::ios::binary | std::ios::trunc);
+    serialization::serialize(file, Engine::get_ecs());
+#endif
     delete level_editor;
     level_editor = nullptr;
     delete imgui_renderer;

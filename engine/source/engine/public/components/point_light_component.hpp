@@ -3,6 +3,7 @@
 
 #include "color.hpp"
 #include "math/vector3.hpp"
+#include "serialization.hpp"
 
 class Point_Light_Component {
 public:
@@ -10,5 +11,8 @@ public:
     float intensity = 1.0f;
     bool dynamic = false;
 };
+
+template <>
+struct serialization::use_default_deserialize<Point_Light_Component>: std::true_type {};
 
 #endif // !ENGINE_COMPONENTS_POINT_LIGHT_COMPONENT_HPP_INCLUDE

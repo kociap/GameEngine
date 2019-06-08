@@ -4,6 +4,7 @@
 #include "containers/vector.hpp"
 #include "ecs/component_access.hpp"
 #include "ecs/component_container.hpp"
+#include "ecs/component_registry.hpp"
 #include "engine.hpp"
 #include "entity.hpp"
 #include "id_generator.hpp"
@@ -11,18 +12,29 @@
 #include "type_family.hpp"
 
 #include <type_traits>
+
+class ECS;
+
+namespace serialization {
+    void serialize(std::ostream&, ECS const&);
+    void deserialize(std::istream&, ECS&);
+} // namespace serialization
+
 class ECS {
 private:
-    using family_type = Type_Family::family_type;
+    using family_type = Type_Family::family_t;
 
     struct Components_Container_Data {
-        Component_Container_Base* pointer;
-        family_type family;
+        Component_Container_Base* container = nullptr;
+        Type_Family::family_t family;
     };
 
 public:
     using iterator = iterators::iterator<ECS>;
     using const_iterator = iterators::const_iterator<ECS>;
+
+    friend void serialization::serialize(std::ostream&, ECS const&);
+    friend void serialization::deserialize(std::istream&, ECS&);
 
     ECS() = default;
     ~ECS();
@@ -86,31 +98,31 @@ public:
 private:
     template <typename T>
     Component_Container<T>* ensure_container() {
-        auto component_family = Type_Family::family_id<T>;
+        auto component_family = Type_Family::family_id<T>();
         for (auto& data: containers) {
             if (data.family == component_family) {
-                return static_cast<Component_Container<T>*>(data.pointer);
+                return static_cast<Component_Container<T>*>(data.container);
             }
         }
 
         auto& data = containers.emplace_back();
         // TODO
         try {
-            data.pointer = new Component_Container<T>();
+            data.container = new Component_Container<T>();
         } catch (...) {
             containers.pop_back();
             throw;
         }
         data.family = component_family;
-        return static_cast<Component_Container<T>*>(data.pointer);
+        return static_cast<Component_Container<T>*>(data.container);
     }
 
     template <typename T>
     Component_Container<T> const* find_container() const {
-        auto component_family = Type_Family::family_id<T>;
+        auto component_family = Type_Family::family_id<T>();
         for (auto& data: containers) {
             if (data.family == component_family) {
-                return static_cast<Component_Container<T> const*>(data.pointer);
+                return static_cast<Component_Container<T> const*>(data.container);
             }
         }
         return nullptr;
@@ -122,6 +134,7 @@ private:
     }
 
 private:
+    Component_Registry registry;
     containers::Vector<Entity> entities;
     containers::Vector<Components_Container_Data> containers;
 };
