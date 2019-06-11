@@ -49,6 +49,7 @@ public:
     Framebuffer* framebuffer;
     Framebuffer* postprocess_front_buffer;
     Framebuffer* postprocess_back_buffer;
+    uint32_t mesh_vao;
 
     Shader default_shader;
     // Postprocessing shaders
@@ -60,7 +61,6 @@ public:
     Shader single_color_shader;
     Shader outline_mix_shader;
 
-public:
     uint32_t shadow_width = 1024;
     uint32_t shadow_height = 1024;
 };

@@ -24,7 +24,7 @@
 #include "shader.hpp"
 
 Renderer::Renderer(uint32_t width, uint32_t height): single_color_shader(false), outline_mix_shader(false) {
-    opengl::load_opengl_parameters();
+    opengl::load_opengl_parameters(); // TODO move to window because loader is initialized there
     build_framebuffers(width, height);
 
     // TODO move to postprocessing
@@ -61,6 +61,24 @@ Renderer::Renderer(uint32_t width, uint32_t height): single_color_shader(false),
     auto single_color_vert = assets::load_shader_file("single_color.vert");
     auto single_color_frag = assets::load_shader_file("single_color.frag");
     single_color_shader = create_shader(single_color_frag, single_color_vert);
+
+    glGenVertexArrays(1, &mesh_vao);
+    glBindVertexArray(mesh_vao);
+    glEnableVertexAttribArray(0);
+    glVertexAttribFormat(0, 3, GL_FLOAT, false, offsetof(Vertex, position));
+    glVertexAttribBinding(0, 0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribFormat(1, 3, GL_FLOAT, false, offsetof(Vertex, normal));
+    glVertexAttribBinding(1, 0);
+    glEnableVertexAttribArray(2);
+    glVertexAttribFormat(2, 3, GL_FLOAT, false, offsetof(Vertex, tangent));
+    glVertexAttribBinding(2, 0);
+    glEnableVertexAttribArray(3);
+    glVertexAttribFormat(3, 3, GL_FLOAT, false, offsetof(Vertex, bitangent));
+    glVertexAttribBinding(3, 0);
+    glEnableVertexAttribArray(4);
+    glVertexAttribFormat(4, 2, GL_FLOAT, false, offsetof(Vertex, uv_coordinates));
+    glVertexAttribBinding(4, 0);
 
     setup_opengl();
     set_gamma_value(2.2f);
@@ -231,9 +249,9 @@ void Renderer::render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count)
     //     opengl::bind_texture(opengl::Texture_Type::texture_2D, mesh.textures[i].id);
     // }
 
-    uint32_t vao = mesh.get_vao();
-    opengl::bind_vertex_array(vao);
-    opengl::draw_elements_instanced(GL_TRIANGLES, mesh.indices.size(), count);
+    //uint32_t vao = mesh.get_vao();
+    //opengl::bind_vertex_array(vao);
+    //opengl::draw_elements_instanced(GL_TRIANGLES, mesh.indices.size(), count);
 }
 
 void Renderer::render_shadow_map(Matrix4 const& view, Matrix4 const& projection) {
@@ -307,9 +325,6 @@ void Renderer::render_scene(Transform const& camera_transform, Matrix4 const& vi
         shader.set_matrix4("model", model);
         render_object(line, shader);
     }
-
-    // Unbind just in case
-    opengl::bind_vertex_array(0);
 }
 
 void Renderer::render_with_shader(Shader& shader, Transform const& camera_transform, Matrix4 const& view, Matrix4 const& projection) {
@@ -361,6 +376,7 @@ uint32_t Renderer::render_frame_as_texture(Camera camera, Transform camera_trans
     opengl::clear(opengl::Buffer_Mask::color_buffer_bit | opengl::Buffer_Mask::depth_buffer_bit);
     Matrix4 view = get_camera_view_matrix(camera_transform);
     Matrix4 projection = get_camera_projection_matrix(camera, viewport_width, viewport_height);
+    opengl::bind_vertex_array(mesh_vao);
     render_scene(camera_transform, view, projection, dl_view_transform * dl_projection_transform);
 
     // Postprocessing
@@ -395,6 +411,8 @@ uint32_t Renderer::apply_gamma_correction(uint32_t texture) {
     opengl::active_texture(0);
     opengl::bind_texture(opengl::Texture_Type::texture_2D, texture);
     gamma_correction_shader.use();
+	// TODO maybe move it out of this function to minimize vao swaps
+    opengl::bind_vertex_array(mesh_vao);
     render_postprocess();
     swap_postprocess_buffers();
     return postprocess_front_buffer->get_color_texture(0);
@@ -420,8 +438,10 @@ void bind_material_properties(Material mat, Shader& shader) {
 }
 
 void render_mesh(Mesh const& mesh) {
-    uint32_t vao = mesh.get_vao();
-    opengl::bind_vertex_array(vao);
+    glBindVertexBuffer(0, mesh.get_vbo(), 0, sizeof(Vertex));
+    CHECK_GL_ERRORS();
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.get_ebo());
+    CHECK_GL_ERRORS();
     opengl::draw_elements(GL_TRIANGLES, mesh.indices.size());
 }
 

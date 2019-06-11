@@ -30,7 +30,8 @@ public:
     Mesh(Mesh const&) = delete;
     Mesh& operator=(Mesh const&) = delete;
 
-    uint32_t get_vao() const;
+    uint32_t get_vbo() const;
+    uint32_t get_ebo() const;
 
 private:
     void prepare_mesh();
@@ -40,7 +41,6 @@ public:
     containers::Vector<uint32_t> indices;
 
 private:
-    uint32_t vao = 0;
     uint32_t vbo = 0;
     uint32_t ebo = 0;
 };
