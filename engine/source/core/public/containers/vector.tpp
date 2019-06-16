@@ -2,6 +2,7 @@
 #include "math/math.hpp"
 #include "memory/memory.hpp"
 #include "memory/stack_allocate.hpp"
+#include "utility.hpp"
 
 namespace containers {
     template <typename T, typename Allocator>
@@ -62,25 +63,30 @@ namespace containers {
 
     template <typename T, typename Allocator>
     Vector<T, Allocator>& Vector<T, Allocator>::operator=(Vector const& v) {
+        static_assert(std::allocator_traits<Allocator>::propagate_on_container_copy_assignment::value, "Allocator is not copy assignable");
         allocator = v.allocator;
-        _capacity = v._capacity;
-        storage = allocator.allocate(_capacity);
+        T* new_storage = allocator.allocate(v._capacity);
         try {
-            memory::uninitialized_copy_n(v.storage, v._size, storage);
-            _size = v._size;
+            memory::uninitialized_copy_n(v.storage, v._size, new_storage);
         } catch (...) {
-            allocator.deallocate(storage, _capacity);
+            allocator.deallocate(new_storage, v._capacity);
             throw;
         }
+        memory::destruct_n(storage, _size);
+        allocator.deallocate(storage, _capacity); // TODO assumes v.allocator == allocator is true
+        storage = new_storage;
+        _size = v._size;
+        _capacity = v._capacity;
         return *this;
     }
 
     template <typename T, typename Allocator>
     Vector<T, Allocator>& Vector<T, Allocator>::operator=(Vector&& v) noexcept {
-        std::swap(storage, v.storage);
-        std::swap(allocator, v.allocator);
-        std::swap(_capacity, v._capacity);
-        std::swap(_size, v._size);
+        GE_assert(std::allocator_traits<Allocator>::propagate_on_container_swap::value || allocator == v.allocator, "Allocator not swappable");
+        swap(storage, v.storage);
+        swap(allocator, v.allocator); // TODO uses swap instead of move assignment
+        swap(_capacity, v._capacity);
+        swap(_size, v._size);
         return *this;
     }
 
@@ -392,7 +398,7 @@ namespace containers {
             allocator.deallocate(new_storage, _capacity);
             throw;
         }
-        std::swap(storage, new_storage);
+        swap(storage, new_storage);
         memory::destruct_n(new_storage, _size);
         allocator.deallocate(new_storage, _capacity);
         _capacity = new_capacity;
@@ -408,7 +414,7 @@ namespace containers {
             allocator.deallocate(new_storage, new_capacity);
             throw;
         }
-        std::swap(storage, new_storage);
+        swap(storage, new_storage);
         memory::destruct_n(new_storage, _size);
         _capacity = new_capacity;
         _size = min_cap_size;

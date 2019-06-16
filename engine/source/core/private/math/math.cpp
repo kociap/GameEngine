@@ -11,14 +11,6 @@ namespace math {
         return static_cast<float>((a > 0.0f) - (a < 0.0f));
     }
 
-    float max(float a, float b) {
-        return a > b ? a : b;
-    }
-
-    float min(float a, float b) {
-        return a < b ? a : b;
-    }
-
     float sin(float angle) {
         return std::sinf(angle);
     }

@@ -41,12 +41,20 @@ namespace math {
 
     float inv_sqrt(float number);
     float sign(float);
-    float max(float, float);
-    float min(float, float);
     float abs(float);
     float sin(float);
     float cos(float);
     float step_to_value(float current, float target, float change);
+
+    template <typename T>
+    T max(T a, T b) {
+        return a > b ? a : b;
+    }
+
+    template <typename T>
+    T min(T a, T b) {
+        return a < b ? a : b;
+    }
 } // namespace math
 
 #endif // !CORE_MATH_MATH_HPP_INCLUDE

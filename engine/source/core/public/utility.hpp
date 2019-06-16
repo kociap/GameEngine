@@ -1,13 +1,8 @@
 #ifndef CORE_UTILITY_HPP_INCLUDE
 #define CORE_UTILITY_HPP_INCLUDE
 
-#include <type_traits>
+#include <utility>
 
-template <typename T>
-void swap(T& a, T& b) {
-    T temp = std::move(a);
-    a = std::move(b);
-    b = std::move(temp);
-}
+using std::swap;
 
 #endif // !CORE_UTILITY_HPP_INCLUDE
