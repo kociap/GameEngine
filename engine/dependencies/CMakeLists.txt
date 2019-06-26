@@ -8,14 +8,9 @@ add_subdirectory(glad)
 add_subdirectory(glfw)
 add_subdirectory(stb)
 add_subdirectory(assimp)
-include("ImGuiCmakeLists.cmake")
+add_subdirectory(imgui)
 
-set_target_properties(glfw
+set_target_properties(glfw assimp imgui stb glad
     PROPERTIES
-    FOLDER "${ENGINE_DEPENDENCIES_FOLDER}/GLFW"
-)
-
-set_target_properties(assimp
-    PROPERTIES
-    FOLDER "${ENGINE_DEPENDENCIES_FOLDER}/assimp"
+    FOLDER "${ENGINE_DEPENDENCIES_FOLDER}"
 )

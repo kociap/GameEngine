@@ -4,3 +4,6 @@
 [submodule "glfw"]
 	path = engine/dependencies/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "engine/dependencies/imgui"]
+	path = engine/dependencies/imgui
+	url = https://github.com/kociap/imgui.git

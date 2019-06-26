@@ -15,13 +15,15 @@ set_target_properties(${ENGINE_NAME}
 )
 
 target_compile_definitions(${ENGINE_NAME} PRIVATE COMPILING_DLL)
-    
+
+find_package(OpenGL REQUIRED)
 add_subdirectory(dependencies)
 add_subdirectory(source)
 add_subdirectory(editor)
 add_subdirectory(shaders)
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${ENGINE_NAME}
+    ${OPENGL_LIBRARIES}
     glad    
     glfw
     stb

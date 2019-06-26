@@ -13,7 +13,6 @@ set(ENGINE_FOLDER_NAME "Engine")
 set(ENGINE_DEPENDENCIES_FOLDER "Dependencies")
 set(ENGINE_TOOLS_FOLDER "Tools")
 
-find_package(OpenGL REQUIRED)
 add_subdirectory(engine)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS ON)

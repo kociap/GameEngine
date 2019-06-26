@@ -12,7 +12,6 @@ target_sources(${PROJECT_NAME}
 
 set_target_properties(${PROJECT_NAME}
     PROPERTIES
-    FOLDER "${ENGINE_DEPENDENCIES_FOLDER}/stb"
     LINKER_LANGUAGE CXX
 )
 
