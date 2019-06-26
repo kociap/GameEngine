@@ -1,10 +1,10 @@
-#include "build_config.hpp"
+#ifndef EDITOR_EDITOR_MAIN_HPP_INCLUDE
+#define EDITOR_EDITOR_MAIN_HPP_INCLUDE
 
 #include "editor.hpp"
 #include "engine.hpp"
 
-#if GE_WITH_EDITOR
-int main(int argc, char** argv) {
+inline int editor_main(int argc, char** argv) {
     Engine::init(argc, argv);
     Editor::init();
     while (!Editor::should_close()) {
@@ -12,8 +12,7 @@ int main(int argc, char** argv) {
     }
     Editor::terminate();
     Engine::terminate();
-
     return 0;
 }
 
-#endif // GE_WITH_EDITOR
+#endif // !EDITOR_EDITOR_MAIN_HPP_INCLUDE

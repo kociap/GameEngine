@@ -72,6 +72,8 @@ namespace containers {
         void set_capacity(size_type n);
         void shrink_to_fit();
 
+        template <typename Input_Iterator>
+        void assign(Input_Iterator first, Input_Iterator last);
         void insert_unsorted(const_iterator position, value_type const& value);
         void push_back(value_type const&);
         void push_back(value_type&&);

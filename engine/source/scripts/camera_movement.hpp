@@ -1,12 +1,13 @@
 #ifndef SCRIPTS_CAMERA_MOVEMENT_HPP_INCLUDE
 #define SCRIPTS_CAMERA_MOVEMENT_HPP_INCLUDE
 
-#include "components/camera.hpp"
-#include "components/transform.hpp"
-#include "math/vector3.hpp"
-#include "serialization.hpp"
+#include <class_macros.hpp>
+#include <components/camera.hpp>
+#include <components/transform.hpp>
+#include <math/vector3.hpp>
+#include <serialization.hpp>
 
-class Camera_Movement {
+class COMPONENT Camera_Movement {
 public:
     static void update(Camera_Movement&, Camera&, Transform&);
 

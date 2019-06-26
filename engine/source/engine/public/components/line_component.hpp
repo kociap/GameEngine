@@ -1,15 +1,16 @@
 #ifndef ENGINE_COMPONENTS_LINE_COMPONENT_HPP_INCLUDE
 #define ENGINE_COMPONENTS_LINE_COMPONENT_HPP_INCLUDE
 
-#include "color.hpp"
-#include "handle.hpp"
-#include "serialization.hpp"
+#include <class_macros.hpp>
+#include <color.hpp>
+#include <handle.hpp>
+#include <serialization.hpp>
 
 class Shader;
 class Mesh;
 class Material;
 
-class Line_Component {
+class COMPONENT Line_Component {
 public:
     Color color = Color::white;
     float thickness = 1;

@@ -22,6 +22,7 @@
 #include "opengl.hpp"
 #include "resource_manager.hpp"
 #include "shader.hpp"
+#include <glad/glad.h>
 
 Renderer::Renderer(uint32_t width, uint32_t height): single_color_shader(false), outline_mix_shader(false) {
     opengl::load_opengl_parameters(); // TODO move to window because loader is initialized there
@@ -411,7 +412,7 @@ uint32_t Renderer::apply_gamma_correction(uint32_t texture) {
     opengl::active_texture(0);
     opengl::bind_texture(opengl::Texture_Type::texture_2D, texture);
     gamma_correction_shader.use();
-	// TODO maybe move it out of this function to minimize vao swaps
+    // TODO maybe move it out of this function to minimize vao swaps
     opengl::bind_vertex_array(mesh_vao);
     render_postprocess();
     swap_postprocess_buffers();

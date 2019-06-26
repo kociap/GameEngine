@@ -8,5 +8,5 @@ add_custom_target("shaders"
 
 set_target_properties("shaders"
     PROPERTIES
-    FOLDER "${GAMEENGINE_FOLDER_NAME}"
+    FOLDER ${ENGINE_FOLDER_NAME}
 )

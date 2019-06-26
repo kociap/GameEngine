@@ -1,30 +1,30 @@
-#include "engine.hpp"
+#include <engine.hpp>
 
-#include "assets.hpp"
-#include "debug_macros.hpp"
-#include "ecs/ecs.hpp"
-#include "ecs/entity.hpp"
-#include "input/input_core.hpp"
-#include "mesh/mesh.hpp"
-#include "renderer.hpp"
-#include "resource_manager.hpp"
-#include "shader.hpp"
-#include "time/time_core.hpp"
-#include "utils/path.hpp"
-#include "window.hpp"
+#include <assets.hpp>
+#include <debug_macros.hpp>
+#include <ecs/ecs.hpp>
+#include <ecs/entity.hpp>
+#include <input/input_core.hpp>
+#include <mesh/mesh.hpp>
+#include <renderer.hpp>
+#include <resource_manager.hpp>
+#include <shader.hpp>
+#include <time/time_core.hpp>
+#include <utils/path.hpp>
+#include <window.hpp>
 
-#include "components/camera.hpp"
-#include "components/directional_light_component.hpp"
-#include "components/point_light_component.hpp"
-#include "components/static_mesh_component.hpp"
-#include "components/transform.hpp"
-#include "debug_hotkeys.hpp"
-#include "math/math.hpp"
-#include "mesh/cube.hpp"
-#include "mesh/plane.hpp"
-#include "scripts/camera_movement.hpp"
+#include <components/camera.hpp>
+#include <components/directional_light_component.hpp>
+#include <components/point_light_component.hpp>
+#include <components/static_mesh_component.hpp>
+#include <components/transform.hpp>
+#include <debug_hotkeys.hpp>
+#include <math/math.hpp>
+#include <mesh/cube.hpp>
+#include <mesh/plane.hpp>
+#include <scripts/camera_movement.hpp>
 
-#include "build_config.hpp"
+#include <build_config.hpp>
 
 Input::Manager* Engine::input_manager = nullptr;
 Renderer* Engine::renderer = nullptr;

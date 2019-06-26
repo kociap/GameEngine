@@ -1,12 +1,13 @@
 #ifndef ENGINE_COMPONENTS_TRANSFORM_COMPONENT_HPP_INCLUDE
 #define ENGINE_COMPONENTS_TRANSFORM_COMPONENT_HPP_INCLUDE
 
-#include "math/matrix4.hpp"
-#include "math/quaternion.hpp"
-#include "math/vector3.hpp"
-#include "serialization.hpp"
+#include <class_macros.hpp>
+#include <math/matrix4.hpp>
+#include <math/quaternion.hpp>
+#include <math/vector3.hpp>
+#include <serialization.hpp>
 
-class Transform {
+class COMPONENT Transform {
 public:
     Quaternion local_rotation;
     Vector3 local_position;

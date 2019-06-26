@@ -1,15 +1,16 @@
-#include "window.hpp"
+#include <window.hpp>
 
 #define GLFW_INCLUDE_NONE
-#include "GLFW/glfw3.h"
+#include <GLFW/glfw3.h>
 
-#include "build_config.hpp"
-#include "debug_macros.hpp"
-#include "engine.hpp"
-#include "framebuffer.hpp"
-#include "input/input_core.hpp"
-#include "key.hpp"
-#include "renderer.hpp"
+#include <build_config.hpp>
+#include <debug_macros.hpp>
+#include <engine.hpp>
+#include <framebuffer.hpp>
+#include <input/input_core.hpp>
+#include <key.hpp>
+#include <renderer.hpp>
+#include <glad/glad.h>
 
 #include <stdexcept>
 #include <string>

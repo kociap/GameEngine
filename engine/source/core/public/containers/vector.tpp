@@ -274,6 +274,17 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
+    template <typename Input_Iterator>
+    void Vector<T, Allocator>::assign(Input_Iterator first, Input_Iterator last) {
+        iterator my_first = begin();
+        for (iterator my_end = end(); my_first != my_end && first != last; ++my_first, ++first) {
+            *my_first = *first;
+        }
+
+        // TODO insert other elements if first != last or erase elements past my_first if first == last
+    }
+
+    template <typename T, typename Allocator>
     void Vector<T, Allocator>::insert_unsorted(const_iterator position, value_type const& value) {
         GE_assert(position.storage_ptr >= get_ptr() && position.storage_ptr <= get_ptr(_size), "Vector::insert invalid iterator");
 

@@ -1,10 +1,10 @@
 set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/editor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/imgui_renderer.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
-)
-
-set(HEADER_FILES
+    )
+    
+    set(HEADER_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/editor_main.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/editor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/imgui_renderer.hpp"    
 )

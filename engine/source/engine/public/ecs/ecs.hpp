@@ -7,7 +7,7 @@
 #include "ecs/component_registry.hpp"
 #include "engine.hpp"
 #include "entity.hpp"
-#include "id_generator.hpp"
+#include "integer_sequence_generator.hpp"
 #include "iterators.hpp"
 #include "type_family.hpp"
 
@@ -53,7 +53,8 @@ public:
 
     template <typename... Components>
     Entity create() {
-        Entity entity = entities.emplace_back(ID_Generator<Entity>::next());
+        static Integer_Sequence_Generator id_generator;
+        Entity entity = entities.emplace_back(id_generator.next());
         if constexpr (sizeof...(Components) > 0) {
             (..., add_component<Components>(entity));
         }

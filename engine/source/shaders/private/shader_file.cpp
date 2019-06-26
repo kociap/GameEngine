@@ -5,6 +5,7 @@
 #include "opengl.hpp"
 #include "shader_exceptions.hpp"
 #include <iostream>
+#include <glad/glad.h>
 
 static void compile_shader(uint32_t shader, std::string const& name = "Unnamed Shader") {
     glCompileShader(shader);

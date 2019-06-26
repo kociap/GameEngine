@@ -1,3 +1,5 @@
+#include <integer_sequence_generator.hpp>
+
 template <typename T>
 typename Resource_Manager<T>::iterator Resource_Manager<T>::begin() {
     return resources.begin();
@@ -10,8 +12,9 @@ typename Resource_Manager<T>::iterator Resource_Manager<T>::end() {
 
 template <typename T>
 Handle<T> Resource_Manager<T>::add(T&& resource) {
+    static Integer_Sequence_Generator id_generator;
     resources.emplace_back(std::forward<T>(resource));
-    id_type resource_id = ID_Generator<T>::next();
+    id_type resource_id = id_generator.next();
     identifiers.push_back(resource_id);
     return {resource_id};
 }

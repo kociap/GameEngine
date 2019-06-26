@@ -1,14 +1,15 @@
 #ifndef ENGINE_COMPONENTS_STATIC_MESH_COMPONENT_HPP_INCLUDE
 #define ENGINE_COMPONENTS_STATIC_MESH_COMPONENT_HPP_INCLUDE
 
-#include "handle.hpp"
-#include "serialization.hpp"
+#include <class_macros.hpp>
+#include <handle.hpp>
+#include <serialization.hpp>
 
 class Mesh;
 class Shader;
 class Material;
 
-class Static_Mesh_Component {
+class COMPONENT Static_Mesh_Component {
 public:
     Handle<Mesh> mesh_handle;
     Handle<Shader> shader_handle;

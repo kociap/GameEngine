@@ -1,9 +1,9 @@
 #ifndef ENGINE_RESOURCE_MANAGER_HPP_INCLUDE
 #define ENGINE_RESOURCE_MANAGER_HPP_INCLUDE
 
-#include "containers/vector.hpp"
-#include "handle.hpp"
-#include "id_generator.hpp"
+#include <containers/vector.hpp>
+#include <handle.hpp>
+#include <config.hpp>
 
 template <typename T>
 class Resource_Manager {
