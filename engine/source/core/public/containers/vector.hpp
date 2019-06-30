@@ -8,6 +8,9 @@
 #include <type_traits>
 
 namespace containers {
+    struct reserve_t {};
+    constexpr reserve_t reserve;
+
     template <typename T, typename Allocator = std::allocator<T>>
     class Vector {
         static_assert(std::is_nothrow_move_constructible_v<T> || std::is_copy_constructible_v<T> || std::is_trivially_copy_constructible_v<T>,
@@ -28,8 +31,8 @@ namespace containers {
 
     public:
         Vector();
-        // TODO add only-allocate constructor
         explicit Vector(size_type size);
+        Vector(size_type size, reserve_t);
         Vector(Vector const& original);
         Vector(Vector&& from) noexcept;
         Vector(std::initializer_list<T>);
