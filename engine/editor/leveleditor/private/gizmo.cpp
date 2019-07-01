@@ -325,8 +325,7 @@ namespace gizmo {
                 Matrix4 mat;
                 Color color;
             };
-            containers::Vector<Quad_Instance_Data> quad_instance_data;
-            quad_instance_data.reserve(point_draw_data.size());
+            containers::Vector<Quad_Instance_Data> quad_instance_data(point_draw_data.size(), containers::reserve);
             for (containers::Vector<Point_Draw_Data>::size_type i = 0; i < point_draw_data.size(); ++i) {
                 Point_Draw_Data pdd = point_draw_data[i];
                 Vector3 direction = math::normalize(camera_position - pdd.origin);
