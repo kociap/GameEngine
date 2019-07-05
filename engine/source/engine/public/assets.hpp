@@ -1,8 +1,8 @@
 #ifndef ENGINE_ASSETS_ASSETS_HPP_INCLUDE
 #define ENGINE_ASSETS_ASSETS_HPP_INCLUDE
 
-#include "containers/vector.hpp"
-#include "shader_file.hpp"
+#include <containers/vector.hpp>
+#include <shader_file.hpp>
 
 #include <filesystem>
 
@@ -15,7 +15,8 @@ namespace assets {
     std::filesystem::path current_path();
 
     // Reads file as a string of chars without interpreting it
-    void read_file_raw(std::filesystem::path const& filename, std::string& out);
+    std::string read_file_raw_string(std::filesystem::path const& filename);
+    containers::Vector<uint8_t> read_file_raw(std::filesystem::path const& filename);
 
     opengl::Shader_Type shader_type_from_filename(std::filesystem::path const& filename);
 

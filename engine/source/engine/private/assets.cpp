@@ -13,6 +13,8 @@
 #include "opengl.hpp"
 #include "shader.hpp"
 #include "utils/path.hpp"
+#include <containers/vector.hpp>
+#include <decoders/png.hpp>
 
 #include <fstream>
 #include <stdexcept>
@@ -32,14 +34,26 @@ namespace assets {
         return _current_path;
     }
 
-    void read_file_raw(std::filesystem::path const& filename, std::string& out) {
+    std::string read_file_raw_string(std::filesystem::path const& filename) {
         std::ifstream file(filename);
-        if (file) {
-            std::getline(file, out, '\0');
-            file.close();
-        } else {
+        if (!file) {
             throw std::invalid_argument("Could not open file " + filename.string());
         }
+        std::string out;
+        std::getline(file, out, '\0');
+        return out;
+    }
+
+    containers::Vector<uint8_t> read_file_raw(std::filesystem::path const& filename) {
+        std::ifstream file(filename, std::ios::binary);
+        if (!file) {
+            throw std::invalid_argument("Could not open file " + filename.string());
+        }
+        file.seekg(0, std::ios::end);
+        containers::Vector<uint8_t> file_raw(file.tellg());
+        file.seekg(0, std::ios::beg);
+        file.read(reinterpret_cast<char*>(file_raw.data()), file_raw.size());
+        return file_raw;
     }
 
     opengl::Shader_Type shader_type_from_filename(std::filesystem::path const& filename) {
@@ -63,18 +77,21 @@ namespace assets {
 
     Shader_File load_shader_file(std::filesystem::path const& path) {
         std::filesystem::path full_path = utils::concat_paths(_shaders_path, path);
-        std::string shader_source;
-        read_file_raw(full_path, shader_source);
+        std::string shader_source = read_file_raw_string(full_path);
         return Shader_File(path.string(), shader_type_from_filename(path), shader_source);
     }
 
     static opengl::Format get_matching_pixel_format(int channels) {
-        // clang-format off
-    if(channels == 1) { return opengl::Format::red; } 
-    else if(channels == 2) { return opengl::Format::rg; } 
-    else if(channels == 3) { return opengl::Format::rgb; } 
-    else { return opengl::Format::rgba; }
-        // clang-format on
+        switch (channels) {
+            case 1:
+                return opengl::Format::red;
+            case 2:
+                return opengl::Format::rg;
+            case 3:
+                return opengl::Format::rgb;
+            default:
+                return opengl::Format::rgba;
+        }
     }
 
     uint32_t load_cubemap(containers::Vector<std::filesystem::path> const& paths) {
@@ -133,27 +150,86 @@ namespace assets {
     }
 
     uint32_t load_srgb_texture(std::filesystem::path filename, bool flip) {
-        int width, height, channels;
-        stbi_set_flip_vertically_on_load(flip);
-        std::string path = utils::concat_paths(_assets_path, filename).string();
-        unsigned char* image_data = stbi_load(path.c_str(), &width, &height, &channels, 0);
-        if (!image_data) {
-            throw std::runtime_error("Image not loaded");
+        if (filename.extension() == ".png") {
+        //if (false) {
+            std::string path = utils::concat_paths(_assets_path, filename).string();
+            auto png_data = read_file_raw(path);
+            Image_Data image_data = decode_png(png_data);
+            uint32_t texture;
+            opengl::gen_textures(1, &texture);
+            opengl::bind_texture(opengl::Texture_Type::texture_2D, texture);
+            opengl::Format format;
+            opengl::Sized_Internal_Format internal_format;
+            switch (image_data.pixel_format) {
+                case Image_Pixel_Format::grey8:
+                case Image_Pixel_Format::grey16: {
+                    format = opengl::Format::red;
+                    internal_format =
+                        image_data.pixel_format == Image_Pixel_Format::grey16 ? opengl::Sized_Internal_Format::r16 : opengl::Sized_Internal_Format::r8;
+                    int32_t swizzle_mask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+                    glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle_mask);
+                    break;
+                }
+                case Image_Pixel_Format::grey8_alpha8:
+                case Image_Pixel_Format::grey16_alpha16: {
+                    format = opengl::Format::rg;
+                    internal_format = image_data.pixel_format == Image_Pixel_Format::grey16_alpha16 ? opengl::Sized_Internal_Format::rg16 :
+                                                                                                      opengl::Sized_Internal_Format::rg8;
+                    int32_t swizzle_mask[] = {GL_RED, GL_RED, GL_RED, GL_GREEN};
+                    glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle_mask);
+                    break;
+                }
+                case Image_Pixel_Format::rgb8:
+                    format = opengl::Format::rgb;
+                    internal_format = opengl::Sized_Internal_Format::rgb8;
+                    break;
+                case Image_Pixel_Format::rgb16:
+                    format = opengl::Format::rgb;
+                    internal_format = opengl::Sized_Internal_Format::rgb16;
+                    break;
+                case Image_Pixel_Format::rgba8:
+                    format = opengl::Format::rgba;
+                    internal_format = opengl::Sized_Internal_Format::rgba8;
+                    break;
+                case Image_Pixel_Format::rgba16:
+                    format = opengl::Format::rgba;
+                    internal_format = opengl::Sized_Internal_Format::rgba16;
+                    break;
+                default:
+                    GE_log("Unsupported png pixel format");
+            }
+            opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, image_data.width, image_data.height, format, opengl::Type::unsigned_byte,
+                                 image_data.data.data());
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            CHECK_GL_ERRORS();
+            opengl::generate_mipmap(GL_TEXTURE_2D);
+            return texture;
+        } else {
+            int width, height, channels;
+            stbi_set_flip_vertically_on_load(flip);
+            std::string path = utils::concat_paths(_assets_path, filename).string();
+            unsigned char* image_data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+            if (!image_data) {
+                throw std::runtime_error("Image not loaded");
+            }
+            containers::Vector<uint8_t> pixel_preview(width * height * channels);
+            memory::copy(image_data, image_data + (width * height * channels), pixel_preview.data());
+            uint32_t texture;
+            opengl::gen_textures(1, &texture);
+            opengl::bind_texture(opengl::Texture_Type::texture_2D, texture);
+            // TODO
+            // What was that todo supposed to mean?????
+            opengl::Sized_Internal_Format internal_format = opengl::Sized_Internal_Format::srgb8_alpha8;
+            opengl::Format format = get_matching_pixel_format(channels);
+            opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, width, height, format, opengl::Type::unsigned_byte, image_data);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            CHECK_GL_ERRORS();
+            opengl::generate_mipmap(GL_TEXTURE_2D);
+            stbi_image_free(image_data);
+            return texture;
         }
-        uint32_t texture;
-        opengl::gen_textures(1, &texture);
-        opengl::bind_texture(opengl::Texture_Type::texture_2D, texture);
-        // TODO
-        // What was that todo supposed to mean?????
-        opengl::Sized_Internal_Format internal_format = opengl::Sized_Internal_Format::srgb8_alpha8;
-        opengl::Format format = get_matching_pixel_format(channels);
-        opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, width, height, format, opengl::Type::unsigned_byte, image_data);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        CHECK_GL_ERRORS();
-        opengl::generate_mipmap(GL_TEXTURE_2D);
-        stbi_image_free(image_data);
-        return texture;
     }
 
     static void compute_tangents(Vertex& vert1, Vertex& vert2, Vertex& vert3) {

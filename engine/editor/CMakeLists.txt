@@ -1,9 +1,9 @@
 set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/editor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/imgui_renderer.cpp"
-    )
+)
     
-    set(HEADER_FILES
+set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/editor_main.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/editor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/imgui_renderer.hpp"    
@@ -11,6 +11,7 @@ set(SOURCE_FILES
 
 add_subdirectory(leveleditor/public)
 add_subdirectory(leveleditor/private)
+add_subdirectory(asset_importer/private)
 
 set(SOURCE_FILES_ROOT
     ${SOURCE_FILES_ROOT}
@@ -24,7 +25,7 @@ set(HEADER_FILES_ROOT
     PARENT_SCOPE
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}") # to include editor.hpp
+target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_sources(${PROJECT_NAME} 
     PRIVATE ${SOURCE_FILES} 
     PRIVATE ${HEADER_FILES}

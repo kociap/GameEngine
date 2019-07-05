@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(Codegen CXX)
 
-add_executable(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/codegen/component_registry_codegen.cpp")
+add_executable(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/codegen/component_serialization_generator.cpp")
 set_target_properties(${PROJECT_NAME} 
     PROPERTIES
     FOLDER ${ENGINE_TOOLS_FOLDER}

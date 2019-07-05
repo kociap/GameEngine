@@ -27,6 +27,7 @@ namespace opengl {
         rg16 = GL_RG16,
         rgb4 = GL_RGB4,
         rgb8 = GL_RGB8,
+        rgb16 = GL_RGB16,
         rgba2 = GL_RGBA2,
         rgba4 = GL_RGBA4,
         rgba8 = GL_RGBA8,

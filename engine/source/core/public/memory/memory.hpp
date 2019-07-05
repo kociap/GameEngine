@@ -145,5 +145,15 @@ namespace memory {
             throw;
         }
     }
+
+    template <typename Input_Iterator, typename Output_Iterator>
+    Output_Iterator copy(Input_Iterator first, Input_Iterator last, Output_Iterator dest) {
+        // TODO if trivially copyable, use memmove or something
+        for (; first != last; ++first, ++dest) {
+            *dest = *first;
+        }
+
+        return dest;
+    }
 } // namespace memory
 #endif // !CORE_MEMORY_MEMORY_HPP_INCLUDE
