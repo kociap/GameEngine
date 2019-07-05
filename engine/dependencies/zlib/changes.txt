@@ -1,0 +1,6 @@
+- removed change log. All own modifications to the zlib source will be listed in this file
+- removed test folder and its contents
+- removed unnecessary build files
+- modified CMakeLists.txt:
+  - removed code responsible for copying zconf.h to build directory
+  - removed .rc file support

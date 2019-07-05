@@ -14,12 +14,13 @@ add_subdirectory(editor)
 add_subdirectory(shaders)
 
 target_link_libraries(${ENGINE_NAME}
-${OPENGL_LIBRARIES}
-glad    
-glfw
-stb
-assimp
-imgui
+    ${OPENGL_LIBRARIES}
+    glad    
+    glfw
+    stb
+    assimp
+    imgui
+    zlibstatic_lib
 )
 
 get_target_property(ENGINE_INCLUDE_DIRECTORIES ${ENGINE_NAME} INCLUDE_DIRECTORIES)

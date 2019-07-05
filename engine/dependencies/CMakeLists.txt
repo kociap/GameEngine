@@ -9,8 +9,9 @@ add_subdirectory(glfw)
 add_subdirectory(stb)
 add_subdirectory(assimp)
 add_subdirectory(imgui)
+add_subdirectory(zlib)
 
-set_target_properties(glfw assimp imgui stb glad
+set_target_properties(glfw assimp imgui stb glad zlib_lib zlibstatic_lib
     PROPERTIES
     FOLDER "${ENGINE_DEPENDENCIES_FOLDER}"
 )
