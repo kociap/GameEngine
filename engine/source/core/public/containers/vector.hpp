@@ -33,6 +33,7 @@ namespace containers {
         Vector();
         explicit Vector(size_type size);
         Vector(size_type size, reserve_t);
+        Vector(size_type, value_type const&);
         Vector(Vector const& original);
         Vector(Vector&& from) noexcept;
         Vector(std::initializer_list<T>);

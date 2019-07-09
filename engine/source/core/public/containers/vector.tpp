@@ -11,11 +11,11 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(size_type const size): _capacity(size) {
+    Vector<T, Allocator>::Vector(size_type const n): _capacity(n) {
         storage = allocator.allocate(_capacity);
         try {
-            memory::uninitialized_default_construct_n(storage, size);
-            _size = size;
+            memory::uninitialized_default_construct_n(storage, n);
+            _size = n;
         } catch (...) {
             allocator.deallocate(storage, _capacity);
             throw;
@@ -23,8 +23,20 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(size_type const size, reserve_t): _capacity(size) {
+    Vector<T, Allocator>::Vector(size_type const n, reserve_t): _capacity(n) {
         storage = allocator.allocate(_capacity);
+    }
+
+    template <typename T, typename Allocator>
+    Vector<T, Allocator>::Vector(size_type n, value_type const& value): _capacity(n) {
+        storage = allocator.allocate(_capacity);
+        try {
+            memory::uninitialized_fill_n(storage, n, value);
+            _size = n;
+        } catch (...) {
+            allocator.deallocate(storage, _capacity);
+            throw;
+        }
     }
 
     template <typename T, typename Allocator>
