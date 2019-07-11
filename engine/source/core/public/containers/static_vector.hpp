@@ -1,10 +1,11 @@
 #ifndef CORE_CONTAINERS_STATIC_VECTOR_HPP_INCLUDE
 #define CORE_CONTAINERS_STATIC_VECTOR_HPP_INCLUDE
 
-#include "iterators.hpp"
-#include "memory/aligned_buffer.hpp"
-#include "serialization.hpp"
 #include <cstdint>
+#include <iterators.hpp>
+#include <memory/aligned_buffer.hpp>
+#include <serialization/archives/binary.hpp>
+#include <serialization/serialization.hpp>
 #include <stdexcept>
 #include <type_traits>
 
@@ -109,8 +110,7 @@ namespace containers {
         void attempt_move(T* from, T* to);
         void check_size();
 
-        template <typename T, uint64_t _capacity>
-        friend void deserialize(containers::Static_Vector<T, _capacity>& vec, std::ifstream& in);
+        friend void serialization::deserialize(serialization::Binary_Input_Archive&, containers::Static_Vector<T, _capacity>&);
     };
 
     template <typename T, uint64_t _capacity>
@@ -119,9 +119,9 @@ namespace containers {
 
 namespace serialization {
     template <typename T, uint64_t _capacity>
-    void serialize(std::ofstream& out, containers::Static_Vector<T, _capacity> const& vec);
+    void serialize(Binary_Output_Archive&, containers::Static_Vector<T, _capacity> const&);
     template <typename T, uint64_t _capacity>
-    void deserialize(containers::Static_Vector<T, _capacity>& vec, std::ifstream& in);
+    void deserialize(Binary_Input_Archive&, containers::Static_Vector<T, _capacity>&);
 } // namespace serialization
 
 #include "static_vector.tpp"

@@ -3,11 +3,11 @@
 
 class Color {
 public:
-    static Color const white;
-    static Color const black;
-    static Color const red;
-    static Color const green;
-    static Color const blue;
+    static ENGINE_API Color const white;
+    static ENGINE_API Color const black;
+    static ENGINE_API Color const red;
+    static ENGINE_API Color const green;
+    static ENGINE_API Color const blue;
 
     float r = 0;
     float g = 0;

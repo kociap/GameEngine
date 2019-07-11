@@ -153,7 +153,7 @@ void Level_Editor::prepare_editor_ui() {
     ECS& ecs = Engine::get_ecs();
     auto rendering = ecs.access<Camera, Transform>();
     for (Entity const entity: rendering) {
-        auto& [camera, transform] = rendering.get<Camera, Transform>(entity);
+        auto [camera, transform] = rendering.get<Camera, Transform>(entity);
         if (camera.active) {
             camera_entity = entity;
             break;
@@ -175,7 +175,7 @@ void Level_Editor::prepare_editor_ui() {
 
     auto const state = Input::get_key_state(Key::right_mouse_button);
     auto const shift_state = Input::get_key_state(Key::left_shift);
-    auto& [camera, camera_transform] = rendering.get<Camera, Transform>(camera_entity);
+    auto [camera, camera_transform] = rendering.get<Camera, Transform>(camera_entity);
     static containers::Vector<Entity> selected_entities;
     Matrix4 const camera_view_mat = get_camera_view_matrix(camera_transform);
     Matrix4 const camera_projection_mat = get_camera_projection_matrix(camera, window_content_size.x, window_content_size.y);

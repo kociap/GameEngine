@@ -6,11 +6,11 @@ class Vector4;
 
 class Vector3 {
 public:
-    static Vector3 const zero;
-    static Vector3 const one;
-    static Vector3 const up;
-    static Vector3 const right;
-    static Vector3 const forward;
+    static ENGINE_API Vector3 const zero;
+    static ENGINE_API Vector3 const one;
+    static ENGINE_API Vector3 const up;
+    static ENGINE_API Vector3 const right;
+    static ENGINE_API Vector3 const forward;
 
     float x = 0;
     float y = 0;

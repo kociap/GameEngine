@@ -1,10 +1,10 @@
 #include "ecs/component_container.hpp"
 
-void Component_Container_Base::serialize(std::ostream& archive, Component_Container_Base* container) {
+void Component_Container_Base::serialize(serialization::Binary_Output_Archive& archive, Component_Container_Base* container) {
     serialization::serialize(archive, container->entities);
 }
 
-void Component_Container_Base::deserialize(std::istream& archive, Component_Container_Base*& container) {
+void Component_Container_Base::deserialize(serialization::Binary_Input_Archive& archive, Component_Container_Base*& container) {
     serialization::deserialize(archive, container->entities);
     for (uint64_t i = 0; i < container->entities.size(); i += 1) {
         auto index = container->indirect_index(container->entities[i]);

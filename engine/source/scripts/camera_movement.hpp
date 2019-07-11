@@ -5,7 +5,7 @@
 #include <components/camera.hpp>
 #include <components/transform.hpp>
 #include <math/vector3.hpp>
-#include <serialization.hpp>
+#include <serialization/serialization.hpp>
 
 class COMPONENT Camera_Movement {
 public:
@@ -14,7 +14,7 @@ public:
     Vector3 camera_side = Vector3::right;
 };
 
-template <>
-struct serialization::use_default_deserialize<Camera_Movement>: std::true_type {};
+DEFAULT_SERIALIZABLE(Camera_Movement);
+DEFAULT_DESERIALIZABLE(Camera_Movement);
 
 #endif // !SCRIPTS_CAMERA_MOVEMENT_HPP_INCLUDE

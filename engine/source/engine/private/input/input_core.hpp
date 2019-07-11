@@ -32,7 +32,7 @@ namespace Input {
         // If raw value changes sign, should we reset to 0 or continue from current value?
         int8_t snap : 1;
 
-        Axis_Mapping(std::string const& a, Key k, float s, float sens = 1.0f): axis(a), key(k), accumulation_speed(s), raw_value_scale(sens), snap(0) {}
+        Axis_Mapping(std::string const& a, Key k, float s, float sens = 1.0f): axis(a), key(k), raw_value_scale(sens), accumulation_speed(s), snap(0) {}
     };
 
     struct Event {

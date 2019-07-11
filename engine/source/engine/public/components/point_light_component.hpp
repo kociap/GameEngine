@@ -4,7 +4,7 @@
 #include <class_macros.hpp>
 #include <color.hpp>
 #include <math/vector3.hpp>
-#include <serialization.hpp>
+#include <serialization/serialization.hpp>
 
 class COMPONENT Point_Light_Component {
 public:
@@ -13,7 +13,7 @@ public:
     bool dynamic = false;
 };
 
-template <>
-struct serialization::use_default_deserialize<Point_Light_Component>: std::true_type {};
+DEFAULT_SERIALIZABLE(Point_Light_Component);
+DEFAULT_DESERIALIZABLE(Point_Light_Component);
 
 #endif // !ENGINE_COMPONENTS_POINT_LIGHT_COMPONENT_HPP_INCLUDE

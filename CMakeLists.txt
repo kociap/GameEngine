@@ -14,13 +14,14 @@ set(ENGINE_FOLDER_NAME "Engine")
 set(ENGINE_DEPENDENCIES_FOLDER "Dependencies")
 set(ENGINE_TOOLS_FOLDER "Tools")
 
-add_subdirectory(engine)
-
-set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS ON)
-
-# Compiler flags
 if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3")
+    set(ENGINE_CXX_FLAGS "/W4")
+    set(ENGINE_DLL_EXPORT "__declspec(dllexport)")
+    set(ENGINE_DLL_IMPORT "__declspec(dllimport)")
 elseif("${CMAKE_CXX_COMPILER_ID}" matches "GCC" or "${CMAKE_CXX_COMPILER_ID}" matches "Clang")
-
+    set(ENGINE_CXX_FLAGS "-Wall -Wextra")
+    set(ENGINE_DLL_EXPORT "")
+    set(ENGINE_DLL_IMPORT "")
 endif()
+
+add_subdirectory(engine)

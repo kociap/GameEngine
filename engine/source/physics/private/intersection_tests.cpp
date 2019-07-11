@@ -71,7 +71,6 @@ bool test_ray_mesh(Ray ray, Mesh const& mesh) {
     auto& verts = mesh.vertices;
     // TODO size_t if I ever define it
     for (uint64_t i = 0; i < mesh.indices.size(); i += 3) {
-        Raycast_Hit hit;
         if (intersect_ray_triangle(ray, verts[mesh.indices[i]].position, verts[mesh.indices[i + 1]].position, verts[mesh.indices[i + 2]].position)) {
             return true;
         }
@@ -86,7 +85,6 @@ std::optional<Raycast_Hit> intersect_ray_mesh(Ray ray, Mesh const& mesh, Matrix4
     auto& verts = mesh.vertices;
     // TODO size_t if I ever define it
     for (uint64_t i = 0; i < mesh.indices.size(); i += 3) {
-        Raycast_Hit hit;
         Vector4 vert1 = Vector4(verts[mesh.indices[i]].position, 1) * model_transform;
         Vector4 vert2 = Vector4(verts[mesh.indices[i + 1]].position, 1) * model_transform;
         Vector4 vert3 = Vector4(verts[mesh.indices[i + 2]].position, 1) * model_transform;

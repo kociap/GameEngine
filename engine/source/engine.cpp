@@ -57,7 +57,8 @@ void Engine::init(int argc, char** argv) {
     renderer->load_shader_light_properties();
 }
 
-#include "serialization.hpp"
+#include <serialization/serialization.hpp>
+#include <serialization/archives/binary.hpp>
 
 void Engine::load_world() {
     // #define RENDER_CUBES
@@ -88,15 +89,17 @@ void Engine::load_world() {
     containers::Vector<Mesh> meshes = assets::load_model("barrel.obj");
     auto& container = meshes[0];
     Material barrel_mat;
-    barrel_mat.diffuse_texture.handle = assets::load_srgb_texture("barrel_texture.jpg", false);
+    barrel_mat.diffuse_texture.handle = assets::load_srgb_texture("barrel_texture.png", false);
     barrel_mat.normal_map.handle = assets::load_texture("barrel_normal_map.jpg", false);
     Handle<Material> material_handle = material_manager->add(std::move(barrel_mat));
 #endif
     Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
+    Handle<Mesh> quad_mesh = mesh_manager->add(Plane());
 
 #if DESERIALIZE
     std::ifstream file("ecs.bin", std::ios::binary);
-    serialization::deserialize(file, *ecs);
+    serialization::Binary_Input_Archive in_archive(file);
+    serialization::deserialize(in_archive, *ecs);
 #else
     auto instantiate_box = [default_shader_handle, box_handle, material_handle](Vector3 position, float rotation = 0) {
         Entity box = ecs->create();
@@ -113,6 +116,13 @@ void Engine::load_world() {
     instantiate_box({-5, 7, 2}, 55.0f);
     instantiate_box({-3, -1, 4});
     instantiate_box({0, -1, 4});
+
+    Entity quad = ecs->create();
+    Static_Mesh_Component& quad_sm = ecs->add_component<Static_Mesh_Component>(quad);
+    quad_sm.material_handle = material_handle;
+    quad_sm.mesh_handle = quad_mesh;
+    quad_sm.shader_handle = default_shader_handle;
+    ecs->add_component<Transform>(quad);
 
     // Plane floor_mesh;
     // floor_mesh.material.diffuse_texture.handle = assets::load_srgb_texture("wood_floor.png", false);
@@ -187,7 +197,7 @@ void Engine::loop() {
 
     auto camera_mov_view = ecs->access<Camera_Movement, Camera, Transform>();
     for (Entity const entity: camera_mov_view) {
-        auto& [camera_mov, camera, transform] = camera_mov_view.get<Camera_Movement, Camera, Transform>(entity);
+        auto [camera_mov, camera, transform] = camera_mov_view.get<Camera_Movement, Camera, Transform>(entity);
         Camera_Movement::update(camera_mov, camera, transform);
     }
 
@@ -198,7 +208,7 @@ void Engine::loop() {
 
     auto rendering = ecs->access<Camera, Transform>();
     for (Entity const entity: rendering) {
-        auto& [camera, transform] = rendering.get<Camera, Transform>(entity);
+        auto [camera, transform] = rendering.get<Camera, Transform>(entity);
         if (camera.active) {
             renderer->render_frame(camera, transform, main_window->width(), main_window->height());
             break;

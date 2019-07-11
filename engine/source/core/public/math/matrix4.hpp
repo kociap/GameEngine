@@ -7,8 +7,8 @@
 // Row major
 class Matrix4 {
 public:
-    static Matrix4 const zero;
-    static Matrix4 const identity;
+    static ENGINE_API Matrix4 const zero;
+    static ENGINE_API Matrix4 const identity;
 
     Matrix4();
     Matrix4(Vector4, Vector4, Vector4, Vector4);

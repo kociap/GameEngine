@@ -6,10 +6,10 @@ class Vector4;
 
 class Vector2 {
 public:
-    static const Vector2 zero;
-    static const Vector2 one;
-    static const Vector2 up;
-    static const Vector2 right;
+    static ENGINE_API Vector2 const zero;
+    static ENGINE_API Vector2 const one;
+    static ENGINE_API Vector2 const up;
+    static ENGINE_API Vector2 const right;
 
     float x = 0;
     float y = 0;

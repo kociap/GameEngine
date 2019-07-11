@@ -42,7 +42,7 @@ Shader_File::Shader_File(std::string n, opengl::Shader_Type type, std::string co
     compile_shader(shader, n);
 }
 
-Shader_File::Shader_File(Shader_File&& shader) noexcept: shader(shader.shader), type(shader.type) {
+Shader_File::Shader_File(Shader_File&& shader) noexcept: type(shader.type), shader(shader.shader) {
     shader.shader = 0;
 }
 

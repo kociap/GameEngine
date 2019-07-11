@@ -4,7 +4,7 @@
 #include <class_macros.hpp>
 #include <color.hpp>
 #include <handle.hpp>
-#include <serialization.hpp>
+#include <serialization/serialization.hpp>
 
 class Shader;
 class Mesh;
@@ -20,7 +20,7 @@ public:
     Handle<Material> material_handle;
 };
 
-template <>
-struct serialization::use_default_deserialize<Line_Component>: std::true_type {};
+DEFAULT_SERIALIZABLE(Line_Component);
+DEFAULT_DESERIALIZABLE(Line_Component);
 
 #endif // !ENGINE_COMPONENTS_LINE_COMPONENT_HPP_INCLUDE

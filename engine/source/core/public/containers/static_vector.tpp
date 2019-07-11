@@ -73,46 +73,57 @@ namespace containers {
     typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::begin() {
         return iterator(get_ptr(0));
     }
+
     template <typename T, uint64_t _capacity>
     typename Static_Vector<T, _capacity>::const_iterator Static_Vector<T, _capacity>::begin() const {
         return const_iterator(get_ptr(0));
     }
+
     template <typename T, uint64_t _capacity>
     typename Static_Vector<T, _capacity>::const_iterator Static_Vector<T, _capacity>::cbegin() const {
         return const_iterator(get_ptr(0));
     }
+
     template <typename T, uint64_t _capacity>
     typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::end() {
         return iterator(get_ptr(_size));
     }
+
     template <typename T, uint64_t _capacity>
     typename Static_Vector<T, _capacity>::const_iterator Static_Vector<T, _capacity>::end() const {
         return const_iterator(get_ptr(_size));
     }
+
     template <typename T, uint64_t _capacity>
     typename Static_Vector<T, _capacity>::const_iterator Static_Vector<T, _capacity>::cend() const {
         return const_iterator(get_ptr(_size));
     }
+
     template <typename T, uint64_t _capacity>
     typename Static_Vector<T, _capacity>::reverse_iterator Static_Vector<T, _capacity>::rbegin() {
         return reverse_iterator(end());
     }
+
     template <typename T, uint64_t _capacity>
     typename Static_Vector<T, _capacity>::const_reverse_iterator Static_Vector<T, _capacity>::rbegin() const {
         return const_reverse_iterator(end());
     }
+
     template <typename T, uint64_t _capacity>
     typename Static_Vector<T, _capacity>::const_reverse_iterator Static_Vector<T, _capacity>::crbegin() const {
         return const_reverse_iterator(cend());
     }
+
     template <typename T, uint64_t _capacity>
     typename Static_Vector<T, _capacity>::reverse_iterator Static_Vector<T, _capacity>::rend() {
         return reverse_iterator(begin());
     }
+
     template <typename T, uint64_t _capacity>
     typename Static_Vector<T, _capacity>::const_reverse_iterator Static_Vector<T, _capacity>::rend() const {
         return const_reverse_iterator(begin());
     }
+
     template <typename T, uint64_t _capacity>
     typename Static_Vector<T, _capacity>::const_reverse_iterator Static_Vector<T, _capacity>::crend() const {
         return const_reverse_iterator(cbegin());
@@ -169,10 +180,14 @@ namespace containers {
     }
 
     template <typename T, uint64_t _capacity>
-    void Static_Vector<T, _capacity>::reserve(size_type new_cap) {}
+    void Static_Vector<T, _capacity>::reserve(size_type new_cap) {
+        // TODO consider removing
+    }
 
     template <typename T, uint64_t _capacity>
-    void Static_Vector<T, _capacity>::shrink_to_fit() {}
+    void Static_Vector<T, _capacity>::shrink_to_fit() {
+        // TODO consider removing
+    }
 
     template <typename T, uint64_t _capacity>
     void Static_Vector<T, _capacity>::clear() {
@@ -181,29 +196,56 @@ namespace containers {
     }
 
     template <typename T, uint64_t _capacity>
-    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::insert(const_iterator position, const value_type& value);
+    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::insert(const_iterator position, const value_type& value) {
+        return begin(); // TODO implement
+    }
+
     template <typename T, uint64_t _capacity>
-    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::insert(const_iterator position, size_type n, const value_type& value);
+    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::insert(const_iterator position, size_type n, const value_type& value) {
+        return begin(); // TODO implement
+    }
+
     template <typename T, uint64_t _capacity>
-    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::insert(const_iterator position, value_type&& value);
+    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::insert(const_iterator position, value_type&& value) {
+        return begin(); // TODO implement
+    }
+
     template <typename T, uint64_t _capacity>
-    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::insert(const_iterator position, std::initializer_list<value_type> ilist);
+    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::insert(const_iterator position, std::initializer_list<value_type> ilist) {
+        return begin(); // TODO implement
+    }
+
     template <typename T, uint64_t _capacity>
     template <typename Iterator>
-    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::insert(const_iterator position, Iterator first, Iterator last);
+    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::insert(const_iterator position, Iterator first, Iterator last) {
+        return begin(); // TODO implement
+    }
 
     template <typename T, uint64_t _capacity>
     template <typename... Args>
-    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::emplace(const_iterator position, Args&&... args);
+    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::emplace(const_iterator position, Args&&... args) {
+        return begin(); // TODO implement
+    }
 
     template <typename T, uint64_t _capacity>
-    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::erase(const_iterator position);
+    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::erase(const_iterator position) {
+        return begin(); // TODO implement
+    }
+
     template <typename T, uint64_t _capacity>
-    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::erase(const_iterator first, const_iterator last);
+    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::erase(const_iterator first, const_iterator last) {
+        return begin(); // TODO implement
+    }
+
     template <typename T, uint64_t _capacity>
-    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::erase_unsorted(const_iterator position);
+    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::erase_unsorted(const_iterator position) {
+        return begin(); // TODO implement
+    }
+
     template <typename T, uint64_t _capacity>
-    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::erase(size_type index);
+    typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::erase(size_type index) {
+        return begin(); // TODO implement
+    }
 
     template <typename T, uint64_t _capacity>
     typename Static_Vector<T, _capacity>::iterator Static_Vector<T, _capacity>::erase_unsorted(size_type index) {
@@ -285,56 +327,41 @@ namespace containers {
 
 namespace serialization {
     template <typename T, uint64_t _capacity>
-    void serialize(std::ofstream& out, containers::Static_Vector<T, _capacity> const& vec) {
-        serialization::detail::write(vec.size(), out);
+    void serialize(Binary_Output_Archive& out, containers::Static_Vector<T, _capacity> const& vec) {
+        out.write(vec.size());
         for (T const& elem: vec) {
             serialization::serialize(out, elem);
         }
     }
 
     template <typename T, uint64_t _capacity>
-    void deserialize(containers::Static_Vector<T, _capacity>& vec, std::ifstream& in) {
+    void deserialize(Binary_Input_Archive& in, containers::Static_Vector<T, _capacity>& vec) {
         containers::Static_Vector<T, _capacity>::size_type size;
-        serialization::detail::read(size, in);
+        in.read(_size);
         vec.clear();
-        if constexpr (serialization::is_in_place_deserializable_v<T>) {
-            if constexpr (std::is_trivially_default_constructible_v<T>) {
-                vec.resize(size);
-                try {
-                    for (T& elem: vec) {
-                        serialization::deserialize(elem, in);
-                    }
-                } catch (...) {
-                    // TODO move stream backward
-                    memory::destruct_n(vec.get_ptr(), size);
-                    throw;
+        if constexpr (std::is_default_constructible_v<T>) {
+            vec.resize(size);
+            try {
+                for (T& elem: vec) {
+                    serialization::deserialize(in, elem);
                 }
-            } else {
-                size_type n = size;
-                try {
-                    for (; n > 0; --n) {
-                        Stack_Allocate<T> elem;
-                        vec.push_back(std::move(elem.reference()));
-                        serialization::deserialize(vec.back(), in);
-                    }
-                    vec._size = size;
-                } catch (...) {
-                    // TODO move stream backward
-                    memory::destruct_n(vec.get_ptr(), size - n);
-                    throw;
-                }
+            } catch (...) {
+                // TODO move stream backward
+                memory::destruct_n(vec.get_ptr(), size);
+                throw;
             }
         } else {
-            T* first = vec.get_ptr();
             size_type n = size;
             try {
-                for (; n > 0; --n, ++first) {
-                    serialization::deserialize(first, in);
+                for (; n > 0; --n) {
+                    Stack_Allocate<T> elem;
+                    vec.push_back(std::move(elem.reference()));
+                    serialization::deserialize(in, vec.back());
                 }
                 vec._size = size;
             } catch (...) {
                 // TODO move stream backward
-                memory::destruct(vec.get_ptr(), first);
+                memory::destruct_n(vec.get_ptr(), size - n);
                 throw;
             }
         }

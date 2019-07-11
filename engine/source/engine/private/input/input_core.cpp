@@ -12,10 +12,6 @@
 #include <unordered_map>
 
 namespace Input {
-    static bool is_not_axis(Key key) {
-        return !utils::key::is_mouse_axis(key) && !utils::key::is_gamepad_axis(key);
-    }
-
     static Action_Mapping const* find_mapping_with_key(containers::Vector<Action_Mapping> const& mappings, std::string const& action, Key key) {
         for (auto& mapping: mappings) {
             if (mapping.key == key && mapping.action == action) {
@@ -162,6 +158,7 @@ namespace Input {
         process_mouse_events();
         process_gamepad_events();
 
+		// Update key_state
         for (auto [key, value]: input_event_queue) {
             Key_State& key_state = key_states[key];
             key_state.value = key_state.raw_value = value;
@@ -208,9 +205,7 @@ namespace Input {
             action.released = false;
             for (Key const k: key_events_queue) {
                 if (action.captured_key == k) {
-                    // If the captured key is not none, then we have a mapping that allowed us to capture the key,
-                    //   so action_mapping is never nullptr
-                    Action_Mapping const* action_mapping = find_mapping_with_key(action_mappings, action.action, k);
+                    // If the captured key is not none, then we have a mapping that allowed us to capture the key
                     Key_State const& key_state = key_states[k];
                     action.down = key_state.down;
                     action.pressed = key_state.up_down_transitioned && key_state.down;
@@ -220,6 +215,7 @@ namespace Input {
                     }
                 }
 
+				// Sort of fallthrough because we might have set key to none in the previous if-clause
                 if (action.captured_key == Key::none) {
                     Action_Mapping const* action_mapping = find_mapping_with_key(action_mappings, action.action, k);
                     if (action_mapping) {
@@ -229,10 +225,12 @@ namespace Input {
                             action.pressed = key_state.up_down_transitioned && key_state.down;
                             action.captured_key = k;
                         } else if (action.bind_release_event) {
-                            action.released = action.released || key_state.up_down_transitioned && !key_state.down;
+							// If another unpaired key has been released, keep the relase state
+                            action.released = action.released || (key_state.up_down_transitioned && !key_state.down);
                         } else if (action.bind_press_event) {
+                            // If another unpaired key has been pressed, keep the press state
                             action.down = action.down || key_state.down;
-                            action.pressed = action.pressed || key_state.up_down_transitioned && key_state.down;
+                            action.pressed = action.pressed || (key_state.up_down_transitioned && key_state.down);
                         }
                     }
                 }

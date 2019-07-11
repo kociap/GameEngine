@@ -2,7 +2,7 @@
 #define SCRIPTS_DEBUG_HOTKEYS_HPP_INCLUDE
 
 #include <class_macros.hpp>
-#include <serialization.hpp>
+#include <serialization/serialization.hpp>
 
 class COMPONENT Debug_Hotkeys {
 public:
@@ -11,7 +11,7 @@ public:
     static void update(Debug_Hotkeys&);
 };
 
-template <>
-struct serialization::use_default_deserialize<Debug_Hotkeys>: std::true_type {};
+DEFAULT_SERIALIZABLE(Debug_Hotkeys);
+DEFAULT_DESERIALIZABLE(Debug_Hotkeys);
 
 #endif // !SCRIPTS_DEBUG_HOTKEYS_HPP_INCLUDE

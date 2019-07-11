@@ -5,7 +5,7 @@ class Quaternion {
 public:
     // Identity quaternion.
     // Equivalent to Quaternion(0, 0, 0, 1)
-    static const Quaternion identity;
+    static ENGINE_API Quaternion const identity;
 
 public:
     float x = 0;

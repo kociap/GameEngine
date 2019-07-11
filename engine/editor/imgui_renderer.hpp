@@ -1,7 +1,7 @@
 #ifndef IMGUI_RENDERER_HPP_INCLUDE
 #define IMGUI_RENDERER_HPP_INCLUDE
 
-#include "Shader.hpp"
+#include <shader.hpp>
 #include <cstdint>
 
 class Imgui_Renderer {

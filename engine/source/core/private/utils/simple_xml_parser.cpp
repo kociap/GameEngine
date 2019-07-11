@@ -10,7 +10,7 @@ namespace utils {
             Tag tag;
             tag.type = Tag_Type::opening;
             State state = State::tag_open;
-            for (i; i < str.size(); ++i) {
+            for (; i < str.size(); ++i) {
                 char c = str[i];
                 if (c == '>')
                     break;

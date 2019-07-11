@@ -8,6 +8,8 @@ set_target_properties(${PROJECT_NAME}
     FOLDER ${ENGINE_TOOLS_FOLDER}
 )
 
+target_compile_options(Codegen PRIVATE ${ENGINE_CXX_FLAGS})
+
 add_subdirectory(codegen/private)
 add_subdirectory(codegen/public)
 

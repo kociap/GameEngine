@@ -1,8 +1,8 @@
 #ifndef ENGINE_ENTITY_HPP_INCLUDE
 #define ENGINE_ENTITY_HPP_INCLUDE
 
-#include "serialization.hpp"
 #include <cstdint>
+#include <serialization/serialization.hpp>
 
 class Entity {
 public:
@@ -17,7 +17,7 @@ bool operator!=(Entity const&, Entity const&);
 
 void swap(Entity&, Entity&);
 
-template <>
-struct serialization::use_default_deserialize<Entity>: std::true_type {};
+DEFAULT_SERIALIZABLE(Entity);
+DEFAULT_DESERIALIZABLE(Entity);
 
 #endif // !ENGINE_ENTITY_HPP_INCLUDE

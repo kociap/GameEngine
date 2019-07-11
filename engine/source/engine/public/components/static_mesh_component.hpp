@@ -3,7 +3,7 @@
 
 #include <class_macros.hpp>
 #include <handle.hpp>
-#include <serialization.hpp>
+#include <serialization/serialization.hpp>
 
 class Mesh;
 class Shader;
@@ -16,7 +16,7 @@ public:
     Handle<Material> material_handle;
 };
 
-template <>
-struct serialization::use_default_deserialize<Static_Mesh_Component>: std::true_type {};
+DEFAULT_SERIALIZABLE(Static_Mesh_Component);
+DEFAULT_DESERIALIZABLE(Static_Mesh_Component);
 
 #endif // !ENGINE_COMPONENTS_STATIC_MESH_COMPONENT_HPP_INCLUDE

@@ -1,9 +1,10 @@
 #ifndef CORE_CONTAINERS_VECTOR_HPP_INCLUDE
 #define CORE_CONTAINERS_VECTOR_HPP_INCLUDE
 
-#include "iterators.hpp"
-#include "serialization.hpp"
 #include <initializer_list>
+#include <iterators.hpp>
+#include <serialization/archives/binary.hpp>
+#include <serialization/serialization.hpp>
 #include <stdexcept>
 #include <type_traits>
 
@@ -107,15 +108,15 @@ namespace containers {
         void shrink(size_type new_capacity);
         void check_size();
 
-        friend void serialization::deserialize(std::istream&, Vector<T, Allocator>&);
+        friend void serialization::deserialize(serialization::Binary_Input_Archive&, Vector<T, Allocator>&);
     };
 } // namespace containers
 
 namespace serialization {
     template <typename T, typename Allocator>
-    void serialize(std::ostream&, containers::Vector<T, Allocator> const&);
+    void serialize(Binary_Output_Archive&, containers::Vector<T, Allocator> const&);
     template <typename T, typename Allocator>
-    void deserialize(std::istream&, containers::Vector<T, Allocator>&);
+    void deserialize(Binary_Input_Archive&, containers::Vector<T, Allocator>&);
 } // namespace serialization
 
 #include "vector.tpp"

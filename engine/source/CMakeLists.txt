@@ -6,7 +6,6 @@ set(SOURCE_FILES
 set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/build_config.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/component_serialization_funcs.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/dll_build_config.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/engine_main.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/engine.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/module_loader.hpp"

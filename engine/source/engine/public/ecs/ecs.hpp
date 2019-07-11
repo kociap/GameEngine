@@ -1,23 +1,24 @@
 #ifndef ENGINE_ENTITY_COMPONENT_SYSTEM_HPP_INCLUDE
 #define ENGINE_ENTITY_COMPONENT_SYSTEM_HPP_INCLUDE
 
-#include "containers/vector.hpp"
-#include "ecs/component_access.hpp"
-#include "ecs/component_container.hpp"
-#include "ecs/component_registry.hpp"
-#include "engine.hpp"
-#include "entity.hpp"
-#include "integer_sequence_generator.hpp"
-#include "iterators.hpp"
-#include "type_family.hpp"
+#include <containers/vector.hpp>
+#include <ecs/component_access.hpp>
+#include <ecs/component_container.hpp>
+#include <ecs/component_registry.hpp>
+#include <engine.hpp>
+#include <ecs/entity.hpp>
+#include <integer_sequence_generator.hpp>
+#include <iterators.hpp>
+#include <serialization/archives/binary.hpp>
+#include <type_family.hpp>
 
 #include <type_traits>
 
 class ECS;
 
 namespace serialization {
-    void serialize(std::ostream&, ECS const&);
-    void deserialize(std::istream&, ECS&);
+    void serialize(Binary_Output_Archive&, ECS const&);
+    void deserialize(Binary_Input_Archive&, ECS&);
 } // namespace serialization
 
 class ECS {
@@ -33,8 +34,8 @@ public:
     using iterator = iterators::iterator<ECS>;
     using const_iterator = iterators::const_iterator<ECS>;
 
-    friend void serialization::serialize(std::ostream&, ECS const&);
-    friend void serialization::deserialize(std::istream&, ECS&);
+    friend void serialization::serialize(serialization::Binary_Output_Archive&, ECS const&);
+    friend void serialization::deserialize(serialization::Binary_Input_Archive&, ECS&);
 
     ECS() = default;
     ~ECS();

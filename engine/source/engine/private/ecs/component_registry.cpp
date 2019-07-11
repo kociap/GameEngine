@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-void Component_Registry::serialize_component_container(Type_Family::family_t identifier, std::ostream& archive, Component_Container_Base* container) const {
+void Component_Registry::serialize_component_container(Type_Family::family_t identifier, serialization::Binary_Output_Archive& archive, Component_Container_Base* container) const {
     GE_assert(get_component_serialization_funcs != nullptr, "Function get_component_serialization_funcs has not been loaded");
     auto& serialization_funcs = get_component_serialization_funcs();
     auto iter = std::find_if(serialization_funcs.begin(), serialization_funcs.end(),
@@ -14,7 +14,7 @@ void Component_Registry::serialize_component_container(Type_Family::family_t ide
     iter->serialize(archive, container);
 }
 
-void Component_Registry::deserialize_component_container(Type_Family::family_t identifier, std::istream& archive, Component_Container_Base*& container) const {
+void Component_Registry::deserialize_component_container(Type_Family::family_t identifier, serialization::Binary_Input_Archive& archive, Component_Container_Base*& container) const {
     GE_assert(get_component_serialization_funcs != nullptr, "Function get_component_serialization_funcs has not been loaded");
     auto& serialization_funcs = get_component_serialization_funcs();
     auto iter = std::find_if(serialization_funcs.begin(), serialization_funcs.end(),

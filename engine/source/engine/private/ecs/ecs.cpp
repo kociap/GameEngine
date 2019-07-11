@@ -1,5 +1,5 @@
-#include "ecs/ecs.hpp"
-#include "memory/memory.hpp"
+#include <ecs/ecs.hpp>
+#include <memory/memory.hpp>
 
 ECS::~ECS() {
     for (auto& container_data: containers) {
@@ -9,22 +9,22 @@ ECS::~ECS() {
 }
 
 namespace serialization {
-    void serialize(std::ostream& archive, ECS const& ecs) {
+    void serialize(Binary_Output_Archive& archive, ECS const& ecs) {
         serialization::serialize(archive, ecs.entities);
-        serialization::detail::write(archive, ecs.containers.size());
+        archive.write(ecs.containers.size());
         for (auto const data: ecs.containers) {
-            serialization::detail::write(archive, data.family);
+            archive.write(data.family);
             ecs.registry.serialize_component_container(data.family, archive, data.container);
         }
     }
 
-    void deserialize(std::istream& archive, ECS& ecs) {
+    void deserialize(Binary_Input_Archive& archive, ECS& ecs) {
         serialization::deserialize(archive, ecs.entities);
         uint64_t containers_count;
-        serialization::detail::read(archive, containers_count);
+        archive.read(containers_count);
         ecs.containers.resize(containers_count);
         for (auto& data: ecs.containers) {
-            serialization::detail::read(archive, data.family);
+            archive.read(data.family);
             ecs.registry.deserialize_component_container(data.family, archive, data.container);
         }
     }

@@ -40,7 +40,7 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(Vector const& v): _capacity(v._capacity), allocator(v.allocator) {
+    Vector<T, Allocator>::Vector(Vector const& v): allocator(v.allocator), _capacity(v._capacity) {
         storage = allocator.allocate(_capacity);
         try {
             memory::uninitialized_copy_n(v.storage, v._size, storage);
@@ -52,7 +52,7 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(Vector&& v) noexcept: storage(v.storage), allocator(std::move(v.allocator)), _capacity(v._capacity), _size(v._size) {
+    Vector<T, Allocator>::Vector(Vector&& v) noexcept: allocator(std::move(v.allocator)), _capacity(v._capacity), _size(v._size), storage(v.storage) {
         v.storage = nullptr;
         v._capacity = 0;
         v._size = 0;
@@ -459,62 +459,47 @@ namespace containers {
 
 namespace serialization {
     template <typename T, typename Allocator>
-    void serialize(std::ostream& out, containers::Vector<T, Allocator> const& vec) {
+    void serialize(Binary_Output_Archive& out, containers::Vector<T, Allocator> const& vec) {
         using size_type = typename containers::Vector<T, Allocator>::size_type;
         size_type capacity = vec.capacity(), size = vec.size();
-        serialization::detail::write(out, capacity);
-        serialization::detail::write(out, size);
+        out.write(capacity);
+        out.write(size);
         for (T const& elem: vec) {
             serialization::serialize(out, elem);
         }
     }
 
     template <typename T, typename Allocator>
-    void deserialize(std::istream& in, containers::Vector<T, Allocator>& vec) {
+    void deserialize(Binary_Input_Archive& in, containers::Vector<T, Allocator>& vec) {
         using size_type = typename containers::Vector<T, Allocator>::size_type;
         size_type capacity, size;
-        serialization::detail::read(in, capacity);
-        serialization::detail::read(in, size);
+        in.read(capacity);
+        in.read(size);
         vec.clear();
         vec.set_capacity(capacity);
-        if constexpr (serialization::is_in_place_deserializable_v<T>) {
-            if constexpr (std::is_trivially_default_constructible_v<T>) {
-                vec.resize(size);
-                try {
-                    for (T& elem: vec) {
-                        serialization::deserialize(in, elem);
-                    }
-                } catch (...) {
-                    // TODO move stream backward to maintain weak guarantee
-                    memory::destruct_n(vec.get_ptr(), size);
-                    throw;
+        if constexpr (std::is_default_constructible_v<T>) {
+            vec.resize(size);
+            try {
+                for (T& elem: vec) {
+                    serialization::deserialize(in, elem);
                 }
-            } else {
-                size_type n = size;
-                try {
-                    for (; n > 0; --n) {
-                        Stack_Allocate<T> elem;
-                        vec.push_back(std::move(elem.reference()));
-                        serialization::deserialize(in, vec.back());
-                    }
-                    vec._size = size;
-                } catch (...) {
-                    // TODO move stream backward to maintain weak guarantee
-                    memory::destruct_n(vec.get_ptr(), size - n);
-                    throw;
-                }
+            } catch (...) {
+                // TODO move stream backward to maintain weak guarantee
+                memory::destruct_n(vec.get_ptr(), size);
+                throw;
             }
         } else {
-            T* first = vec.get_ptr();
             size_type n = size;
             try {
-                for (; n > 0; --n, ++first) {
-                    serialization::deserialize(in, first);
+                for (; n > 0; --n) {
+                    Stack_Allocate<T> elem;
+                    vec.push_back(std::move(elem.reference()));
+                    serialization::deserialize(in, vec.back());
                 }
                 vec._size = size;
             } catch (...) {
                 // TODO move stream backward to maintain weak guarantee
-                memory::destruct(vec.get_ptr(), first);
+                memory::destruct_n(vec.get_ptr(), size - n);
                 throw;
             }
         }

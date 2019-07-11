@@ -1,6 +1,8 @@
 #ifndef CORE_DEBUG_MACROS_HPP_INCLUDE
 #define CORE_DEBUG_MACROS_HPP_INCLUDE
 
+#define GE_UNUSED(x) ((void)(x))
+
 #ifndef NDEBUG
 
 #    include <cassert>
@@ -10,7 +12,7 @@ void _GE_log(std::string);
 void _GE_conditional_log(bool condition, std::string);
 void _GE_check_gl_errors();
 
-#    define GE_assert(condition, msg) assert((msg, condition))
+#    define GE_assert(condition, msg) GE_UNUSED((condition) || (_wassert(_CRT_WIDE(msg), _CRT_WIDE(__FILE__), __LINE__) , false))
 
 #    define GE_log(msg) _GE_log((msg))
 

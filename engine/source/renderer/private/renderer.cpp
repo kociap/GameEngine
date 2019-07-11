@@ -180,13 +180,13 @@ static void set_shader_props(ECS& ecs, Shader& shader) {
     }
     i = 0;
     for (Entity const entity: spot_lights) {
-        auto& [transform, spot_light] = spot_lights.get<Transform, Spot_Light_Component>(entity);
+        auto [transform, spot_light] = spot_lights.get<Transform, Spot_Light_Component>(entity);
         set_light_properties(shader, std::to_string(i), transform, spot_light);
         ++i;
     }
     i = 0;
     for (Entity const entity: point_lights) {
-        auto& [transform, point_light] = point_lights.get<Transform, Point_Light_Component>(entity);
+        auto [transform, point_light] = point_lights.get<Transform, Point_Light_Component>(entity);
         set_light_properties(shader, std::to_string(i), transform, point_light);
         ++i;
     }
@@ -268,7 +268,7 @@ void Renderer::render_shadow_map(Matrix4 const& view, Matrix4 const& projection)
 
     auto static_meshes = ecs.access<Transform, Static_Mesh_Component>();
     for (Entity const entity: static_meshes) {
-        auto& [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
+        auto [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
         Shader& shader = shader_manager.get(static_mesh.shader_handle);
         shader.use();
         Matrix4 model(transform.to_matrix());
@@ -278,7 +278,7 @@ void Renderer::render_shadow_map(Matrix4 const& view, Matrix4 const& projection)
 
     auto lines = ecs.access<Transform, Line_Component>();
     for (Entity const entity: lines) {
-        auto& [transform, line] = lines.get<Transform, Line_Component>(entity);
+        auto [transform, line] = lines.get<Transform, Line_Component>(entity);
         Shader& shader = shader_manager.get(line.shader_handle);
         shader.use();
         Matrix4 model(transform.to_matrix());
@@ -309,7 +309,7 @@ void Renderer::render_scene(Transform const& camera_transform, Matrix4 const& vi
 
     auto static_meshes = ecs.access<Transform, Static_Mesh_Component>();
     for (Entity const entity: static_meshes) {
-        auto& [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
+        auto [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
         Shader& shader = shader_manager.get(static_mesh.shader_handle);
         shader.use();
         Matrix4 model(transform.to_matrix());
@@ -319,7 +319,7 @@ void Renderer::render_scene(Transform const& camera_transform, Matrix4 const& vi
 
     auto lines = ecs.access<Transform, Line_Component>();
     for (Entity const entity: lines) {
-        auto& [transform, line] = lines.get<Transform, Line_Component>(entity);
+        auto [transform, line] = lines.get<Transform, Line_Component>(entity);
         Shader& shader = shader_manager.get(line.shader_handle);
         shader.use();
         Matrix4 model(transform.to_matrix());
@@ -338,7 +338,7 @@ void Renderer::render_with_shader(Shader& shader, Transform const& camera_transf
 
     auto static_meshes = ecs.access<Transform, Static_Mesh_Component>();
     for (Entity const entity: static_meshes) {
-        auto& [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
+        auto [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
         Matrix4 model(transform.to_matrix());
         shader.set_matrix4("model", model);
         render_object(static_mesh, shader);
@@ -346,7 +346,7 @@ void Renderer::render_with_shader(Shader& shader, Transform const& camera_transf
 
     auto lines = ecs.access<Transform, Line_Component>();
     for (Entity const entity: lines) {
-        auto& [transform, line] = lines.get<Transform, Line_Component>(entity);
+        auto [transform, line] = lines.get<Transform, Line_Component>(entity);
         Matrix4 model(transform.to_matrix());
         shader.set_matrix4("model", model);
         render_object(line, shader);

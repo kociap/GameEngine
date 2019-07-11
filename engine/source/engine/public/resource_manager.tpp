@@ -21,7 +21,7 @@ Handle<T> Resource_Manager<T>::add(T&& resource) {
 
 template <typename T>
 T& Resource_Manager<T>::get(Handle<T> handle) {
-    for (containers::Vector<T>::size_type i = 0; i < identifiers.size(); ++i) {
+    for (typename containers::Vector<T>::size_type i = 0; i < identifiers.size(); ++i) {
         if (identifiers[i] == handle.value) {
             return resources[i];
         }

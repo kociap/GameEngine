@@ -5,7 +5,7 @@
 #include <math/matrix4.hpp>
 #include <math/quaternion.hpp>
 #include <math/vector3.hpp>
-#include <serialization.hpp>
+#include <serialization/serialization.hpp>
 
 class COMPONENT Transform {
 public:
@@ -21,7 +21,7 @@ public:
     Matrix4 to_matrix() const;
 };
 
-template <>
-struct serialization::use_default_deserialize<Transform>: std::true_type {};
+DEFAULT_SERIALIZABLE(Transform);
+DEFAULT_DESERIALIZABLE(Transform);
 
 #endif // !ENGINE_COMPONENTS_TRANSFORM_COMPONENT_HPP_INCLUDE
