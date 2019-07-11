@@ -1,6 +1,6 @@
 #include "ecs/component_container.hpp"
 
-void Component_Container_Base::serialize(serialization::Binary_Output_Archive& archive, Component_Container_Base* container) {
+void Component_Container_Base::serialize(serialization::Binary_Output_Archive& archive, Component_Container_Base const* container) {
     serialization::serialize(archive, container->entities);
 }
 

@@ -7,7 +7,7 @@
 
 class Component_Container_Base;
 
-using serialize_func = void (*)(serialization::Binary_Output_Archive&, Component_Container_Base*);
+using serialize_func = void (*)(serialization::Binary_Output_Archive&, Component_Container_Base const*);
 using deserialize_func = void (*)(serialization::Binary_Input_Archive&, Component_Container_Base*&);
 
 struct Component_Serialization_Funcs {

@@ -20,7 +20,7 @@ public:
 protected:
     constexpr static size_type npos = static_cast<size_type>(-1);
 
-    static void serialize(serialization::Binary_Output_Archive&, Component_Container_Base*);
+    static void serialize(serialization::Binary_Output_Archive&, Component_Container_Base const*);
     static void deserialize(serialization::Binary_Input_Archive&, Component_Container_Base*&);
 
 public:
@@ -102,7 +102,7 @@ private:
 public:
     using iterator = Iterator<>;
 
-    static void serialize(serialization::Binary_Output_Archive& archive, Component_Container_Base*);
+    static void serialize(serialization::Binary_Output_Archive& archive, Component_Container_Base const*);
     static void deserialize(serialization::Binary_Input_Archive& archive, Component_Container_Base*&);
 
     virtual ~Component_Container() {}

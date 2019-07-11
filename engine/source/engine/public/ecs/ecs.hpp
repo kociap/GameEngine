@@ -4,9 +4,8 @@
 #include <containers/vector.hpp>
 #include <ecs/component_access.hpp>
 #include <ecs/component_container.hpp>
-#include <ecs/component_registry.hpp>
-#include <engine.hpp>
 #include <ecs/entity.hpp>
+#include <engine.hpp>
 #include <integer_sequence_generator.hpp>
 #include <iterators.hpp>
 #include <serialization/archives/binary.hpp>
@@ -135,8 +134,10 @@ private:
         return const_cast<Component_Container<T>*>(const_cast<ECS const&>(*this).template find_container<T>());
     }
 
+    void serialize_component_container(Type_Family::family_t identifier, serialization::Binary_Output_Archive&, Component_Container_Base const*) const;
+    void deserialize_component_container(Type_Family::family_t identifier, serialization::Binary_Input_Archive&, Component_Container_Base*&);
+
 private:
-    Component_Registry registry;
     containers::Vector<Entity> entities;
     containers::Vector<Components_Container_Data> containers;
 };
