@@ -1,25 +1,29 @@
-#include "editor.hpp"
+#include <editor.hpp>
 
-#include "camera_movement.hpp"
-#include "components/camera.hpp"
-#include "components/transform.hpp"
-#include "debug_hotkeys.hpp"
-#include "ecs/ecs.hpp"
-#include "engine.hpp"
-#include "gizmo_internal.hpp"
-#include "imgui.h"
-#include "imgui_renderer.hpp"
-#include "input/input.hpp"
-#include "input/input_core.hpp"
-#include "level_editor.hpp"
-#include "time.hpp"
-#include "time/time_core.hpp"
-#include "window.hpp"
+#include <asset_importer.hpp>
+#include <camera_movement.hpp>
+#include <components/camera.hpp>
+#include <components/transform.hpp>
+#include <debug_hotkeys.hpp>
+#include <ecs/ecs.hpp>
+#include <engine.hpp>
+#include <gizmo_internal.hpp>
+#include <imgui.h>
+#include <imgui_renderer.hpp>
+#include <input/input.hpp>
+#include <input/input_core.hpp>
+#include <level_editor.hpp>
+#include <paths.hpp>
+#include <time.hpp>
+#include <time/time_core.hpp>
+#include <window.hpp>
+#include <utils/filesystem.hpp>
 
-#include "build_config.hpp"
+#include <build_config.hpp>
 
 Level_Editor* Editor::level_editor = nullptr;
 Imgui_Renderer* Editor::imgui_renderer = nullptr;
+Asset_Importer* Editor::asset_importer = nullptr;
 bool Editor::mouse_captured = false;
 
 static void resize_imgui(ImGuiIO& io, uint32_t width, uint32_t height) {
@@ -50,13 +54,24 @@ void Editor::init() {
     gizmo::init();
     imgui_renderer = new Imgui_Renderer();
     level_editor = new Level_Editor();
+    asset_importer = new Asset_Importer(paths::project_directory());
+
+    // asset_importer->import_image("C:/Users/An0num0us/Documents/builds/GameEngine_Game_clang/bin/assets/barrel_texture.png");
 }
+
+#include <serialization/archives/binary.hpp>
+#include <serialization/serialization.hpp>
 
 void Editor::terminate() {
 #if SERIALIZE_ON_QUIT
-    std::ofstream file("ecs.bin", std::ios::binary | std::ios::trunc);
-    serialization::serialize(file, Engine::get_ecs());
+    std::filesystem::path serialization_out_path = utils::concat_paths(paths::project_directory(), "ecs.bin");
+    std::ofstream file(serialization_out_path, std::ios::binary | std::ios::trunc);
+    serialization::Binary_Output_Archive out_archive(file);
+    serialization::serialize(out_archive, Engine::get_ecs());
 #endif
+
+    delete asset_importer;
+    asset_importer = nullptr;
     delete level_editor;
     level_editor = nullptr;
     delete imgui_renderer;
@@ -73,7 +88,7 @@ void Editor::loop() {
 
     auto camera_mov_view = Engine::get_ecs().access<Camera_Movement, Camera, Transform>();
     for (Entity const entity: camera_mov_view) {
-        auto& [camera_mov, camera, transform] = camera_mov_view.get<Camera_Movement, Camera, Transform>(entity);
+        auto [camera_mov, camera, transform] = camera_mov_view.get<Camera_Movement, Camera, Transform>(entity);
         Camera_Movement::update(camera_mov, camera, transform);
     }
 
@@ -104,4 +119,8 @@ bool Editor::is_mouse_captured() {
 
 void Editor::set_mouse_captured(bool captured) {
     mouse_captured = captured;
+}
+
+Asset_Importer& Editor::get_asset_importer() {
+    return *asset_importer;
 }

@@ -1,12 +1,12 @@
-#include "input_core.hpp"
+#include <input/input_core.hpp>
 
-#include "assets.hpp"
-#include "debug_macros.hpp"
-#include "math/math.hpp"
-#include "math/vector2.hpp"
-#include "time.hpp"
-#include "utils/path.hpp"
-#include "utils/simple_xml_parser.hpp"
+#include <assets.hpp>
+#include <debug_macros.hpp>
+#include <math/math.hpp>
+#include <math/vector2.hpp>
+#include <time.hpp>
+#include <utils/filesystem.hpp>
+#include <utils/simple_xml_parser.hpp>
 
 #include <cctype>
 #include <unordered_map>
@@ -158,7 +158,7 @@ namespace Input {
         process_mouse_events();
         process_gamepad_events();
 
-		// Update key_state
+        // Update key_state
         for (auto [key, value]: input_event_queue) {
             Key_State& key_state = key_states[key];
             key_state.value = key_state.raw_value = value;
@@ -215,7 +215,7 @@ namespace Input {
                     }
                 }
 
-				// Sort of fallthrough because we might have set key to none in the previous if-clause
+                // Sort of fallthrough because we might have set key to none in the previous if-clause
                 if (action.captured_key == Key::none) {
                     Action_Mapping const* action_mapping = find_mapping_with_key(action_mappings, action.action, k);
                     if (action_mapping) {
@@ -225,7 +225,7 @@ namespace Input {
                             action.pressed = key_state.up_down_transitioned && key_state.down;
                             action.captured_key = k;
                         } else if (action.bind_release_event) {
-							// If another unpaired key has been released, keep the relase state
+                            // If another unpaired key has been released, keep the relase state
                             action.released = action.released || (key_state.up_down_transitioned && !key_state.down);
                         } else if (action.bind_press_event) {
                             // If another unpaired key has been pressed, keep the press state

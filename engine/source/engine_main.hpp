@@ -3,8 +3,8 @@
 
 #include "engine.hpp"
 
-inline int engine_main(int argc, char** argv) {
-    Engine::init(argc, argv);
+inline int engine_main() {
+    Engine::init();
     while (!Engine::should_close()) {
         Engine::loop();
     }

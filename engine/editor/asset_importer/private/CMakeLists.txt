@@ -11,6 +11,7 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/importers/image.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/importers/obj.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/importers/png.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/postprocess.hpp"
     PARENT_SCOPE
 )
 

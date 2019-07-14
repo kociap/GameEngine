@@ -1,11 +1,11 @@
 #ifndef EDITOR_EDITOR_MAIN_HPP_INCLUDE
 #define EDITOR_EDITOR_MAIN_HPP_INCLUDE
 
-#include "editor.hpp"
-#include "engine.hpp"
+#include <editor.hpp>
+#include <engine.hpp>
 
-inline int editor_main(int argc, char** argv) {
-    Engine::init(argc, argv);
+inline int editor_main() {
+    Engine::init();
     Editor::init();
     while (!Editor::should_close()) {
         Editor::loop();

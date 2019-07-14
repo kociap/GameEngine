@@ -3,5 +3,6 @@
 
 class Level_Editor;
 class Imgui_Renderer;
+class Asset_Importer;
 
 #endif // !EDITOR_SUBSYSTEM_FORWARD_DECLARATIONS_HPP_INCLUDE

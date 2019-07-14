@@ -1,20 +1,18 @@
-#include "assets.hpp"
+#include <assets.hpp>
 
-#include "glad/glad.h"
-#include "stb/stb_image.hpp"
+#include <glad/glad.h>
+#include <stb/stb_image.hpp>
 
-#include "assimp/Importer.hpp"
-#include "assimp/postprocess.h"
-#include "assimp/scene.h"
-
-#include "debug_macros.hpp"
-#include "math/vector3.hpp"
-#include "mesh/mesh.hpp"
-#include "opengl.hpp"
-#include "shader.hpp"
-#include "utils/path.hpp"
 #include <containers/vector.hpp>
-#include <decoders/png.hpp>
+#include <debug_macros.hpp>
+#include <importers/obj.hpp>
+#include <importers/png.hpp>
+#include <math/vector3.hpp>
+#include <mesh/mesh.hpp>
+#include <opengl.hpp>
+#include <postprocess.hpp>
+#include <shader.hpp>
+#include <utils/filesystem.hpp>
 
 #include <fstream>
 #include <stdexcept>
@@ -50,10 +48,10 @@ namespace assets {
             throw std::invalid_argument("Could not open file " + filename.string());
         }
         file.seekg(0, std::ios::end);
-        containers::Vector<uint8_t> file_raw(file.tellg());
+        containers::Vector<uint8_t> file_contents(file.tellg());
         file.seekg(0, std::ios::beg);
-        file.read(reinterpret_cast<char*>(file_raw.data()), file_raw.size());
-        return file_raw;
+        file.read(reinterpret_cast<char*>(file_contents.data()), file_contents.size());
+        return file_contents;
     }
 
     opengl::Shader_Type shader_type_from_filename(std::filesystem::path const& filename) {
@@ -151,47 +149,47 @@ namespace assets {
 
     uint32_t load_srgb_texture(std::filesystem::path filename, bool flip) {
         if (filename.extension() == ".png") {
-        //if (false) {
+            //if (false) {
             std::string path = utils::concat_paths(_assets_path, filename).string();
             auto png_data = read_file_raw(path);
-            Image_Data image_data = decode_png(png_data);
+            importers::Image_Data image_data = importers::import_png(png_data);
             uint32_t texture;
             opengl::gen_textures(1, &texture);
             opengl::bind_texture(opengl::Texture_Type::texture_2D, texture);
             opengl::Format format;
             opengl::Sized_Internal_Format internal_format;
             switch (image_data.pixel_format) {
-                case Image_Pixel_Format::grey8:
-                case Image_Pixel_Format::grey16: {
+                case importers::Image_Pixel_Format::grey8:
+                case importers::Image_Pixel_Format::grey16: {
                     format = opengl::Format::red;
-                    internal_format =
-                        image_data.pixel_format == Image_Pixel_Format::grey16 ? opengl::Sized_Internal_Format::r16 : opengl::Sized_Internal_Format::r8;
+                    internal_format = image_data.pixel_format == importers::Image_Pixel_Format::grey16 ? opengl::Sized_Internal_Format::r16 :
+                                                                                                         opengl::Sized_Internal_Format::r8;
                     int32_t swizzle_mask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
                     glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle_mask);
                     break;
                 }
-                case Image_Pixel_Format::grey8_alpha8:
-                case Image_Pixel_Format::grey16_alpha16: {
+                case importers::Image_Pixel_Format::grey8_alpha8:
+                case importers::Image_Pixel_Format::grey16_alpha16: {
                     format = opengl::Format::rg;
-                    internal_format = image_data.pixel_format == Image_Pixel_Format::grey16_alpha16 ? opengl::Sized_Internal_Format::rg16 :
-                                                                                                      opengl::Sized_Internal_Format::rg8;
+                    internal_format = image_data.pixel_format == importers::Image_Pixel_Format::grey16_alpha16 ? opengl::Sized_Internal_Format::rg16 :
+                                                                                                                 opengl::Sized_Internal_Format::rg8;
                     int32_t swizzle_mask[] = {GL_RED, GL_RED, GL_RED, GL_GREEN};
                     glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle_mask);
                     break;
                 }
-                case Image_Pixel_Format::rgb8:
+                case importers::Image_Pixel_Format::rgb8:
                     format = opengl::Format::rgb;
                     internal_format = opengl::Sized_Internal_Format::rgb8;
                     break;
-                case Image_Pixel_Format::rgb16:
+                case importers::Image_Pixel_Format::rgb16:
                     format = opengl::Format::rgb;
                     internal_format = opengl::Sized_Internal_Format::rgb16;
                     break;
-                case Image_Pixel_Format::rgba8:
+                case importers::Image_Pixel_Format::rgba8:
                     format = opengl::Format::rgba;
                     internal_format = opengl::Sized_Internal_Format::rgba8;
                     break;
-                case Image_Pixel_Format::rgba16:
+                case importers::Image_Pixel_Format::rgba16:
                     format = opengl::Format::rgba;
                     internal_format = opengl::Sized_Internal_Format::rgba16;
                     break;
@@ -246,57 +244,50 @@ namespace assets {
         //vert1.bitangent = vert2.bitangent = vert3.bitangent = Vector3::cross(vert1.normal, vert1.tangent);
     }
 
-    static Mesh process_mesh(aiMesh* mesh, aiScene const* scene, std::filesystem::path const& current_path) {
-        containers::Vector<Vertex> vertices(mesh->mNumVertices);
+    static Mesh process_mesh(importers::Mesh const& imported_mesh) {
+        containers::Vector<Vertex> vertices(imported_mesh.vertices.size());
         containers::Vector<uint32_t> indices;
-
-        for (std::size_t i = 0; i < mesh->mNumVertices; ++i) {
-            auto& vert = mesh->mVertices[i];
-            vertices[i].position = Vector3(vert.x, vert.y, vert.z);
-            auto& normal = mesh->mNormals[i];
-            vertices[i].normal = Vector3(normal.x, normal.y, normal.z);
-            if (mesh->mTextureCoords[0]) {
-                vertices[i].uv_coordinates = Vector2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
+        if (imported_mesh.texture_coordinates.size() != 0) {
+            for (uint64_t i = 0; i < imported_mesh.vertices.size(); ++i) {
+                vertices[i].position = imported_mesh.vertices[i];
+                vertices[i].normal = imported_mesh.normals[i];
+                vertices[i].uv_coordinates = Vector2(imported_mesh.texture_coordinates[i]);
+            }
+        } else {
+            for (uint64_t i = 0; i < imported_mesh.vertices.size(); ++i) {
+                vertices[i].position = imported_mesh.vertices[i];
+                vertices[i].normal = imported_mesh.normals[i];
             }
         }
 
-        for (std::size_t i = 0; i < mesh->mNumFaces; ++i) {
-            aiFace& face = mesh->mFaces[i];
-            for (std::size_t j = 0; j < face.mNumIndices; ++j) {
-                indices.push_back(face.mIndices[j]);
+        for (importers::Face const& imported_face: imported_mesh.faces) {
+            for (uint32_t index: imported_face.indices) { // TODO use vector's assign once I implement it correctly
+                indices.push_back(index);
             }
         }
 
-        for (std::size_t i = 0; i < indices.size(); i += 3) {
+        for (uint64_t i = 0; i < indices.size(); i += 3) {
             compute_tangents(vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]);
         }
 
-        return Mesh(std::move(vertices), std::move(indices));
-    }
-
-    static void process_node(containers::Vector<Mesh>& meshes, aiNode* node, aiScene const* scene, std::filesystem::path const& current_path) {
-        for (std::size_t i = 0; i < node->mNumMeshes; ++i) {
-            aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-            meshes.push_back(process_mesh(mesh, scene, current_path));
-        }
-
-        for (std::size_t i = 0; i < node->mNumChildren; ++i) {
-            process_node(meshes, node->mChildren[i], scene, current_path);
-        }
+        return {std::move(vertices), std::move(indices)};
     }
 
     containers::Vector<Mesh> load_model(std::filesystem::path const& path) {
         auto asset_path = utils::concat_paths(_assets_path, path);
-        Assimp::Importer importer;
-        aiScene const* scene = importer.ReadFile(asset_path.string(), aiProcess_Triangulate | aiProcess_FlipUVs);
-        if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode) {
-            throw std::runtime_error(importer.GetErrorString());
-        }
-
-        asset_path.remove_filename();
-
+        auto extension = asset_path.extension();
         containers::Vector<Mesh> meshes;
-        process_node(meshes, scene->mRootNode, scene, asset_path);
+        if (extension == ".obj") {
+            //if (false) {
+            auto file = utils::read_file_binary(asset_path);
+            auto imported_meshes = importers::import_obj(file);
+            for (auto& imported_mesh: imported_meshes) {
+                flip_texture_coordinates(imported_mesh.texture_coordinates);
+                meshes.push_back(process_mesh(imported_mesh));
+            }
+        } else {
+            throw std::runtime_error("Unsupported file format");
+        }
         return meshes;
     }
 } // namespace assets

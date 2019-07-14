@@ -1,7 +1,7 @@
 #ifndef ENGINE_HPP_INCLUDE
 #define ENGINE_HPP_INCLUDE
 
-#include "subsystem_forward_declarations.hpp"
+#include <subsystem_forward_declarations.hpp>
 
 class Engine {
 private:
@@ -15,7 +15,7 @@ private:
     static Resource_Manager<Material>* material_manager;
 
 public:
-    static void init(int argc, char** argv);
+    static void init();
     static void terminate();
 
     static void loop();

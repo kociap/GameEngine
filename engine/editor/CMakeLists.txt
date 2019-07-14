@@ -11,6 +11,7 @@ set(HEADER_FILES
 
 add_subdirectory(leveleditor/public)
 add_subdirectory(leveleditor/private)
+add_subdirectory(asset_importer/public)
 add_subdirectory(asset_importer/private)
 
 set(SOURCE_FILES_ROOT

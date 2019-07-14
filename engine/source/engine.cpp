@@ -10,7 +10,7 @@
 #include <resource_manager.hpp>
 #include <shader.hpp>
 #include <time/time_core.hpp>
-#include <utils/path.hpp>
+#include <utils/filesystem.hpp>
 #include <window.hpp>
 
 #include <components/camera.hpp>
@@ -22,6 +22,7 @@
 #include <math/math.hpp>
 #include <mesh/cube.hpp>
 #include <mesh/plane.hpp>
+#include <paths.hpp>
 #include <scripts/camera_movement.hpp>
 
 #include <build_config.hpp>
@@ -35,12 +36,10 @@ Resource_Manager<Mesh>* Engine::mesh_manager = nullptr;
 Resource_Manager<Shader>* Engine::shader_manager = nullptr;
 Resource_Manager<Material>* Engine::material_manager = nullptr;
 
-void Engine::init(int argc, char** argv) {
-    std::filesystem::path executable_path(argv[0]);
-    executable_path.remove_filename();
-    std::filesystem::path assets_path(utils::concat_paths(executable_path, "assets"));
-    std::filesystem::path shaders_path(utils::concat_paths(executable_path, "shaders"));
-    assets::init(executable_path, assets_path, shaders_path);
+void Engine::init() {
+    std::filesystem::path assets_path(utils::concat_paths(paths::engine_executable_directory(), "assets"));
+    std::filesystem::path shaders_path(utils::concat_paths(paths::engine_executable_directory(), "shaders"));
+    assets::init(paths::engine_executable_directory(), assets_path, shaders_path);
 
     main_window = new Window(1280, 720);
     mesh_manager = new Resource_Manager<Mesh>();
@@ -57,8 +56,8 @@ void Engine::init(int argc, char** argv) {
     renderer->load_shader_light_properties();
 }
 
-#include <serialization/serialization.hpp>
 #include <serialization/archives/binary.hpp>
+#include <serialization/serialization.hpp>
 
 void Engine::load_world() {
     // #define RENDER_CUBES
@@ -97,7 +96,8 @@ void Engine::load_world() {
     Handle<Mesh> quad_mesh = mesh_manager->add(Plane());
 
 #if DESERIALIZE
-    std::ifstream file("ecs.bin", std::ios::binary);
+    std::filesystem::path serialization_in_path = utils::concat_paths(paths::project_directory(), "ecs.bin");
+    std::ifstream file(serialization_in_path, std::ios::binary);
     serialization::Binary_Input_Archive in_archive(file);
     serialization::deserialize(in_archive, *ecs);
 #else
@@ -151,15 +151,25 @@ void Engine::load_world() {
         lamp_pl.intensity = intensity;
     };
 
-    instantiate_point_lamp({3, 1.5f, 2}, {1.0f, 0.5f, 0.0f}, 3);
+    /*instantiate_point_lamp({3, 1.5f, 2}, {1.0f, 0.5f, 0.0f}, 3);
     instantiate_point_lamp({-6, 1.9f, -2}, {0.3f, 0.75f, 0.25f}, 3);
     instantiate_point_lamp({0, 1.3f, 3}, {0.55f, 0.3f, 1.0f}, 3);
     instantiate_point_lamp({-3, -2.0f, 0}, {0.4f, 0.5f, 0.75f}, 3);
-    instantiate_point_lamp({1.5f, 2.5f, 1.5f}, {0.0f, 1.0f, 0.5f}, 3);
+    instantiate_point_lamp({1.5f, 2.5f, 1.5f}, {0.0f, 1.0f, 0.5f}, 3);*/
+
+	instantiate_point_lamp({-3, 3, -3}, {1, 1, 1}, 3);
+    instantiate_point_lamp({-3, 3, 3}, {1, 1, 1}, 3);
+    instantiate_point_lamp({3, 3, -3}, {1, 1, 1}, 3);
+    instantiate_point_lamp({3, 3, 3}, {1, 1, 1}, 3);
+    instantiate_point_lamp({-3, -3, -3}, {1, 1, 1}, 3);
+    instantiate_point_lamp({-3, -3, 3}, {1, 1, 1}, 3);
+    instantiate_point_lamp({3, -3, -3}, {1, 1, 1}, 3);
+    instantiate_point_lamp({3, -3, 3}, {1, 1, 1}, 3);
 
     Entity camera = ecs->create();
     Transform& camera_t = ecs->add_component<Transform>(camera);
     Camera& camera_c = ecs->add_component<Camera>(camera);
+    camera_c.near_plane = 0.05f;
     Camera_Movement& camera_m = ecs->add_component<Camera_Movement>(camera);
     ecs->add_component<Debug_Hotkeys>(camera);
     camera_t.translate({0, 0, 0});
