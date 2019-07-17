@@ -1,5 +1,5 @@
-#ifndef EDITOR_IMPORTERS_MESH_HPP_INCLUDE
-#define EDITOR_IMPORTERS_MESH_HPP_INCLUDE
+#ifndef EDITOR_ASSET_IMPORTER_IMPORTERS_MESH_HPP_INCLUDE
+#define EDITOR_ASSET_IMPORTER_IMPORTERS_MESH_HPP_INCLUDE
 
 #include <containers/vector.hpp>
 #include <cstdint>
@@ -22,4 +22,4 @@ namespace importers {
     };
 } // namespace importers
 
-#endif // !EDITOR_IMPORTERS_MESH_HPP_INCLUDE
+#endif // !EDITOR_ASSET_IMPORTER_IMPORTERS_MESH_HPP_INCLUDE

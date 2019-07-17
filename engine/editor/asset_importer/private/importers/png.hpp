@@ -1,5 +1,5 @@
-#ifndef ENGINE_IMPORTERS_PNG_HPP_INCLUDE
-#define ENGINE_IMPORTERS_PNG_HPP_INCLUDE
+#ifndef ENGINE_ASSET_IMPORTER_IMPORTERS_PNG_HPP_INCLUDE
+#define ENGINE_ASSET_IMPORTER_IMPORTERS_PNG_HPP_INCLUDE
 
 #include <importers/image.hpp>
 
@@ -8,4 +8,4 @@ namespace importers {
     Image_Data import_png(containers::Vector<uint8_t> const&);
 } // namespace importers
 
-#endif // !ENGINE_IMPORTERS_PNG_HPP_INCLUDE
+#endif // !ENGINE_ASSET_IMPORTER_IMPORTERS_PNG_HPP_INCLUDE

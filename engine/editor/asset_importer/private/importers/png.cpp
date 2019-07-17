@@ -1,7 +1,7 @@
 #include <containers/vector.hpp>
 #include <cstdint>
+#include <importers/common.hpp>
 #include <importers/png.hpp>
-#include <iostream>
 #include <math/math.hpp>
 #include <stdexcept>
 #include <zlib.h>
@@ -59,10 +59,10 @@ namespace importers {
     constexpr uint32_t chunk_zTXt = 0x7A545874;
 
     static uint8_t paeth_predictor(int32_t const a, int32_t const b, int32_t const c) {
-        int32_t p = a + b - c;
-        int32_t pa = math::abs(p - a);
-        int32_t pb = math::abs(p - b);
-        int32_t pc = math::abs(p - c);
+        int32_t const p = a + b - c;
+        int32_t const pa = math::abs(p - a);
+        int32_t const pb = math::abs(p - b);
+        int32_t const pc = math::abs(p - c);
         if (pa <= pb && pa <= pc) {
             return a;
         } else if (pb <= pc) {
@@ -107,28 +107,6 @@ namespace importers {
         uint8_t const* data;
         uint32_t crc;
     };
-
-    // Read 16bit big-endian unsigned integer
-    static uint16_t read_uint16_be(uint8_t const* const stream) {
-        return (static_cast<uint16_t>(*stream) << 8) | static_cast<uint16_t>(*(stream + sizeof(uint8_t)));
-    }
-
-    // Read 32bit big-endian unsigned integer
-    static uint32_t read_uint32_be(uint8_t const* const stream) {
-        return (static_cast<uint32_t>(read_uint16_be(stream)) << 16) | static_cast<uint32_t>(read_uint16_be(stream + sizeof(uint16_t)));
-    }
-
-    // Read 64bit big-endian unsigned integer
-    static uint64_t read_uint64_be(uint8_t const* const stream) {
-        return (static_cast<uint64_t>(read_uint32_be(stream)) << 32) | static_cast<uint64_t>(read_uint32_be(stream + sizeof(uint32_t)));
-    }
-
-    static uint32_t read_uint32_be(uint8_t const* const stream, uint64_t& pos) {
-        uint32_t val = (static_cast<uint32_t>(*(stream + pos)) << 24) | (static_cast<uint32_t>(*(stream + pos + 1)) << 16) |
-                       (static_cast<uint32_t>(*(stream + pos + 2)) << 8) | static_cast<uint32_t>(*(stream + pos + 3));
-        pos += sizeof(uint32_t);
-        return val;
-    }
 
     static uint8_t const* read_bytes(uint8_t const* const stream, uint64_t const byte_count, uint64_t& pos) {
         uint64_t const pos_copy = pos;
@@ -179,7 +157,7 @@ namespace importers {
     }
 
     bool test_png(containers::Vector<uint8_t> const& image_data) {
-        uint64_t header = read_uint64_be(image_data.data());
+        uint64_t const header = read_uint64_be(image_data.data());
         return header == png_header;
     }
 
