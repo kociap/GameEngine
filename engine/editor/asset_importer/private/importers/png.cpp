@@ -88,6 +88,63 @@ namespace importers {
                 return x + ((a + b) >> 1);
             case filter_paeth:
                 return x + paeth_predictor(a, b, c);
+            default:
+                throw Invalid_Image_File("Invalid filter type");
+        }
+    }
+
+    // pixel_width - number of bytes per pixel
+    // scanline_width - number of bytes without the filter byte per scanline
+    // scanlines_total - number of scanlines
+    static void reconstruct_scanlines(uint8_t const* const pixels, int32_t const pixel_width, int64_t const scanline_width, uint32_t const scanlines_total,
+                                      uint8_t* const out_pixels) {
+        // Reconstruct first scanline
+        {
+            uint8_t const scanline_filter = pixels[0];
+            // First pixel
+            for (int64_t i = 0; i < pixel_width; ++i) {
+                out_pixels[i] = reconstruct_sample(scanline_filter, pixels[i + 1], 0, 0, 0);
+            }
+            // Other pixels
+            for (int64_t i = pixel_width; i < scanline_width; i += 1) {
+                out_pixels[i] = reconstruct_sample(scanline_filter, pixels[i + 1], out_pixels[i - pixel_width], 0, 0);
+            }
+        }
+
+        // Reconstruct remaining scanlines
+        for (uint32_t scanline_index = 1; scanline_index < scanlines_total; ++scanline_index) {
+            uint8_t const scanline_filter = pixels[scanline_index * (scanline_width + 1)];
+            int64_t const prev_offset = scanline_width * (scanline_index - 1);
+            int64_t const in_offset = (scanline_width + 1) * scanline_index;
+            int64_t const out_offset = scanline_width * scanline_index;
+            // First pixel
+            for (int32_t i = 0; i < pixel_width; ++i) {
+                out_pixels[out_offset + i] = reconstruct_sample(scanline_filter, pixels[in_offset + i + 1], 0, out_pixels[prev_offset + i], 0);
+            }
+            // Other pixels
+            for (uint32_t i = pixel_width; i < scanline_width; i += 1) {
+                uint8_t current_byte = pixels[in_offset + i + 1];
+                uint8_t prev_byte = out_pixels[out_offset + i - pixel_width];
+                uint8_t up_byte = out_pixels[prev_offset + i];
+                uint8_t prev_up_byte = out_pixels[prev_offset + i - pixel_width];
+                out_pixels[out_offset + i] = reconstruct_sample(scanline_filter, current_byte, prev_byte, up_byte, prev_up_byte);
+            }
+        }
+    }
+
+    static void extract_adam7_pass(int const pass, uint8_t const*& pixels, int32_t const pixel_width, uint64_t const image_width, uint64_t const image_height,
+                                   containers::Vector<uint8_t>& out_pixels) {
+        uint32_t const starting_row[7] = {0, 0, 4, 0, 2, 0, 1};
+        uint32_t const row_increment[7] = {8, 8, 8, 4, 4, 2, 2};
+        uint32_t const starting_column[7] = {0, 4, 0, 2, 0, 1, 0};
+        uint32_t const column_increment[7] = {8, 8, 4, 4, 2, 2, 1};
+        for (uint64_t row = starting_row[pass]; row < image_height; row += row_increment[pass]) {
+            for (uint64_t column = starting_column[pass]; column < image_width; column += column_increment[pass]) {
+                for (int32_t i = 0; i < pixel_width; ++i, ++pixels) {
+                    uint64_t position = (row * image_height + column) * pixel_width + i;
+                    out_pixels[position] = *pixels;
+                }
+            }
         }
     }
 
@@ -156,12 +213,35 @@ namespace importers {
         return header;
     }
 
+    static uint64_t get_decompression_buffer_size(int64_t const width, int64_t const height, int64_t const pixel_width, bool const interlaced) {
+        if (!interlaced) {
+            return width * height * pixel_width + height;
+        } else {
+            int64_t const row_increment[7] = {8, 8, 8, 4, 4, 2, 2};
+            int64_t const column_increment[7] = {8, 8, 4, 4, 2, 2, 1};
+            // Adam7 starting positions incremented by 1
+            int64_t const starting_row[7] = {1, 1, 5, 1, 3, 1, 2};
+            int64_t const starting_column[7] = {1, 5, 1, 3, 1, 2, 1};
+            uint64_t size = 0;
+            for (int i = 0; i < 7; ++i) {
+                int64_t const scanlines = height < starting_row[i] ? 0 : (height - starting_row[i]) / row_increment[i] + 1;
+                int64_t const pixels = width < starting_column[i] ? 0 : (width - starting_column[i]) / column_increment[i] + 1;
+                size += (pixels * pixel_width) * scanlines + (pixels != 0 ? scanlines : 0);
+            }
+            return size;
+        }
+    }
+
     bool test_png(containers::Vector<uint8_t> const& image_data) {
         uint64_t const header = read_uint64_be(image_data.data());
         return header == png_header;
     }
 
     Image_Data import_png(containers::Vector<uint8_t> const& png_data) {
+        // TODO Reduce number of memory allocations
+        // TODO Make sure less than 8 bit images are handled correctly
+        // TODO Maybe filter/deinterlace on the fly?
+        // TODO Add CRC checking
         uint64_t stream_pos = 8; // Skip png header which is 8 bytes long
         Chunk_Data const header_data = read_chunk(png_data.data(), stream_pos);
         if (header_data.chunk_type != chunk_IHDR) {
@@ -205,8 +285,9 @@ namespace importers {
             throw Invalid_Image_File("Invalid interlace method");
         }
 
-        uint64_t pixel_width = get_pixel_width(header.color_type, header.bit_depth);
-        containers::Vector<uint8_t> pixels(static_cast<uint64_t>(header.height) * static_cast<uint64_t>(header.width) * pixel_width + header.height);
+        uint64_t const pixel_width = get_pixel_width(header.color_type, header.bit_depth);
+        uint64_t pixels_buffer_size = get_decompression_buffer_size(header.width, header.height, pixel_width, header.interlace_method);
+        containers::Vector<uint8_t> pixels(pixels_buffer_size);
         z_stream stream;
         stream.next_out = pixels.data();
         stream.avail_out = pixels.size();
@@ -361,49 +442,39 @@ namespace importers {
             }
         }
 
-        containers::Vector<uint8_t> pixels_unfiltered(header.height * header.width * pixel_width, containers::reserve);
-        uint64_t const scanline_width = header.width * pixel_width;
-        uint64_t const scanline_with_filter_width = header.width * pixel_width + 1;
-
-        auto get_filtered_byte = [scanline_width = scanline_with_filter_width, &pixels](uint64_t scanline_index, uint64_t pos) {
-            return pixels[scanline_width * scanline_index + pos + 1];
-        };
-
-        auto get_reconstructed_byte = [scanline_width, &pixels = pixels_unfiltered](uint64_t scanline_index, uint64_t pos) {
-            uint64_t index = scanline_index * scanline_width + pos;
-            return pixels[index];
-        };
-
-        // Reconstruct first scanline
-        {
-            uint8_t const scanline_filter = pixels[0];
-            // First pixel
-            for (uint32_t i = 0; i < pixel_width; ++i) {
-                pixels_unfiltered.push_back(reconstruct_sample(scanline_filter, get_filtered_byte(0, i), 0, 0, 0));
-            }
-            // Other pixels
-            for (uint32_t i = pixel_width; i < scanline_width; i += 1) {
-                pixels_unfiltered.push_back(reconstruct_sample(scanline_filter, get_filtered_byte(0, i), get_reconstructed_byte(0, i - pixel_width), 0, 0));
+        containers::Vector<uint8_t> pixels_unfiltered(header.height * header.width * pixel_width);
+        if (header.interlace_method == 0) {
+            uint64_t const scanline_width = header.width * pixel_width;
+            reconstruct_scanlines(pixels.data(), pixel_width, scanline_width, header.height, pixels_unfiltered.data());
+        } else {
+            int64_t const row_increment[7] = {8, 8, 8, 4, 4, 2, 2};
+            int64_t const column_increment[7] = {8, 8, 4, 4, 2, 2, 1};
+            // Adam7 starting positions incremented by 1
+            int64_t const starting_row[7] = {1, 1, 5, 1, 3, 1, 2};
+            int64_t const starting_column[7] = {1, 5, 1, 3, 1, 2, 1};
+            uint8_t const* in_pixels = pixels.data();
+            uint8_t* out_pixels = pixels_unfiltered.data();
+            int64_t const height = static_cast<int64_t>(header.height);
+            int64_t const width = static_cast<int64_t>(header.width);
+            for (int i = 0; i < 7; ++i) {
+                if (height >= starting_row[i] && width >= starting_column[i]) {
+                    int64_t const pass_scanline_total = (height - starting_row[i]) / row_increment[i] + 1;
+                    // Width without the filter byte
+                    int64_t const pass_scanline_width = ((width - starting_column[i]) / column_increment[i] + 1) * pixel_width;
+                    reconstruct_scanlines(in_pixels, pixel_width, pass_scanline_width, pass_scanline_total, out_pixels);
+                    in_pixels += pass_scanline_width * pass_scanline_total + pass_scanline_total;
+                    out_pixels += pass_scanline_width * pass_scanline_total;
+                }
             }
         }
 
-        // Reconstruct remaining scanlines
-        for (uint32_t scanline_index = 1; scanline_index < header.height; ++scanline_index) {
-            uint8_t const scanline_filter = pixels[scanline_index * scanline_with_filter_width];
-            // First pixel
-            for (uint32_t i = 0; i < pixel_width; ++i) {
-                pixels_unfiltered.push_back(
-                    reconstruct_sample(scanline_filter, get_filtered_byte(scanline_index, i), 0, get_reconstructed_byte(scanline_index - 1, i), 0));
+        if (header.interlace_method == 1) {
+            pixels.resize(header.width * header.height * pixel_width);
+            uint8_t const* pixels_ptr = pixels_unfiltered.data();
+            for (int i = 0; i < 7; ++i) {
+                extract_adam7_pass(i, pixels_ptr, pixel_width, header.width, header.height, pixels);
             }
-            // Other pixels
-            for (uint64_t i = pixel_width; i < scanline_width; i += 1) {
-                uint8_t current_byte = get_filtered_byte(scanline_index, i);
-                uint8_t prev_byte = get_reconstructed_byte(scanline_index, i - pixel_width);
-                uint8_t up_byte = get_reconstructed_byte(scanline_index - 1, i);
-                uint8_t prev_up_byte = get_reconstructed_byte(scanline_index - 1, i - pixel_width);
-                uint8_t reconstructed_byte = reconstruct_sample(scanline_filter, current_byte, prev_byte, up_byte, prev_up_byte);
-                pixels_unfiltered.push_back(reconstructed_byte);
-            }
+            pixels_unfiltered = std::move(pixels);
         }
 
         if (header.color_type == color_type_indexed) {
@@ -426,7 +497,7 @@ namespace importers {
                 }
             }
             pixels_unfiltered = std::move(deindexed);
-            pixel_width = indexed_pixel_width;
+            // pixel_width = indexed_pixel_width; // Not required since we don't use the pixel width after deindexing
         }
 
         Image_Pixel_Format pixel_format;
