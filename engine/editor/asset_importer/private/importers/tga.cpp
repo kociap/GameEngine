@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <importers/common.hpp>
 #include <memory/memory.hpp>
+#include <debug_macros.hpp>
 
 namespace importers {
     constexpr uint32_t footer_byte_size = 26;
@@ -167,8 +168,8 @@ namespace importers {
                     throw Invalid_Image_File("Unknown pixel format");
                 }
                 break;
-                //default:
-                // Never reached
+            default:
+                GE_UNREACHABLE();
         }
 
         auto swap_and_copy_bytes = [alpha_bits](uint8_t* const image, uint8_t const* const image_data, uint64_t bytes_to_copy, uint64_t pixel_width,

@@ -3,6 +3,14 @@
 
 #define GE_UNUSED(x) ((void)(x))
 
+#if defined(__clang__) || defined(__GNUC__)
+#    define GE_UNREACHABLE() __builtin_unreachable()
+#elif defined(_MSC_VER)
+#    define GE_UNREACHABLE() __assume(0)
+#else
+#    define GE_UNREACHABLE()
+#endif
+
 #ifndef NDEBUG
 
 #    include <cassert>
@@ -12,7 +20,7 @@ void _GE_log(std::string);
 void _GE_conditional_log(bool condition, std::string);
 void _GE_check_gl_errors();
 
-#    define GE_assert(condition, msg) GE_UNUSED((condition) || (_wassert(_CRT_WIDE(msg), _CRT_WIDE(__FILE__), __LINE__) , false))
+#    define GE_assert(condition, msg) GE_UNUSED((condition) || (_wassert(_CRT_WIDE(msg), _CRT_WIDE(__FILE__), __LINE__), false))
 
 #    define GE_log(msg) _GE_log((msg))
 
