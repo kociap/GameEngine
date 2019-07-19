@@ -16,7 +16,7 @@
 #include <string>
 #include <unordered_map>
 
-void framebuffer_size_callback(GLFWwindow*, int width, int height) {
+void framebuffer_size_callback(GLFWwindow* const, int const width, int const height) {
     Engine::get_window().resize(width, height);
     Framebuffer::bind_default();
     glViewport(0, 0, width, height);
@@ -25,7 +25,7 @@ void framebuffer_size_callback(GLFWwindow*, int width, int height) {
 #endif
 }
 
-void mouse_button_callback(GLFWwindow*, int button, int action, int mods) {
+void mouse_button_callback(GLFWwindow* const, int const button, int const action, int const /* mods */) {
     // clang-format off
     static std::unordered_map<int32_t, Key> mouse_button_map({
         {GLFW_MOUSE_BUTTON_LEFT, Key::left_mouse_button},
@@ -45,7 +45,7 @@ void mouse_button_callback(GLFWwindow*, int button, int action, int mods) {
     input_manager.add_event({key, value});
 }
 
-void mouse_position_callback(GLFWwindow*, double param_x, double param_y) {
+void mouse_position_callback(GLFWwindow* const, double param_x, double param_y) {
     static float last_x = Engine::get_window().height() / 2.0f;
     static float last_y = Engine::get_window().width() / 2.0f;
 
@@ -60,12 +60,12 @@ void mouse_position_callback(GLFWwindow*, double param_x, double param_y) {
     input_manager.add_event({offset_x, offset_y, 0.0f});
 }
 
-void scroll_callback(GLFWwindow*, double offset_x, double offset_y) {
+void scroll_callback(GLFWwindow* const, double const /* offset_x */, double const offset_y) {
     Input::Manager& input_manager = Engine::get_input_manager();
     input_manager.add_event({0.0f, 0.0f, static_cast<float>(offset_y)});
 }
 
-void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void keyboard_callback(GLFWwindow* const window, int const key, int const /* scancode */, int const action, int const /* mods */) {
     // clang-format off
     static std::unordered_map<int32_t, Key> keyboard_button_map({
         {GLFW_KEY_A, Key::a},
@@ -141,7 +141,7 @@ void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, in
     }
 }
 
-void joystick_config_callback(int joy, int joy_event) {
+void joystick_config_callback(int const joy, int const joy_event) {
     if (joy_event == GLFW_CONNECTED && glfwJoystickIsGamepad(joy)) {
         std::string joy_name(glfwGetJoystickName(joy));
         GE_log("Gamepad connected: " + joy_name + " " + std::to_string(joy));

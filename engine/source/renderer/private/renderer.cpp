@@ -236,7 +236,7 @@ void Renderer::swap_postprocess_buffers() {
 }
 
 // TODO this is outdated, won't render correctly
-void Renderer::render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count) {
+//void Renderer::render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count) {
     // for (uint32_t i = 0; i < mesh.textures.size(); ++i) {
     //     opengl::active_texture(i);
     //     if (mesh.textures[i].type == Texture_Type::diffuse) {
@@ -253,7 +253,7 @@ void Renderer::render_mesh_instanced(Mesh& mesh, Shader& shader, uint32_t count)
     //uint32_t vao = mesh.get_vao();
     //opengl::bind_vertex_array(vao);
     //opengl::draw_elements_instanced(GL_TRIANGLES, mesh.indices.size(), count);
-}
+//}
 
 void Renderer::render_shadow_map(Matrix4 const& view, Matrix4 const& projection) {
     Resource_Manager<Shader>& shader_manager = Engine::get_shader_manager();
@@ -290,7 +290,7 @@ void Renderer::render_shadow_map(Matrix4 const& view, Matrix4 const& projection)
 void Renderer::render_scene(Transform const& camera_transform, Matrix4 const& view, Matrix4 const& projection, Matrix4 const& light_space_transform) {
     Resource_Manager<Shader>& shader_manager = Engine::get_shader_manager();
     ECS& ecs = Engine::get_ecs();
-    int32_t max_texture_count = opengl::get_max_combined_texture_units();
+    //int32_t max_texture_count = opengl::get_max_combined_texture_units();
 
     //opengl::active_texture(max_texture_count - 1);
     //opengl::bind_texture(opengl::Texture_Type::texture_2D, light_depth_buffer->get_depth_texture());

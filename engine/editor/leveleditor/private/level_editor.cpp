@@ -90,7 +90,7 @@ static uint32_t draw_gizmo(Framebuffer* framebuffer, Vector3 const camera_pos, M
     return framebuffer->get_color_texture(0);
 }
 
-static Entity pick_object(Ray ray, uint32_t const viewport_w, uint32_t const viewport_h, Vector2 const mouse_pos) {
+static Entity pick_object(Ray const ray, uint32_t const viewport_w, uint32_t const viewport_h, Vector2 const mouse_pos) {
     // gizmo::draw_line(ray.origin, ray.origin + 20 * ray.direction, Color::green, 200.0f);
 
     ECS& ecs = Engine::get_ecs();

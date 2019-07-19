@@ -8,11 +8,11 @@
 #include "debug_macros.hpp"
 #include <stdexcept>
 
-void framebuffer_size_callback(GLFWwindow*, int width, int height);
-void mouse_button_callback(GLFWwindow*, int button, int action, int mods);
-void mouse_position_callback(GLFWwindow*, double param_x, double param_y);
-void scroll_callback(GLFWwindow*, double offset_x, double offset_y);
-void keyboard_callback(GLFWwindow*, int, int, int, int);
+void framebuffer_size_callback(GLFWwindow* const, int width, int height);
+void mouse_button_callback(GLFWwindow* const, int button, int action, int mods);
+void mouse_position_callback(GLFWwindow* const, double param_x, double param_y);
+void scroll_callback(GLFWwindow* const, double offset_x, double offset_y);
+void keyboard_callback(GLFWwindow* const, int, int, int, int);
 void joystick_config_callback(int, int);
 void process_gamepad_input();
 

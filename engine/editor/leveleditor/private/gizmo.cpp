@@ -139,7 +139,7 @@ namespace gizmo {
         triangle_strips_render_state.push_back({t, depth_test});
     }
 
-    void draw_polygon(containers::Vector<Vertex> vertices, float time, bool depth_test) {}
+    void draw_polygon(containers::Vector<Vertex> /* vertices */, float /* time */, bool /* depth_test */) {}
 
     void draw_circle(Vector3 position, Vector3 normal, float radius, Color color, uint32_t point_count, float line_width, float t, bool depth_test) {
         GE_assert(line_width > 0.0f, "Line width may not be less than or equal 0");
