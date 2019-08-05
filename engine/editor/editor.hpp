@@ -2,28 +2,37 @@
 #define EDITOR_HPP_INCLUDE
 
 #include <cstdint>
-#include <editor_subsystem_forward_declarations.hpp>
+#include <editor_subsystem_fwd.hpp>
 
 class Editor {
 private:
-    static Level_Editor* level_editor;
-    static Imgui_Renderer* imgui_renderer;
-    static Asset_Importer* asset_importer;
+    static Editor_Window* editor_window;
+    static QApplication* qapplication;
+    static User_Input_Filter* input_filter;
+    static Resource_Manager<Mesh>* mesh_manager;
+    static Resource_Manager<Shader>* shader_manager;
+    static Resource_Manager<Material>* material_manager;
+    static Input::Manager* input_manager;
+    static ECS* ecs;
 
-    static void draw_ui();
-
-    static bool mouse_captured;
+    static bool close;
 
 public:
-    static void init();
+    // argc and argv required by Qt
+    static void init(int argc, char** argv);
     static void terminate();
     static void loop();
     static bool should_close();
-    static void resize(uint32_t width, uint32_t height);
-    static bool is_mouse_captured();
-    static void set_mouse_captured(bool);
+    static void quit();
 
-    static Asset_Importer& get_asset_importer();
+    static Resource_Manager<Mesh>& get_mesh_manager();
+    static Resource_Manager<Shader>& get_shader_manager();
+    static Resource_Manager<Material>& get_material_manager();
+    static Input::Manager& get_input_manager();
+    static ECS& get_ecs();
+
+	// Because why not
+	static void load_world();
 };
 
 #endif // !EDITOR_HPP_INCLUDE

@@ -11,7 +11,13 @@ namespace opengl {
     static int32_t max_color_attachments = 0;
     static int32_t max_draw_buffers = 0;
 
-    void load_opengl_parameters() {
+    void load_functions() {
+        if (!gladLoadGL()) {
+            std::runtime_error("OpenGL not loaded");
+        }
+    }
+
+    void load_constants() {
         glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_units);
         CHECK_GL_ERRORS();
         glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &max_renderbuffer_size);
@@ -45,7 +51,13 @@ namespace opengl {
 
     void bind_buffer(Buffer_Type buffer, uint32_t handle) {
         glBindBuffer(utils::enum_to_value(buffer), handle);
+        CHECK_GL_ERRORS();
     }
+
+	void bind_framebuffer(uint32_t target, uint32_t framebuffer) {
+        glBindFramebuffer(target, framebuffer);
+        CHECK_GL_ERRORS();
+	}
 
     void bind_renderbuffer(uint32_t handle) {
         glBindRenderbuffer(GL_RENDERBUFFER, handle);

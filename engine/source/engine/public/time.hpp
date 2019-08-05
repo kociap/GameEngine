@@ -2,8 +2,10 @@
 #define ENGINE_TIME_HPP_INCLUDE
 
 #include <cstdint>
+#include <macro_undefs.hpp>
 
-namespace Time {
+// "time" collides with time.h's time function. I have no idea what a better name for this namespace could be
+namespace timing {
     // The time it took to complete the previous frame
     double get_delta_time();
 
@@ -18,10 +20,10 @@ namespace Time {
 
     // The number of frames since the start of the game
     uint64_t get_frame_count();
-}; // namespace Time
+}; // namespace timing
 
 // Time, but with floats instead of doubles
-namespace Timef {
+namespace timingf {
     // The time it took to complete the previous frame
     float get_delta_time();
 
@@ -35,7 +37,7 @@ namespace Timef {
     float get_unscaled_time();
 
     // The number of frames since the start of the game
-    using Time::get_frame_count;
-} // namespace Timef
+    using timing::get_frame_count;
+} // namespace timingf
 
 #endif // !ENGINE_TIME_HPP_INCLUDE

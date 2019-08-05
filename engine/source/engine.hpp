@@ -6,7 +6,7 @@
 class Engine {
 private:
     static Input::Manager* input_manager;
-    static Renderer* renderer;
+    static rendering::Renderer* renderer;
     static Time_Core* time_core;
     static ECS* ecs;
     static Window* main_window;
@@ -26,7 +26,7 @@ public:
 
     static Input::Manager& get_input_manager();
     static Window& get_window();
-    static Renderer& get_renderer();
+    static rendering::Renderer& get_renderer();
     static ECS& get_ecs();
     static Resource_Manager<Mesh>& get_mesh_manager();
     static Time_Core& get_time_manager();

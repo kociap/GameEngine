@@ -1,11 +1,13 @@
-#include "window.hpp"
+#include <window.hpp>
 
-#include "glad/glad.h" // GLAD must be before GLFW
-                       // Or define GLFW_INCLUDE_NONE
-#include "GLFW/glfw3.h"
+#include <opengl.hpp>
+// GLAD must be before GLFW
+// Or define GLFW_INCLUDE_NONE
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 
-#include "build_config.hpp"
-#include "debug_macros.hpp"
+#include <build_config.hpp>
+#include <debug_macros.hpp>
 #include <stdexcept>
 
 void framebuffer_size_callback(GLFWwindow* const, int width, int height);
@@ -31,12 +33,10 @@ Window::Window(uint32_t width, uint32_t height): window_width(width), window_hei
 
     glfwMakeContextCurrent(window_handle);
 
-    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
-        glfwTerminate();
-        throw std::runtime_error("GLAD not initialized");
-    }
+    opengl::load_functions();
+    opengl::load_constants();
 
-    glViewport(0, 0, window_width, window_height);
+    opengl::viewport(0, 0, window_width, window_height);
     glfwSetCursorPosCallback(window_handle, mouse_position_callback);
     glfwSetFramebufferSizeCallback(window_handle, framebuffer_size_callback);
     glfwSetMouseButtonCallback(window_handle, mouse_button_callback);

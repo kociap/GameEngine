@@ -31,41 +31,32 @@ namespace containers {
         const_reference at_unchecked(size_type index) const;
         reference operator[](size_type index);
         const_reference operator[](size_type index) const;
-
         reference front();
         const_reference front() const;
-
         reference back();
         const_reference back() const;
-
         pointer data();
         const_pointer data() const;
 
         iterator begin();
-        const_iterator begin() const;
-        const_iterator cbegin() const;
-
         iterator end();
+        const_iterator begin() const;
         const_iterator end() const;
+        const_iterator cbegin() const;
         const_iterator cend() const;
-
         reverse_iterator rbegin();
-        const_reverse_iterator rbegin() const;
-        const_reverse_iterator crbegin() const;
-
         reverse_iterator rend();
+        const_reverse_iterator rbegin() const;
         const_reverse_iterator rend() const;
+        const_reverse_iterator crbegin() const;
         const_reverse_iterator crend() const;
 
-        bool empty() const;
         constexpr size_type size() const;
         constexpr size_type max_size() const;
         constexpr size_type capacity() const;
 
-        void resize(size_type count, T const& value);
         void resize(size_type count);
-        void reserve(size_type new_cap);
-        void shrink_to_fit();
+        void resize(size_type count, T const& value);
         void clear();
 
         iterator insert(const_iterator position, const value_type& value);
@@ -77,6 +68,8 @@ namespace containers {
 
         template <typename... Args>
         iterator emplace(const_iterator position, Args&&... args);
+        template <typename... Args>
+        reference emplace_back(Args&&... args);
 
         iterator erase(const_iterator position);
         iterator erase(const_iterator first, const_iterator last);
@@ -88,16 +81,7 @@ namespace containers {
         void push_back(T const& val);
         void push_back(T&& val);
 
-        template <typename... Args>
-        reference emplace_back(Args&&... args);
-
         void pop_back();
-
-        void swap(Static_Vector& vec) {
-            using std::swap;
-            swap(storage, vec.storage);
-            swap(_size, vec._size);
-        }
 
     private:
         Aligned_Buffer<sizeof(T), alignof(T)> storage[_capacity];
@@ -111,10 +95,8 @@ namespace containers {
         void check_size();
 
         friend void serialization::deserialize(serialization::Binary_Input_Archive&, containers::Static_Vector<T, _capacity>&);
+        friend void swap(Static_Vector<T, _capacity>&, Static_Vector<T, _capacity>&);
     };
-
-    template <typename T, uint64_t _capacity>
-    void swap(Static_Vector<T, _capacity>&, Static_Vector<T, _capacity>&);
 } // namespace containers
 
 namespace serialization {

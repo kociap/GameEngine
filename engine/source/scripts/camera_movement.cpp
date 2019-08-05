@@ -1,21 +1,14 @@
 #include "camera_movement.hpp"
 
+#include "build_config.hpp"
 #include "ecs/entity.hpp"
 #include "input/input.hpp"
 #include "math/math.hpp"
 #include "math/transform.hpp"
 #include "time.hpp"
-#include "build_config.hpp"
-
-#if GE_WITH_EDITOR
-#    include "editor.hpp"
-#endif 
 
 void Camera_Movement::update(Camera_Movement& camera_mov, Camera& camera, Transform& transform) {
-#if GE_WITH_EDITOR
-	if (Editor::is_mouse_captured()) {
-#endif
-	// Look around
+    // Look around
     float horizontal_rotation = Input::get_axis("mouse_x");
     float vertical_rotation = Input::get_axis("mouse_y");
     transform.rotate(Vector3::up, math::radians(-horizontal_rotation));
@@ -24,7 +17,7 @@ void Camera_Movement::update(Camera_Movement& camera_mov, Camera& camera, Transf
 
     // Move
     Vector3 camera_front = get_camera_front(transform);
-    float camera_speed = 0.15f * 60 * Time::get_delta_time();
+    float camera_speed = 0.15f * 60 * timingf::get_delta_time();
     float forward = Input::get_axis("move_forward");
     transform.translate(camera_front * camera_speed * forward);
     float sideways = Input::get_axis("move_sideways");
@@ -34,7 +27,4 @@ void Camera_Movement::update(Camera_Movement& camera_mov, Camera& camera, Transf
 
     float scroll = Input::get_axis("scroll");
     transform.translate(camera_front * scroll);
-#if GE_WITH_EDITOR
-	}
-#endif
 }

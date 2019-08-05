@@ -30,7 +30,6 @@ namespace containers {
         using reverse_iterator = iterators::reverse_iterator<iterator>;
         using const_reverse_iterator = iterators::reverse_iterator<const_iterator>;
 
-    public:
         Vector();
         explicit Vector(size_type size);
         Vector(size_type size, reserve_t);
@@ -42,7 +41,6 @@ namespace containers {
         Vector& operator=(Vector const& original);
         Vector& operator=(Vector&& from) noexcept;
 
-    public:
         reference at(size_type index);
         const_reference at(size_type) const;
         reference at_unchecked(size_type);
@@ -67,7 +65,6 @@ namespace containers {
         const_reverse_iterator crbegin() const;
         const_reverse_iterator crend() const;
 
-        bool empty() const;
         size_type size() const;
         size_type capacity() const;
 

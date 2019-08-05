@@ -7,10 +7,10 @@
 #include <debug_macros.hpp>
 #include <engine.hpp>
 #include <framebuffer.hpp>
+#include <glad/glad.h>
 #include <input/input_core.hpp>
 #include <key.hpp>
 #include <renderer.hpp>
-#include <glad/glad.h>
 
 #include <stdexcept>
 #include <string>
@@ -41,11 +41,11 @@ void mouse_button_callback(GLFWwindow* const, int const button, int const action
 
     Key key = mouse_button_map.at(button);
     float value = static_cast<float>(action); // GLFW_PRESS is 1, GLFW_RELEASE is  0
-    Input::Manager& input_manager = Engine::get_input_manager();
+    Input::Manager& input_manager = get_input_manager();
     input_manager.add_event({key, value});
 }
 
-void mouse_position_callback(GLFWwindow* const, double param_x, double param_y) {
+void mouse_position_callback(GLFWwindow* const, double const param_x, double const param_y) {
     static float last_x = Engine::get_window().height() / 2.0f;
     static float last_y = Engine::get_window().width() / 2.0f;
 
@@ -56,18 +56,17 @@ void mouse_position_callback(GLFWwindow* const, double param_x, double param_y) 
     last_x = x;
     last_y = y;
 
-    Input::Manager& input_manager = Engine::get_input_manager();
+    Input::Manager& input_manager = get_input_manager();
     input_manager.add_event({offset_x, offset_y, 0.0f});
 }
 
 void scroll_callback(GLFWwindow* const, double const /* offset_x */, double const offset_y) {
-    Input::Manager& input_manager = Engine::get_input_manager();
+    Input::Manager& input_manager = get_input_manager();
     input_manager.add_event({0.0f, 0.0f, static_cast<float>(offset_y)});
 }
 
 void keyboard_callback(GLFWwindow* const window, int const key, int const /* scancode */, int const action, int const /* mods */) {
-    // clang-format off
-    static std::unordered_map<int32_t, Key> keyboard_button_map({
+    static std::unordered_map<int32_t, Key> keyboard_button_map{
         {GLFW_KEY_A, Key::a},
         {GLFW_KEY_B, Key::b},
         {GLFW_KEY_C, Key::c},
@@ -95,10 +94,10 @@ void keyboard_callback(GLFWwindow* const window, int const key, int const /* sca
         {GLFW_KEY_Y, Key::y},
         {GLFW_KEY_Z, Key::z},
         {GLFW_KEY_ESCAPE, Key::escape},
-		{GLFW_KEY_LEFT_ALT, Key::left_alt},
-		{GLFW_KEY_RIGHT_ALT, Key::right_alt},
-		{GLFW_KEY_TAB, Key::tab},
-		{GLFW_KEY_SPACE, Key::spacebar},
+        {GLFW_KEY_LEFT_ALT, Key::left_alt},
+        {GLFW_KEY_RIGHT_ALT, Key::right_alt},
+        {GLFW_KEY_TAB, Key::tab},
+        {GLFW_KEY_SPACE, Key::spacebar},
         {GLFW_KEY_LEFT_SHIFT, Key::left_shift},
         {GLFW_KEY_RIGHT_SHIFT, Key::right_shift},
         {GLFW_KEY_F1, Key::f1},
@@ -130,13 +129,12 @@ void keyboard_callback(GLFWwindow* const window, int const key, int const /* sca
         {GLFW_KEY_KP_ADD, Key::numpad_plus},
         {GLFW_KEY_KP_ENTER, Key::numpad_enter},
         {GLFW_KEY_NUM_LOCK, Key::num_lock},
-    });
-    // clang-format on
+    };
 
     if (action != GLFW_REPEAT) {
         Key mapped_key = keyboard_button_map.at(key);
         float value = static_cast<float>(action); // GLFW_PRESS is 1, GLFW_RELEASE is 0
-        Input::Manager& input_manager = Engine::get_input_manager();
+        Input::Manager& input_manager = get_input_manager();
         input_manager.add_event({mapped_key, value});
     }
 }
@@ -150,7 +148,7 @@ void joystick_config_callback(int const joy, int const joy_event) {
 
 void process_gamepad_input() {
     // Gamepad input
-    Input::Manager& input_manager = Engine::get_input_manager();
+    Input::Manager& input_manager = get_input_manager();
     for (int32_t joystick_index = GLFW_JOYSTICK_1; joystick_index < GLFW_JOYSTICK_LAST; ++joystick_index) {
         if (glfwJoystickPresent(joystick_index) && glfwJoystickIsGamepad(joystick_index)) {
             int count;

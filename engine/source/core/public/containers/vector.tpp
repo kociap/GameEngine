@@ -225,11 +225,6 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    bool Vector<T, Allocator>::empty() const {
-        return _size == 0;
-    }
-
-    template <typename T, typename Allocator>
     typename Vector<T, Allocator>::size_type Vector<T, Allocator>::size() const {
         return _size;
     }

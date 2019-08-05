@@ -31,6 +31,7 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/integer_sequence_generator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/iterators.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/macro_undefs.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/paths.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/singleton.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/type_family.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/utility.hpp"

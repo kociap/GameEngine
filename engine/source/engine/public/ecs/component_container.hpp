@@ -45,6 +45,7 @@ private:
     void ensure(size_type index);
 
 private:
+    // Indices into entities vector
     containers::Vector<size_type> indirect;
     containers::Vector<Entity> entities;
 };

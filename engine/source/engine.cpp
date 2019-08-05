@@ -28,8 +28,7 @@
 #include <build_config.hpp>
 
 Input::Manager* Engine::input_manager = nullptr;
-Renderer* Engine::renderer = nullptr;
-Time_Core* Engine::time_core = nullptr;
+rendering::Renderer* Engine::renderer = nullptr;
 ECS* Engine::ecs = nullptr;
 Window* Engine::main_window = nullptr;
 Resource_Manager<Mesh>* Engine::mesh_manager = nullptr;
@@ -37,23 +36,18 @@ Resource_Manager<Shader>* Engine::shader_manager = nullptr;
 Resource_Manager<Material>* Engine::material_manager = nullptr;
 
 void Engine::init() {
-    std::filesystem::path assets_path(utils::concat_paths(paths::engine_executable_directory(), "assets"));
-    std::filesystem::path shaders_path(utils::concat_paths(paths::engine_executable_directory(), "shaders"));
-    assets::init(paths::engine_executable_directory(), assets_path, shaders_path);
-
+    time_core::init();
     main_window = new Window(1280, 720);
     mesh_manager = new Resource_Manager<Mesh>();
     shader_manager = new Resource_Manager<Shader>();
     material_manager = new Resource_Manager<Material>();
-    time_core = new Time_Core();
     input_manager = new Input::Manager();
     input_manager->load_bindings();
     ecs = new ECS();
-    renderer = new Renderer(main_window->width(), main_window->height());
 
-    load_world();
-
+    renderer = new rendering::Renderer(main_window->width(), main_window->height());
     renderer->load_shader_light_properties();
+    load_world();
 }
 
 #include <serialization/archives/binary.hpp>
@@ -88,8 +82,8 @@ void Engine::load_world() {
     containers::Vector<Mesh> meshes = assets::load_model("barrel.obj");
     auto& container = meshes[0];
     Material barrel_mat;
-    barrel_mat.diffuse_texture.handle = assets::load_srgb_texture("barrel_texture.png", false);
-    barrel_mat.normal_map.handle = assets::load_texture("barrel_normal_map.jpg", false);
+    barrel_mat.diffuse_texture.handle = assets::load_texture("barrel_texture", 0);
+    barrel_mat.normal_map.handle = assets::load_texture("barrel_normal_map", 0);
     Handle<Material> material_handle = material_manager->add(std::move(barrel_mat));
 #endif
     Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
@@ -157,7 +151,7 @@ void Engine::load_world() {
     instantiate_point_lamp({-3, -2.0f, 0}, {0.4f, 0.5f, 0.75f}, 3);
     instantiate_point_lamp({1.5f, 2.5f, 1.5f}, {0.0f, 1.0f, 0.5f}, 3);*/
 
-	instantiate_point_lamp({-3, 3, -3}, {1, 1, 1}, 3);
+    instantiate_point_lamp({-3, 3, -3}, {1, 1, 1}, 3);
     instantiate_point_lamp({-3, 3, 3}, {1, 1, 1}, 3);
     instantiate_point_lamp({3, 3, -3}, {1, 1, 1}, 3);
     instantiate_point_lamp({3, 3, 3}, {1, 1, 1}, 3);
@@ -188,8 +182,6 @@ void Engine::terminate() {
     ecs = nullptr;
     delete input_manager;
     input_manager = nullptr;
-    delete time_core;
-    time_core = nullptr;
     delete material_manager;
     material_manager = nullptr;
     delete shader_manager;
@@ -202,7 +194,7 @@ void Engine::terminate() {
 
 void Engine::loop() {
     main_window->poll_events();
-    time_core->update_time();
+    time_core::update_time();
     input_manager->process_events();
 
     auto camera_mov_view = ecs->access<Camera_Movement, Camera, Transform>();
@@ -216,14 +208,18 @@ void Engine::loop() {
         Debug_Hotkeys::update(dbg_hotkeys.get(entity));
     }
 
+    // TODO make this rendering code great again (not that it ever was great, but still)
     auto rendering = ecs->access<Camera, Transform>();
     for (Entity const entity: rendering) {
         auto [camera, transform] = rendering.get<Camera, Transform>(entity);
         if (camera.active) {
-            renderer->render_frame(camera, transform, main_window->width(), main_window->height());
+            Matrix4 const view_mat = get_camera_view_matrix(transform);
+            Matrix4 const proj_mat = get_camera_projection_matrix(camera, main_window->width(), main_window->height());
+            renderer->render_frame(view_mat, proj_mat, transform, main_window->width(), main_window->height());
             break;
         }
     }
+
     main_window->swap_buffers();
 }
 
@@ -239,7 +235,7 @@ Window& Engine::get_window() {
     return *main_window;
 }
 
-Renderer& Engine::get_renderer() {
+rendering::Renderer& Engine::get_renderer() {
     return *renderer;
 }
 
@@ -249,10 +245,6 @@ ECS& Engine::get_ecs() {
 
 Resource_Manager<Mesh>& Engine::get_mesh_manager() {
     return *mesh_manager;
-}
-
-Time_Core& Engine::get_time_manager() {
-    return *time_core;
 }
 
 Resource_Manager<Material>& Engine::get_material_manager() {

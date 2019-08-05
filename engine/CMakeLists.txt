@@ -3,11 +3,15 @@ set_target_properties(${ENGINE_NAME}
     PROPERTIES
     FOLDER ${ENGINE_FOLDER_NAME}
     WINDOWS_EXPORT_ALL_SYMBOLS ON
+    AUTOMOC ON
+    AUTORCC ON
+    AUTOUIC ON
 )
 
 target_compile_definitions(${ENGINE_NAME} PRIVATE ENGINE_API=${ENGINE_DLL_EXPORT} GAME_API=${ENGINE_DLL_IMPORT})
 target_compile_options(${ENGINE_NAME} PRIVATE ${ENGINE_CXX_FLAGS})
 
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
 find_package(OpenGL REQUIRED)
 add_subdirectory(dependencies)
 add_subdirectory(source)
@@ -16,10 +20,9 @@ add_subdirectory(shaders)
 
 target_link_libraries(${ENGINE_NAME}
     ${OPENGL_LIBRARIES}
+    Qt5::Widgets
     glad    
     glfw
-    stb
-    imgui
     zlibstatic
 )
 
@@ -48,7 +51,7 @@ set_target_properties(${ENGINE_NAME} Codegen
     LIBRARY_OUTPUT_DIRECTORY_RELEASE "${ENGINE_BINARY_OUTPUT_DIRECTORY}"
 )
 
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCE_FILES_ROOT} ${HEADER_FILES_ROOT})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCE_FILES_ROOT} ${HEADER_FILES_ROOT} ${UI_FILES_ROOT})
 
 if(MSVC)
     # add_custom_command(

@@ -96,7 +96,7 @@ namespace Input {
         // Use radial dead zone for gamepad sticks?
         // Turned on by default
         // If off, axial dead zone will be used instead
-        uint8_t use_radial_deadzone_for_gamepad_sticks : 1;
+        bool use_radial_deadzone_for_gamepad_sticks;
 
         // TODO TEMPORARY hardcoded deadzone for gamepad sticks
         float gamepad_dead_zone = 0.25f;
@@ -121,5 +121,7 @@ namespace Input {
         void process_gamepad_events();
     };
 } // namespace Input
+
+Input::Manager& get_input_manager();
 
 #endif // !ENGINE_INPUT_INPUT_CORE_HPP_INCLUDE

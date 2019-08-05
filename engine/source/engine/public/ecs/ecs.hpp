@@ -26,6 +26,7 @@ private:
 
     struct Components_Container_Data {
         Component_Container_Base* container = nullptr;
+        void (*remove)(Component_Container_Base&, Entity);
         Type_Family::family_t family;
     };
 
@@ -53,13 +54,20 @@ public:
 
     template <typename... Components>
     Entity create() {
-        static Integer_Sequence_Generator id_generator;
         Entity entity = entities.emplace_back(id_generator.next());
         if constexpr (sizeof...(Components) > 0) {
             (..., add_component<Components>(entity));
         }
 
         return entity;
+    }
+
+    void destroy(Entity const entity) {
+        for (auto& container_data: containers) {
+            if (container_data.container->has(entity)) {
+                container_data.remove(*container_data.container, entity);
+            }
+        }
     }
 
     template <typename T, typename... Ctor_Args>
@@ -115,6 +123,7 @@ private:
             throw;
         }
         data.family = component_family;
+        data.remove = [](Component_Container_Base& container, Entity const entity) { static_cast<Component_Container<T>&>(container).remove(entity); };
         return static_cast<Component_Container<T>*>(data.container);
     }
 
@@ -140,6 +149,7 @@ private:
 private:
     containers::Vector<Entity> entities;
     containers::Vector<Components_Container_Data> containers;
+    Integer_Sequence_Generator id_generator;
 };
 
 #endif // !ENGINE_ENTITY_COMPONENT_SYSTEM_HPP_INCLUDE

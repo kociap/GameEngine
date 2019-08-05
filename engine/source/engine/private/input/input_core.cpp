@@ -4,12 +4,28 @@
 #include <debug_macros.hpp>
 #include <math/math.hpp>
 #include <math/vector2.hpp>
+#include <paths.hpp>
 #include <time.hpp>
 #include <utils/filesystem.hpp>
 #include <utils/simple_xml_parser.hpp>
 
 #include <cctype>
 #include <unordered_map>
+
+#include <build_config.hpp>
+#if GE_WITH_EDITOR
+#    include <editor.hpp>
+#else
+#    include <engine.hpp>
+#endif
+
+Input::Manager& get_input_manager() {
+#if GE_WITH_EDITOR
+    return Editor::get_input_manager();
+#else
+    return Engine::get_input_manager();
+#endif
+}
 
 namespace Input {
     static Action_Mapping const* find_mapping_with_key(containers::Vector<Action_Mapping> const& mappings, std::string const& action, Key key) {
@@ -72,7 +88,8 @@ namespace Input {
     }
 
     void Manager::load_bindings() {
-        std::filesystem::path bindings_file_path(utils::concat_paths(assets::current_path(), "input_bindings.config"));
+        // TODO uses engine exe dir
+        std::filesystem::path bindings_file_path(utils::concat_paths(paths::engine_executable_directory(), "input_bindings.config"));
         std::string config_file = assets::read_file_raw_string(bindings_file_path);
         containers::Vector<Axis_Mapping> axes;
         containers::Vector<Action_Mapping> actions;
@@ -167,7 +184,7 @@ namespace Input {
         }
         input_event_queue.clear();
 
-        float delta_time = Timef::get_delta_time();
+        float delta_time = timingf::get_delta_time();
         for (auto& mapping: axis_mappings) {
             Key_State const& key_state = key_states[mapping.key];
             if (utils::key::is_mouse_axis(mapping.key) || utils::key::is_gamepad_axis(mapping.key)) {

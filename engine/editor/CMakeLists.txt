@@ -1,18 +1,25 @@
 set(SOURCE_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/editor_main.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/editor.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/imgui_renderer.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/editor_window.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/user_input_filter.cpp"
 )
     
 set(HEADER_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/editor_main.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/editor.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/imgui_renderer.hpp"    
+    "${CMAKE_CURRENT_SOURCE_DIR}/editor_window.hpp" 
+    "${CMAKE_CURRENT_SOURCE_DIR}/user_input_filter.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/editor_subsystem_fwd.hpp"
 )
 
-add_subdirectory(leveleditor/public)
-add_subdirectory(leveleditor/private)
-add_subdirectory(asset_importer/public)
-add_subdirectory(asset_importer/private)
+set(UI_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/editor_window.ui"
+)
+
+add_subdirectory(level_editor/public)
+add_subdirectory(level_editor/private)
+add_subdirectory(content_browser/public)
+add_subdirectory(content_browser/private)
 
 set(SOURCE_FILES_ROOT
     ${SOURCE_FILES_ROOT}
@@ -26,8 +33,15 @@ set(HEADER_FILES_ROOT
     PARENT_SCOPE
 )
 
+set(UI_FILES_ROOT
+    ${UI_FILES_ROOT}
+    ${UI_FILES}
+    PARENT_SCOPE
+)
+
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_sources(${PROJECT_NAME} 
     PRIVATE ${SOURCE_FILES} 
     PRIVATE ${HEADER_FILES}
+    PRIVATE ${UI_FILES}
 )

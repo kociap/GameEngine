@@ -178,6 +178,15 @@ namespace opengl {
         texture_2D_multisample_array = GL_TEXTURE_2D_MULTISAMPLE_ARRAY,
     };
 
+    enum class Texture_Filter {
+        nearest = GL_NEAREST,
+        linear = GL_LINEAR,
+        nearest_mipmap_nearest = GL_NEAREST_MIPMAP_NEAREST,
+        nearest_mipmap_linear = GL_NEAREST_MIPMAP_LINEAR,
+        linear_mipmap_nearest = GL_LINEAR_MIPMAP_NEAREST,
+        linear_mipmap_linear = GL_LINEAR_MIPMAP_LINEAR,
+    };
+
     // OpenGL 4.5 Core Profile standard required constants
 
     // Minimum number of framebuffer color attachments
@@ -190,6 +199,7 @@ namespace opengl {
 
     void active_texture(uint32_t index);
     void bind_buffer(Buffer_Type, uint32_t handle);
+    void bind_framebuffer(uint32_t target, uint32_t buffer);
     void bind_renderbuffer(uint32_t handle);
     void bind_texture(Texture_Type texture, uint32_t handle);
     void bind_vertex_array(uint32_t handle);
@@ -229,7 +239,8 @@ namespace opengl {
     // Lower left corner of the viewport, its width and height
     void viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
-    void load_opengl_parameters();
+    void load_functions();
+    void load_constants();
 } // namespace opengl
 
 template <>

@@ -28,4 +28,20 @@ Matrix4 get_camera_projection_matrix(Camera& camera, uint32_t width, uint32_t he
     // return math::transform::orthographic(-size * aspect_ratio, size * aspect_ratio, -size, size, near_plane, far_plane);
 }
 
-//Vector3 screen_to_world_point(Camera camera, Transform transform, uint32_t window_width, uint32_t window_height, Vector2 point) {}
+Vector3 screen_to_world_point(Matrix4 const inv_view, Matrix4 const inv_projection, uint32_t const screen_width, uint32_t const screen_height,
+                              Vector2 const point) {
+    // Transform screen point to normalized -1..1 coordinates
+    float const normalized_x = 2.0f * point.x / static_cast<float>(screen_width) - 1.0f;
+    float const normalized_y = 2.0f * point.y / static_cast<float>(screen_height) - 1.0f;
+
+    Vector4 const ray_start = Vector4(normalized_x, normalized_y, -1.0f, 1.0f);
+    Vector4 const ray_start_hg = ray_start * inv_projection;
+    Vector3 ray_start_homogenized = Vector3(ray_start_hg);
+
+    if (ray_start_hg.w != 0.0f) {
+        ray_start_homogenized /= ray_start_hg.w;
+    }
+
+    Vector3 ray_start_world_space = Vector3(Vector4(ray_start_homogenized, 1.0f) * inv_view);
+    return ray_start_world_space;
+}

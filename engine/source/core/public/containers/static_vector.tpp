@@ -130,11 +130,6 @@ namespace containers {
     }
 
     template <typename T, uint64_t _capacity>
-    bool Static_Vector<T, _capacity>::empty() const {
-        return _size == 0;
-    }
-
-    template <typename T, uint64_t _capacity>
     constexpr typename Static_Vector<T, _capacity>::size_type Static_Vector<T, _capacity>::size() const {
         return _size;
     }
@@ -177,16 +172,6 @@ namespace containers {
             memory::destruct(get_ptr(n), get_ptr(_size));
             _size = n;
         }
-    }
-
-    template <typename T, uint64_t _capacity>
-    void Static_Vector<T, _capacity>::reserve(size_type new_cap) {
-        // TODO consider removing
-    }
-
-    template <typename T, uint64_t _capacity>
-    void Static_Vector<T, _capacity>::shrink_to_fit() {
-        // TODO consider removing
     }
 
     template <typename T, uint64_t _capacity>

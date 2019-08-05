@@ -4,7 +4,9 @@
 class Time_Core;
 class Window;
 class ECS;
-class Renderer;
+namespace rendering {
+    class Renderer;
+}
 namespace Input {
     class Manager;
 }

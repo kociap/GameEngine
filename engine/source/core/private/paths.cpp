@@ -1,5 +1,6 @@
 #include <paths.hpp>
 #include <paths_internal.hpp>
+#include <utils/filesystem.hpp>
 
 namespace paths {
     static std::filesystem::path _engine_executable_directory;
@@ -20,4 +21,15 @@ namespace paths {
     std::filesystem::path project_directory() {
         return _project_directory;
     }
+
+#if !GE_BUILD_SHIPPING
+    std::filesystem::path assets_directory() {
+        return utils::concat_paths(_project_directory, "assets");
+    }
+
+    std::filesystem::path shaders_directory() {
+        // TODO a different path
+        return utils::concat_paths(_engine_executable_directory, "shaders");
+    }
+#endif
 } // namespace paths
