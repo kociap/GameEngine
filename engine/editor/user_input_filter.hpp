@@ -6,7 +6,7 @@
 class QEvent;
 
 class User_Input_Filter: public QObject {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
     User_Input_Filter(int32_t initial_cursor_x, int32_t initial_custor_y);

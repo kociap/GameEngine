@@ -8,7 +8,6 @@ class Editor {
 private:
     static Editor_Window* editor_window;
     static QApplication* qapplication;
-    static User_Input_Filter* input_filter;
     static Resource_Manager<Mesh>* mesh_manager;
     static Resource_Manager<Shader>* shader_manager;
     static Resource_Manager<Material>* material_manager;

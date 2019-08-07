@@ -1,6 +1,6 @@
 set(SOURCE_FILES
     ${SOURCE_FILES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/qt_key.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/dock_widget.cpp"
     PARENT_SCOPE
 )
 

@@ -27,11 +27,9 @@
 #include <QOpenGLWidget>
 #include <QSurfaceFormat>
 #include <editor_window.hpp>
-#include <user_input_filter.hpp>
 
 Editor_Window* Editor::editor_window = nullptr;
 QApplication* Editor::qapplication = nullptr;
-User_Input_Filter* Editor::input_filter = nullptr;
 Resource_Manager<Mesh>* Editor::mesh_manager = nullptr;
 Resource_Manager<Shader>* Editor::shader_manager = nullptr;
 Resource_Manager<Material>* Editor::material_manager = nullptr;
@@ -58,8 +56,6 @@ void Editor::init(int argc, char** argv) {
     qapplication = new QApplication(argc, argv);
     editor_window = new Editor_Window();
     editor_window->show();
-    input_filter = new User_Input_Filter(0, 0);
-    editor_window->installEventFilter(input_filter);
 
 	Editor::load_world();
 }

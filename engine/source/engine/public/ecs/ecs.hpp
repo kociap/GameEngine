@@ -53,13 +53,14 @@ public:
     }
 
     template <typename... Components>
-    Entity create() {
+    auto create() {
+        // TODO more clever entity creation (generations and reusing ids)
         Entity entity = entities.emplace_back(id_generator.next());
-        if constexpr (sizeof...(Components) > 0) {
-            (..., add_component<Components>(entity));
+        if constexpr (sizeof...(Components) == 0) {
+            return entity;
+        } else {
+            return std::tuple<Entity, Components&...>{entity, add_component<Components>(entity)...};
         }
-
-        return entity;
     }
 
     void destroy(Entity const entity) {

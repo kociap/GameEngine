@@ -1,20 +1,8 @@
-#include <user_input_filter.hpp>
+#include <qt_key.hpp>
+#include <unordered_map>
 
-#include <debug_macros.hpp>
-#include <editor.hpp>
-#include <engine.hpp>
-#include <input/input_core.hpp>
-#include <key.hpp>
-
-#include <QEvent>
-#include <QKeyEvent>
-#include <QMouseEvent>
-#include <QWheelEvent>
-
-User_Input_Filter::User_Input_Filter(int32_t const initial_x, int32_t const initial_y): last_cursor_pos_x(initial_x), last_cursor_pos_y(initial_y) {}
-
-bool User_Input_Filter::eventFilter(QObject* const object, QEvent* const event) {
-    static std::unordered_map<Qt::Key, Key> keyboard_buttons{
+Key key_from_qt_key(Qt::Key const kb) {
+    static std::unordered_map<Qt::Key, Key> const keyboard_buttons{
         {Qt::Key_Escape, Key::escape},
         {Qt::Key_Tab, Key::tab},
         {Qt::Key_Backspace, Key::backspace},
@@ -121,65 +109,15 @@ bool User_Input_Filter::eventFilter(QObject* const object, QEvent* const event) 
         //{Qt::Key_AsciiTilde,}
     };
 
-    static std::unordered_map<Qt::MouseButton, Key> mouse_buttons{
+	return keyboard_buttons.at(kb);
+}
+Key key_from_qt_mouse_button(Qt::MouseButton const mb) {
+    static std::unordered_map<Qt::MouseButton, Key> const mouse_buttons{
         {Qt::MouseButton::LeftButton, Key::left_mouse_button},     {Qt::MouseButton::RightButton, Key::right_mouse_button},
         {Qt::MouseButton::MiddleButton, Key::middle_mouse_button}, {Qt::MouseButton::XButton1, Key::thumb_mouse_button_1},
         {Qt::MouseButton::XButton2, Key::thumb_mouse_button_2},    {Qt::MouseButton::ExtraButton3, Key::mouse_button_6},
         {Qt::MouseButton::ExtraButton4, Key::mouse_button_7},      {Qt::MouseButton::ExtraButton5, Key::mouse_button_8},
     };
 
-    // TODO consider adding debug warnings to all the cases that we do not handle
-    Input::Manager& input_manager = get_input_manager();
-    switch (event->type()) {
-        case QEvent::Type::KeyPress:
-        case QEvent::Type::KeyRelease: {
-            QKeyEvent* const key_event = static_cast<QKeyEvent*>(event);
-            auto iter = keyboard_buttons.find(static_cast<Qt::Key>(key_event->key()));
-            if (iter != keyboard_buttons.end()) {
-                float value = event->type() == QEvent::Type::KeyPress;
-                input_manager.add_event(Input::Event{iter->second, value});
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        case QEvent::Type::MouseButtonPress:
-        case QEvent::Type::MouseButtonRelease: {
-            QMouseEvent* const mouse_event = static_cast<QMouseEvent*>(event);
-            auto iter = mouse_buttons.find(static_cast<Qt::MouseButton>(mouse_event->button()));
-            if (iter != mouse_buttons.end()) {
-                float value = event->type() == QEvent::Type::MouseButtonPress;
-                input_manager.add_event(Input::Event(iter->second, value));
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        case QEvent::Type::MouseMove: {
-            QMouseEvent* const mouse_event = static_cast<QMouseEvent*>(event);
-            int32_t delta_x = mouse_event->globalX() - last_cursor_pos_x;
-            int32_t delta_y = last_cursor_pos_y - mouse_event->globalY();
-            last_cursor_pos_x = mouse_event->globalX();
-            last_cursor_pos_y = mouse_event->globalY();
-            input_manager.add_event(Input::Mouse_Event(delta_x, delta_y, 0.0f));
-            return true;
-        }
-
-        case QEvent::Type::Wheel: {
-            QWheelEvent* const wheel_event = static_cast<QWheelEvent*>(event);
-            float delta_y = wheel_event->pixelDelta().y();
-            input_manager.add_event(Input::Mouse_Event(0.0f, 0.0f, delta_y));
-            return true;
-        }
-
-        case QEvent::Type::Close: {
-            Editor::quit();
-            return true;
-        }
-
-        default:
-            return QObject::eventFilter(object, event); // We do not process the event, so we let Qt do it for us
-    }
+	return mouse_buttons.at(mb);
 }

@@ -3,9 +3,7 @@
 
 class Editor_Window;
 class QApplication;
-class User_Input_Filter;
 
-class Time_Core;
 class ECS;
 namespace Input {
     class Manager;

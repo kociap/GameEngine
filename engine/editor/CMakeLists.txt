@@ -18,6 +18,10 @@ set(UI_FILES
 
 add_subdirectory(level_editor/public)
 add_subdirectory(level_editor/private)
+add_subdirectory(misc/public)
+add_subdirectory(misc/private)
+add_subdirectory(widgets/public)
+add_subdirectory(widgets/private)
 add_subdirectory(content_browser/public)
 add_subdirectory(content_browser/private)
 

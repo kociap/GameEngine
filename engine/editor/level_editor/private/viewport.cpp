@@ -13,28 +13,33 @@
 #include <gizmo_internal.hpp>
 #include <glad/glad.h>
 #include <input/input.hpp>
+#include <input/input_core.hpp>
 #include <intersection_tests.hpp>
 #include <line.hpp>
 #include <math/vector2.hpp>
 #include <mesh/mesh.hpp>
 #include <obb.hpp>
+#include <qt_key.hpp>
 #include <renderer.hpp>
 #include <renderer_internal.hpp>
 #include <resource_manager.hpp>
 #include <shader_file.hpp>
 #include <viewport_camera.hpp>
 
+#include <QCloseEvent>
+#include <QEvent>
+#include <QMouseEvent>
+
 #include <QCursor>
+#include <QObject>
 #include <QOpenGLContext>
 #include <QWindow>
 
 #include <cstdint>
 #include <tuple>
 
-#include <mesh/plane.hpp>
-
-Viewport::Viewport(QOpenGLContext* ctx): Viewport(nullptr, ctx) {}
-Viewport::Viewport(QWidget* parent, QOpenGLContext* ctx): QWidget(parent), context(ctx) {
+Viewport::Viewport(int32_t vindex, QOpenGLContext* ctx): Viewport(vindex, nullptr, ctx) {}
+Viewport::Viewport(int32_t vindex, QWidget* parent, QOpenGLContext* ctx): QWidget(parent), index(vindex), context(ctx) {
     // Force native window and direct drawing, so that we have a surface to render onto
     setAttribute(Qt::WA_NativeWindow, true);
     setAttribute(Qt::WA_PaintOnScreen, true);
@@ -56,7 +61,9 @@ Viewport::Viewport(QWidget* parent, QOpenGLContext* ctx): QWidget(parent), conte
     renderer = new rendering::Renderer(size().width(), size().height());
 
     ECS& ecs = Editor::get_ecs();
-    viewport_entity = ecs.create<Viewport_Camera, Camera, Transform>();
+    auto [entity, viewport_camera, camera, transform] = ecs.create<Viewport_Camera, Camera, Transform>();
+    viewport_entity = entity;
+    viewport_camera.viewport_index = index;
 }
 
 Viewport::~Viewport() {
@@ -76,16 +83,63 @@ QPaintEngine* Viewport::paintEngine() const {
     return nullptr;
 }
 
+bool Viewport::is_cursor_locked() const {
+    return cursor_locked;
+}
+
+void Viewport::lock_cursor_at(int32_t x, int32_t y) {
+    cursor_locked = true;
+    lock_pos_x = x;
+    lock_pos_y = y;
+    QCursor::setPos(x, y);
+    setCursor(Qt::BlankCursor);
+    setMouseTracking(true);
+}
+
+void Viewport::unlock_cursor() {
+    setMouseTracking(false);
+    setCursor(Qt::ArrowCursor);
+    cursor_locked = false;
+}
+
+void Viewport::closeEvent(QCloseEvent* e) {
+    QWidget::closeEvent(e);
+    Q_EMIT window_closed(index);
+}
+
 void Viewport::resizeEvent(QResizeEvent* e) {
     GE_log("Resize event");
     resize(width(), height());
 }
 
+void Viewport::mouseMoveEvent(QMouseEvent* mouse_event) {
+    if (cursor_locked) {
+        Input::Manager& input_manager = Editor::get_input_manager();
+        int32_t delta_x = mouse_event->globalX() - lock_pos_x;
+        int32_t delta_y = lock_pos_y - mouse_event->globalY();
+        input_manager.add_event(Input::Mouse_Event(delta_x, delta_y, 0.0f));
+        QCursor::setPos(lock_pos_x, lock_pos_y);
+    } else {
+        GE_log("Non-cursor-locked mouse event");
+    }
+}
+
+void Viewport::mousePressEvent(QMouseEvent* mouse_event) {
+    Q_EMIT made_active(index);
+    Key key = key_from_qt_mouse_button(mouse_event->button());
+
+
+
+
+    Input::Manager& input_manager = Editor::get_input_manager();
+    input_manager.add_event(Input::Event(key_from_qt_mouse_button(mouse_event->button()), mouse_event->type() == QEvent::MouseButtonPress));
+}
+
 static Entity pick_object(Ray const ray, uint32_t const viewport_w, uint32_t const viewport_h, Vector2 const mouse_pos) {
     // gizmo::draw_line(ray.origin, ray.origin + 20 * ray.direction, Color::green, 200.0f);
 
-    ECS& ecs = Engine::get_ecs();
-    Resource_Manager<Mesh>& mesh_manager = Engine::get_mesh_manager();
+    ECS& ecs = Editor::get_ecs();
+    Resource_Manager<Mesh>& mesh_manager = Editor::get_mesh_manager();
     Component_Access access = ecs.access<Static_Mesh_Component, Transform>();
     Entity selected = null_entity;
     Raycast_Hit closest_hit;
@@ -127,7 +181,8 @@ void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const projection_
                                Transform const camera_transform, containers::Vector<Entity>& selected_entities) {
     Vector2 const window_content_size(width(), height());
     QPoint qcursor_pos = mapFromGlobal(QCursor::pos()); // TODO choose screen
-    Vector2 mouse_pos(qcursor_pos.x(), qcursor_pos.y());
+    // Transform from top-left to bottom-left
+    Vector2 mouse_pos(qcursor_pos.x(), height() - qcursor_pos.y());
 
     auto const state = Input::get_key_state(Key::right_mouse_button);
     auto const shift_state = Input::get_key_state(Key::left_shift);
@@ -259,8 +314,11 @@ void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const projection_
             } else {
                 if (lmb_state.down && gizmo_grabbed) {
                     Vector3 intersection = intersect_line_plane({ray.origin, ray.direction}, gizmo_plane_normal, gizmo_plane_distance)->hit_point;
-                    transform_ref.local_position =
-                        cached_gizmo_transform.local_position + math::dot(intersection - gizmo_mouse_grab_point, gizmo_grabbed_axis) * gizmo_grabbed_axis;
+                    Vector3 delta_position = math::dot(intersection - gizmo_mouse_grab_point, gizmo_grabbed_axis) * gizmo_grabbed_axis;
+                    //for (Entity const entity : selected_entities) {
+                    //    ecs.get_component<Transform>(entity);
+                    //}
+                    transform_ref.local_position = cached_gizmo_transform.local_position + delta_position;
                 }
             }
 
@@ -381,8 +439,8 @@ static void draw_outlines(rendering::Renderer* renderer, Framebuffer* framebuffe
     renderer->single_color_shader.set_matrix4("view", view);
     renderer->single_color_shader.set_matrix4("projection", projection);
 
-    ECS& ecs = Engine::get_ecs();
-    Resource_Manager<Mesh>& mesh_manager = Engine::get_mesh_manager();
+    ECS& ecs = Editor::get_ecs();
+    Resource_Manager<Mesh>& mesh_manager = Editor::get_mesh_manager();
     Framebuffer::bind(*framebuffer);
     opengl::clear_color(0.0f, 0.0f, 0.0f, 0.0f);
     opengl::clear(opengl::Buffer_Mask::color_buffer_bit);

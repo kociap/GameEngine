@@ -11,7 +11,7 @@ class COMPONENT Viewport_Camera {
 public:
     static void update(Viewport_Camera&, Transform&);
 
-    uint8_t viewport_index;
+    int32_t viewport_index = 0;
     Vector3 camera_side = Vector3::right;
 };
 
