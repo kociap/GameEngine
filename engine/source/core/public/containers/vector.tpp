@@ -346,7 +346,7 @@ namespace containers {
 
     template <typename T, typename Allocator>
     void Vector<T, Allocator>::erase_unsorted(size_type index) {
-        if (index >= _size) {
+        if (index > _size) {
             throw std::out_of_range("index out of range");
         }
 
@@ -357,7 +357,9 @@ namespace containers {
     void Vector<T, Allocator>::erase_unsorted_unchecked(size_type index) {
         T* elem_ptr = get_ptr(index);
         T* last_elem_ptr = get_ptr(_size - 1);
-        *elem_ptr = std::move(*last_elem_ptr);
+        if (elem_ptr != last_elem_ptr) { // Prevent self move-assignment
+            *elem_ptr = std::move(*last_elem_ptr);
+        }
         memory::destruct(last_elem_ptr);
         --_size;
     }
