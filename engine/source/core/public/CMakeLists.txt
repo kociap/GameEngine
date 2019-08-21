@@ -1,11 +1,25 @@
 set(TEMPLATE_IMPLEMENTATION_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/containers/vector.tpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/containers/static_vector.tpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/static_string.tpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/static_vector.tpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string_view.tpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/vector.tpp"
 )
 
 set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/containers/vector.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/containers/static_vector.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/function_traits_macros.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/memory_common.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/utility_common.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/algorithm.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/allocator.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/config.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/iterators.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/pair.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/static_string.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/static_vector.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string_view.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/type_traits.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/utility.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/vector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/math.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/matrix2.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/matrix3.hpp"
@@ -27,15 +41,17 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/color.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/config.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/debug_macros.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/diagnostic_macros.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/handle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/integer_sequence_generator.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/iterators.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/macro_undefs.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/paths.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/singleton.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/type_family.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/utility.hpp"
     PARENT_SCOPE
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+set(PUBLIC_INCLUDE_DIRECTORIES
+    ${PUBLIC_INCLUDE_DIRECTORIES}
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    PARENT_SCOPE
+)

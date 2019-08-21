@@ -1,28 +1,28 @@
 #include <importers/tga.hpp>
 
 #include <cstdint>
+#include <debug_macros.hpp>
 #include <importers/common.hpp>
 #include <memory/memory.hpp>
-#include <debug_macros.hpp>
 
 namespace importers {
-    constexpr uint32_t footer_byte_size = 26;
-    constexpr uint32_t extension_area_size = 495;
+    constexpr int32_t footer_byte_size = 26;
+    constexpr int32_t extension_area_size = 495;
     // Offsets of fields in the extension area relative to its start
-    constexpr uint32_t extension_author_name_offset = 2;
-    constexpr uint32_t extension_author_comments_offset = 43;
-    constexpr uint32_t extension_date_offset = 367;
-    constexpr uint32_t extension_job_name_offset = 379;
-    constexpr uint32_t extension_job_time_offset = 420;
-    constexpr uint32_t extension_software_id_offset = 426;
-    constexpr uint32_t extension_software_version_offset = 467;
-    constexpr uint32_t extension_key_color_offset = 470;
-    constexpr uint32_t extension_pixel_aspect_ratio_offset = 474;
-    constexpr uint32_t extension_gamma_value_offset = 478;
-    constexpr uint32_t extension_color_correction_offset_offset = 482;
-    constexpr uint32_t extension_postage_stamp_offset_offset = 486;
-    constexpr uint32_t extension_scan_line_offset_offset = 490;
-    constexpr uint32_t extension_attributes_type_offset = 494;
+    // constexpr uint32_t extension_author_name_offset = 2; // Currently unused
+    // constexpr uint32_t extension_author_comments_offset = 43; // Currently unused
+    // constexpr uint32_t extension_date_offset = 367; // Currently unused
+    // constexpr uint32_t extension_job_name_offset = 379; // Currently unused
+    // constexpr uint32_t extension_job_time_offset = 420; // Currently unused
+    // constexpr uint32_t extension_software_id_offset = 426; // Currently unused
+    // constexpr uint32_t extension_software_version_offset = 467; // Currently unused
+    // constexpr uint32_t extension_key_color_offset = 470; // Currently unused
+    // constexpr uint32_t extension_pixel_aspect_ratio_offset = 474; // Currently unused
+    constexpr int32_t extension_gamma_value_offset = 478;
+    // constexpr uint32_t extension_color_correction_offset_offset = 482; // Currently unused
+    // constexpr uint32_t extension_postage_stamp_offset_offset = 486; // Currently unused
+    // constexpr uint32_t extension_scan_line_offset_offset = 490; // Currently unused
+    // constexpr uint32_t extension_attributes_type_offset = 494; // Currently unused
 
     // The signature in the TGA footer
     constexpr uint64_t tga_signature_0_8 = 0x5452554556495349;
@@ -38,8 +38,8 @@ namespace importers {
     constexpr uint8_t img_type_RLE_black_white = 11;
 
     struct TGA_Header {
-        uint64_t image_width;
-        uint64_t image_height;
+        int32_t image_width;
+        int32_t image_height;
         uint16_t first_entry_index;
         uint16_t color_map_length;
         uint16_t image_x_origin;
@@ -52,7 +52,8 @@ namespace importers {
         uint8_t image_descriptor;
     };
 
-    static TGA_Header read_header(uint8_t const* const stream, uint64_t& pos) {
+    static TGA_Header read_header(uint8_t const* const stream, int64_t& pos) {
+        // Image width and height are 2 byte unsigned integers
         TGA_Header header;
         header.id_length = read_uint8(stream, pos);
         header.color_map_type = read_uint8(stream, pos);
@@ -62,8 +63,8 @@ namespace importers {
         header.color_map_entry_size = read_uint8(stream, pos);
         header.image_x_origin = read_uint16_le(stream, pos);
         header.image_y_origin = read_uint16_le(stream, pos);
-        header.image_width = read_uint16_le(stream, pos);
-        header.image_height = read_uint16_le(stream, pos);
+        header.image_width = static_cast<int32_t>(read_uint16_le(stream, pos));
+        header.image_height = static_cast<int32_t>(read_uint16_le(stream, pos));
         header.pixel_depth = read_uint8(stream, pos);
         header.image_descriptor = read_uint8(stream, pos);
         return header;
@@ -78,7 +79,7 @@ namespace importers {
         uint8_t terminator;
     };
 
-    static TGA_Footer read_footer(uint8_t const* const stream, uint64_t& pos) {
+    static TGA_Footer read_footer(uint8_t const* const stream, int64_t& pos) {
         TGA_Footer footer;
         footer.extension_area_offset = read_uint32_le(stream, pos);
         footer.developer_area_offset = read_uint32_le(stream, pos);
@@ -91,16 +92,16 @@ namespace importers {
     }
 
     // TGA2 test
-    bool test_tga(containers::Vector<uint8_t> const& stream) {
-        uint64_t pos = stream.size() - footer_byte_size; // Seek to the end of the file to look for the footer
+    bool test_tga(anton_stl::Vector<uint8_t> const& stream) {
+        int64_t pos = stream.size() - footer_byte_size; // Seek to the end of the file to look for the footer
         TGA_Footer const footer = read_footer(stream.data(), pos);
         return footer.signature1 == tga_signature_0_8 && footer.signature2 == tga_signature_8_16 && footer.reserved_character == '.' &&
                footer.terminator == '\0';
     }
 
-    Image import_tga(containers::Vector<uint8_t> const& tga_data) {
+    Image import_tga(anton_stl::Vector<uint8_t> const& tga_data) {
         uint8_t const* const tga_stream = tga_data.data();
-        uint64_t pos = 0;
+        int64_t pos = 0;
         TGA_Header const header = read_header(tga_stream, pos);
 
         if (header.pixel_depth != 8 && header.pixel_depth != 16 && header.pixel_depth != 24 && header.pixel_depth != 32) {
@@ -124,8 +125,8 @@ namespace importers {
             pos += header.color_map_length;
         }
 
-        uint64_t const bytes_per_pixel = header.pixel_depth / 8;
-        uint64_t const image_data_length = header.image_width * header.image_height * bytes_per_pixel;
+        int64_t const bytes_per_pixel = static_cast<int64_t>(header.pixel_depth / 8);
+        int64_t const image_data_length = static_cast<int64_t>(header.image_width) * static_cast<int64_t>(header.image_height) * bytes_per_pixel;
         uint8_t const* const image_data = tga_stream + pos;
 
         Image image;
@@ -136,7 +137,9 @@ namespace importers {
         bool const is_greyscale = header.image_type == img_type_RLE_black_white || header.image_type == img_type_uncompressed_black_white;
         bool const is_indexed = header.image_type == img_type_RLE_color_mapped || header.image_type == img_type_uncompressed_color_mapped;
         bool const is_truecolor = header.image_type == img_type_RLE_true_color || header.image_type == img_type_uncompressed_true_color;
+        // Width of the pixel in the final decoded image
         uint8_t const pixel_width = (!is_indexed ? header.pixel_depth : header.color_map_entry_size);
+        // Number of bits in the alpha channel
         uint8_t const alpha_bits = header.image_descriptor & 0x0F;
         switch (pixel_width) {
             case 8:
@@ -169,46 +172,49 @@ namespace importers {
                 }
                 break;
             default:
-                GE_UNREACHABLE();
+                ANTON_UNREACHABLE();
         }
 
-        auto swap_and_copy_bytes = [alpha_bits](uint8_t* const image, uint8_t const* const image_data, uint64_t bytes_to_copy, uint64_t pixel_width,
-                                                bool indexed) {
-            for (uint64_t offset = 0; offset < bytes_to_copy; offset += pixel_width) {
-                switch (pixel_width) {
+        // Swap bytes of pixels and copy them to out
+        auto swap_and_copy_bytes = [alpha_bits](uint8_t* const out, uint8_t const* const in, int64_t const bytes_to_copy, int64_t const bytes_per_chunk,
+                                                bool const indexed) {
+            for (int64_t offset = 0; offset < bytes_to_copy; offset += bytes_per_chunk) {
+                switch (bytes_per_chunk) {
                     case 1:
-                        image[offset] = image_data[offset];
+                        out[offset] = in[offset];
                         break;
                     case 2:
                         if (alpha_bits == 8) {
                             // Just copy because the color is stored as RA in little-endian and we want RA format
-                            image[offset] = image_data[offset];
-                            image[offset + 1] = image_data[offset + 1];
+                            out[offset] = in[offset];
+                            out[offset + 1] = in[offset + 1];
                         } else {
-                            image[offset] = image_data[offset + 1];
-                            image[offset + 1] = image_data[offset];
+                            out[offset] = in[offset + 1];
+                            out[offset + 1] = in[offset];
                         }
                         break;
                     case 3:
-                        image[offset] = image_data[offset + 2];
-                        image[offset + 1] = image_data[offset + 1];
-                        image[offset + 2] = image_data[offset];
+                        out[offset] = in[offset + 2];
+                        out[offset + 1] = in[offset + 1];
+                        out[offset + 2] = in[offset];
                         break;
                     case 4:
                         if (!indexed) {
                             // We want to get the color as RGBA, so we only swap RGB bytes and leave alpha byte unmodified
-                            image[offset] = image_data[offset + 2];
-                            image[offset + 1] = image_data[offset + 1];
-                            image[offset + 2] = image_data[offset];
-                            image[offset + 3] = image_data[offset + 3];
+                            out[offset] = in[offset + 2];
+                            out[offset + 1] = in[offset + 1];
+                            out[offset + 2] = in[offset];
+                            out[offset + 3] = in[offset + 3];
                         } else {
-                            // Swap all bytes because it's an int32s
-                            image[offset] = image_data[offset + 3];
-                            image[offset + 1] = image_data[offset + 2];
-                            image[offset + 2] = image_data[offset + 1];
-                            image[offset + 3] = image_data[offset];
+                            // Swap all bytes because it's an int32
+                            out[offset] = in[offset + 3];
+                            out[offset + 1] = in[offset + 2];
+                            out[offset + 2] = in[offset + 1];
+                            out[offset + 3] = in[offset];
                         }
                         break;
+                    default:
+                        ANTON_UNREACHABLE();
                 }
             }
         };
@@ -217,7 +223,7 @@ namespace importers {
         //   where non-related bytes are stored in little-endian, a.k.a. RGB is BGR.
         // We have to perform a lot of byte swapping, bit shifting and what not.
         if (header.image_type == img_type_RLE_black_white || header.image_type == img_type_RLE_color_mapped || header.image_type == img_type_RLE_true_color) {
-            for (uint64_t offset = 0, img_offset = 0; img_offset < image_data_length;) {
+            for (int64_t offset = 0, img_offset = 0; img_offset < image_data_length;) {
                 uint8_t const is_RL_packet = *(image_data + offset) & 0x80;
                 uint8_t const repeat_count = (*(image_data + offset) & 0x7F) + 1;
                 uint8_t const* const current_pixel = image_data + offset + 1;
@@ -241,11 +247,12 @@ namespace importers {
         }
 
         if (is_indexed) {
-            containers::Vector<uint8_t> colors(header.image_width * header.image_height * pixel_width);
-            uint64_t const bytes_per_color_map_pixel = pixel_width / 8;
+            // Deindexing
+            anton_stl::Vector<uint8_t> colors(header.image_width * header.image_height * pixel_width);
+            int32_t const bytes_per_color_map_pixel = static_cast<int32_t>(pixel_width / 8);
             uint8_t* indices_ptr = image.data.data();
             uint8_t* const colors_ptr = colors.data();
-            for (uint64_t offset = 0; offset < image.data.size();) {
+            for (int64_t offset = 0; offset < image.data.size();) {
                 uint64_t index = 0;
                 // Read as big-endian because we did byte-swapping
                 switch (bytes_per_color_map_pixel) {
@@ -256,7 +263,7 @@ namespace importers {
                         index = read_uint16_be(indices_ptr);
                         break;
                     case 3:
-                        index = (read_uint16_be(indices_ptr) << 8) + indices_ptr[2];
+                        index = (static_cast<uint64_t>(read_uint16_be(indices_ptr)) << 8) + indices_ptr[2];
                         break;
                     case 4:
                         index = read_uint32_be(indices_ptr);
@@ -270,12 +277,12 @@ namespace importers {
             image.data = std::move(colors);
         }
 
-        uint64_t footer_pos = tga_data.size() - footer_byte_size;
+        int64_t footer_pos = tga_data.size() - footer_byte_size;
         TGA_Footer const footer = read_footer(tga_stream, footer_pos);
         uint16_t gamma_numerator = 0;
         uint16_t gamma_denominator = 0;
         if (footer.extension_area_offset != 0) {
-            uint32_t extension_size = read_uint16_le(tga_stream + footer.extension_area_offset);
+            int32_t extension_size = static_cast<int32_t>(read_uint16_le(tga_stream + footer.extension_area_offset));
             if (extension_size != extension_area_size) {
                 throw Invalid_Image_File("TGA extension size is not 495. Unknown TGA format");
             }

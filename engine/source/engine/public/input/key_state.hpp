@@ -3,7 +3,7 @@
 
 namespace Input {
     struct Key_State {
-        double last_up_down_transition_time = 0.0f;
+        double last_up_down_transition_time = 0.0;
         float raw_value = 0.0f;
         float value = 0.0f;
         bool down = false;
@@ -13,7 +13,7 @@ namespace Input {
 
     struct Any_Key_State {
         // Last time any key was pressed or released
-        double last_up_down_transition_time = 0.0f;
+        double last_up_down_transition_time = 0.0;
         // Has any key been pressed?
         bool pressed = false;
         // Has any key been released?

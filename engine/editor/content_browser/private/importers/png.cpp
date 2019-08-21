@@ -1,4 +1,4 @@
-#include <containers/vector.hpp>
+#include <anton_stl/vector.hpp>
 #include <cstdint>
 #include <importers/common.hpp>
 #include <importers/png.hpp>
@@ -11,9 +11,9 @@ namespace importers {
 
     // Chunk properties bits
     constexpr uint32_t ancillary_bit = 0x10000000;
-    constexpr uint32_t private_bit = 0x00100000;
-    constexpr uint32_t reserved_bit = 0x00001000;
-    constexpr uint32_t safe_to_copy_bit = 0x00000010;
+    // constexpr uint32_t private_bit = 0x00100000; // Currently unused
+    // constexpr uint32_t reserved_bit = 0x00001000; // Currently unused
+    // constexpr uint32_t safe_to_copy_bit = 0x00000010; // Currently unused
 
     /* color types */
     constexpr uint8_t color_type_greyscale = 0;
@@ -22,7 +22,7 @@ namespace importers {
     constexpr uint8_t color_type_greyscale_alpha = 4;
     constexpr uint8_t color_type_truecolor_alpha = 6;
 
-    constexpr uint8_t color_type_indexed_bit = 1;
+    // constexpr uint8_t color_type_indexed_bit = 1; // Currently unused
     constexpr uint8_t color_type_truecolor_bit = 2;
     constexpr uint8_t color_type_alpha_bit = 4;
 
@@ -133,7 +133,7 @@ namespace importers {
     }
 
     static void extract_adam7_pass(int const pass, uint8_t const*& pixels, int32_t const pixel_width, uint64_t const image_width, uint64_t const image_height,
-                                   containers::Vector<uint8_t>& out_pixels) {
+                                   anton_stl::Vector<uint8_t>& out_pixels) {
         uint32_t const starting_row[7] = {0, 0, 4, 0, 2, 0, 1};
         uint32_t const row_increment[7] = {8, 8, 8, 4, 4, 2, 2};
         uint32_t const starting_column[7] = {0, 4, 0, 2, 0, 1, 0};
@@ -165,13 +165,13 @@ namespace importers {
         uint32_t crc;
     };
 
-    static uint8_t const* read_bytes(uint8_t const* const stream, uint64_t const byte_count, uint64_t& pos) {
+    static uint8_t const* read_bytes(uint8_t const* const stream, uint64_t const byte_count, int64_t& pos) {
         uint64_t const pos_copy = pos;
         pos += byte_count;
         return stream + pos_copy;
     }
 
-    static Chunk_Data read_chunk(uint8_t const* const stream, uint64_t& pos) {
+    static Chunk_Data read_chunk(uint8_t const* const stream, int64_t& pos) {
         uint32_t const data_length = read_uint32_be(stream, pos);
         uint32_t const chunk_type = read_uint32_be(stream, pos);
         uint8_t const* const data = read_bytes(stream, data_length, pos);
@@ -202,14 +202,13 @@ namespace importers {
 
     static Image_Header reinterpret_bytes_as_image_header(uint8_t const* bytes) {
         Image_Header header;
-        uint64_t stream_pos = 0;
-        header.width = read_uint32_be(bytes, stream_pos);
-        header.height = read_uint32_be(bytes, stream_pos);
-        header.bit_depth = *(bytes + stream_pos);
-        header.color_type = *(bytes + stream_pos + 1);
-        header.compression_method = *(bytes + stream_pos + 2);
-        header.filter_method = *(bytes + stream_pos + 3);
-        header.interlace_method = *(bytes + stream_pos + 4);
+        header.width = read_uint32_be(bytes);
+        header.height = read_uint32_be(bytes + 4);
+        header.bit_depth = *(bytes + 8);
+        header.color_type = *(bytes + 8 + 1);
+        header.compression_method = *(bytes + 8 + 2);
+        header.filter_method = *(bytes + 8 + 3);
+        header.interlace_method = *(bytes + 8 + 4);
         return header;
     }
 
@@ -232,17 +231,17 @@ namespace importers {
         }
     }
 
-    bool test_png(containers::Vector<uint8_t> const& image_data) {
+    bool test_png(anton_stl::Vector<uint8_t> const& image_data) {
         uint64_t const header = read_uint64_be(image_data.data());
         return header == png_header;
     }
 
-    Image import_png(containers::Vector<uint8_t> const& png_data) {
+    Image import_png(anton_stl::Vector<uint8_t> const& png_data) {
         // TODO Reduce number of memory allocations
         // TODO Make sure less than 8 bit images are handled correctly
         // TODO Maybe filter/deinterlace on the fly?
         // TODO Add CRC checking
-        uint64_t stream_pos = 8; // Skip png header which is 8 bytes long
+        int64_t stream_pos = 8; // Skip png header which is 8 bytes long
         Chunk_Data const header_data = read_chunk(png_data.data(), stream_pos);
         if (header_data.chunk_type != chunk_IHDR) {
             throw Invalid_Image_File("IHDR chunk is not first");
@@ -287,7 +286,7 @@ namespace importers {
 
         uint64_t const pixel_width = get_pixel_width(header.color_type, header.bit_depth);
         uint64_t pixels_buffer_size = get_decompression_buffer_size(header.width, header.height, pixel_width, header.interlace_method);
-        containers::Vector<uint8_t> pixels(pixels_buffer_size);
+        anton_stl::Vector<uint8_t> pixels(pixels_buffer_size);
         z_stream stream;
         stream.next_out = pixels.data();
         stream.avail_out = pixels.size();
@@ -306,8 +305,8 @@ namespace importers {
             uint8_t green;
             uint8_t blue;
         };
-        containers::Vector<Indexed_Color> color_palette(1 << 8);
-        containers::Vector<uint8_t> alpha_palette(1 << 8, 255);
+        anton_stl::Vector<Indexed_Color> color_palette(1 << 8);
+        anton_stl::Vector<uint8_t> alpha_palette(1 << 8, 255);
         bool tRNS_present = false;
         float gamma = 2.2f;
         Image_Color_Space color_space = Image_Color_Space::srgb;
@@ -442,7 +441,7 @@ namespace importers {
             }
         }
 
-        containers::Vector<uint8_t> pixels_unfiltered(header.height * header.width * pixel_width);
+        anton_stl::Vector<uint8_t> pixels_unfiltered(header.height * header.width * pixel_width);
         if (header.interlace_method == 0) {
             uint64_t const scanline_width = header.width * pixel_width;
             reconstruct_scanlines(pixels.data(), pixel_width, scanline_width, header.height, pixels_unfiltered.data());
@@ -479,7 +478,7 @@ namespace importers {
 
         if (header.color_type == color_type_indexed) {
             uint64_t indexed_pixel_width = tRNS_present ? 4 : 3;
-            containers::Vector<uint8_t> deindexed(header.width * header.height * indexed_pixel_width, containers::reserve);
+            anton_stl::Vector<uint8_t> deindexed(anton_stl::reserve, header.width * header.height * indexed_pixel_width);
             if (tRNS_present) {
                 for (uint8_t pixel_index: pixels_unfiltered) {
                     auto color = color_palette[pixel_index];
@@ -537,8 +536,11 @@ namespace importers {
                     pixel_format = Image_Pixel_Format::rgba16;
                 }
                 break;
+            default:
+                ANTON_UNREACHABLE();
         }
-        // TODO choose color space based on the image loaded
-        return {header.width, header.height, pixel_format, Image_Color_Space::gamma_encoded, gamma, std::move(pixels_unfiltered)};
+        // TODO: Choose color space based on the image loaded
+        return {header.width, header.height, pixel_format, Image_Color_Space::gamma_encoded, gamma,
+                std::move(pixels_unfiltered)};
     }
 } // namespace importers

@@ -1,19 +1,21 @@
-#include "shader.hpp"
+#include <shader.hpp>
 
-#include "color.hpp"
-#include "containers/vector.hpp"
-#include "debug_macros.hpp"
-#include "glad/glad.h"
-#include "math/matrix4.hpp"
-#include "math/vector3.hpp"
-#include "opengl.hpp"
-#include "shader_exceptions.hpp"
-#include "shader_file.hpp"
+#include <diagnostic_macros.hpp>
+ANTON_DISABLE_WARNINGS()
+#include <glad.hpp>
+ANTON_RESTORE_WARNINGS()
 
-#include <cassert>
+#include <anton_stl/vector.hpp>
+#include <color.hpp>
+#include <debug_macros.hpp>
+#include <math/matrix4.hpp>
+#include <math/vector3.hpp>
+#include <opengl.hpp>
+#include <shader_exceptions.hpp>
+#include <shader_file.hpp>
+
 #include <fstream>
 #include <string>
-#include <vector>
 
 Shader::Shader(bool create) {
     if (create) {
@@ -49,10 +51,10 @@ static void build_shader_uniform_cache(uint32_t program, std::unordered_map<std:
     glGetProgramInterfaceiv(program, GL_UNIFORM, GL_ACTIVE_RESOURCES, &active_uniforms);
     int32_t uniform_max_name_length;
     glGetProgramInterfaceiv(program, GL_UNIFORM, GL_MAX_NAME_LENGTH, &uniform_max_name_length);
-    containers::Vector<char> name(uniform_max_name_length);
-    for (uint32_t uniform_index = 0; uniform_index < active_uniforms; ++uniform_index) {
+    anton_stl::Vector<char> name(uniform_max_name_length);
+    for (int32_t uniform_index = 0; uniform_index < active_uniforms; ++uniform_index) {
         int32_t name_length;
-        glGetActiveUniformName(program, uniform_index, uniform_max_name_length, &name_length, &name[0]);
+        glGetActiveUniformName(program, static_cast<uint32_t>(uniform_index), uniform_max_name_length, &name_length, &name[0]);
         int32_t location = glGetUniformLocation(program, &name[0]);
         std::string name_str = std::string(&name[0], name_length);
         uniform_cache.emplace(std::move(name_str), location);
@@ -67,7 +69,7 @@ void Shader::link() {
     if (link_status == GL_FALSE) {
         GLint log_length;
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &log_length);
-        std::vector<GLchar> log(log_length);
+        anton_stl::Vector<GLchar> log(log_length);
         glGetProgramInfoLog(program, log_length, &log_length, &log[0]);
         std::string log_string(log.begin(), log.end());
         throw Program_Linking_Failed(std::move(log_string));

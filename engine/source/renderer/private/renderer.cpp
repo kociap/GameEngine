@@ -1,6 +1,7 @@
 #include <renderer.hpp>
 #include <renderer_internal.hpp>
 
+#include <anton_stl/utility.hpp>
 #include <assets.hpp>
 #include <build_config.hpp>
 #include <components/camera.hpp>
@@ -15,7 +16,7 @@
 #include <editor.hpp>
 #include <engine.hpp>
 #include <framebuffer.hpp>
-#include <glad/glad.h>
+#include <glad.hpp>
 #include <handle.hpp>
 #include <math/matrix4.hpp>
 #include <math/transform.hpp>
@@ -24,7 +25,6 @@
 #include <opengl.hpp>
 #include <resource_manager.hpp>
 #include <shader.hpp>
-#include <utility.hpp>
 
 static Resource_Manager<Mesh>& get_mesh_manager() {
 #if GE_WITH_EDITOR
@@ -59,7 +59,7 @@ static ECS& get_ecs() {
 }
 
 namespace rendering {
-    Renderer::Renderer(uint32_t width, uint32_t height): single_color_shader(false), outline_mix_shader(false) {
+    Renderer::Renderer(int32_t width, int32_t height): single_color_shader(false), outline_mix_shader(false) {
         build_framebuffers(width, height);
 
         // TODO move to postprocessing
@@ -123,7 +123,7 @@ namespace rendering {
         delete_framebuffers();
     }
 
-    void Renderer::build_framebuffers(uint32_t width, uint32_t height) {
+    void Renderer::build_framebuffers(int32_t width, int32_t height) {
         Framebuffer::Construct_Info multisampled_framebuffer_info;
         multisampled_framebuffer_info.color_buffers.resize(1);
         multisampled_framebuffer_info.depth_buffer.enabled = true;
@@ -162,7 +162,7 @@ namespace rendering {
         delete postprocess_front_buffer;
     }
 
-    void Renderer::resize(uint32_t width, uint32_t height) {
+    void Renderer::resize(int32_t width, int32_t height) {
         delete_framebuffers();
         build_framebuffers(width, height);
     }
@@ -225,8 +225,10 @@ namespace rendering {
             ++i;
         }
 
-        shader.set_int("point_lights_count", point_lights.size());
-        shader.set_int("directional_lights_count", directional_lights.size());
+        int32_t point_lights_count = static_cast<int32_t>(point_lights.size());
+        shader.set_int("point_lights_count", point_lights_count);
+        int32_t directional_lights_count = static_cast<int32_t>(directional_lights.size());
+        shader.set_int("directional_lights_count", directional_lights_count);
 
         // uhh?????????????????????
         shader.set_float("material.shininess", 32.0f);
@@ -266,7 +268,7 @@ namespace rendering {
     }
 
     void Renderer::swap_postprocess_buffers() {
-        swap(postprocess_front_buffer, postprocess_back_buffer);
+        anton_stl::swap(postprocess_front_buffer, postprocess_back_buffer);
     }
 
     void Renderer::render_shadow_map(Matrix4 const& view, Matrix4 const& projection) {
@@ -367,8 +369,8 @@ namespace rendering {
         }
     }
 
-    uint32_t Renderer::render_frame_as_texture(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform, uint32_t const viewport_width,
-                                               uint32_t const viewport_height) {
+    uint32_t Renderer::render_frame_as_texture(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform, int32_t const viewport_width,
+                                               int32_t const viewport_height) {
         update_dynamic_lights();
 
         glEnable(GL_DEPTH_TEST);
@@ -399,8 +401,8 @@ namespace rendering {
         return postprocess_front_buffer->get_color_texture(0);
     }
 
-    void Renderer::render_frame(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform, uint32_t const viewport_width,
-                                uint32_t const viewport_height) {
+    void Renderer::render_frame(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform, int32_t const viewport_width,
+                                int32_t const viewport_height) {
         uint32_t frame_texture = render_frame_as_texture(view_mat, proj_mat, camera_transform, viewport_width, viewport_height);
         Framebuffer::bind_default();
         opengl::active_texture(0);
@@ -433,7 +435,8 @@ namespace rendering {
         CHECK_GL_ERRORS();
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.get_ebo());
         CHECK_GL_ERRORS();
-        opengl::draw_elements(GL_TRIANGLES, mesh.indices.size());
+        int32_t indices_count = static_cast<int32_t>(mesh.indices.size());
+        opengl::draw_elements(GL_TRIANGLES, indices_count);
     }
 
     void render_object(Static_Mesh_Component const& component, Shader& shader) {

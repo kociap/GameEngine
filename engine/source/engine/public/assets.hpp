@@ -1,7 +1,7 @@
 #ifndef ENGINE_ASSETS_ASSETS_HPP_INCLUDE
 #define ENGINE_ASSETS_ASSETS_HPP_INCLUDE
 
-#include <containers/vector.hpp>
+#include <anton_stl/vector.hpp>
 #include <shader_file.hpp>
 
 #include <filesystem>
@@ -20,7 +20,7 @@ namespace assets {
     // Loads texture and returns a OpenGL handle
     uint32_t load_texture(std::string const& filename, uint64_t texture_id);
 
-    containers::Vector<Mesh> load_model(std::filesystem::path const& filename);
+    anton_stl::Vector<Mesh> load_model(std::filesystem::path const& filename);
 } // namespace assets
 
 #endif // !ENGINE_ASSETS_ASSETS_HPP_INCLUDE

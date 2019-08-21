@@ -1,7 +1,7 @@
 #ifndef CORE_UTILS_FILESYSTEM_HPP_INCLUDE
 #define CORE_UTILS_FILESYSTEM_HPP_INCLUDE
 
-#include <containers/vector.hpp>
+#include <anton_stl/vector.hpp>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -13,8 +13,8 @@ namespace utils {
 
     // File utility functions
 
-    uint64_t get_file_size(std::ifstream&);
-    containers::Vector<uint8_t> read_file_binary(std::filesystem::path const& path);
+    int64_t get_file_size(std::ifstream&);
+    anton_stl::Vector<uint8_t> read_file_binary(std::filesystem::path const& path);
 } // namespace utils
 
 #endif // !CORE_UTILS_FILESYSTEM_HPP_INCLUDE

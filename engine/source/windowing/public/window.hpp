@@ -1,14 +1,14 @@
 #ifndef WINDOWING_WINDOW_HPP_INCLUDE
 #define WINDOWING_WINDOW_HPP_INCLUDE
 
-#include "math/vector2.hpp"
 #include <cstdint>
+#include <math/vector2.hpp>
 
 struct GLFWwindow;
 
 class Window {
 public:
-    Window(uint32_t width, uint32_t height);
+    Window(int32_t width, int32_t height);
     Window(Window const&) = delete;
     Window(Window&&) noexcept = default;
     Window& operator=(Window const&) = delete;
@@ -24,13 +24,13 @@ public:
     // Retrieves the position of the cursor relative to the window's top-left corner
     [[nodiscard]] Vector2 get_cursor_position() const;
 
-    void resize(uint32_t width, uint32_t height);
-    [[nodiscard]] uint32_t width() const;
-    [[nodiscard]] uint32_t height() const;
+    void resize(int32_t width, int32_t height);
+    [[nodiscard]] int32_t width() const;
+    [[nodiscard]] int32_t height() const;
 
 private:
-    uint32_t window_width = 0;
-    uint32_t window_height = 0;
+    int32_t window_width = 0;
+    int32_t window_height = 0;
     GLFWwindow* window_handle = nullptr;
 };
 

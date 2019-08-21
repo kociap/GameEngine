@@ -11,14 +11,7 @@ set_target_properties(glfw glad zlib zlibstatic
     FOLDER "${ENGINE_DEPENDENCIES_FOLDER}"
 )
 
-if(MSVC)
-    set_target_properties(glfw glad zlib zlibstatic
-        PROPERTIES
-        COMPILE_OPTIONS "/W0"
-    )
-elseif("${CMAKE_CXX_COMPILER_ID}" matches "GCC" or "${CMAKE_CXX_COMPILER_ID}" matches "Clang")
-    set_target_properties(glfw glad zlib zlibstatic
-        PROPERTIES
-        COMPILE_OPTIONS "-Wno-everything"
-    )
-endif()
+set_target_properties(glfw glad zlib zlibstatic
+    PROPERTIES
+    COMPILE_OPTIONS ${ENGINE_CXX_DEPENDENCIES_FLAGS}
+)

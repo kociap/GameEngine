@@ -1,11 +1,10 @@
-#include "math/vector4.hpp"
+#include <math/vector4.hpp>
 
-#include "math/vector2.hpp"
-#include "math/vector3.hpp"
-
-#include "math/math.hpp"
+#include <anton_stl/utility.hpp>
 #include <cmath>
-#include <utility>
+#include <math/math.hpp>
+#include <math/vector2.hpp>
+#include <math/vector3.hpp>
 
 Vector4::Vector4(float x, float y, float z, float w): x(x), y(y), z(z), w(w) {}
 Vector4::Vector4(Vector2 const& vec, float z /* = 0 */, float w /* = 0 */): x(vec.x), y(vec.y), z(z), w(w) {}
@@ -164,10 +163,10 @@ bool operator!=(Vector4 a, Vector4 b) {
 }
 
 void swap(Vector4& a, Vector4& b) {
-    std::swap(a.x, b.x);
-    std::swap(a.y, b.y);
-    std::swap(a.z, b.z);
-    std::swap(a.w, b.w);
+    anton_stl::swap(a.x, b.x);
+    anton_stl::swap(a.y, b.y);
+    anton_stl::swap(a.z, b.z);
+    anton_stl::swap(a.w, b.w);
 }
 
 namespace math {

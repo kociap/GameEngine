@@ -1,10 +1,10 @@
 #ifndef ENGINE_INPUT_INPUT_CORE_HPP_INCLUDE
 #define ENGINE_INPUT_INPUT_CORE_HPP_INCLUDE
 
-#include "containers/vector.hpp"
-#include "input/key_state.hpp"
-#include "key.hpp"
+#include <anton_stl/vector.hpp>
 #include <cstdint>
+#include <input/key_state.hpp>
+#include <key.hpp>
 #include <string>
 #include <unordered_map>
 
@@ -82,16 +82,16 @@ namespace Input {
     public:
         std::unordered_map<Key, Key_State> key_states;
         // TODO redesign events
-        containers::Vector<Key> key_events_queue;
-        containers::Vector<Event> input_event_queue;
-        containers::Vector<Mouse_Event> mouse_event_queue;
-        containers::Vector<Gamepad_Event> gamepad_event_queue;
-        containers::Vector<Gamepad_Event> gamepad_stick_event_queue;
+        anton_stl::Vector<Key> key_events_queue;
+        anton_stl::Vector<Event> input_event_queue;
+        anton_stl::Vector<Mouse_Event> mouse_event_queue;
+        anton_stl::Vector<Gamepad_Event> gamepad_event_queue;
+        anton_stl::Vector<Gamepad_Event> gamepad_stick_event_queue;
 
-        containers::Vector<Axis_Mapping> axis_mappings;
-        containers::Vector<Action_Mapping> action_mappings;
-        containers::Vector<Axis> axes;
-        containers::Vector<Action> actions;
+        anton_stl::Vector<Axis_Mapping> axis_mappings;
+        anton_stl::Vector<Action_Mapping> action_mappings;
+        anton_stl::Vector<Axis> axes;
+        anton_stl::Vector<Action> actions;
 
         // Use radial dead zone for gamepad sticks?
         // Turned on by default
@@ -111,8 +111,8 @@ namespace Input {
         void load_bindings();
         void save_bindings();
 
-        void register_axis_mappings(containers::Vector<Axis_Mapping> const&);
-        void register_action_mappings(containers::Vector<Action_Mapping> const&);
+        void register_axis_mappings(anton_stl::Vector<Axis_Mapping> const&);
+        void register_action_mappings(anton_stl::Vector<Action_Mapping> const&);
 
         void process_events();
 

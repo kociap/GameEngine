@@ -1,11 +1,14 @@
 #ifndef EDITOR_EDITOR_WINDOW_HPP_INCLUDE
 #define EDITOR_EDITOR_WINDOW_HPP_INCLUDE
 
-#include <containers/vector.hpp>
+#include <anton_stl/vector.hpp>
+#include <diagnostic_macros.hpp>
 #include <ecs/entity.hpp>
+#include <memory> // TODO: Why is this included here?
 
+ANTON_DISABLE_WARNINGS()
 #include <QMainWindow>
-#include <memory>
+ANTON_RESTORE_WARNINGS()
 
 namespace Ui {
     class Editor_Window;
@@ -20,7 +23,7 @@ class Dock_Widget;
 
 class Editor_Shared_State {
 public:
-    containers::Vector<Entity> selected_entities;
+    anton_stl::Vector<Entity> selected_entities;
     int32_t active_editor = 0;
 };
 
@@ -35,8 +38,8 @@ public:
     void render();
 
 private:
-    containers::Vector<Viewport*> viewports;
-    containers::Vector<Dock_Widget*> viewport_docks;
+    anton_stl::Vector<Viewport*> viewports;
+    anton_stl::Vector<Dock_Widget*> viewport_docks;
     Ui::Editor_Window* ui = nullptr;
     QOpenGLContext* context;
     QOffscreenSurface* surface;

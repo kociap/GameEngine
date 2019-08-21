@@ -1,6 +1,6 @@
 #include <time/time_platform.hpp>
 
-#include <windows.h>
+#include <Windows.h>
 
 uint64_t get_performance_counter() {
     uint64_t counts;

@@ -1,10 +1,10 @@
-#include "intersection_tests.hpp"
+#include <intersection_tests.hpp>
 
-#include "math/math.hpp"
-#include "math/matrix3.hpp"
-#include "math/matrix4.hpp"
-#include "math/transform.hpp"
-#include "mesh/mesh.hpp"
+#include <math/math.hpp>
+#include <math/matrix3.hpp>
+#include <math/matrix4.hpp>
+#include <math/transform.hpp>
+#include <mesh/mesh.hpp>
 
 std::optional<Raycast_Hit> intersect_ray_triangle(Ray ray, Vector3 a, Vector3 b, Vector3 c) {
     Vector3 ao = ray.origin - a;
@@ -70,7 +70,7 @@ std::optional<Raycast_Hit> intersect_ray_obb(Ray ray, OBB obb) {
 bool test_ray_mesh(Ray ray, Mesh const& mesh) {
     auto& verts = mesh.vertices;
     // TODO size_t if I ever define it
-    for (uint64_t i = 0; i < mesh.indices.size(); i += 3) {
+    for (int64_t i = 0; i < mesh.indices.size(); i += 3) {
         if (intersect_ray_triangle(ray, verts[mesh.indices[i]].position, verts[mesh.indices[i + 1]].position, verts[mesh.indices[i + 2]].position)) {
             return true;
         }
@@ -84,7 +84,7 @@ std::optional<Raycast_Hit> intersect_ray_mesh(Ray ray, Mesh const& mesh, Matrix4
     closest_hit.distance = math::constants<float>::infinity;
     auto& verts = mesh.vertices;
     // TODO size_t if I ever define it
-    for (uint64_t i = 0; i < mesh.indices.size(); i += 3) {
+    for (int64_t i = 0; i < mesh.indices.size(); i += 3) {
         Vector4 vert1 = Vector4(verts[mesh.indices[i]].position, 1) * model_transform;
         Vector4 vert2 = Vector4(verts[mesh.indices[i + 1]].position, 1) * model_transform;
         Vector4 vert3 = Vector4(verts[mesh.indices[i + 2]].position, 1) * model_transform;

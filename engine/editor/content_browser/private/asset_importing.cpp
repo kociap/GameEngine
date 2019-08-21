@@ -1,7 +1,7 @@
 #include <asset_importing.hpp>
 
+#include <anton_stl/vector.hpp>
 #include <assets_internal.hpp>
-#include <containers/vector.hpp>
 #include <debug_macros.hpp>
 #include <importers/image.hpp>
 #include <importers/mesh.hpp>
@@ -10,8 +10,8 @@
 #include <importers/tga.hpp>
 #include <opengl.hpp>
 #include <opengl_enums_defs.hpp>
-#include <utils/filesystem.hpp>
 #include <paths.hpp>
+#include <utils/filesystem.hpp>
 
 #include <cstdint>
 #include <stdexcept>
@@ -65,8 +65,8 @@ namespace asset_importing {
                 format = opengl::Format::rgba;
                 internal_format = Internal_Format::rgba16;
                 break;
-            default:
-                throw std::runtime_error("Unsupported png pixel format");
+                //default:
+                //    throw std::runtime_error("Unsupported png pixel format");
         }
 
         return {format, internal_format, swizzle_mask};
@@ -83,8 +83,8 @@ namespace asset_importing {
         texture_header.swizzle_mask = texture_format.swizzle_mask;
         texture_header.type = utils::enum_to_value(opengl::Type::unsigned_byte);
         texture_header.filter = utils::enum_to_value(opengl::Texture_Filter::nearest_mipmap_nearest);
-        uint64_t const image_bytes = image.data.size();
-        uint64_t const texture_chunk_size = sizeof(assets::Texture_Header) + 8 + image_bytes;
+        int64_t const image_bytes = image.data.size();
+        int64_t const texture_chunk_size = static_cast<int64_t>(sizeof(assets::Texture_Header)) + 8 + image_bytes;
 
         std::filesystem::path const out_file_path = utils::concat_paths(output_directory, file_original_path.stem().generic_string() + ".getex");
         std::ofstream file(out_file_path, std::ios::binary | std::ios::trunc);
@@ -101,7 +101,7 @@ namespace asset_importing {
         // TODO support files with multiple images
         // TODO generate mipmaps and save them to the file (if asked to do so)
 
-        containers::Vector<uint8_t> const file = utils::read_file_binary(path);
+        anton_stl::Vector<uint8_t> const file = utils::read_file_binary(path);
         if (importers::test_png(file)) {
             importers::Image decoded_image = importers::import_png(file);
             write_texture(paths::assets_directory(), path, decoded_image);
@@ -115,7 +115,7 @@ namespace asset_importing {
         }
 
         // if (importers::test_obj(file)) {
-        //     containers::Vector<importers::Mesh> meshes = importers::import_obj(file);
+        //     anton_stl::Vector<importers::Mesh> meshes = importers::import_obj(file);
         //     write_meshes();
         // }
 

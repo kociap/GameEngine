@@ -24,8 +24,7 @@ public:
 Vector3 get_camera_top(Transform&);
 Vector3 get_camera_front(Transform&);
 Matrix4 get_camera_view_matrix(Transform&);
-Matrix4 get_camera_projection_matrix(Camera&, uint32_t viewport_width, uint32_t viewport_height);
-Vector3 screen_to_world_point(Matrix4 inv_view, Matrix4 inv_projection, uint32_t screen_width, uint32_t screen_height, Vector2 point);
+Matrix4 get_camera_projection_matrix(Camera&, int32_t viewport_width, int32_t viewport_height);
 
 DEFAULT_SERIALIZABLE(Camera);
 DEFAULT_DESERIALIZABLE(Camera);

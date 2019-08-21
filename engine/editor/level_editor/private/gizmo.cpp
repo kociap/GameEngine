@@ -1,18 +1,18 @@
-#include "gizmo.hpp"
+#include <gizmo.hpp>
 
-#include "assets.hpp"
-#include "containers/vector.hpp"
-#include "debug_macros.hpp"
-#include "gizmo_internal.hpp"
-#include "glad/glad.h"
-#include "math/math.hpp"
-#include "math/quaternion.hpp"
-#include "math/transform.hpp"
-#include "opengl.hpp"
-#include "shader.hpp"
-#include "shader_file.hpp"
-#include "time.hpp"
-#include "utility.hpp"
+#include <anton_stl/utility.hpp>
+#include <anton_stl/vector.hpp>
+#include <assets.hpp>
+#include <debug_macros.hpp>
+#include <gizmo_internal.hpp>
+#include <glad.hpp>
+#include <math/math.hpp>
+#include <math/quaternion.hpp>
+#include <math/transform.hpp>
+#include <opengl.hpp>
+#include <shader.hpp>
+#include <shader_file.hpp>
+#include <time.hpp>
 
 void swap(gizmo::Vertex& a, gizmo::Vertex& b) {
     swap(a.position, b.position);
@@ -37,20 +37,20 @@ namespace gizmo {
         bool depth_test;
     };
 
-    static containers::Vector<Point_Draw_Data> point_draw_data;
-    static containers::Vector<Vertex> line_vertices;
-    static containers::Vector<containers::Vector<Vertex>> line_strips;
-    static containers::Vector<containers::Vector<Vertex>> line_loops;
-    static containers::Vector<Vertex> triangles;
-    static containers::Vector<containers::Vector<Vertex>> triangle_strips;
-    static containers::Vector<containers::Vector<Vertex>> triangle_fans;
-    static containers::Vector<Render_State> point_render_state;
-    static containers::Vector<Line_Render_State> line_render_state;
-    static containers::Vector<Line_Render_State> line_strips_render_state;
-    static containers::Vector<Line_Render_State> line_loops_render_state;
-    static containers::Vector<Render_State> triangles_render_state;
-    static containers::Vector<Render_State> triangle_strips_render_state;
-    static containers::Vector<Render_State> triangle_fans_render_state;
+    static anton_stl::Vector<Point_Draw_Data> point_draw_data;
+    static anton_stl::Vector<Vertex> line_vertices;
+    static anton_stl::Vector<anton_stl::Vector<Vertex>> line_strips;
+    static anton_stl::Vector<anton_stl::Vector<Vertex>> line_loops;
+    static anton_stl::Vector<Vertex> triangles;
+    static anton_stl::Vector<anton_stl::Vector<Vertex>> triangle_strips;
+    static anton_stl::Vector<anton_stl::Vector<Vertex>> triangle_fans;
+    static anton_stl::Vector<Render_State> point_render_state;
+    static anton_stl::Vector<Line_Render_State> line_render_state;
+    static anton_stl::Vector<Line_Render_State> line_strips_render_state;
+    static anton_stl::Vector<Line_Render_State> line_loops_render_state;
+    static anton_stl::Vector<Render_State> triangles_render_state;
+    static anton_stl::Vector<Render_State> triangle_strips_render_state;
+    static anton_stl::Vector<Render_State> triangle_fans_render_state;
     static uint32_t vertex_vao = 0;
     static uint32_t points_vao = 0;
     static uint32_t vertex_vbo = 0;
@@ -71,7 +71,7 @@ namespace gizmo {
         line_render_state.push_back({t, width, depth_test});
     }
 
-    void draw_polyline(containers::Vector<Vertex> vertices, bool closed, float width, float t, bool depth_test) {
+    void draw_polyline(anton_stl::Vector<Vertex> vertices, bool closed, float width, float t, bool depth_test) {
         GE_assert(width > 0.0f, "Line width may not be less than or equal 0");
         if (closed) {
             line_loops.push_back(std::move(vertices));
@@ -90,8 +90,8 @@ namespace gizmo {
     }
 
     void draw_cone(Vector3 position, Vector3 normal, float base_radius, uint32_t base_point_count, float height, Color color, float t, bool depth_test) {
-        containers::Vector<Vertex> base_vertices(base_point_count);
-        containers::Vector<Vertex> cone_vertices(base_point_count + 1);
+        anton_stl::Vector<Vertex> base_vertices(base_point_count);
+        anton_stl::Vector<Vertex> cone_vertices(base_point_count + 1);
         float angle = math::radians(360.0f / static_cast<float>(base_point_count));
         Vector3 rotation_axis = normal * math::sin(angle / 2.0f);
         Quaternion rotation_quat(rotation_axis.x, rotation_axis.y, rotation_axis.z, math::cos(angle / 2.0f));
@@ -119,7 +119,7 @@ namespace gizmo {
         Vector3 half_y = up * size * 0.5f;
         Vector3 half_z = forward * size * 0.5f;
 
-        containers::Vector<Vertex> vertices(14);
+        anton_stl::Vector<Vertex> vertices(14);
         vertices[0] = {position - half_x - half_z - half_y, color};
         vertices[1] = {position + half_x - half_z - half_y, color};
         vertices[2] = {position - half_x + half_z - half_y, color};
@@ -139,12 +139,12 @@ namespace gizmo {
         triangle_strips_render_state.push_back({t, depth_test});
     }
 
-    void draw_polygon(containers::Vector<Vertex> /* vertices */, float /* time */, bool /* depth_test */) {}
+    void draw_polygon(anton_stl::Vector<Vertex> /* vertices */, float /* time */, bool /* depth_test */) {}
 
     void draw_circle(Vector3 position, Vector3 normal, float radius, Color color, uint32_t point_count, float line_width, float t, bool depth_test) {
         GE_assert(line_width > 0.0f, "Line width may not be less than or equal 0");
 
-        containers::Vector<Vertex> vertices(point_count);
+        anton_stl::Vector<Vertex> vertices(point_count);
         float angle = math::radians(360.0f / static_cast<float>(point_count));
         Vector3 rotation_axis = normal * math::sin(angle / 2.0f);
         Quaternion rotation_quat(rotation_axis.x, rotation_axis.y, rotation_axis.z, math::cos(angle / 2.0f));
@@ -164,7 +164,7 @@ namespace gizmo {
     }
 
     void draw_circle_filled(Vector3 position, Vector3 normal, float radius, Color color, uint32_t point_count, float t, bool depth_test) {
-        containers::Vector<Vertex> vertices(point_count);
+        anton_stl::Vector<Vertex> vertices(point_count);
         float angle = math::radians(360.0f / static_cast<float>(point_count));
         Vector3 rotation_axis = normal * math::sin(angle / 2.0f);
         Quaternion rotation_quat(rotation_axis.x, rotation_axis.y, rotation_axis.z, math::cos(angle / 2.0f));
@@ -257,7 +257,7 @@ namespace gizmo {
 
     void update() {
         float delta_time = timingf::get_unscaled_delta_time();
-        for (containers::Vector<float>::size_type i = 0; i < line_render_state.size(); ++i) {
+        for (anton_stl::Vector<float>::size_type i = 0; i < line_render_state.size(); ++i) {
             if (line_render_state[i].lifetime <= 0) {
                 line_render_state.erase_unsorted_unchecked(i);
                 // Erase in this particular order to preserve order of other vertices
@@ -269,7 +269,7 @@ namespace gizmo {
             }
         }
 
-        for (containers::Vector<float>::size_type i = 0; i < line_loops.size(); ++i) {
+        for (anton_stl::Vector<float>::size_type i = 0; i < line_loops.size(); ++i) {
             if (line_loops_render_state[i].lifetime <= 0) {
                 line_loops_render_state.erase_unsorted_unchecked(i);
                 line_loops.erase_unsorted_unchecked(i);
@@ -279,7 +279,7 @@ namespace gizmo {
             }
         }
 
-        for (containers::Vector<float>::size_type i = 0; i < point_render_state.size(); ++i) {
+        for (anton_stl::Vector<float>::size_type i = 0; i < point_render_state.size(); ++i) {
             if (point_render_state[i].lifetime <= 0) {
                 point_render_state.erase_unsorted_unchecked(i);
                 point_draw_data.erase_unsorted_unchecked(i);
@@ -289,7 +289,7 @@ namespace gizmo {
             }
         }
 
-        for (containers::Vector<float>::size_type i = 0; i < triangle_strips.size(); ++i) {
+        for (anton_stl::Vector<float>::size_type i = 0; i < triangle_strips.size(); ++i) {
             if (triangle_strips_render_state[i].lifetime <= 0) {
                 triangle_strips_render_state.erase_unsorted_unchecked(i);
                 triangle_strips.erase_unsorted_unchecked(i);
@@ -299,7 +299,7 @@ namespace gizmo {
             }
         }
 
-        for (containers::Vector<float>::size_type i = 0; i < triangle_fans.size(); ++i) {
+        for (anton_stl::Vector<float>::size_type i = 0; i < triangle_fans.size(); ++i) {
             if (triangle_fans_render_state[i].lifetime <= 0) {
                 triangle_fans_render_state.erase_unsorted_unchecked(i);
                 triangle_fans.erase_unsorted_unchecked(i);
@@ -325,8 +325,8 @@ namespace gizmo {
                 Matrix4 mat;
                 Color color;
             };
-            containers::Vector<Quad_Instance_Data> quad_instance_data(point_draw_data.size(), containers::reserve);
-            for (containers::Vector<Point_Draw_Data>::size_type i = 0; i < point_draw_data.size(); ++i) {
+            anton_stl::Vector<Quad_Instance_Data> quad_instance_data(anton_stl::reserve, point_draw_data.size());
+            for (anton_stl::Vector<Point_Draw_Data>::size_type i = 0; i < point_draw_data.size(); ++i) {
                 Point_Draw_Data pdd = point_draw_data[i];
                 Vector3 direction = math::normalize(camera_position - pdd.origin);
                 Vector3 camera_up = {view(0, 1), view(1, 1), view(2, 1)};
@@ -335,11 +335,11 @@ namespace gizmo {
                 quad_instance_data.emplace_back(mv_mat, pdd.color);
             }
             opengl::bind_buffer(opengl::Buffer_Type::array_buffer, instanced_points_vbo);
-            opengl::buffer_data(opengl::Buffer_Type::array_buffer, quad_instance_data.size() * sizeof(Quad_Instance_Data), quad_instance_data.data(),
-                                GL_STREAM_DRAW);
+            opengl::buffer_data(opengl::Buffer_Type::array_buffer, quad_instance_data.size() * static_cast<anton_stl::ssize_t>(sizeof(Quad_Instance_Data)),
+                                quad_instance_data.data(), GL_STREAM_DRAW);
             opengl::bind_vertex_array(points_vao);
             // count is 6 since we are rendering a quad (2x triangle)
-            glDrawArraysInstanced(GL_TRIANGLES, 0, 6, point_draw_data.size());
+            glDrawArraysInstanced(GL_TRIANGLES, 0, 6, static_cast<int32_t>(point_draw_data.size()));
         }
 
         glDisable(GL_CULL_FACE);
@@ -353,10 +353,11 @@ namespace gizmo {
         }
 
         if (line_vertices.size() > 0) {
-            uint64_t depth_enabled_end = 0;
-            for (uint64_t k = 0; k < line_render_state.size(); ++k) {
+            anton_stl::ssize_t depth_enabled_end = 0;
+            for (anton_stl::ssize_t k = 0; k < line_render_state.size(); ++k) {
                 if (line_render_state[k].depth_test) {
                     if (k != depth_enabled_end) {
+                        using anton_stl::swap;
                         swap(line_render_state[k], line_render_state[depth_enabled_end]);
                         swap(line_vertices[2 * k + 1], line_vertices[2 * depth_enabled_end + 1]);
                         swap(line_vertices[2 * k], line_vertices[2 * depth_enabled_end]);
@@ -364,15 +365,16 @@ namespace gizmo {
                     ++depth_enabled_end;
                 }
             }
-            opengl::buffer_data(opengl::Buffer_Type::array_buffer, line_vertices.size() * sizeof(Vertex), line_vertices.data(), GL_STREAM_DRAW);
+            opengl::buffer_data(opengl::Buffer_Type::array_buffer, line_vertices.size() * static_cast<anton_stl::ssize_t>(sizeof(Vertex)), line_vertices.data(),
+                                GL_STREAM_DRAW);
             // Autistic screeching
             glEnable(GL_DEPTH_TEST);
-            for (uint64_t i = 0; i < depth_enabled_end; ++i) {
+            for (anton_stl::ssize_t i = 0; i < depth_enabled_end; ++i) {
                 glLineWidth(line_render_state[i].width);
-                opengl::draw_arrays(GL_LINES, 2 * i, 2);
+                opengl::draw_arrays(GL_LINES, static_cast<int32_t>(2 * i), 2);
             }
             glDisable(GL_DEPTH_TEST);
-            for (uint64_t i = depth_enabled_end; i < line_render_state.size(); ++i) {
+            for (anton_stl::ssize_t i = depth_enabled_end; i < line_render_state.size(); ++i) {
                 glLineWidth(line_render_state[i].width);
                 opengl::draw_arrays(GL_LINES, 2 * i, 2);
             }
@@ -380,7 +382,7 @@ namespace gizmo {
 
         if (line_loops.size() > 0) {
             // More autistic screeching
-            for (uint64_t i = 0; i < line_loops.size(); ++i) {
+            for (anton_stl::ssize_t i = 0; i < line_loops.size(); ++i) {
                 if (line_loops_render_state[i].depth_test) {
                     glEnable(GL_DEPTH_TEST);
                 } else {
@@ -388,39 +390,43 @@ namespace gizmo {
                 }
 
                 glLineWidth(line_loops_render_state[i].width);
-                opengl::buffer_data(opengl::Buffer_Type::array_buffer, line_loops[i].size() * sizeof(Vertex), line_loops[i].data(), GL_STREAM_DRAW);
+                opengl::buffer_data(opengl::Buffer_Type::array_buffer, line_loops[i].size() * static_cast<anton_stl::ssize_t>(sizeof(Vertex)),
+                                    line_loops[i].data(), GL_STREAM_DRAW);
                 opengl::draw_arrays(GL_LINE_LOOP, 0, line_loops[i].size());
             }
         }
 
         if (triangles.size() > 0) {
-            opengl::buffer_data(opengl::Buffer_Type::array_buffer, triangles.size() * sizeof(Vertex), triangles.data(), GL_STREAM_DRAW);
+            opengl::buffer_data(opengl::Buffer_Type::array_buffer, triangles.size() * static_cast<anton_stl::ssize_t>(sizeof(Vertex)), triangles.data(),
+                                GL_STREAM_DRAW);
             opengl::draw_arrays(GL_TRIANGLES, 0, triangles.size());
         }
 
         if (triangle_strips.size() > 0) {
             // Autistic screeching intensifies beyond intensity
-            for (uint64_t i = 0; i < triangle_strips.size(); ++i) {
+            for (anton_stl::ssize_t i = 0; i < triangle_strips.size(); ++i) {
                 if (triangle_strips_render_state[i].depth_test) {
                     glEnable(GL_DEPTH_TEST);
                 } else {
                     glDisable(GL_DEPTH_TEST);
                 }
 
-                opengl::buffer_data(opengl::Buffer_Type::array_buffer, triangle_strips[i].size() * sizeof(Vertex), triangle_strips[i].data(), GL_STREAM_DRAW);
+                opengl::buffer_data(opengl::Buffer_Type::array_buffer, triangle_strips[i].size() * static_cast<anton_stl::ssize_t>(sizeof(Vertex)),
+                                    triangle_strips[i].data(), GL_STREAM_DRAW);
                 opengl::draw_arrays(GL_TRIANGLE_STRIP, 0, triangle_strips[i].size());
             }
         }
 
         if (triangle_fans.size() > 0) {
-            for (uint64_t i = 0; i < triangle_fans.size(); ++i) {
+            for (anton_stl::ssize_t i = 0; i < triangle_fans.size(); ++i) {
                 if (triangle_fans_render_state[i].depth_test) {
                     glEnable(GL_DEPTH_TEST);
                 } else {
                     glDisable(GL_DEPTH_TEST);
                 }
 
-                opengl::buffer_data(opengl::Buffer_Type::array_buffer, triangle_fans[i].size() * sizeof(Vertex), triangle_fans[i].data(), GL_STREAM_DRAW);
+                opengl::buffer_data(opengl::Buffer_Type::array_buffer, triangle_fans[i].size() * static_cast<anton_stl::ssize_t>(sizeof(Vertex)),
+                                    triangle_fans[i].data(), GL_STREAM_DRAW);
                 opengl::draw_arrays(GL_TRIANGLE_FAN, 0, triangle_fans[i].size());
             }
         }

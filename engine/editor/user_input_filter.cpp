@@ -6,10 +6,12 @@
 #include <input/input_core.hpp>
 #include <key.hpp>
 
+ANTON_DISABLE_WARNINGS()
 #include <QEvent>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QWheelEvent>
+ANTON_RESTORE_WARNINGS()
 
 User_Input_Filter::User_Input_Filter(int32_t const initial_x, int32_t const initial_y): last_cursor_pos_x(initial_x), last_cursor_pos_y(initial_y) {}
 

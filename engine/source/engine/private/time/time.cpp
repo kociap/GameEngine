@@ -7,10 +7,10 @@ namespace time_core {
     // The number of frames since the start of the game
     static uint64_t frame_count = 0;
     // The time it took to complete the previous frame
-    static double delta_time = 0.016667f;
+    static double delta_time = 0.01666666;
     // Scale independent time it took to complete the previous frame
-    static double unscaled_delta_time = 0.016667f;
-    static double time_scale = 1.0f;
+    static double unscaled_delta_time = 0.01666666;
+    static double time_scale = 1.0;
     // The time at the beginning of the current frame
     static double frame_time = 0;
     // The time at the beginning of the previous frame

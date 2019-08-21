@@ -1,8 +1,8 @@
 #ifndef ENGINE_INPUT_INPUT_HPP_INCLUDE
 #define ENGINE_INPUT_INPUT_HPP_INCLUDE
 
-#include "input/key_state.hpp"
-#include "key.hpp"
+#include <input/key_state.hpp>
+#include <key.hpp>
 #include <string>
 
 namespace Input {

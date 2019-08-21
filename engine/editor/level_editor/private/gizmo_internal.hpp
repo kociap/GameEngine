@@ -1,8 +1,8 @@
 #ifndef EDITOR_LEVEL_EDITOR_GIZMO_INTERNAL_HPP_INCLUDE
 #define EDITOR_LEVEL_EDITOR_GIZMO_INTERNAL_HPP_INCLUDE
 
-#include "math/matrix4.hpp"
-#include "math/vector3.hpp"
+#include <math/matrix4.hpp>
+#include <math/vector3.hpp>
 
 namespace gizmo {
     void init();

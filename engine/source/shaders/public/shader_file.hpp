@@ -1,7 +1,7 @@
 #ifndef SHADERS_SHADER_FILE_HPP_INCLUDE
 #define SHADERS_SHADER_FILE_HPP_INCLUDE
 
-#include "opengl.hpp"
+#include <opengl.hpp>
 
 #include <cstdint>
 #include <string>

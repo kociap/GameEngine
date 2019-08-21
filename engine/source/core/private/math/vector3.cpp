@@ -1,11 +1,10 @@
-#include "math/vector3.hpp"
+#include <math/vector3.hpp>
 
-#include "math/vector2.hpp"
-#include "math/vector4.hpp"
-
-#include "math/math.hpp"
+#include <anton_stl/utility.hpp>
 #include <cmath>
-#include <utility>
+#include <math/math.hpp>
+#include <math/vector2.hpp>
+#include <math/vector4.hpp>
 
 Vector3 const Vector3::zero = Vector3(0, 0, 0);
 Vector3 const Vector3::one = Vector3(1, 1, 1);
@@ -161,9 +160,9 @@ bool operator!=(Vector3 a, Vector3 b) {
 }
 
 void swap(Vector3& a, Vector3& b) {
-    std::swap(a.x, b.x);
-    std::swap(a.y, b.y);
-    std::swap(a.z, b.z);
+    anton_stl::swap(a.x, b.x);
+    anton_stl::swap(a.y, b.y);
+    anton_stl::swap(a.z, b.z);
 }
 
 namespace math {

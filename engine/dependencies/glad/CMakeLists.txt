@@ -6,6 +6,7 @@ target_sources(${PROJECT_NAME}
     PRIVATE
    "${CMAKE_CURRENT_SOURCE_DIR}/src/glad.c"
    "${CMAKE_CURRENT_SOURCE_DIR}/include/glad/glad.h"
+   "${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/khrplatform.h"
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")

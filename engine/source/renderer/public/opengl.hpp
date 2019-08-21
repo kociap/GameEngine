@@ -1,15 +1,15 @@
 #ifndef RENDERER_OPENGL_HPP_INCLUDE
 #define RENDERER_OPENGL_HPP_INCLUDE
 
-#include "color.hpp"
-#include "opengl_enums_defs.hpp"
-#include "utils/enum.hpp"
+#include <color.hpp>
 #include <cstdint>
+#include <opengl_enums_defs.hpp>
+#include <utils/enum.hpp>
 
 namespace opengl {
     // Uses unsigned normalized type.
-    // Size of the obtained texture is driver dependent
-    enum class Base_Internal_Format {
+    // Size of the obtained texture is driver dependent.
+    enum class Base_Internal_Format: uint32_t {
         depth_component = GL_DEPTH_COMPONENT,
         depth_stencil = GL_DEPTH_STENCIL,
         stencil_index = GL_STENCIL_INDEX,
@@ -19,7 +19,7 @@ namespace opengl {
         rgba = GL_RGBA,
     };
 
-    enum class Sized_Internal_Format {
+    enum class Sized_Internal_Format: uint32_t {
         // unsigned normalized
         r8 = GL_R8,
         r16 = GL_R16,
@@ -89,11 +89,11 @@ namespace opengl {
         stencil_index16 = GL_STENCIL_INDEX16, // Not required
     };
 
-    enum class Compressed_Internal_Format {
+    enum class Compressed_Internal_Format: uint32_t {
         // TODO compressed
     };
 
-    enum class Format {
+    enum class Format: uint32_t {
         stencil_index = GL_STENCIL_INDEX,
         depth_component = GL_DEPTH_COMPONENT,
         depth_stencil = GL_DEPTH_STENCIL,
@@ -115,7 +115,7 @@ namespace opengl {
         bgra_integer = GL_BGRA_INTEGER,
     };
 
-    enum class Type {
+    enum class Type: uint32_t {
         unsigned_byte = GL_UNSIGNED_BYTE,
         signed_byte = GL_BYTE,
         unsigned_short = GL_UNSIGNED_SHORT,
@@ -126,20 +126,20 @@ namespace opengl {
         signed_float = GL_FLOAT,
     };
 
-    enum class Attachment {
+    enum class Attachment: uint32_t {
         color_attachment_0 = GL_COLOR_ATTACHMENT0,
         depth_attachment = GL_DEPTH_ATTACHMENT,
         depth_stencil_attachment = GL_DEPTH_STENCIL_ATTACHMENT,
         stencil_attachment = GL_STENCIL_ATTACHMENT,
     };
 
-    enum class Buffer_Mask {
+    enum class Buffer_Mask: uint32_t {
         color_buffer_bit = GL_COLOR_BUFFER_BIT,
         depth_buffer_bit = GL_DEPTH_BUFFER_BIT,
         stencil_buffer_bit = GL_STENCIL_BUFFER_BIT,
     };
 
-    enum class Buffer_Type {
+    enum class Buffer_Type: uint32_t {
         array_buffer = GL_ARRAY_BUFFER,
         atomic_counter_buffer = GL_ATOMIC_COUNTER_BUFFER,
         copy_read_buffer = GL_COPY_READ_BUFFER,
@@ -155,7 +155,7 @@ namespace opengl {
         uniform_buffer = GL_UNIFORM_BUFFER,
     };
 
-    enum class Shader_Type {
+    enum class Shader_Type: uint32_t {
         vertex_shader = GL_VERTEX_SHADER,
         fragment_shader = GL_FRAGMENT_SHADER,
         geometry_shader = GL_GEOMETRY_SHADER,
@@ -164,7 +164,7 @@ namespace opengl {
         compute_shader = GL_COMPUTE_SHADER,
     };
 
-    enum class Texture_Type {
+    enum class Texture_Type: uint32_t {
         texture_1D = GL_TEXTURE_1D,
         texture_2D = GL_TEXTURE_2D,
         texture_3D = GL_TEXTURE_3D,
@@ -178,7 +178,7 @@ namespace opengl {
         texture_2D_multisample_array = GL_TEXTURE_2D_MULTISAMPLE_ARRAY,
     };
 
-    enum class Texture_Filter {
+    enum class Texture_Filter: uint32_t {
         nearest = GL_NEAREST,
         linear = GL_LINEAR,
         nearest_mipmap_nearest = GL_NEAREST_MIPMAP_NEAREST,
@@ -192,10 +192,10 @@ namespace opengl {
     // Minimum number of framebuffer color attachments
     constexpr uint32_t min_color_attachments = 8;
 
-    uint32_t get_max_combined_texture_units();
-    uint32_t get_max_renderbuffer_size();
-    uint32_t get_max_color_attachments();
-    uint32_t get_max_draw_buffers();
+    int32_t get_max_combined_texture_units();
+    int32_t get_max_renderbuffer_size();
+    int32_t get_max_color_attachments();
+    int32_t get_max_draw_buffers();
 
     void active_texture(uint32_t index);
     void bind_buffer(Buffer_Type, uint32_t handle);
@@ -203,41 +203,45 @@ namespace opengl {
     void bind_renderbuffer(uint32_t handle);
     void bind_texture(Texture_Type texture, uint32_t handle);
     void bind_vertex_array(uint32_t handle);
-    void blit_framebuffer(uint32_t src_x0, uint32_t src_y0, uint32_t src_x1, uint32_t src_y1, uint32_t dst_x0, uint32_t dst_y0, uint32_t dst_x1,
-                          uint32_t dst_y1, Buffer_Mask, uint32_t filter);
+    void blit_framebuffer(int32_t src_x0, int32_t src_y0, int32_t src_x1, int32_t src_y1, int32_t dst_x0, int32_t dst_y0, int32_t dst_x1,
+                          int32_t dst_y1, Buffer_Mask, uint32_t filter);
     // Size in bytes
-    void buffer_data(Buffer_Type target, uint64_t size, void* data, uint32_t usage);
+    void buffer_data(Buffer_Type target, int64_t size, void* data, uint32_t usage);
     void clear(Buffer_Mask buffers);
     void clear_color(Color);
     void clear_color(float red, float green, float blue, float alpha);
     uint32_t create_shader(Shader_Type);
     void delete_program(uint32_t program);
     void delete_shader(uint32_t shader);
-    void draw_arrays(uint32_t mode, uint64_t first, uint64_t count);
-    void draw_elements(uint32_t mode, uint32_t count, uint64_t offset = 0);
-    void draw_elements_instanced(uint32_t mode, uint32_t indices_count, uint32_t instances);
+    void draw_arrays(uint32_t mode, int32_t first, int32_t count);
+    // offset specifies the offset from the beginning of the enabled index array
+    void draw_elements(uint32_t mode, int32_t count, int64_t offset = 0);
+    // offset specifies the offset from the beginning of the enabled index array
+    void draw_elements_instanced(uint32_t mode, int32_t indices_count, int64_t offset, int32_t instances);
     void enable_vertex_array_attribute(uint32_t index);
     void framebuffer_renderbuffer(uint32_t target, Attachment, uint32_t renderbuffer);
     void framebuffer_texture_2D(uint32_t target, Attachment, uint32_t tex_target, uint32_t texture, int32_t level);
     void generate_mipmap(uint32_t target);
-    void gen_buffers(uint32_t count, uint32_t* buffers);
-    void gen_textures(uint32_t count, uint32_t* textures);
-    void gen_renderbuffers(uint32_t count, uint32_t* renderbuffers);
-    void gen_vertex_arrays(uint32_t count, uint32_t* vertex_arrays);
+    // n is the number of buffer objects to be generated. May not be negative.
+    void gen_buffers(int32_t n, uint32_t* buffers);
+    void gen_textures(int32_t count, uint32_t* textures);
+    void gen_renderbuffers(int32_t count, uint32_t* renderbuffers);
+    void gen_vertex_arrays(int32_t count, uint32_t* vertex_arrays);
     // -1 may mean a uniform removed by optimizations
-    uint32_t get_uniform_location(uint32_t program, char const* name);
-    void renderbuffer_storage(uint32_t target, Sized_Internal_Format, uint32_t width, uint32_t height);
-    void renderbuffer_storage_multisample(uint32_t target, uint32_t samples, Sized_Internal_Format, uint32_t width, uint32_t height);
-    void shader_source(uint32_t shader, uint64_t count, char const** strings, int32_t const* lengths);
-    void tex_image_2D(uint32_t target, int32_t level, Base_Internal_Format, uint32_t width, uint32_t height, Format pixels_format, Type pixels_type,
+    int32_t get_uniform_location(uint32_t program, char const* name);
+    void renderbuffer_storage(uint32_t target, Sized_Internal_Format, int32_t width, int32_t height);
+    void renderbuffer_storage_multisample(uint32_t target, int32_t samples, Sized_Internal_Format, int32_t width, int32_t height);
+    void shader_source(uint32_t shader, int32_t count, char const** strings, int32_t const* lengths);
+    void tex_image_2D(uint32_t target, int32_t level, Base_Internal_Format, int32_t width, int32_t height, Format pixels_format, Type pixels_type,
                       void const* pixels);
-    void tex_image_2D(uint32_t target, int32_t level, Sized_Internal_Format, uint32_t width, uint32_t height, Format pixels_format, Type pixels_type,
+    void tex_image_2D(uint32_t target, int32_t level, Sized_Internal_Format, int32_t width, int32_t height, Format pixels_format, Type pixels_type,
                       void const* pixels);
-    void tex_image_2D_multisample(uint32_t target, uint32_t samples, Sized_Internal_Format, uint32_t width, uint32_t height,
+    void tex_image_2D_multisample(uint32_t target, int32_t samples, Sized_Internal_Format, int32_t width, int32_t height,
                                   bool fixed_sample_locations = true);
-    void vertex_array_attribute(uint32_t index, uint32_t count, uint32_t type, uint32_t stride, uint32_t offset, bool normalized = false);
+    void vertex_array_attribute(uint32_t index, int32_t size, uint32_t type, int32_t stride, int64_t offset, bool normalized = false);
     // Lower left corner of the viewport, its width and height
-    void viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+    // Both width and height may not be negative
+    void viewport(int32_t x, int32_t y, int32_t width, int32_t height);
 
     void load_functions();
     void load_constants();
@@ -258,5 +262,5 @@ struct utils::enable_enum_bitwise_and<opengl::Buffer_Mask> {
     static constexpr bool value = true;
 };
 
-#include "opengl_enums_undefs.hpp"
+#include <opengl_enums_undefs.hpp>
 #endif // !RENDERER_OPENGL_HPP_INCLUDE

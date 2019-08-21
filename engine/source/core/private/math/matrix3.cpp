@@ -1,5 +1,5 @@
-#include "math/matrix3.hpp"
-#include "utility.hpp"
+#include <anton_stl/utility.hpp>
+#include <math/matrix3.hpp>
 
 Matrix3 const Matrix3::zero = Matrix3();
 Matrix3 const Matrix3::identity = Matrix3({1, 0, 0}, {0, 1, 0}, {0, 0, 1});
@@ -44,9 +44,9 @@ Matrix3& Matrix3::operator/=(float num) {
 }
 
 Matrix3& Matrix3::transpose() {
-    swap((*this)(0, 1), (*this)(1, 0));
-    swap((*this)(0, 2), (*this)(2, 0));
-    swap((*this)(1, 2), (*this)(2, 1));
+    anton_stl::swap((*this)(0, 1), (*this)(1, 0));
+    anton_stl::swap((*this)(0, 2), (*this)(2, 0));
+    anton_stl::swap((*this)(1, 2), (*this)(2, 1));
     return *this;
 }
 

@@ -1,16 +1,15 @@
-#include "math/vector2.hpp"
+#include <math/vector2.hpp>
 
-#include "math/vector3.hpp"
-#include "math/vector4.hpp"
-
-#include "math/math.hpp"
+#include <anton_stl/utility.hpp>
 #include <cmath>
-#include <utility>
+#include <math/math.hpp>
+#include <math/vector3.hpp>
+#include <math/vector4.hpp>
 
-const Vector2 Vector2::zero = Vector2(0.0f, 0.0f);
-const Vector2 Vector2::one = Vector2(1.0f, 1.0f);
-const Vector2 Vector2::up = Vector2(0.0f, 1.0f);
-const Vector2 Vector2::right = Vector2(1.0f, 0.0f);
+Vector2 const Vector2::zero = Vector2(0.0f, 0.0f);
+Vector2 const Vector2::one = Vector2(1.0f, 1.0f);
+Vector2 const Vector2::up = Vector2(0.0f, 1.0f);
+Vector2 const Vector2::right = Vector2(1.0f, 0.0f);
 
 Vector2::Vector2(float x, float y): x(x), y(y) {}
 Vector2::Vector2(Vector3 const& vec): x(vec.x), y(vec.y) {}
@@ -152,8 +151,8 @@ bool operator!=(Vector2 a, Vector2 b) {
 }
 
 void swap(Vector2& a, Vector2& b) {
-    std::swap(a.x, b.x);
-    std::swap(a.y, b.y);
+    anton_stl::swap(a.x, b.x);
+    anton_stl::swap(a.y, b.y);
 }
 
 namespace math {

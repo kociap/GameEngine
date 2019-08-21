@@ -1,13 +1,17 @@
 #include <window.hpp>
 
+#include <diagnostic_macros.hpp>
+
 #define GLFW_INCLUDE_NONE
+ANTON_DISABLE_WARNINGS()
 #include <GLFW/glfw3.h>
+ANTON_RESTORE_WARNINGS()
 
 #include <build_config.hpp>
 #include <debug_macros.hpp>
 #include <engine.hpp>
 #include <framebuffer.hpp>
-#include <glad/glad.h>
+#include <glad.hpp>
 #include <input/input_core.hpp>
 #include <key.hpp>
 #include <renderer.hpp>
@@ -65,7 +69,7 @@ void scroll_callback(GLFWwindow* const, double const /* offset_x */, double cons
     input_manager.add_event({0.0f, 0.0f, static_cast<float>(offset_y)});
 }
 
-void keyboard_callback(GLFWwindow* const window, int const key, int const /* scancode */, int const action, int const /* mods */) {
+void keyboard_callback(GLFWwindow* const, int const key, int const /* scancode */, int const action, int const /* mods */) {
     static std::unordered_map<int32_t, Key> keyboard_button_map{
         {GLFW_KEY_A, Key::a},
         {GLFW_KEY_B, Key::b},

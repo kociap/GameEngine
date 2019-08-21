@@ -1,14 +1,14 @@
 #ifndef ENGINE_RESOURCE_MANAGER_HPP_INCLUDE
 #define ENGINE_RESOURCE_MANAGER_HPP_INCLUDE
 
-#include <containers/vector.hpp>
-#include <handle.hpp>
+#include <anton_stl/vector.hpp>
 #include <config.hpp>
+#include <handle.hpp>
 
 template <typename T>
 class Resource_Manager {
 public:
-    using iterator = typename containers::Vector<T>::iterator;
+    using iterator = typename anton_stl::Vector<T>::iterator;
 
     iterator begin();
     iterator end();
@@ -18,10 +18,10 @@ public:
     void remove(Handle<T>);
 
 private:
-    containers::Vector<T> resources;
-    containers::Vector<id_type> identifiers;
+    anton_stl::Vector<T> resources;
+    anton_stl::Vector<id_type> identifiers;
 };
 
-#include "resource_manager.tpp"
+#include <resource_manager.tpp>
 
 #endif // !ENGINE_RESOURCE_MANAGER_HPP_INCLUDE

@@ -1,6 +1,6 @@
-#include "debug_macros.hpp"
+#include <debug_macros.hpp>
 
-#include <glad/glad.h>
+#include <glad.hpp>
 #include <iostream>
 #include <string>
 
@@ -10,7 +10,8 @@ void _GE_log(std::string str) {
 
 void _GE_conditional_log(bool cond, std::string msg) {
     if (!cond) {
-		std::cout << msg << "\n";
+        std::cout << msg << "\n";
+        std::cout << msg << "\n";
     }
 }
 

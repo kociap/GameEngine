@@ -1,21 +1,21 @@
 #ifndef ENGINE_ECS_COMPONENT_CONTAINER_HPP_INCLUDE
 #define ENGINE_ECS_COMPONENT_CONTAINER_HPP_INCLUDE
 
-#include <containers/vector.hpp>
+#include <anton_stl/iterators.hpp>
+#include <anton_stl/vector.hpp>
 #include <debug_macros.hpp>
 #include <ecs/entity.hpp>
-#include <iterators.hpp>
 #include <serialization/archives/binary.hpp>
 
 #include <type_traits>
 
 class Component_Container_Base {
 public:
-    using size_type = uint64_t;
-    using pointer = containers::Vector<Entity>::pointer;
-    using const_pointer = containers::Vector<Entity>::const_pointer;
-    using iterator = containers::Vector<Entity>::iterator;
-    using const_iterator = containers::Vector<Entity>::const_iterator;
+    using size_type = anton_stl::Vector<Entity>::size_type;
+    using pointer = anton_stl::Vector<Entity>::pointer;
+    using const_pointer = anton_stl::Vector<Entity>::const_pointer;
+    using iterator = anton_stl::Vector<Entity>::iterator;
+    using const_iterator = anton_stl::Vector<Entity>::const_iterator;
 
 protected:
     constexpr static size_type npos = static_cast<size_type>(-1);
@@ -37,17 +37,17 @@ public:
 
 protected:
     void add_entity(Entity entity);
-    size_type get_index(Entity entity);
+    [[nodiscard]] size_type get_index(Entity entity);
     void remove_entity(Entity entity);
 
 private:
-    size_type indirect_index(Entity entity);
+    [[nodiscard]] size_type indirect_index(Entity entity);
     void ensure(size_type index);
 
 private:
     // Indices into entities vector
-    containers::Vector<size_type> indirect;
-    containers::Vector<Entity> entities;
+    anton_stl::Vector<size_type> indirect;
+    anton_stl::Vector<Entity> entities;
 };
 
 template <typename Component>
@@ -56,10 +56,10 @@ private:
     using base_t = Component_Container_Base;
 
     template <bool = std::is_empty_v<Component>>
-    class Iterator: public iterators::iterator<Component_Container<Component>> {
+    class Iterator: public anton_stl::iterator<Component_Container<Component>> {
         friend class Component_Container<Component>;
 
-        using base_type = iterators::iterator<Component_Container<Component>>;
+        using base_type = anton_stl::iterator<Component_Container<Component>>;
         Iterator(Component* p, size_type i): base_type(p + i) {}
     };
 
@@ -121,11 +121,11 @@ public:
     }
 
     [[nodiscard]] iterator begin() {
-        return {raw, 0};
+        return {raw(), 0};
     }
 
     [[nodiscard]] iterator end() {
-        return {raw, size()};
+        return {raw(), size()};
     }
 
     template <typename... Args>
@@ -167,9 +167,9 @@ public:
     }
 
 private:
-    std::conditional_t<std::is_empty_v<Component>, Component, containers::Vector<Component>> components;
+    std::conditional_t<std::is_empty_v<Component>, Component, anton_stl::Vector<Component>> components;
 };
 
-#include "component_container.tpp"
+#include <ecs/component_container.tpp>
 
 #endif // !ENGINE_ECS_COMPONENT_CONTAINER_HPP_INCLUDE

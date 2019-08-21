@@ -1,9 +1,9 @@
 #ifndef ENGINE_MESH_PLANE_HPP_INCLUDE
 #define ENGINE_MESH_PLANE_HPP_INCLUDE
 
-#include "mesh.hpp"
+#include <mesh/mesh.hpp>
 
-class Plane : public Mesh {
+class Plane: public Mesh {
 public:
     Plane();
 };

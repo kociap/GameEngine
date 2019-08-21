@@ -1,96 +1,95 @@
-#include "debug_macros.hpp"
-#include "math/math.hpp"
-#include "memory/memory.hpp"
-#include "memory/stack_allocate.hpp"
-#include "utility.hpp"
-
-namespace containers {
+namespace anton_stl {
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector() {
-        storage = allocator.allocate(_capacity);
+    inline Vector<T, Allocator>::Vector() {
+        storage = allocate(_capacity);
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(size_type const n): _capacity(n) {
-        storage = allocator.allocate(_capacity);
+    inline Vector<T, Allocator>::Vector(size_type const n) {
+        _capacity = math::max(_capacity, n);
+        storage = allocate(_capacity);
         try {
             memory::uninitialized_default_construct_n(storage, n);
             _size = n;
         } catch (...) {
-            allocator.deallocate(storage, _capacity);
+            deallocate(storage, _capacity);
             throw;
         }
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(size_type const n, reserve_t): _capacity(n) {
-        storage = allocator.allocate(_capacity);
+    inline Vector<T, Allocator>::Vector(anton_stl::Reserve_Tag, size_type const n): _capacity(n) {
+        storage = allocate(_capacity);
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(size_type n, value_type const& value): _capacity(n) {
-        storage = allocator.allocate(_capacity);
+    inline Vector<T, Allocator>::Vector(size_type n, value_type const& value) {
+        _capacity = math::max(_capacity, n);
+        storage = allocate(_capacity);
         try {
             memory::uninitialized_fill_n(storage, n, value);
             _size = n;
         } catch (...) {
-            allocator.deallocate(storage, _capacity);
+            deallocate(storage, _capacity);
             throw;
         }
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(Vector const& v): allocator(v.allocator), _capacity(v._capacity) {
-        storage = allocator.allocate(_capacity);
+    inline Vector<T, Allocator>::Vector(Vector const& v): allocator(v.allocator), _capacity(v._capacity) {
+        storage = allocate(_capacity);
         try {
             memory::uninitialized_copy_n(v.storage, v._size, storage);
             _size = v._size;
         } catch (...) {
-            allocator.deallocate(storage, _capacity);
+            deallocate(storage, _capacity);
             throw;
         }
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(Vector&& v) noexcept: allocator(std::move(v.allocator)), _capacity(v._capacity), _size(v._size), storage(v.storage) {
+    inline Vector<T, Allocator>::Vector(Vector&& v) noexcept: allocator(std::move(v.allocator)), _capacity(v._capacity), _size(v._size), storage(v.storage) {
         v.storage = nullptr;
         v._capacity = 0;
         v._size = 0;
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(std::initializer_list<T> list): _capacity(list.size()) {
-        storage = allocator.allocate(_capacity);
+    template <typename... Args>
+    inline Vector<T, Allocator>::Vector(Variadic_Construct_Tag, Args&&... args) {
+        _capacity = math::max(_capacity, static_cast<size_type>(sizeof...(Args)));
+        storage = allocate(_capacity);
         try {
-            memory::uninitialized_move(list.begin(), list.end(), storage);
-            _size = list.size();
+            memory::uninitialized_variadic_construct(storage, anton_stl::forward<Args>(args)...);
+            _size = static_cast<size_type>(sizeof...(Args));
         } catch (...) {
-            allocator.deallocate(storage, _capacity);
+            deallocate(storage, _capacity);
             throw;
         }
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::~Vector() {
+    inline Vector<T, Allocator>::~Vector() {
         if (storage != nullptr) {
             memory::destruct_n(storage, _size);
-            allocator.deallocate(storage, _capacity);
+            deallocate(storage, _capacity);
         }
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>& Vector<T, Allocator>::operator=(Vector const& v) {
+    inline Vector<T, Allocator>& Vector<T, Allocator>::operator=(Vector const& v) {
         static_assert(std::allocator_traits<Allocator>::propagate_on_container_copy_assignment::value, "Allocator is not copy assignable");
         allocator = v.allocator;
-        T* new_storage = allocator.allocate(v._capacity);
+        T* new_storage = allocate(v._capacity);
         try {
             memory::uninitialized_copy_n(v.storage, v._size, new_storage);
         } catch (...) {
-            allocator.deallocate(new_storage, v._capacity);
+            deallocate(new_storage, v._capacity);
             throw;
         }
         memory::destruct_n(storage, _size);
-        allocator.deallocate(storage, _capacity); // TODO assumes v.allocator == allocator is true
+        // Note: assumes v.allocator == allocator is true
+        deallocate(storage, _capacity);
         storage = new_storage;
         _size = v._size;
         _capacity = v._capacity;
@@ -98,144 +97,117 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>& Vector<T, Allocator>::operator=(Vector&& v) noexcept {
-        GE_assert(std::allocator_traits<Allocator>::propagate_on_container_swap::value || allocator == v.allocator, "Allocator not swappable");
+    inline Vector<T, Allocator>& Vector<T, Allocator>::operator=(Vector&& v) noexcept {
+        // Note: We ignore the fact that the allocator_traits<Allocator>::propagate_on_container_swap might be false
+        // or the allocators do not compare equal.
         swap(storage, v.storage);
-        swap(allocator, v.allocator); // TODO uses swap instead of move assignment
+        swap(allocator, v.allocator);
         swap(_capacity, v._capacity);
         swap(_size, v._size);
         return *this;
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::reference Vector<T, Allocator>::at(size_type index) {
-        if (index >= _size) {
-            throw std::out_of_range("index out of range");
-        }
-        return at_unchecked(index);
+    inline auto Vector<T, Allocator>::operator[](size_type index) -> reference {
+        return *get_ptr(index);
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::const_reference Vector<T, Allocator>::at(size_type index) const {
-        if (index >= _size) {
-            throw std::out_of_range("index out of range");
-        }
-        return at_unchecked(index);
+    inline auto Vector<T, Allocator>::operator[](size_type index) const -> const_reference {
+        return *get_ptr(index);
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::reference Vector<T, Allocator>::at_unchecked(size_type index) {
-        T* object = get_ptr(index);
-        return *object;
+    inline auto Vector<T, Allocator>::front() -> reference {
+        return *get_ptr(0);
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::const_reference Vector<T, Allocator>::at_unchecked(size_type index) const {
-        T* object = get_ptr(index);
-        return *object;
+    inline auto Vector<T, Allocator>::front() const -> const_reference {
+        return *get_ptr(0);
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::reference Vector<T, Allocator>::operator[](size_type index) {
-        return at_unchecked(index);
+    inline auto Vector<T, Allocator>::back() -> reference {
+        return *get_ptr(_size - 1);
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::const_reference Vector<T, Allocator>::operator[](size_type index) const {
-        return at_unchecked(index);
+    inline auto Vector<T, Allocator>::back() const -> const_reference {
+        return *get_ptr(_size - 1);
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::reference Vector<T, Allocator>::front() {
-        return at_unchecked(0);
-    }
-
-    template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::const_reference Vector<T, Allocator>::front() const {
-        return at_unchecked(0);
-    }
-
-    template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::reference Vector<T, Allocator>::back() {
-        return at_unchecked(_size - 1);
-    }
-
-    template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::const_reference Vector<T, Allocator>::back() const {
-        return at_unchecked(_size - 1);
-    }
-
-    template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::pointer Vector<T, Allocator>::data() {
+    inline auto Vector<T, Allocator>::data() -> pointer {
         return get_ptr();
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::const_pointer Vector<T, Allocator>::data() const {
+    inline auto Vector<T, Allocator>::data() const -> const_pointer {
         return get_ptr();
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::iterator Vector<T, Allocator>::begin() {
+    inline auto Vector<T, Allocator>::begin() -> iterator {
         return iterator(get_ptr());
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::iterator Vector<T, Allocator>::end() {
+    inline auto Vector<T, Allocator>::end() -> iterator {
         return iterator(get_ptr(_size));
     }
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::const_iterator Vector<T, Allocator>::begin() const {
+    inline auto Vector<T, Allocator>::begin() const -> const_iterator {
         return const_iterator(get_ptr());
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::const_iterator Vector<T, Allocator>::end() const {
+    inline auto Vector<T, Allocator>::end() const -> const_iterator {
         return const_iterator(get_ptr(_size));
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::const_iterator Vector<T, Allocator>::cbegin() const {
+    inline auto Vector<T, Allocator>::cbegin() const -> const_iterator {
         return const_iterator(get_ptr());
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::const_iterator Vector<T, Allocator>::cend() const {
+    inline auto Vector<T, Allocator>::cend() const -> const_iterator {
         return const_iterator(get_ptr(_size));
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::reverse_iterator Vector<T, Allocator>::rbegin() {
+    inline auto Vector<T, Allocator>::rbegin() -> reverse_iterator {
         return reverse_iterator(end());
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::reverse_iterator Vector<T, Allocator>::rend() {
+    inline auto Vector<T, Allocator>::rend() -> reverse_iterator {
         return reverse_iterator(begin());
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::const_reverse_iterator Vector<T, Allocator>::crbegin() const {
+    inline auto Vector<T, Allocator>::crbegin() const -> const_reverse_iterator {
         return const_reverse_iterator(cend());
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::const_reverse_iterator Vector<T, Allocator>::crend() const {
+    inline auto Vector<T, Allocator>::crend() const -> const_reverse_iterator {
         return const_reverse_iterator(cbegin());
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::size_type Vector<T, Allocator>::size() const {
+    inline auto Vector<T, Allocator>::size() const -> size_type {
         return _size;
     }
 
     template <typename T, typename Allocator>
-    typename Vector<T, Allocator>::size_type Vector<T, Allocator>::capacity() const {
+    inline auto Vector<T, Allocator>::capacity() const -> size_type {
         return _capacity;
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::resize(size_type n, value_type const& value) {
+    inline void Vector<T, Allocator>::resize(size_type n, value_type const& value) {
         if (n > _capacity) {
             grow(n); // TODO apply growing policy here?
         }
@@ -249,7 +221,7 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::resize(size_type n) {
+    inline void Vector<T, Allocator>::resize(size_type n) {
         if (n > _capacity) {
             grow(n); // TODO apply growing policy here?
         }
@@ -263,14 +235,14 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::reserve(size_type n) {
+    inline void Vector<T, Allocator>::reserve(size_type n) {
         if (n > _capacity) {
             grow(n);
         }
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::set_capacity(size_type n) {
+    inline void Vector<T, Allocator>::set_capacity(size_type n) {
         if (n > _capacity) { // Expected to happen more often
             grow(n);
         } else if (n < _capacity) {
@@ -279,7 +251,7 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::shrink_to_fit() {
+    inline void Vector<T, Allocator>::shrink_to_fit() {
         if (_size < _capacity) {
             shrink(_size);
         }
@@ -287,7 +259,7 @@ namespace containers {
 
     template <typename T, typename Allocator>
     template <typename Input_Iterator>
-    void Vector<T, Allocator>::assign(Input_Iterator first, Input_Iterator last) {
+    inline void Vector<T, Allocator>::assign(Input_Iterator first, Input_Iterator last) {
         iterator my_first = begin();
         for (iterator my_end = end(); my_first != my_end && first != last; ++my_first, ++first) {
             *my_first = *first;
@@ -297,10 +269,11 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::insert_unsorted(const_iterator position, value_type const& value) {
-        GE_assert(position.storage_ptr >= get_ptr() && position.storage_ptr <= get_ptr(_size), "Vector::insert invalid iterator");
+    inline void Vector<T, Allocator>::insert_unsorted(const_iterator position, value_type const& value) {
+        GE_assert(get_iterator_underlying_ptr(position) >= get_ptr() && get_iterator_underlying_ptr(position) <= get_ptr(_size),
+                  "Vector::insert invalid iterator");
 
-        size_type offset = position.storage_ptr - storage;
+        size_type offset = static_cast<size_type>(get_iterator_underlying_ptr(position) - storage);
         check_size();
         if (offset == _size) {
             attempt_construct(get_ptr(offset), value);
@@ -319,7 +292,7 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::push_back(value_type const& val) {
+    inline void Vector<T, Allocator>::push_back(value_type const& val) {
         check_size();
         T* elem_ptr = get_ptr(_size);
         attempt_construct(elem_ptr, val);
@@ -327,7 +300,7 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::push_back(value_type&& val) {
+    inline void Vector<T, Allocator>::push_back(value_type&& val) {
         check_size();
         T* elem_ptr = get_ptr(_size);
         attempt_construct(elem_ptr, std::move(val));
@@ -336,7 +309,7 @@ namespace containers {
 
     template <typename T, typename Allocator>
     template <typename... CtorArgs>
-    typename Vector<T, Allocator>::reference Vector<T, Allocator>::emplace_back(CtorArgs&&... args) {
+    inline auto Vector<T, Allocator>::emplace_back(CtorArgs&&... args) -> reference {
         check_size();
         T* elem_ptr = get_ptr(_size);
         attempt_construct(elem_ptr, std::forward<CtorArgs>(args)...);
@@ -345,7 +318,7 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::erase_unsorted(size_type index) {
+    inline void Vector<T, Allocator>::erase_unsorted(size_type index) {
         if (index > _size) {
             throw std::out_of_range("index out of range");
         }
@@ -354,7 +327,7 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::erase_unsorted_unchecked(size_type index) {
+    inline void Vector<T, Allocator>::erase_unsorted_unchecked(size_type index) {
         T* elem_ptr = get_ptr(index);
         T* last_elem_ptr = get_ptr(_size - 1);
         if (elem_ptr != last_elem_ptr) { // Prevent self move-assignment
@@ -365,31 +338,31 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::pop_back() {
+    inline void Vector<T, Allocator>::pop_back() {
         T* last_elem_ptr = get_ptr(_size - 1);
         memory::destruct(last_elem_ptr);
         --_size;
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::clear() {
+    inline void Vector<T, Allocator>::clear() {
         memory::destruct(get_ptr(), get_ptr(_size));
         _size = 0;
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::attempt_copy(T* from, T* to) {
+    inline void Vector<T, Allocator>::attempt_copy(T* from, T* to) {
         ::new (to) T(*from);
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::attempt_move(T* from, T* to) {
+    inline void Vector<T, Allocator>::attempt_move(T* from, T* to) {
         ::new (to) T(std::move(*from));
     }
 
     template <typename T, typename Allocator>
     template <typename... Ctor_Args>
-    void Vector<T, Allocator>::attempt_construct(T* in, Ctor_Args&&... args) {
+    inline void Vector<T, Allocator>::attempt_construct(T* in, Ctor_Args&&... args) {
         if constexpr (std::is_constructible_v<T, Ctor_Args&&...>) {
             ::new (in) T(std::forward<Ctor_Args>(args)...);
         } else {
@@ -398,12 +371,39 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    T* Vector<T, Allocator>::get_ptr(size_type index) const {
-        return storage + index;
+    inline T* Vector<T, Allocator>::get_ptr(size_type index) {
+        return std::launder(storage) + index;
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::move_contents(T* const& from, T* const& to, size_type number_of_elements_to_copy) {
+    inline T const* Vector<T, Allocator>::get_ptr(size_type index) const {
+        return std::launder(storage) + index;
+    }
+
+    template <typename T, typename Allocator>
+    inline T* Vector<T, Allocator>::get_iterator_underlying_ptr(iterator const& iter) {
+        return anton_stl::addressof(*iter);
+    }
+
+    // Exists to simplify changing the iterator type
+    template <typename T, typename Allocator>
+    inline T const* Vector<T, Allocator>::get_iterator_underlying_ptr(const_iterator const& iter) const {
+        return anton_stl::addressof(*iter);
+    }
+
+    template <typename T, typename Allocator>
+    inline T* Vector<T, Allocator>::allocate(size_type const size) {
+        void* mem = allocator.allocate(size * static_cast<anton_stl::ssize_t>(sizeof(T)), static_cast<anton_stl::ssize_t>(alignof(T)));
+        return static_cast<T*>(mem);
+    }
+
+    template <typename T, typename Allocator>
+    inline void Vector<T, Allocator>::deallocate(void* mem, size_type const size) {
+        allocator.deallocate(mem, size * static_cast<anton_stl::ssize_t>(sizeof(T)), static_cast<anton_stl::ssize_t>(alignof(T)));
+    }
+
+    template <typename T, typename Allocator>
+    inline void Vector<T, Allocator>::move_contents(T* const& from, T* const& to, size_type number_of_elements_to_copy) {
         // TODO
         if constexpr (std::is_nothrow_move_constructible_v<T> /* || !std::is_copy_constructible_v<T> */) {
             memory::uninitialized_move_n(from, number_of_elements_to_copy, to);
@@ -414,29 +414,29 @@ namespace containers {
 
     // TODO remove? is essentially shrink, but with less functionality
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::grow(size_type new_capacity) {
+    inline void Vector<T, Allocator>::grow(size_type new_capacity) {
         // Assumes new_capacity >= _capacity
-        T* new_storage = allocator.allocate(new_capacity);
+        T* new_storage = allocate(new_capacity);
         try {
             move_contents(storage, new_storage, _size);
         } catch (...) {
-            allocator.deallocate(new_storage, _capacity);
+            deallocate(new_storage, _capacity);
             throw;
         }
         swap(storage, new_storage);
         memory::destruct_n(new_storage, _size);
-        allocator.deallocate(new_storage, _capacity);
+        deallocate(new_storage, _capacity);
         _capacity = new_capacity;
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::shrink(size_type new_capacity) {
-        T* new_storage = allocator.allocate(new_capacity);
+    inline void Vector<T, Allocator>::shrink(size_type new_capacity) {
+        T* new_storage = allocate(new_capacity);
         size_type min_cap_size = math::min(new_capacity, _size);
         try {
             move_contents(storage, new_storage, min_cap_size);
         } catch (...) {
-            allocator.deallocate(new_storage, new_capacity);
+            deallocate(new_storage, new_capacity);
             throw;
         }
         swap(storage, new_storage);
@@ -446,18 +446,18 @@ namespace containers {
     }
 
     template <typename T, typename Allocator>
-    void Vector<T, Allocator>::check_size() {
+    inline void Vector<T, Allocator>::check_size() {
         if (_size == _capacity) {
             size_type new_capacity = _capacity * 2;
             grow(new_capacity);
         }
     }
-} // namespace containers
+} // namespace anton_stl
 
 namespace serialization {
     template <typename T, typename Allocator>
-    void serialize(Binary_Output_Archive& out, containers::Vector<T, Allocator> const& vec) {
-        using size_type = typename containers::Vector<T, Allocator>::size_type;
+    inline void serialize(Binary_Output_Archive& out, anton_stl::Vector<T, Allocator> const& vec) {
+        using size_type = typename anton_stl::Vector<T, Allocator>::size_type;
         size_type capacity = vec.capacity(), size = vec.size();
         out.write(capacity);
         out.write(size);
@@ -467,8 +467,8 @@ namespace serialization {
     }
 
     template <typename T, typename Allocator>
-    void deserialize(Binary_Input_Archive& in, containers::Vector<T, Allocator>& vec) {
-        using size_type = typename containers::Vector<T, Allocator>::size_type;
+    inline void deserialize(Binary_Input_Archive& in, anton_stl::Vector<T, Allocator>& vec) {
+        using size_type = typename anton_stl::Vector<T, Allocator>::size_type;
         size_type capacity, size;
         in.read(capacity);
         in.read(size);

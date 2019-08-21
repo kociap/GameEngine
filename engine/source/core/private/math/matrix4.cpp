@@ -1,8 +1,8 @@
-#include "math/matrix4.hpp"
-#include "utility.hpp"
+#include <anton_stl/utility.hpp>
+#include <math/matrix4.hpp>
 
-const Matrix4 Matrix4::zero = Matrix4();
-const Matrix4 Matrix4::identity = Matrix4{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+Matrix4 const Matrix4::zero = Matrix4();
+Matrix4 const Matrix4::identity = Matrix4{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
 
 Matrix4::Matrix4(): components{} {}
 
@@ -48,12 +48,12 @@ Matrix4& Matrix4::operator/=(float num) {
 }
 
 Matrix4& Matrix4::transpose() {
-    swap((*this)(0, 1), (*this)(1, 0));
-    swap((*this)(0, 2), (*this)(2, 0));
-    swap((*this)(0, 3), (*this)(3, 0));
-    swap((*this)(1, 2), (*this)(2, 1));
-    swap((*this)(1, 3), (*this)(3, 1));
-    swap((*this)(2, 3), (*this)(3, 2));
+    anton_stl::swap((*this)(0, 1), (*this)(1, 0));
+    anton_stl::swap((*this)(0, 2), (*this)(2, 0));
+    anton_stl::swap((*this)(0, 3), (*this)(3, 0));
+    anton_stl::swap((*this)(1, 2), (*this)(2, 1));
+    anton_stl::swap((*this)(1, 3), (*this)(3, 1));
+    anton_stl::swap((*this)(2, 3), (*this)(3, 2));
     return *this;
 }
 

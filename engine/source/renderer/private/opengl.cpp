@@ -1,9 +1,9 @@
-#include "opengl.hpp"
+#include <opengl.hpp>
 
-#include "glad/glad.h"
+#include <glad.hpp>
 
-#include "debug_macros.hpp"
-#include "utils/enum.hpp"
+#include <debug_macros.hpp>
+#include <utils/enum.hpp>
 
 namespace opengl {
     static int32_t max_combined_texture_units = 0;
@@ -28,19 +28,19 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
-    uint32_t get_max_combined_texture_units() {
+    int32_t get_max_combined_texture_units() {
         return max_combined_texture_units;
     }
 
-    uint32_t get_max_renderbuffer_size() {
+    int32_t get_max_renderbuffer_size() {
         return max_renderbuffer_size;
     }
 
-    uint32_t get_max_color_attachments() {
+    int32_t get_max_color_attachments() {
         return max_color_attachments;
     }
 
-    uint32_t get_max_draw_buffers() {
+    int32_t get_max_draw_buffers() {
         return max_draw_buffers;
     }
 
@@ -53,11 +53,11 @@ namespace opengl {
         glBindBuffer(utils::enum_to_value(buffer), handle);
         CHECK_GL_ERRORS();
     }
-
-	void bind_framebuffer(uint32_t target, uint32_t framebuffer) {
+    
+    void bind_framebuffer(uint32_t target, uint32_t framebuffer) {
         glBindFramebuffer(target, framebuffer);
         CHECK_GL_ERRORS();
-	}
+    }
 
     void bind_renderbuffer(uint32_t handle) {
         glBindRenderbuffer(GL_RENDERBUFFER, handle);
@@ -74,13 +74,14 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
-    void blit_framebuffer(uint32_t s_x0, uint32_t s_y0, uint32_t s_x1, uint32_t s_y1, uint32_t d_x0, uint32_t d_y0, uint32_t d_x1, uint32_t d_y1,
+    void blit_framebuffer(int32_t s_x0, int32_t s_y0, int32_t s_x1, int32_t s_y1, int32_t d_x0, int32_t d_y0, int32_t d_x1, int32_t d_y1,
                           Buffer_Mask mask, uint32_t filter) {
         glBlitFramebuffer(s_x0, s_y0, s_x1, s_y1, d_x0, d_y0, d_x1, d_y1, utils::enum_to_value(mask), filter);
         CHECK_GL_ERRORS();
     }
 
-    void buffer_data(Buffer_Type target, uint64_t size, void* data, uint32_t usage) {
+    void buffer_data(Buffer_Type target, int64_t size, void* data, uint32_t usage) {
+        GE_assert(size >= 0, "Size of the buffer's data store may not be negative.");
         glBufferData(utils::enum_to_value(target), size, data, usage);
         CHECK_GL_ERRORS();
     }
@@ -120,18 +121,21 @@ namespace opengl {
         }
     }
 
-    void draw_arrays(uint32_t mode, uint64_t first, uint64_t count) {
+    void draw_arrays(uint32_t mode, int32_t first, int32_t count) {
+        GE_assert(count >= 0, "The number of indices may not be negative.");
         glDrawArrays(mode, first, count);
         CHECK_GL_ERRORS();
     }
 
-    void draw_elements(uint32_t mode, uint32_t count, uint64_t offset) {
+    void draw_elements(uint32_t mode, int32_t count, int64_t offset) {
         glDrawElements(mode, count, GL_UNSIGNED_INT, reinterpret_cast<void*>(offset));
         CHECK_GL_ERRORS();
     }
 
-    void draw_elements_instanced(uint32_t mode, uint32_t indices_count, uint32_t instances) {
-        glDrawElementsInstanced(mode, indices_count, GL_UNSIGNED_INT, (void*)0, instances);
+    void draw_elements_instanced(uint32_t mode, int32_t indices_count, int64_t offset, int32_t instances) {
+        GE_assert(indices_count >= 0, "The number of indices may not be negative.");
+        GE_assert(instances >= 0, "The number of instances may not be negative.");
+        glDrawElementsInstanced(mode, indices_count, GL_UNSIGNED_INT, reinterpret_cast<void*>(offset), instances);
         CHECK_GL_ERRORS();
     }
 
@@ -157,73 +161,85 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
-    void gen_buffers(uint32_t count, uint32_t* buffers) {
-        glGenBuffers(count, buffers);
+    void gen_buffers(int32_t n, uint32_t* buffers) {
+        GE_assert(n >= 0, "The number of buffer objects to be generated may not be negative.");
+        glGenBuffers(n, buffers);
         CHECK_GL_ERRORS();
     }
 
-    void gen_textures(uint32_t count, uint32_t* textures) {
+    void gen_textures(int32_t count, uint32_t* textures) {
         glGenTextures(count, textures);
         CHECK_GL_ERRORS();
     }
 
-    void gen_renderbuffers(uint32_t count, uint32_t* renderbuffers) {
-        glGenRenderbuffers(count, renderbuffers);
+    void gen_renderbuffers(int32_t n, uint32_t* renderbuffers) {
+        GE_assert(n >= 0, "The number of renderbuffer objects to be generated may not be negative.");
+        glGenRenderbuffers(n, renderbuffers);
         CHECK_GL_ERRORS();
     }
 
-    void gen_vertex_arrays(uint32_t count, uint32_t* vaos) {
-        glGenVertexArrays(count, vaos);
+    void gen_vertex_arrays(int32_t n, uint32_t* vaos) {
+        GE_assert(n >= 0, "The number of vertex array objects to be generated may not be negative.");
+        glGenVertexArrays(n, vaos);
         CHECK_GL_ERRORS();
     }
 
-    uint32_t get_uniform_location(uint32_t program, char const* name) {
-        uint32_t location = glGetUniformLocation(program, name);
+    int32_t get_uniform_location(uint32_t program, char const* name) {
+        int32_t location = glGetUniformLocation(program, name);
         CHECK_GL_ERRORS();
         return location;
     }
 
-    void renderbuffer_storage(uint32_t target, Sized_Internal_Format internal_format, uint32_t width, uint32_t height) {
+    void renderbuffer_storage(uint32_t target, Sized_Internal_Format internal_format, int32_t width, int32_t height) {
+        GE_assert(width >= 0 && height >= 0, "Renderbuffer's storage width and height may not be less than 0.");
         glRenderbufferStorage(target, utils::enum_to_value(internal_format), width, height);
         CHECK_GL_ERRORS();
     }
 
-    void renderbuffer_storage_multisample(uint32_t target, uint32_t samples, Sized_Internal_Format internal_format, uint32_t width, uint32_t height) {
+    void renderbuffer_storage_multisample(uint32_t target, int32_t samples, Sized_Internal_Format internal_format, int32_t width, int32_t height) {
+        GE_assert(width >= 0 && height >= 0, "width and height may not be less than 0.");
+        GE_assert(samples >= 0, "Multisampled renderbuffer's samples may not be less than 0.");
         glRenderbufferStorageMultisample(target, samples, utils::enum_to_value(internal_format), width, height);
         CHECK_GL_ERRORS();
     }
 
-    void shader_source(uint32_t shader, uint64_t count, char const** strings, int32_t const* lengths) {
+    void shader_source(uint32_t shader, int32_t count, char const** strings, int32_t const* lengths) {
+        GE_assert(count >= 0, "The number of shader sources may not be negative.");
         glShaderSource(shader, count, strings, lengths);
         CHECK_GL_ERRORS();
     }
 
-    void tex_image_2D(uint32_t target, int32_t level, Base_Internal_Format, uint32_t width, uint32_t height, Format pixels_format, Type pixels_type,
+    void tex_image_2D(uint32_t target, int32_t level, Base_Internal_Format, int32_t width, int32_t height, Format pixels_format, Type pixels_type,
                       void const* pixels);
 
-    void tex_image_2D(uint32_t target, int32_t level, Sized_Internal_Format sized_internal_format, uint32_t width, uint32_t height, Format pixels_format,
+    void tex_image_2D(uint32_t target, int32_t level, Sized_Internal_Format sized_internal_format, int32_t width, int32_t height, Format pixels_format,
                       Type pixels_type, void const* pixels) {
-        uint32_t internal_format = utils::enum_to_value(sized_internal_format);
-        uint32_t format = utils::enum_to_value(pixels_format);
-        uint32_t type = utils::enum_to_value(pixels_type);
-        glTexImage2D(target, level, internal_format, width, height, 0, format, type, pixels);
+        GE_assert(width >= 0 && height >= 0, "width and height supplied to opengl::tex_image_2D may not be less than 0.");
+        GE_assert(level >= 0, "mipmap level may not be less than 0.");
+        auto internal_format = utils::enum_to_value(sized_internal_format);
+        auto format = utils::enum_to_value(pixels_format);
+        auto type = utils::enum_to_value(pixels_type);
+        // glTexImage2D is inconsistent. Takes format as GLint instead of GLenum.
+        glTexImage2D(target, level, static_cast<GLint>(internal_format), width, height, 0, format, type, pixels);
         CHECK_GL_ERRORS();
     }
 
-    void tex_image_2D_multisample(uint32_t target, uint32_t samples, Sized_Internal_Format sized_internal_format, uint32_t width, uint32_t height,
+    void tex_image_2D_multisample(uint32_t target, int32_t samples, Sized_Internal_Format sized_internal_format, int32_t width, int32_t height,
                                   bool fixed_sample_locations /* = true */) {
+        GE_assert(samples >= 0 && width >= 0 && height >= 0, "samples, width and height supplied to opengl::tex_image_2D_multisample may not be less than 0");
         auto internal_format = utils::enum_to_value(sized_internal_format);
         glTexImage2DMultisample(target, samples, internal_format, width, height, fixed_sample_locations);
         CHECK_GL_ERRORS();
     }
 
-    void vertex_array_attribute(uint32_t index, uint32_t size, uint32_t type, uint32_t stride, uint32_t offset, bool normalized) {
-        // Double cast is a hack to suppress C4312 on MSVC. It's safe to cast 32bit int to void* in this context
-        glVertexAttribPointer(index, size, type, normalized ? GL_TRUE : GL_FALSE, stride, reinterpret_cast<void*>(static_cast<uint64_t>(offset)));
+    void vertex_array_attribute(uint32_t index, int32_t size, uint32_t type, int32_t stride, int64_t offset, bool normalized) {
+        GE_assert(stride >= 0, "Stride may not be negative.");
+        glVertexAttribPointer(index, size, type, normalized ? GL_TRUE : GL_FALSE, stride, reinterpret_cast<void*>(offset));
         CHECK_GL_ERRORS();
     }
 
-    void viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+    void viewport(int32_t x, int32_t y, int32_t width, int32_t height) {
+        GE_assert(width >= 0 && height >= 0, "width or height supplied to opengl::viewport is negative");
         glViewport(x, y, width, height);
         CHECK_GL_ERRORS();
     }

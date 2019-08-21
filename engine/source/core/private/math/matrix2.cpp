@@ -1,5 +1,5 @@
-#include "math/matrix2.hpp"
-#include "utility.hpp"
+#include <anton_stl/utility.hpp>
+#include <math/matrix2.hpp>
 
 Matrix2 const zero = Matrix2();
 Matrix2 const Matrix2::identity = Matrix2({1, 0}, {0, 1});
@@ -45,7 +45,7 @@ Matrix2& Matrix2::operator/=(float a) {
 }
 
 Matrix2& Matrix2::transpose() {
-    swap((*this)(1, 0), (*this)(0, 1));
+    anton_stl::swap((*this)(1, 0), (*this)(0, 1));
     return *this;
 }
 

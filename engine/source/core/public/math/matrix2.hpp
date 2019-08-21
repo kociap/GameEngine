@@ -1,7 +1,7 @@
 #ifndef GAME_ENGINE_CORE_MATH_MARTIX2_HPP_INCLUDE
 #define GAME_ENGINE_CORE_MATH_MARTIX2_HPP_INCLUDE
 
-#include "math/vector2.hpp"
+#include <math/vector2.hpp>
 
 // Row major
 class Matrix2 {

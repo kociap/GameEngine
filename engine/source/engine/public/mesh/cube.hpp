@@ -1,9 +1,9 @@
 #ifndef ENGINE_MESH_CUBE_HPP_INCLUDE
 #define ENGINE_MESH_CUBE_HPP_INCLUDE
 
-#include "mesh.hpp"
+#include <mesh/mesh.hpp>
 
-class Cube : public Mesh {
+class Cube: public Mesh {
 public:
     Cube();
 };

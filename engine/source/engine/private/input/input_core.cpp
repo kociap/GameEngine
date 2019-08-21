@@ -28,7 +28,7 @@ Input::Manager& get_input_manager() {
 }
 
 namespace Input {
-    static Action_Mapping const* find_mapping_with_key(containers::Vector<Action_Mapping> const& mappings, std::string const& action, Key key) {
+    static Action_Mapping const* find_mapping_with_key(anton_stl::Vector<Action_Mapping> const& mappings, std::string const& action, Key key) {
         for (auto& mapping: mappings) {
             if (mapping.key == key && mapping.action == action) {
                 return &mapping;
@@ -37,8 +37,8 @@ namespace Input {
         return nullptr;
     }
 
-    static void extract_bindings(std::string const& str, containers::Vector<Axis_Mapping>& axis_mappings, containers::Vector<Action_Mapping>& action_mappings) {
-        auto find_property = [](auto& properties, auto predicate) -> containers::Vector<utils::xml::Tag_Property>::iterator {
+    static void extract_bindings(std::string const& str, anton_stl::Vector<Axis_Mapping>& axis_mappings, anton_stl::Vector<Action_Mapping>& action_mappings) {
+        auto find_property = [](auto& properties, auto predicate) -> anton_stl::Vector<utils::xml::Tag_Property>::iterator {
             auto end = properties.end();
             for (auto iter = properties.begin(); iter != end; ++iter) {
                 if (predicate(*iter)) {
@@ -48,7 +48,7 @@ namespace Input {
             return end;
         };
 
-        containers::Vector<utils::xml::Tag> tags(utils::xml::parse(str));
+        anton_stl::Vector<utils::xml::Tag> tags(utils::xml::parse(str));
         for (utils::xml::Tag& tag: tags) {
             if (tag.name != "axis" && tag.name != "action") {
                 GE_log("Unknown tag, skipping...");
@@ -91,16 +91,16 @@ namespace Input {
         // TODO uses engine exe dir
         std::filesystem::path bindings_file_path(utils::concat_paths(paths::engine_executable_directory(), "input_bindings.config"));
         std::string config_file = assets::read_file_raw_string(bindings_file_path);
-        containers::Vector<Axis_Mapping> axes;
-        containers::Vector<Action_Mapping> actions;
-        extract_bindings(config_file, axes, actions);
-        register_axis_mappings(axes);
-        register_action_mappings(actions);
+        anton_stl::Vector<Axis_Mapping> loaded_axes;
+        anton_stl::Vector<Action_Mapping> loaded_actions;
+        extract_bindings(config_file, loaded_axes, loaded_actions);
+        register_axis_mappings(loaded_axes);
+        register_action_mappings(loaded_actions);
     }
 
     void Manager::save_bindings() {}
 
-    void Manager::register_axis_mappings(containers::Vector<Axis_Mapping> const& bindings) {
+    void Manager::register_axis_mappings(anton_stl::Vector<Axis_Mapping> const& bindings) {
         for (Axis_Mapping const& new_binding: bindings) {
             bool duplicate = false;
             for (Axis_Mapping& axis_binding: axis_mappings) {
@@ -120,7 +120,7 @@ namespace Input {
         }
     }
 
-    void Manager::register_action_mappings(containers::Vector<Action_Mapping> const& bindings) {
+    void Manager::register_action_mappings(anton_stl::Vector<Action_Mapping> const& bindings) {
         for (Action_Mapping const& new_binding: bindings) {
             bool duplicate = false;
             for (Action_Mapping& action_binding: action_mappings) {

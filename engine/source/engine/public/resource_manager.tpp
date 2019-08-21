@@ -21,7 +21,7 @@ Handle<T> Resource_Manager<T>::add(T&& resource) {
 
 template <typename T>
 T& Resource_Manager<T>::get(Handle<T> handle) {
-    for (typename containers::Vector<T>::size_type i = 0; i < identifiers.size(); ++i) {
+    for (typename anton_stl::Vector<T>::size_type i = 0; i < identifiers.size(); ++i) {
         if (identifiers[i] == handle.value) {
             return resources[i];
         }
@@ -32,8 +32,7 @@ T& Resource_Manager<T>::get(Handle<T> handle) {
 
 template <typename T>
 void Resource_Manager<T>::remove(Handle<T> handle) {
-    // TODO size_t ?
-    for (containers::Vector<T>::size_type i = 0; i < identifiers.size(); ++i) {
+    for (typename anton_stl::Vector<T>::size_type i = 0; i < identifiers.size(); ++i) {
         if (identifiers[i] == handle.value) {
             identifiers.erase_unsorted_unchecked(i);
             resources.erase_unsorted_unchecked(i);

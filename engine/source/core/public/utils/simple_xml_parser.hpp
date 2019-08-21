@@ -1,4 +1,4 @@
-#include "containers/vector.hpp"
+#include <anton_stl/vector.hpp>
 #include <istream>
 #include <string>
 
@@ -13,10 +13,10 @@ namespace utils {
 
         struct Tag {
             std::string name;
-            containers::Vector<Tag_Property> properties;
+            anton_stl::Vector<Tag_Property> properties;
             Tag_Type type;
         };
 
-        containers::Vector<Tag> parse(std::string const&);
+        anton_stl::Vector<Tag> parse(std::string const&);
     } // namespace xml
 } // namespace utils

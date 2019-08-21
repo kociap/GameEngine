@@ -1,5 +1,5 @@
+#include <anton_stl/vector.hpp>
 #include <component_header_parser.hpp>
-#include <containers/vector.hpp>
 #include <file.hpp>
 #include <filesystem>
 #include <iostream>
@@ -25,7 +25,7 @@ static std::string_view extract_include_directory(std::string_view path) {
     return path;
 }
 
-static void serach_for_components(std::string_view directory, containers::Vector<Component>& out) {
+static void serach_for_components(std::string_view directory, anton_stl::Vector<Component>& out) {
     std::filesystem::recursive_directory_iterator dir_iterator(directory);
     std::filesystem::path header_extension(".hpp");
     for (auto entry: dir_iterator) {
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
 
     std::string_view output_file(argv[1]);
 
-    containers::Vector<Component> components;
+    anton_stl::Vector<Component> components;
     for (int32_t i = 2; i < argc; ++i) {
         std::string_view components_search_directory(argv[i]);
         serach_for_components(components_search_directory, components);
@@ -62,8 +62,8 @@ int main(int argc, char** argv) {
         generated_file << "#include <" << include_directory << ">\n";
     }
     generated_file << '\n'
-                   << "containers::Vector<Component_Serialization_Funcs>& get_component_serialization_functions() {\n"
-                   << "    static containers::Vector<Component_Serialization_Funcs> serialization_funcs{\n";
+                   << "anton_stl::Vector<Component_Serialization_Funcs>& get_component_serialization_functions() {\n"
+                   << "    static anton_stl::Vector<Component_Serialization_Funcs> serialization_funcs{\n";
     int32_t component_index = 1;
     for (auto& [include_directory, name]: components) {
         generated_file << "        {Type_Family::family_id<" << name << ">(), &Component_Container<" << name << ">::serialize, &Component_Container<" << name

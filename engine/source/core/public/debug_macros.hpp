@@ -4,11 +4,11 @@
 #define GE_UNUSED(x) ((void)(x))
 
 #if defined(__clang__) || defined(__GNUC__)
-#    define GE_UNREACHABLE() __builtin_unreachable()
+#    define ANTON_UNREACHABLE() __builtin_unreachable()
 #elif defined(_MSC_VER)
-#    define GE_UNREACHABLE() __assume(0)
+#    define ANTON_UNREACHABLE() __assume(0)
 #else
-#    define GE_UNREACHABLE()
+#    define ANTON_UNREACHABLE()
 #endif
 
 #ifndef NDEBUG

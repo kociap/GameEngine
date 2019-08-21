@@ -1,11 +1,12 @@
-#include "shader_file.hpp"
+#include <shader_file.hpp>
 
-#include "containers/vector.hpp"
-#include "debug_macros.hpp"
-#include "opengl.hpp"
-#include "shader_exceptions.hpp"
+#include <anton_stl/vector.hpp>
+#include <debug_macros.hpp>
+#include <glad.hpp>
 #include <iostream>
-#include <glad/glad.h>
+#include <opengl.hpp>
+#include <shader_exceptions.hpp>
+#include <string_view>
 
 static void compile_shader(uint32_t shader, std::string const& name = "Unnamed Shader") {
     glCompileShader(shader);
@@ -15,7 +16,7 @@ static void compile_shader(uint32_t shader, std::string const& name = "Unnamed S
     if (compilation_status == GL_FALSE) {
         GLint log_length;
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
-        containers::Vector<GLchar> log(log_length);
+        anton_stl::Vector<GLchar> log(log_length);
         glGetShaderInfoLog(shader, log_length, &log_length, &log[0]);
         std::string log_string(log.begin(), log.end());
         log_string = "Shader compilation failed (" + name + ")\n" + log_string;
@@ -24,13 +25,9 @@ static void compile_shader(uint32_t shader, std::string const& name = "Unnamed S
     CHECK_GL_ERRORS();
 }
 
-static void set_shader_source(uint32_t shader, std::string const& source) {
-    char const* src = source.c_str();
+static void set_shader_source(uint32_t shader, std::string_view source) {
+    char const* src = source.data();
     opengl::shader_source(shader, 1, &src, nullptr);
-}
-
-static void set_shader_source(uint32_t shader, char const* source) {
-    opengl::shader_source(shader, 1, &source, nullptr);
 }
 
 Shader_File::Shader_File(std::string n, opengl::Shader_Type type, std::string const& source): type(type), shader(0) {

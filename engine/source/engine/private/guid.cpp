@@ -1,10 +1,10 @@
-#include "guid.hpp"
+#include <guid.hpp>
 
 #include <queue>
 
 static uint64_t highest_unused = 1;
 
-Guid::Guid() : _value(highest_unused++) {}
+Guid::Guid(): _value(highest_unused++) {}
 
 uint64_t Guid::value() const {
     return _value;

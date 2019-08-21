@@ -1,8 +1,9 @@
-#include "math/quaternion.hpp"
-#include "math/math.hpp"
-#include <cmath>
+#include <math/quaternion.hpp>
 
-const Quaternion Quaternion::identity = Quaternion(0, 0, 0, 1);
+#include <cmath>
+#include <math/math.hpp>
+
+Quaternion const Quaternion::identity = Quaternion(0, 0, 0, 1);
 
 Quaternion::Quaternion(float x, float y, float z, float w): x(x), y(y), z(z), w(w) {}
 

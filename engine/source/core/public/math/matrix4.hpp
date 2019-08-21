@@ -1,8 +1,8 @@
 #ifndef GAME_ENGINE_CORE_MATH_MARTIX4_HPP_INCLUDE
 #define GAME_ENGINE_CORE_MATH_MARTIX4_HPP_INCLUDE
 
-#include "vector4.hpp"
 #include <cstdint>
+#include <math/vector4.hpp>
 
 // Row major
 class Matrix4 {

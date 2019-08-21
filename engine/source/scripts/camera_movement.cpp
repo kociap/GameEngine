@@ -1,13 +1,13 @@
-#include "camera_movement.hpp"
+#include <camera_movement.hpp>
 
-#include "build_config.hpp"
-#include "ecs/entity.hpp"
-#include "input/input.hpp"
-#include "math/math.hpp"
-#include "math/transform.hpp"
-#include "time.hpp"
+#include <build_config.hpp>
+#include <ecs/entity.hpp>
+#include <input/input.hpp>
+#include <math/math.hpp>
+#include <math/transform.hpp>
+#include <time.hpp>
 
-void Camera_Movement::update(Camera_Movement& camera_mov, Camera& camera, Transform& transform) {
+void Camera_Movement::update(Camera_Movement& camera_mov, Camera&, Transform& transform) {
     // Look around
     float horizontal_rotation = Input::get_axis("mouse_x");
     float vertical_rotation = Input::get_axis("mouse_y");

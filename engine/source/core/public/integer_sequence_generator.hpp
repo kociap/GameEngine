@@ -1,7 +1,7 @@
 #ifndef CORE_INTEGER_SEQUENCE_GENERATOR_HPP_INCLUDE
 #define CORE_INTEGER_SEQUENCE_GENERATOR_HPP_INCLUDE
 
-#include "config.hpp"
+#include <config.hpp>
 
 class Integer_Sequence_Generator {
 public:

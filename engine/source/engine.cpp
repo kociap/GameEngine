@@ -71,15 +71,15 @@ void Engine::load_world() {
     auto unlit_vert = assets::load_shader_file("unlit_default.vert");
     auto unlit_frag = assets::load_shader_file("unlit_default.frag");
     Shader unlit_default_shader = create_shader(unlit_vert, unlit_frag);
-    Handle<Shader> unlit_default_shader_handle = shader_manager->add(std::move(unlit_default_shader));
+    /* Handle<Shader> unlit_default_shader_handle = */ shader_manager->add(std::move(unlit_default_shader));
 
     // BS code to output anything on the screen
 #ifdef RENDER_CUBES
-    containers::Vector<Mesh> meshes = assets::load_model("cube.obj");
+    anton_stl::Vector<Mesh> meshes = assets::load_model("cube.obj");
     auto& container = meshes[0];
     Handle<Material> material_handle = material_manager->add(Material());
 #else
-    containers::Vector<Mesh> meshes = assets::load_model("barrel.obj");
+    anton_stl::Vector<Mesh> meshes = assets::load_model("barrel.obj");
     auto& container = meshes[0];
     Material barrel_mat;
     barrel_mat.diffuse_texture.handle = assets::load_texture("barrel_texture", 0);
@@ -164,7 +164,7 @@ void Engine::load_world() {
     Transform& camera_t = ecs->add_component<Transform>(camera);
     Camera& camera_c = ecs->add_component<Camera>(camera);
     camera_c.near_plane = 0.05f;
-    Camera_Movement& camera_m = ecs->add_component<Camera_Movement>(camera);
+    ecs->add_component<Camera_Movement>(camera);
     ecs->add_component<Debug_Hotkeys>(camera);
     camera_t.translate({0, 0, 0});
 

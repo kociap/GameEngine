@@ -1,10 +1,10 @@
 #ifndef ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
 #define ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
 
-#include "containers/static_vector.hpp"
-#include "opengl.hpp"
+#include <anton_stl/static_vector.hpp>
 #include <array>
 #include <cstdint>
+#include <opengl.hpp>
 
 // TODO add resizing
 class Framebuffer {
@@ -48,12 +48,12 @@ public:
     };
 
     struct Construct_Info {
-        containers::Static_Vector<Color_Buffer_Info, max_color_attachments> color_buffers;
+        anton_stl::Static_Vector<Color_Buffer_Info, max_color_attachments> color_buffers;
         Depth_Buffer_Info depth_buffer;
         Stencil_Buffer_Info stencil_buffer;
-        uint32_t width = 0;
-        uint32_t height = 0;
-        uint32_t samples = 0;
+        int32_t width = 0;
+        int32_t height = 0;
+        int32_t samples = 0;
         bool multisampled = false;
     };
 
@@ -70,8 +70,8 @@ public:
     Framebuffer(Framebuffer const&) = delete;
     Framebuffer& operator=(Framebuffer const&) = delete;
 
-    void resize(uint32_t width, uint32_t height);
-    uint32_t get_color_texture(uint32_t index) const;
+    void resize(int32_t width, int32_t height);
+    uint32_t get_color_texture(int32_t index) const;
     uint32_t get_depth_texture() const;
 
 private:
@@ -79,8 +79,8 @@ private:
     void delete_framebuffer();
 
     Construct_Info info;
-    containers::Static_Vector<uint32_t, max_color_attachments> color_buffers;
-    uint32_t active_color_buffers = 0;
+    anton_stl::Static_Vector<uint32_t, max_color_attachments> color_buffers;
+    int32_t active_color_buffers = 0;
     uint32_t framebuffer = 0;
     uint32_t depth_buffer = 0;
     uint32_t stencil_buffer = 0;

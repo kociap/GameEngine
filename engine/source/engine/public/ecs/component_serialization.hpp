@@ -1,7 +1,7 @@
 #ifndef SERIALIZATION_FUNCS_HPP_INCLUDE
 #define SERIALIZATION_FUNCS_HPP_INCLUDE
 
-#include <containers/vector.hpp>
+#include <anton_stl/vector.hpp>
 #include <serialization/archives/binary.hpp>
 #include <type_family.hpp>
 
@@ -16,7 +16,7 @@ struct Component_Serialization_Funcs {
     deserialize_func deserialize;
 };
 
-using get_component_serialization_funcs_t = containers::Vector<Component_Serialization_Funcs>& (*)();
+using get_component_serialization_funcs_t = anton_stl::Vector<Component_Serialization_Funcs>& (*)();
 
 ENGINE_API extern get_component_serialization_funcs_t get_component_serialization_funcs;
 

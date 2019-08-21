@@ -1,5 +1,4 @@
 #include <editor_window.hpp>
-#include <ui_editor_window.h>
 
 #include <components/camera.hpp>
 #include <components/transform.hpp>
@@ -16,10 +15,13 @@
 
 #include <stdexcept>
 
+ANTON_DISABLE_WARNINGS()
 #include <QMouseEvent>
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
 #include <QSurfaceFormat>
+#include <ui_editor_window.h>
+ANTON_RESTORE_WARNINGS()
 
 constexpr uint32_t max_viewports = 4;
 
@@ -39,23 +41,22 @@ Editor_Window::Editor_Window(QWidget* parent): QMainWindow(parent), viewports(ma
     opengl::load_constants();
     gizmo::init();
 
-    //setMouseTracking(true);
     ui = new Ui::Editor_Window;
     ui->setupUi(this);
 
-    auto viewport_closed = [this](int32_t const index) {
-        removeDockWidget(viewport_docks[index]);
-        delete viewport_docks[index];
-        viewport_docks[index] = nullptr;
-        delete viewports[index];
-        viewports[index] = nullptr;
-    };
+    //auto viewport_closed = [this](int32_t const index) {
+    //    removeDockWidget(viewport_docks[index]);
+    //    delete viewport_docks[index];
+    //    viewport_docks[index] = nullptr;
+    //    delete viewports[index];
+    //    viewports[index] = nullptr;
+    //};
 
     viewports[0] = new Viewport(0, context);
     viewport_docks[0] = new Dock_Widget;
     viewport_docks[0]->setWidget(viewports[0]);
     addDockWidget(Qt::TopDockWidgetArea, viewport_docks[0]);
-    connect(viewports[0], &Viewport::made_active, [this](int32_t const index) { 
+    connect(viewports[0], &Viewport::made_active, [this](int32_t const index) {
         shared_state.active_editor = index;
         GE_log("Changed active viewport to " + std::to_string(index));
     });
@@ -66,8 +67,8 @@ Editor_Window::Editor_Window(QWidget* parent): QMainWindow(parent), viewports(ma
     viewport_docks[1] = new Dock_Widget;
     viewport_docks[1]->setWidget(viewports[1]);
     addDockWidget(Qt::TopDockWidgetArea, viewport_docks[1]);
-    connect(viewports[1], &Viewport::made_active, [this](int32_t const index) { 
-        shared_state.active_editor = index; 
+    connect(viewports[1], &Viewport::made_active, [this](int32_t const index) {
+        shared_state.active_editor = index;
         GE_log("Changed active viewport to " + std::to_string(index));
     });
     //connect(viewport_docks[1], &Dock_Widget::window_closed, viewports[1], &Viewport::close);

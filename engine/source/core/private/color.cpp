@@ -1,5 +1,5 @@
-#include "color.hpp"
-#include "utility.hpp"
+#include <anton_stl/utility.hpp>
+#include <color.hpp>
 
 Color const Color::white = Color(1.0f, 1.0f, 1.0f);
 Color const Color::black = Color(0.0f, 0.0f, 0.0f);
@@ -8,7 +8,7 @@ Color const Color::green = Color(0.0f, 1.0f, 0.0f);
 Color const Color::blue = Color(0.0f, 0.0f, 1.0f);
 
 Color::Color() {}
-Color::Color(float red, float green, float blue, float alpha): r(red), g(green), b(blue), a(alpha) {}
+Color::Color(float r, float g, float b, float a): r(r), g(g), b(b), a(a) {}
 
 Color& Color::operator*=(Color const& c) {
     r *= c.r;
@@ -24,8 +24,8 @@ Color operator*(Color const& c1, Color const& c2) {
 }
 
 void swap(Color& a, Color& b) {
-    swap(a.r, b.r);
-    swap(a.g, b.g);
-    swap(a.b, b.b);
-    swap(a.a, b.a);
+    anton_stl::swap(a.r, b.r);
+    anton_stl::swap(a.g, b.g);
+    anton_stl::swap(a.b, b.b);
+    anton_stl::swap(a.a, b.a);
 }

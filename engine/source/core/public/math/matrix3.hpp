@@ -1,7 +1,7 @@
 #ifndef GAME_ENGINE_CORE_MATH_MARTIX3_HPP_INCLUDE
 #define GAME_ENGINE_CORE_MATH_MARTIX3_HPP_INCLUDE
 
-#include "vector3.hpp"
+#include <math/vector3.hpp>
 
 // Row major
 class Matrix3 {

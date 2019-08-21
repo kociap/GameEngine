@@ -1,8 +1,8 @@
-#include "framebuffer.hpp"
+#include <framebuffer.hpp>
 
-#include "debug_macros.hpp"
-#include "glad/glad.h"
-#include "opengl.hpp"
+#include <debug_macros.hpp>
+#include <glad.hpp>
+#include <opengl.hpp>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -32,7 +32,7 @@ static opengl::Format get_compatible_format(Framebuffer::Internal_Format interna
     }
 }
 
-void Framebuffer::bind(Framebuffer& fb, Bind_Mode bm) {
+void Framebuffer::bind(Framebuffer& fb, Bind_Mode const bm) {
     if (bm == Bind_Mode::read_draw) {
         glBindFramebuffer(GL_FRAMEBUFFER, fb.framebuffer);
     } else if (bm == Bind_Mode::read) {
@@ -43,7 +43,7 @@ void Framebuffer::bind(Framebuffer& fb, Bind_Mode bm) {
     CHECK_GL_ERRORS();
 }
 
-void Framebuffer::bind_default(Bind_Mode bm) {
+void Framebuffer::bind_default(Bind_Mode const bm) {
     if (bm == Bind_Mode::read_draw) {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     } else if (bm == Bind_Mode::read) {
@@ -59,16 +59,16 @@ void Framebuffer::create_framebuffer() {
         throw std::invalid_argument("Too big buffer size");
     }
 
-    if (info.width == 0 || info.height == 0) {
-        throw std::invalid_argument("One or both dimensions are 0");
+    if (info.width <= 0 || info.height <= 0) {
+        throw std::invalid_argument("One or both dimensions are less than or equal 0");
     }
 
-    GE_assert(!info.multisampled || info.samples != 0, "Multisampled framebuffer must have more than 0 samples");
+    GE_assert(!info.multisampled || info.samples > 0, "Multisampled framebuffer must have more than 0 samples");
 
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-    active_color_buffers = info.color_buffers.size();
+    active_color_buffers = static_cast<int32_t>(info.color_buffers.size());
     color_buffers.resize(active_color_buffers);
 
     // TODO add support for renderbuffer color attachments
@@ -77,7 +77,7 @@ void Framebuffer::create_framebuffer() {
     if (active_color_buffers > 0) {
         opengl::gen_textures(active_color_buffers, &color_buffers[0]);
         if (info.multisampled) {
-            for (uint64_t i = 0; i < active_color_buffers; ++i) {
+            for (int32_t i = 0; i < active_color_buffers; ++i) {
                 uint32_t color_buffer_handle = color_buffers[i];
                 auto internal_format = info.color_buffers[i].internal_format;
                 opengl::bind_texture(opengl::Texture_Type::texture_2D_multisample, color_buffer_handle);
@@ -85,7 +85,7 @@ void Framebuffer::create_framebuffer() {
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                 opengl::bind_texture(opengl::Texture_Type::texture_2D_multisample, 0);
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, color_buffer_handle, 0);
+                glFramebufferTexture2D(GL_FRAMEBUFFER, static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i), GL_TEXTURE_2D_MULTISAMPLE, color_buffer_handle, 0);
                 CHECK_GL_ERRORS();
             }
         } else {
@@ -106,7 +106,7 @@ void Framebuffer::create_framebuffer() {
             }
         }
 
-        containers::Static_Vector<uint32_t, max_color_attachments> active_color_attachments;
+        anton_stl::Static_Vector<uint32_t, max_color_attachments> active_color_attachments;
         for (uint32_t i = 0; i < color_buffers.size(); ++i) {
             active_color_attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
         }
@@ -235,19 +235,19 @@ Framebuffer::~Framebuffer() {
     delete_framebuffer();
 }
 
-void Framebuffer::resize(uint32_t width, uint32_t height) {
+void Framebuffer::resize(int32_t const width, int32_t const height) {
     delete_framebuffer();
     info.width = width;
     info.height = height;
     create_framebuffer();
 }
 
-uint32_t Framebuffer::get_color_texture(uint32_t index) const {
+uint32_t Framebuffer::get_color_texture(int32_t const index) const {
     if (info.multisampled) {
         throw std::runtime_error("Framebuffer is multisampled. Unable to get texture");
     }
 
-    if (index >= active_color_buffers) {
+    if (index >= active_color_buffers || index < 0) {
         throw std::runtime_error("Color buffer with index " + std::to_string(index) + " is not bound");
     }
 
@@ -266,6 +266,6 @@ uint32_t Framebuffer::get_depth_texture() const {
     return depth_buffer;
 }
 
-void Framebuffer::blit(Framebuffer& from, Framebuffer& to, opengl::Buffer_Mask mask) {
+void Framebuffer::blit(Framebuffer& from, Framebuffer& to, opengl::Buffer_Mask const mask) {
     opengl::blit_framebuffer(0, 0, from.info.width, from.info.height, 0, 0, to.info.width, to.info.height, mask, GL_NEAREST);
 }

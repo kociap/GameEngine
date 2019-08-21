@@ -1,7 +1,8 @@
 #ifndef CORE_MEMORY_STACK_ALLOCATE_HPP_INCLUDE
 #define CORE_MEMORY_STACK_ALLOCATE_HPP_INCLUDE
 
-#include "memory/aligned_buffer.hpp"
+#include <memory/aligned_buffer.hpp>
+#include <new>
 
 template <typename T>
 class Stack_Allocate {

@@ -1,8 +1,8 @@
-#ifndef CORE_CONTAINERS_ITERATORS_HPP_INCLUDE
-#define CORE_CONTAINERS_ITERATORS_HPP_INCLUDE
+#ifndef CORE_ANTON_STL_ITERATORS_HPP_INCLUDE
+#define CORE_ANTON_STL_ITERATORS_HPP_INCLUDE
 
-#include <cstddef>
-#include <type_traits>
+#include <anton_stl/config.hpp>
+#include <anton_stl/type_traits.hpp>
 
 namespace std {
     struct input_iterator_tag;
@@ -12,7 +12,7 @@ namespace std {
     struct random_access_iterator_tag;
 } // namespace std
 
-namespace iterators {
+namespace anton_stl {
     template <typename T>
     struct iterator_traits {
         using difference_type = typename T::difference_type;
@@ -24,8 +24,8 @@ namespace iterators {
 
     template <typename T>
     struct iterator_traits<T*> {
-        using difference_type = std::ptrdiff_t;
-        using value_type = std::remove_cv_t<T>;
+        using difference_type = anton_ptrdiff_t;
+        using value_type = anton_stl::remove_const<T>;
         using pointer = T*;
         using reference = T&;
         using iterator_category = std::random_access_iterator_tag;
@@ -43,7 +43,7 @@ namespace iterators {
         using value_type = typename Container::value_type;
         using pointer = typename Container::pointer;
         using reference = typename Container::reference;
-        using difference_type = std::ptrdiff_t;
+        using difference_type = anton_ptrdiff_t;
         using iterator_category = std::random_access_iterator_tag;
 
         iterator& operator++() {
@@ -76,28 +76,28 @@ namespace iterators {
             return *this;
         }
 
-        iterator operator+(difference_type n) {
+        [[nodiscard]] iterator operator+(difference_type n) {
             return iterator(storage_ptr + n);
         }
 
-        iterator operator-(difference_type n) {
+        [[nodiscard]] iterator operator-(difference_type n) {
             return iterator(storage_ptr - n);
         }
 
         // clang-format off
-        reference operator*() const { return *storage_ptr; }
-        pointer operator->() const { return storage_ptr; }
-        reference operator[](difference_type n) const { return *(storage_ptr + n); }
+        [[nodiscard]] reference operator*() const { return *storage_ptr; }
+        [[nodiscard]] pointer operator->() const { return storage_ptr; }
+        [[nodiscard]] reference operator[](difference_type n) const { return *(storage_ptr + n); }
 
-        friend iterator operator+(difference_type n, iterator const& a) { return iterator(a.storage_ptr + n); }
-        friend difference_type operator-(iterator const& a, iterator const& b) { return a.storage_ptr - b.storage_ptr; }
+        [[nodiscard]] friend iterator operator+(difference_type n, iterator const& a) { return iterator(a.storage_ptr + n); }
+        [[nodiscard]] friend difference_type operator-(iterator const& a, iterator const& b) { return a.storage_ptr - b.storage_ptr; }
 
-        friend bool operator==(iterator const& a, iterator const& b) { return a.storage_ptr == b.storage_ptr; }
-        friend bool operator!=(iterator const& a, iterator const& b) { return a.storage_ptr != b.storage_ptr; }
-        friend bool operator<(iterator const& a, iterator const& b) { return b.storage_ptr - a.storage_ptr > 0; }
-        friend bool operator>(iterator const& a, iterator const& b) { return b < a; }
-        friend bool operator<=(iterator const& a, iterator const& b) { return !(a > b); }
-        friend bool operator>=(iterator const& a, iterator const& b) { return !(a < b); }
+        [[nodiscard]] friend bool operator==(iterator const& a, iterator const& b) { return a.storage_ptr == b.storage_ptr; }
+        [[nodiscard]] friend bool operator!=(iterator const& a, iterator const& b) { return a.storage_ptr != b.storage_ptr; }
+        [[nodiscard]] friend bool operator<(iterator const& a, iterator const& b) { return b.storage_ptr - a.storage_ptr > 0; }
+        [[nodiscard]] friend bool operator>(iterator const& a, iterator const& b) { return b < a; }
+        [[nodiscard]] friend bool operator<=(iterator const& a, iterator const& b) { return !(a > b); }
+        [[nodiscard]] friend bool operator>=(iterator const& a, iterator const& b) { return !(a < b); }
         // clang-format on
 
     private:
@@ -113,7 +113,7 @@ namespace iterators {
         using value_type = typename Container::value_type;
         using pointer = typename Container::const_pointer;
         using reference = typename Container::const_reference;
-        using difference_type = std::ptrdiff_t;
+        using difference_type = anton_ptrdiff_t;
         using iterator_category = std::random_access_iterator_tag;
 
         const_iterator(iterator<Container> iter): storage_ptr(iter.storage_ptr) {}
@@ -148,28 +148,28 @@ namespace iterators {
             return *this;
         }
 
-        const_iterator operator+(difference_type n) {
+        [[nodiscard]] const_iterator operator+(difference_type n) {
             return const_iterator(storage_ptr + n);
         }
 
-        const_iterator operator-(difference_type n) {
+        [[nodiscard]] const_iterator operator-(difference_type n) {
             return const_iterator(storage_ptr - n);
         }
 
         // clang-format off
-        reference operator*() const { return *storage_ptr; }
-        pointer operator->() const { return storage_ptr; }
-        reference operator[](difference_type n) const { return *(storage_ptr + n); }
+        [[nodiscard]] reference operator*() const { return *storage_ptr; }
+        [[nodiscard]] pointer operator->() const { return storage_ptr; }
+        [[nodiscard]] reference operator[](difference_type n) const { return *(storage_ptr + n); }
 
-        friend const_iterator operator+(difference_type n, const_iterator const& a) { return const_iterator(a.storage_ptr + n); }
-        friend difference_type operator-(const_iterator const& a, const_iterator const& b) { return a.storage_ptr - b.storage_ptr; }
+        [[nodiscard]] friend const_iterator operator+(difference_type n, const_iterator const& a) { return const_iterator(a.storage_ptr + n); }
+        [[nodiscard]] friend difference_type operator-(const_iterator const& a, const_iterator const& b) { return a.storage_ptr - b.storage_ptr; }
 
-        friend bool operator==(const_iterator const& a, const_iterator const& b) { return a.storage_ptr == b.storage_ptr; }
-        friend bool operator!=(const_iterator const& a, const_iterator const& b) { return a.storage_ptr != b.storage_ptr; }
-        friend bool operator<(const_iterator const& a, const_iterator const& b) { return b.storage_ptr - a.storage_ptr > 0; }
-        friend bool operator>(const_iterator const& a, const_iterator const& b) { return b < a; }
-        friend bool operator<=(const_iterator const& a, const_iterator const& b) { return !(a > b); }
-        friend bool operator>=(const_iterator const& a, const_iterator const& b) { return !(a < b); }
+        [[nodiscard]] friend bool operator==(const_iterator const& a, const_iterator const& b) { return a.storage_ptr == b.storage_ptr; }
+        [[nodiscard]] friend bool operator!=(const_iterator const& a, const_iterator const& b) { return a.storage_ptr != b.storage_ptr; }
+        [[nodiscard]] friend bool operator<(const_iterator const& a, const_iterator const& b) { return b.storage_ptr - a.storage_ptr > 0; }
+        [[nodiscard]] friend bool operator>(const_iterator const& a, const_iterator const& b) { return b < a; }
+        [[nodiscard]] friend bool operator<=(const_iterator const& a, const_iterator const& b) { return !(a > b); }
+        [[nodiscard]] friend bool operator>=(const_iterator const& a, const_iterator const& b) { return !(a < b); }
         // clang-format on
 
     protected:
@@ -225,32 +225,32 @@ namespace iterators {
             return *this;
         }
 
-        reverse_iterator operator+(difference_type n) {
+        [[nodiscard]] reverse_iterator operator+(difference_type n) {
             return reverse_iterator(_iterator - n);
         }
 
-        reverse_iterator operator-(difference_type n) {
+        [[nodiscard]] reverse_iterator operator-(difference_type n) {
             return reverse_iterator(_iterator + n);
         }
 
         // clang-format off
-        reference operator*() const { return *_iterator; }
-        pointer operator->() const { return _iterator.operator->(); }
-        reference operator[](difference_type n) { return _iterator[-n]; }
+        [[nodiscard]] reference operator*() const { return *_iterator; }
+        [[nodiscard]] pointer operator->() const { return _iterator.operator->(); }
+        [[nodiscard]] reference operator[](difference_type n) { return _iterator[-n]; }
 
-        friend reverse_iterator operator+(difference_type n, reverse_iterator const& a) { return reverse_iterator(a._iterator - n); }
-        friend difference_type operator-(reverse_iterator const& a, reverse_iterator const& b) { return b._iterator - a._iterator; }
+        [[nodiscard]] friend reverse_iterator operator+(difference_type n, reverse_iterator const& a) { return reverse_iterator(a._iterator - n); }
+        [[nodiscard]] friend difference_type operator-(reverse_iterator const& a, reverse_iterator const& b) { return b._iterator - a._iterator; }
 
-        friend bool operator==(reverse_iterator const& a, reverse_iterator const& b) { return a._iterator == b._iterator; }
-        friend bool operator!=(reverse_iterator const& a, reverse_iterator const& b) { return a._iterator != b._iterator; }
-        friend bool operator<(reverse_iterator const& a, reverse_iterator const& b) { return b._iterator - a._iterator < 0; }
-        friend bool operator>(reverse_iterator const& a, reverse_iterator const& b) { return b < a; }
-        friend bool operator<=(reverse_iterator const& a, reverse_iterator const& b) { return !(a > b); }
-        friend bool operator>=(reverse_iterator const& a, reverse_iterator const& b) { return !(a < b); }
+        [[nodiscard]] friend bool operator==(reverse_iterator const& a, reverse_iterator const& b) { return a._iterator == b._iterator; }
+        [[nodiscard]] friend bool operator!=(reverse_iterator const& a, reverse_iterator const& b) { return a._iterator != b._iterator; }
+        [[nodiscard]] friend bool operator<(reverse_iterator const& a, reverse_iterator const& b) { return b._iterator - a._iterator < 0; }
+        [[nodiscard]] friend bool operator>(reverse_iterator const& a, reverse_iterator const& b) { return b < a; }
+        [[nodiscard]] friend bool operator<=(reverse_iterator const& a, reverse_iterator const& b) { return !(a > b); }
+        [[nodiscard]] friend bool operator>=(reverse_iterator const& a, reverse_iterator const& b) { return !(a < b); }
         // clang-format on
 
     private:
         iterator_type _iterator;
     };
-} // namespace iterators
-#endif // !CORE_CONTAINERS_ITERATORS_HPP_INCLUDE
+} // namespace anton_stl
+#endif // !CORE_ANTON_STL_ITERATORS_HPP_INCLUDE

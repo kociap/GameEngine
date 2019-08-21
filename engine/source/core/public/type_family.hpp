@@ -1,7 +1,7 @@
 #ifndef CORE_TYPE_FAMILY_HPP_INCLUDE
 #define CORE_TYPE_FAMILY_HPP_INCLUDE
 
-#include "config.hpp"
+#include <config.hpp>
 #include <string_view>
 #include <type_traits>
 

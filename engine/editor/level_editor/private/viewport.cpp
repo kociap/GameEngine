@@ -1,17 +1,17 @@
 #include <viewport.hpp>
 
+#include <anton_stl/vector.hpp>
 #include <assets.hpp>
 #include <components/camera.hpp>
 #include <components/static_mesh_component.hpp>
 #include <components/transform.hpp>
-#include <containers/vector.hpp>
 #include <debug_macros.hpp>
 #include <ecs/ecs.hpp>
 #include <editor.hpp>
 #include <framebuffer.hpp>
 #include <gizmo.hpp>
 #include <gizmo_internal.hpp>
-#include <glad/glad.h>
+#include <glad.hpp>
 #include <input/input.hpp>
 #include <input/input_core.hpp>
 #include <intersection_tests.hpp>
@@ -26,6 +26,7 @@
 #include <shader_file.hpp>
 #include <viewport_camera.hpp>
 
+ANTON_DISABLE_WARNINGS()
 #include <QCloseEvent>
 #include <QEvent>
 #include <QMouseEvent>
@@ -34,12 +35,13 @@
 #include <QObject>
 #include <QOpenGLContext>
 #include <QWindow>
+ANTON_RESTORE_WARNINGS()
 
 #include <cstdint>
 #include <tuple>
 
 Viewport::Viewport(int32_t vindex, QOpenGLContext* ctx): Viewport(vindex, nullptr, ctx) {}
-Viewport::Viewport(int32_t vindex, QWidget* parent, QOpenGLContext* ctx): QWidget(parent), index(vindex), context(ctx) {
+Viewport::Viewport(int32_t vindex, QWidget* parent, QOpenGLContext* ctx): QWidget(parent), context(ctx), index(vindex) {
     // Force native window and direct drawing, so that we have a surface to render onto
     setAttribute(Qt::WA_NativeWindow, true);
     setAttribute(Qt::WA_PaintOnScreen, true);
@@ -50,15 +52,17 @@ Viewport::Viewport(int32_t vindex, QWidget* parent, QOpenGLContext* ctx): QWidge
 
     setWindowTitle("Viewport");
 
+    int32_t const w = width();
+    int32_t const h = height();
     context->makeCurrent(windowHandle());
     Framebuffer::Construct_Info construct_info;
     construct_info.color_buffers.resize(1);
     construct_info.color_buffers[0].internal_format = Framebuffer::Internal_Format::rgba8;
     construct_info.depth_buffer.enabled = true;
-    construct_info.width = size().width();
-    construct_info.height = size().height();
+    construct_info.width = w;
+    construct_info.height = h;
     framebuffer = new Framebuffer(construct_info);
-    renderer = new rendering::Renderer(size().width(), size().height());
+    renderer = new rendering::Renderer(w, h);
 
     ECS& ecs = Editor::get_ecs();
     auto [entity, viewport_camera, camera, transform] = ecs.create<Viewport_Camera, Camera, Transform>();
@@ -73,7 +77,7 @@ Viewport::~Viewport() {
     delete renderer;
 }
 
-void Viewport::resize(int const w, int const h) {
+void Viewport::resize(int32_t const w, int32_t const h) {
     renderer->resize(w, h);
     framebuffer->resize(w, h);
     QWidget::resize(w, h);
@@ -107,9 +111,11 @@ void Viewport::closeEvent(QCloseEvent* e) {
     Q_EMIT window_closed(index);
 }
 
-void Viewport::resizeEvent(QResizeEvent* e) {
+void Viewport::resizeEvent(QResizeEvent*) {
     GE_log("Resize event");
-    resize(width(), height());
+    int32_t w = width();
+    int32_t h = height();
+    resize(w, h);
 }
 
 void Viewport::mouseMoveEvent(QMouseEvent* mouse_event) {
@@ -126,16 +132,12 @@ void Viewport::mouseMoveEvent(QMouseEvent* mouse_event) {
 
 void Viewport::mousePressEvent(QMouseEvent* mouse_event) {
     Q_EMIT made_active(index);
-    Key key = key_from_qt_mouse_button(mouse_event->button());
-
-
-
-
     Input::Manager& input_manager = Editor::get_input_manager();
-    input_manager.add_event(Input::Event(key_from_qt_mouse_button(mouse_event->button()), mouse_event->type() == QEvent::MouseButtonPress));
+    Key key = key_from_qt_mouse_button(mouse_event->button());
+    input_manager.add_event(Input::Event(key, mouse_event->type() == QEvent::MouseButtonPress));
 }
 
-static Entity pick_object(Ray const ray, uint32_t const viewport_w, uint32_t const viewport_h, Vector2 const mouse_pos) {
+static Entity pick_object(Ray const ray) {
     // gizmo::draw_line(ray.origin, ray.origin + 20 * ray.direction, Color::green, 200.0f);
 
     ECS& ecs = Editor::get_ecs();
@@ -178,25 +180,26 @@ static void draw_wireframe_cuboid(Vector3 pos, Vector3 x, Vector3 y, Vector3 z) 
 }
 
 void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const projection_mat, Matrix4 const inv_view_mat, Matrix4 const inv_projection_mat,
-                               Transform const camera_transform, containers::Vector<Entity>& selected_entities) {
-    Vector2 const window_content_size(width(), height());
+                               Transform const camera_transform, anton_stl::Vector<Entity>& selected_entities) {
+    int32_t const window_content_size_x = width();
+    int32_t const window_content_size_y = height();
     QPoint qcursor_pos = mapFromGlobal(QCursor::pos()); // TODO choose screen
     // Transform from top-left to bottom-left
     Vector2 mouse_pos(qcursor_pos.x(), height() - qcursor_pos.y());
 
     auto const state = Input::get_key_state(Key::right_mouse_button);
     auto const shift_state = Input::get_key_state(Key::left_shift);
-    Ray const ray = screen_to_ray(inv_view_mat, inv_projection_mat, window_content_size.x, window_content_size.y, mouse_pos);
+    Ray const ray = screen_to_ray(inv_view_mat, inv_projection_mat, window_content_size_x, window_content_size_y, mouse_pos);
     if (!state.down && state.up_down_transitioned) {
         if (shift_state.down) {
-            Entity selected_entity = pick_object(ray, window_content_size.x, window_content_size.y, mouse_pos);
+            Entity selected_entity = pick_object(ray);
             if (selected_entity != null_entity) {
                 bool already_selected = false;
                 if (!(selected_entities.size() == 0) && selected_entities.front() == selected_entity) {
                     selected_entities.erase_unsorted_unchecked(0);
                     already_selected = true;
                 } else {
-                    for (containers::Vector<Entity>::size_type i = 1; i < selected_entities.size(); ++i) {
+                    for (anton_stl::Vector<Entity>::size_type i = 1; i < selected_entities.size(); ++i) {
                         if (selected_entities[i] == selected_entity) {
                             swap(selected_entities[0], selected_entities[i]);
                             already_selected = true;
@@ -210,7 +213,7 @@ void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const projection_
                 }
             }
         } else {
-            Entity selected_entity = pick_object(ray, window_content_size.x, window_content_size.y, mouse_pos);
+            Entity selected_entity = pick_object(ray);
             if (selected_entity != null_entity) {
                 selected_entities.clear();
                 selected_entities.push_back(selected_entity);
@@ -231,7 +234,7 @@ void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const projection_
         imgui::EndCombo();
     }*/
 
-    static int gizmo_type = 0;
+    //static int gizmo_type = 0;
     /*if (imgui::BeginCombo("Type", type_prev_val)) {
         if (imgui::Selectable("Translate")) {
             gizmo_transform_space = 0;
@@ -428,7 +431,7 @@ void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const projection_
 
 // Leaves the rendered scene with outlines in renderer's front postprocess framebuffer's 1st color attachment
 static void draw_outlines(rendering::Renderer* renderer, Framebuffer* framebuffer, uint32_t const scene_texture,
-                          containers::Vector<Entity> const& selected_entities, Matrix4 const view, Matrix4 const projection, Color const outline_color) {
+                          anton_stl::Vector<Entity> const& selected_entities, Matrix4 const view, Matrix4 const projection, Color const outline_color) {
     // copy depth buffer
     Framebuffer::bind(*renderer->framebuffer, Framebuffer::Bind_Mode::read);
     Framebuffer::bind(*framebuffer, Framebuffer::Bind_Mode::draw);
@@ -472,7 +475,7 @@ static uint32_t draw_gizmo(rendering::Renderer* renderer, Framebuffer* framebuff
     return framebuffer->get_color_texture(0);
 }
 
-void Viewport::render(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform, containers::Vector<Entity> const& selected_entities) {
+void Viewport::render(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform, anton_stl::Vector<Entity> const& selected_entities) {
     if (!context->makeCurrent(windowHandle())) {
         GE_log("Could not make context current. Skipping rendering.");
         return;

@@ -12,11 +12,11 @@
 #endif
 
 #ifndef GE_BUILD_SHIPPING_DEBUG
-#    define GE_BUIlD_SHIPPING_DEBUG 0
+#    define GE_BUILD_SHIPPING_DEBUG 0
 #endif
 
 #ifndef GE_BUILD_SHIPPING_RELEASE
-#    define GE_BUIlD_SHIPPING_RELEASE 0
+#    define GE_BUILD_SHIPPING_RELEASE 0
 #endif
 
 #ifndef GE_BUILD_SHIPPING

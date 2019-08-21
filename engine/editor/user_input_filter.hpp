@@ -1,7 +1,11 @@
 #ifndef EDITOR_USER_INPUT_FILTER_HPP_INCLUDE
 #define EDITOR_USER_INPUT_FILTER_HPP_INCLUDE
 
+#include <diagnostic_macros.hpp>
+
+ANTON_DISABLE_WARNINGS()
 #include <QObject>
+ANTON_RESTORE_WARNINGS()
 
 class QEvent;
 

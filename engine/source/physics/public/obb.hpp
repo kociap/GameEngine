@@ -1,7 +1,7 @@
 #ifndef PHYSICS_OBB_HPP_INCLUDE
 #define PHYSICS_OBB_HPP_INCLUDE
 
-#include "math/vector3.hpp"
+#include <math/vector3.hpp>
 
 class OBB {
 public:

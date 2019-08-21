@@ -1,14 +1,15 @@
 #include <window.hpp>
 
-#include <opengl.hpp>
-// GLAD must be before GLFW
-// Or define GLFW_INCLUDE_NONE
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-
 #include <build_config.hpp>
 #include <debug_macros.hpp>
+#include <diagnostic_macros.hpp>
+#include <opengl.hpp>
 #include <stdexcept>
+
+#define GLFW_INCLUDE_NONE
+ANTON_DISABLE_WARNINGS()
+#include <GLFW/glfw3.h>
+ANTON_RESTORE_WARNINGS()
 
 void framebuffer_size_callback(GLFWwindow* const, int width, int height);
 void mouse_button_callback(GLFWwindow* const, int button, int action, int mods);
@@ -18,7 +19,7 @@ void keyboard_callback(GLFWwindow* const, int, int, int, int);
 void joystick_config_callback(int, int);
 void process_gamepad_input();
 
-Window::Window(uint32_t width, uint32_t height): window_width(width), window_height(height) {
+Window::Window(int32_t width, int32_t height): window_width(width), window_height(height) {
     GE_assert(window_width > 0 && window_height > 0, "Window dimensions may not be 0");
 
     glfwInit();
@@ -26,7 +27,7 @@ Window::Window(uint32_t width, uint32_t height): window_width(width), window_hei
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window_handle = glfwCreateWindow(window_width, window_height, "GameEngine", NULL, NULL);
+    window_handle = glfwCreateWindow(window_width, window_height, "GameEngine", nullptr, nullptr);
     if (!window_handle) {
         throw std::runtime_error("GLFW failed to create a window");
     }
@@ -79,15 +80,15 @@ Vector2 Window::get_cursor_position() const {
     return {static_cast<float>(x), static_cast<float>(y)};
 }
 
-void Window::resize(uint32_t width, uint32_t height) {
+void Window::resize(int32_t width, int32_t height) {
     window_width = width;
     window_height = height;
 }
 
-uint32_t Window::width() const {
+int32_t Window::width() const {
     return window_width;
 }
 
-uint32_t Window::height() const {
+int32_t Window::height() const {
     return window_height;
 }

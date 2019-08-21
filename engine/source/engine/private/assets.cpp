@@ -1,10 +1,10 @@
 #include <assets.hpp>
 
-#include <glad/glad.h>
+#include <glad.hpp>
 
+#include <anton_stl/vector.hpp>
 #include <assets_internal.hpp>
 #include <build_config.hpp>
-#include <containers/vector.hpp>
 #include <debug_macros.hpp>
 #include <importers/obj.hpp>
 #include <importers/png.hpp>
@@ -73,6 +73,14 @@ namespace assets {
         return static_cast<uint64_t>(read_uint32_le(stream)) | (static_cast<uint64_t>(read_uint32_le(stream)) << 32);
     }
 
+    static int32_t read_int32_le(std::ifstream& stream) {
+        return (stream.get()) | (stream.get() << 8) | (stream.get() << 16) | (stream.get() << 24);
+    }
+
+    static int64_t read_int64_le(std::ifstream& stream) {
+        return (static_cast<int64_t>(read_int32_le(stream)) | static_cast<int64_t>(read_int32_le(stream)) << 32);
+    }
+
     struct Texture {
         uint32_t width;
         uint32_t height;
@@ -81,24 +89,26 @@ namespace assets {
         opengl::Type type;
         opengl::Texture_Filter filter;
         uint64_t swizzle_mask;
-        containers::Vector<uint8_t> pixels;
+        anton_stl::Vector<uint8_t> pixels;
     };
 
+    // TODO extract writing and reading to one tu to keep them in sync
     static Texture load_texture_from_file(std::filesystem::path const& file_path, uint64_t const texture_id) {
+        // TODO texture loading
         std::ifstream file(file_path, std::ios::binary);
         while (!file.eof()) {
-            uint64_t const texture_data_size = read_uint64_le(file);
+            [[maybe_unused]] int64_t const texture_data_size = read_int64_le(file);
             uint64_t const tex_id = read_uint64_le(file);
             if (tex_id == texture_id) {
                 Texture texture;
                 texture.width = read_uint32_le(file);
                 texture.height = read_uint32_le(file);
-                texture.format = static_cast<opengl::Format>(read_uint32_le(file));
-                texture.internal_format = static_cast<opengl::Sized_Internal_Format>(read_uint32_le(file));
-                texture.type = static_cast<opengl::Type>(read_uint32_le(file));
-                texture.filter = static_cast<opengl::Texture_Filter>(read_uint32_le(file));
+                texture.format = static_cast<opengl::Format>(read_int32_le(file));
+                texture.internal_format = static_cast<opengl::Sized_Internal_Format>(read_int32_le(file));
+                texture.type = static_cast<opengl::Type>(read_int32_le(file));
+                texture.filter = static_cast<opengl::Texture_Filter>(read_int32_le(file));
                 texture.swizzle_mask = read_uint64_le(file);
-                uint64_t texture_size_bytes = read_uint64_le(file);
+                int64_t texture_size_bytes = read_int64_le(file);
                 texture.pixels.resize(texture_size_bytes);
                 file.read(reinterpret_cast<char*>(texture.pixels.data()), texture_size_bytes);
                 return texture;
@@ -108,6 +118,7 @@ namespace assets {
                 throw std::runtime_error("Texture not found in the file " + file_path.generic_string());
             }
         }
+        throw std::runtime_error("Invalid texture file");
     }
 
     static bool should_use_linear_magnififcation_filter(opengl::Texture_Filter const filter) {
@@ -156,16 +167,16 @@ namespace assets {
     }
 
     static Mesh process_mesh(importers::Mesh const& imported_mesh) {
-        containers::Vector<Vertex> vertices(imported_mesh.vertices.size());
-        containers::Vector<uint32_t> indices;
+        anton_stl::Vector<Vertex> vertices(imported_mesh.vertices.size());
+        anton_stl::Vector<uint32_t> indices;
         if (imported_mesh.texture_coordinates.size() != 0) {
-            for (uint64_t i = 0; i < imported_mesh.vertices.size(); ++i) {
+            for (anton_stl::ssize_t i = 0; i < imported_mesh.vertices.size(); ++i) {
                 vertices[i].position = imported_mesh.vertices[i];
                 vertices[i].normal = imported_mesh.normals[i];
                 vertices[i].uv_coordinates = Vector2(imported_mesh.texture_coordinates[i]);
             }
         } else {
-            for (uint64_t i = 0; i < imported_mesh.vertices.size(); ++i) {
+            for (anton_stl::ssize_t i = 0; i < imported_mesh.vertices.size(); ++i) {
                 vertices[i].position = imported_mesh.vertices[i];
                 vertices[i].normal = imported_mesh.normals[i];
             }
@@ -177,18 +188,18 @@ namespace assets {
             }
         }
 
-        for (uint64_t i = 0; i < indices.size(); i += 3) {
+        for (anton_stl::ssize_t i = 0; i < indices.size(); i += 3) {
             compute_tangents(vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]);
         }
 
         return {std::move(vertices), std::move(indices)};
     }
 
-    containers::Vector<Mesh> load_model(std::filesystem::path const& path) {
+    anton_stl::Vector<Mesh> load_model(std::filesystem::path const& path) {
         // TODO will not compile in shipping build
         auto asset_path = utils::concat_paths(paths::assets_directory(), path);
         auto extension = asset_path.extension();
-        containers::Vector<Mesh> meshes;
+        anton_stl::Vector<Mesh> meshes;
         if (extension == ".obj") { // TODO Don't load directly from obj. Use a proprietary format
             auto file = utils::read_file_binary(asset_path);
             auto imported_meshes = importers::import_obj(file);

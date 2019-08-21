@@ -4,7 +4,7 @@
 #include <string>
 
 #ifdef _MSC_VER
-#    include <windows.h>
+#    include <Windows.h>
 #else
 #    include <dlfcn.h>
 #endif // _MSC_VER
@@ -24,7 +24,8 @@ Module load_module(std::string_view module_name) {
 
 void* get_function_from_module(Module module, std::string_view name) {
 #ifdef _MSC_VER
-    void* func_ptr = GetProcAddress(static_cast<HMODULE>(module.handle), name.data());
+    // Since GetProcAddress returns a function pointer we reinterpret_cast to void* to silence -Wmicrosoft-cast.
+    void* func_ptr = reinterpret_cast<void*>(GetProcAddress(static_cast<HMODULE>(module.handle), name.data()));
 #else
     void* func_ptr = dlsym(module.handle, name.data());
 #endif

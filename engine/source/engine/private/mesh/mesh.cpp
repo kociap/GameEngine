@@ -1,20 +1,20 @@
-#include "mesh/mesh.hpp"
-#include "debug_macros.hpp"
-#include "glad/glad.h"
-#include "opengl.hpp"
-#include "renderer.hpp"
-#include "shader.hpp"
+#include <debug_macros.hpp>
+#include <glad.hpp>
+#include <mesh/mesh.hpp>
+#include <opengl.hpp>
+#include <renderer.hpp>
+#include <shader.hpp>
 
 Vertex::Vertex(Vector3 pos, Vector3 norm, Vector3 tan, Vector3 bitan, Vector2 tex)
     : position(std::move(pos)), normal(std::move(norm)), tangent(std::move(tan)), bitangent(std::move(bitan)), uv_coordinates(std::move(tex)) {}
 
 Mesh::Mesh() {}
 
-Mesh::Mesh(containers::Vector<Vertex> const& vertices, containers::Vector<uint32_t> const& indices): vertices(vertices), indices(indices) {
+Mesh::Mesh(anton_stl::Vector<Vertex> const& vertices, anton_stl::Vector<uint32_t> const& indices): vertices(vertices), indices(indices) {
     prepare_mesh();
 }
 
-Mesh::Mesh(containers::Vector<Vertex>&& vertices, containers::Vector<uint32_t>&& indices): vertices(std::move(vertices)), indices(std::move(indices)) {
+Mesh::Mesh(anton_stl::Vector<Vertex>&& vertices, anton_stl::Vector<uint32_t>&& indices): vertices(std::move(vertices)), indices(std::move(indices)) {
     prepare_mesh();
 }
 
@@ -52,7 +52,8 @@ void Mesh::prepare_mesh() {
     glGenBuffers(1, &vbo);
     glGenBuffers(1, &ebo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * static_cast<anton_stl::ssize_t>(sizeof(Vertex)), &vertices[0], GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), &indices[0], GL_STATIC_DRAW);
+    // Multiply by 4 because each index is 4 bytes
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * 4, &indices[0], GL_STATIC_DRAW);
 }

@@ -19,12 +19,12 @@ namespace rendering {
     // TODO this thing has to go
     class Renderer {
     public:
-        Renderer(uint32_t width, uint32_t height);
+        Renderer(int32_t width, int32_t height);
         ~Renderer();
 
-        void resize(uint32_t width, uint32_t height);
-        void render_frame(Matrix4 view_mat, Matrix4 proj_mat, Transform camera_transform, uint32_t viewport_width, uint32_t viewport_height);
-        uint32_t render_frame_as_texture(Matrix4 view_mat, Matrix4 proj_mat, Transform camera_transform, uint32_t viewport_width, uint32_t viewport_height);
+        void resize(int32_t width, int32_t height);
+        void render_frame(Matrix4 view_mat, Matrix4 proj_mat, Transform camera_transform, int32_t viewport_width, int32_t viewport_height);
+        uint32_t render_frame_as_texture(Matrix4 view_mat, Matrix4 proj_mat, Transform camera_transform, int32_t viewport_width, int32_t viewport_height);
         void load_shader_light_properties();
         void set_gamma_value(float);
         void swap_postprocess_buffers();
@@ -36,12 +36,11 @@ namespace rendering {
         void update_dynamic_lights();
         void setup_opengl();
 
-        void build_framebuffers(uint32_t width, uint32_t height);
+        void build_framebuffers(int32_t width, int32_t height);
         void delete_framebuffers();
 
     private:
         Framebuffer* framebuffer_multisampled;
-        Framebuffer* light_depth_buffer;
 
     public:
         Framebuffer* framebuffer;

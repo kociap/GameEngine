@@ -1,8 +1,8 @@
 #ifndef PHYSICS_LINE_HPP_INCLUDE
 #define PHYSICS_LINE_HPP_INCLUDE
 
-#include "math/vector2.hpp"
-#include "math/vector3.hpp"
+#include <math/vector2.hpp>
+#include <math/vector3.hpp>
 #include <utility>
 
 class Line {

@@ -1,10 +1,10 @@
 #ifndef GAME_ENGINE_CORE_MATH_TRANSFORM_HPP_INCLUDE
 #define GAME_ENGINE_CORE_MATH_TRANSFORM_HPP_INCLUDE
 
-#include "macro_undefs.hpp"
-#include "matrix4.hpp"
-#include "quaternion.hpp"
-#include "vector3.hpp"
+#include <macro_undefs.hpp>
+#include <math/matrix4.hpp>
+#include <math/quaternion.hpp>
+#include <math/vector3.hpp>
 
 namespace math {
     namespace transform {
