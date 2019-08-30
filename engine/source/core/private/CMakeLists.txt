@@ -1,5 +1,8 @@
 set(SOURCE_FILES ${SOURCE_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/allocator.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string_iterators.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string_view.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/vector2.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/vector3.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/vector4.cpp"

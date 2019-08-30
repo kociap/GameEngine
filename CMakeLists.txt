@@ -32,6 +32,7 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR ("${CMAKE_CXX_COMPILER_ID}" MATCH
         # -Wno-shadow-field-in-constructor # TODO temporarily to suppress spam
         # -Wno-missing-prototypes
         -Wnewline-eof
+        -Wnon-virtual-dtor
         -Wno-error=unused-const-variable 
         -Wno-error=unused-parameter
         -Wno-error=unused-variable
@@ -51,6 +52,7 @@ elseif(MSVC)
         set(ENGINE_CXX_FLAGS
             ${ENGINE_CXX_FLAGS}
             -Wnewline-eof
+            -Wnon-virtual-dtor
         )
     endif()
 

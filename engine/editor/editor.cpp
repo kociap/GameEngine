@@ -4,6 +4,7 @@
 #include <build_config.hpp>
 #include <camera_movement.hpp>
 #include <components/camera.hpp>
+#include <components/entity_name.hpp>
 #include <components/transform.hpp>
 #include <debug_hotkeys.hpp>
 #include <diagnostic_macros.hpp>
@@ -15,6 +16,7 @@
 #include <input/input_core.hpp>
 #include <material.hpp>
 #include <mesh/mesh.hpp>
+#include <outliner.hpp>
 #include <paths.hpp>
 #include <resource_manager.hpp>
 #include <shader.hpp>
@@ -93,6 +95,10 @@ void Editor::loop() {
     //for (Entity const entity: dbg_hotkeys) {
     //    Debug_Hotkeys::update(dbg_hotkeys.get(entity));
     //}
+
+    anton_stl::Vector<Entity> const& entities_to_remove = ecs->get_entities_to_remove();
+    editor_window->outliner->remove_entities(entities_to_remove);
+    ecs->remove_requested_entities();
 }
 
 bool Editor::should_close() {
@@ -175,7 +181,8 @@ void Editor::load_world() {
 #else
     auto instantiate_box = [default_shader_handle, box_handle, material_handle](Vector3 position, float rotation = 0) {
         Entity box = ecs->create();
-        Transform& box_t = ecs->add_component<Transform>(box);
+        ecs->add_component<Entity_Name>(box, u8"Box");
+		Transform& box_t = ecs->add_component<Transform>(box);
         Static_Mesh_Component& box_sm = ecs->add_component<Static_Mesh_Component>(box);
         box_sm.mesh_handle = box_handle;
         box_sm.shader_handle = default_shader_handle;
@@ -211,6 +218,7 @@ void Editor::load_world() {
 
     auto instantiate_point_lamp = [](Vector3 position, Color color, float intensity) {
         Entity lamp = ecs->create();
+        ecs->add_component<Entity_Name>(lamp, u8"Point Lamp");
         Transform& lamp_t = ecs->add_component<Transform>(lamp);
         Point_Light_Component& lamp_pl = ecs->add_component<Point_Light_Component>(lamp);
         //Static_Mesh_Component& lamp_sm = add_component<Static_Mesh_Component>(lamp);

@@ -1,14 +1,14 @@
 #include <ecs/ecs.hpp>
 
+#include <anton_stl/memory.hpp>
 #include <debug_macros.hpp>
 #include <ecs/component_serialization.hpp>
-#include <memory/memory.hpp>
 
 #include <algorithm>
 
 ECS::~ECS() {
     for (auto& container_data: containers) {
-        memory::destruct(container_data.container);
+        anton_stl::destruct(container_data.container);
         container_data.container = nullptr;
     }
 }

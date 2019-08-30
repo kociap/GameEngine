@@ -1,9 +1,9 @@
 #include <importers/tga.hpp>
 
+#include <anton_stl/memory.hpp>
 #include <cstdint>
 #include <debug_macros.hpp>
 #include <importers/common.hpp>
-#include <memory/memory.hpp>
 
 namespace importers {
     constexpr int32_t footer_byte_size = 26;
@@ -232,7 +232,7 @@ namespace importers {
                     swap_and_copy_bytes(swapped_pixel, current_pixel, bytes_per_pixel, bytes_per_pixel, is_indexed);
                     img_offset += bytes_per_pixel;
                     for (int32_t j = 1; j < repeat_count; ++j) {
-                        memory::copy(swapped_pixel, swapped_pixel + bytes_per_pixel, image.data.data() + img_offset);
+                        anton_stl::copy(swapped_pixel, swapped_pixel + bytes_per_pixel, image.data.data() + img_offset);
                         img_offset += bytes_per_pixel;
                     }
                     offset += bytes_per_pixel + 1;

@@ -6,9 +6,9 @@
 namespace anton_stl {
     template <typename T>
     inline constexpr enable_if<is_move_constructible<T> && is_move_assignable<T>, void> swap(T& a, T& b) {
-        T tmp(move(a));
-        a = move(b);
-        b = move(tmp);
+        T tmp(anton_stl::move(a));
+        a = anton_stl::move(b);
+        b = anton_stl::move(tmp);
     }
 
     template <typename T, typename U, typename = void>

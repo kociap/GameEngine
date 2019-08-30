@@ -85,7 +85,7 @@ anton_stl::Vector<std::string> parse_component_header(File& file) {
     anton_stl::Vector<std::string> class_names;
     Lexer lexer;
     auto tokens = lexer.parse(file);
-    for (uint64_t i = 0; i + 2 < tokens.size(); ++i) {
+    for (int64_t i = 0; i + 2 < tokens.size(); ++i) {
         if (tokens[i].token == Token::keyword_class) {
             if (tokens[i + 1].token == Token::macro_component && tokens[i + 2].token == Token::identifier) {
                 class_names.push_back(tokens[i + 2].string);

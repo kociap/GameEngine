@@ -1,13 +1,12 @@
 #ifndef ENGINE_ECS_COMPONENT_CONTAINER_HPP_INCLUDE
 #define ENGINE_ECS_COMPONENT_CONTAINER_HPP_INCLUDE
 
-#include <anton_stl/iterators.hpp>
+#include <anton_stl/type_traits.hpp>
 #include <anton_stl/vector.hpp>
 #include <debug_macros.hpp>
+#include <ecs/component_container_iterator.hpp>
 #include <ecs/entity.hpp>
 #include <serialization/archives/binary.hpp>
-
-#include <type_traits>
 
 class Component_Container_Base {
 public:
@@ -55,53 +54,8 @@ class Component_Container: public Component_Container_Base {
 private:
     using base_t = Component_Container_Base;
 
-    template <bool = std::is_empty_v<Component>>
-    class Iterator: public anton_stl::iterator<Component_Container<Component>> {
-        friend class Component_Container<Component>;
-
-        using base_type = anton_stl::iterator<Component_Container<Component>>;
-        Iterator(Component* p, size_type i): base_type(p + i) {}
-    };
-
-    template <>
-    class Iterator<true> {
-        friend class Component_Container<Component>;
-
-        Iterator(Component* p, size_type i): ptr(p), index(i) {}
-
-    public:
-        using value_type = Component;
-        using reference = Component&;
-        using pointer = Component*;
-
-        Iterator& operator++() {
-            ++index;
-            return *this;
-        }
-
-        Iterator& operator--() {
-            --index;
-            return *this;
-        }
-
-        // clang-format off
-        reference operator*() { return *ptr; }
-        pointer operator->() { return ptr; }
-        friend bool operator==(Iterator const& a, Iterator const& b) { return a.index == b.index; }
-        friend bool operator!=(Iterator const& a, Iterator const& b) { return a.index != b.index; }
-        friend bool operator<(Iterator const& a, Iterator const& b) { return a.index < b.index; }
-        friend bool operator>(Iterator const& a, Iterator const& b) { return a.index > b.index; }
-        friend bool operator<=(Iterator const& a, Iterator const& b) { return a.index <= b.index; }
-        friend bool operator>=(Iterator const& a, Iterator const& b) { return a.index >= b.index; }
-        // clang-format on
-
-    private:
-        Component* ptr;
-        size_type index;
-    };
-
 public:
-    using iterator = Iterator<>;
+    using iterator = Component_Container_Iterator<Component>;
 
     static void serialize(serialization::Binary_Output_Archive& archive, Component_Container_Base const*);
     static void deserialize(serialization::Binary_Input_Archive& archive, Component_Container_Base*&);
@@ -109,7 +63,7 @@ public:
     virtual ~Component_Container() {}
 
     [[nodiscard]] Component const* raw() const {
-        if constexpr (std::is_empty_v<Component>) {
+        if constexpr (anton_stl::is_empty<Component>) {
             return &components;
         } else {
             return components.data();
@@ -131,7 +85,7 @@ public:
     template <typename... Args>
     Component& add(Entity const entity, Args&&... args) {
         GE_assert(!has(entity), "Attempting to add duplicate entity");
-        if constexpr (std::is_empty_v<Component>) {
+        if constexpr (anton_stl::is_empty<Component>) {
             add_entity(entity);
             return components;
         } else {
@@ -142,7 +96,7 @@ public:
     }
 
     void remove(Entity const entity) {
-        if constexpr (!std::is_empty_v<Component>) {
+        if constexpr (!anton_stl::is_empty<Component>) {
             components.erase_unsorted(get_index(entity));
         }
 
@@ -151,7 +105,7 @@ public:
 
     [[nodiscard]] Component& get(Entity const entity) {
         GE_assert(has(entity), "Attempting to get component of an entity that has not been registered");
-        if constexpr (std::is_empty_v<Component>) {
+        if constexpr (anton_stl::is_empty<Component>) {
             return components;
         } else {
             return components[get_index(entity)];
@@ -159,7 +113,7 @@ public:
     }
 
     [[nodiscard]] Component* try_get(Entity const entity) {
-        if constexpr (std::is_empty_v<Component>) {
+        if constexpr (anton_stl::is_empty<Component>) {
             return has(entity) ? &components : nullptr;
         } else {
             return has(entity) ? components.data() + get_index(entity) : nullptr;
@@ -167,7 +121,7 @@ public:
     }
 
 private:
-    std::conditional_t<std::is_empty_v<Component>, Component, anton_stl::Vector<Component>> components;
+    std::conditional_t<anton_stl::is_empty<Component>, Component, anton_stl::Vector<Component>> components;
 };
 
 #include <ecs/component_container.tpp>

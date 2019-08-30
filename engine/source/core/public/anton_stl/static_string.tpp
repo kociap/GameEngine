@@ -50,12 +50,12 @@ namespace anton_stl {
     }
 
     template <typename T, anton_stl::ssize_t Capacity>
-    inline auto Basic_Static_String<T, Capacity>::rbegin() const -> const_reverse_iterator {
+    inline auto Basic_Static_String<T, Capacity>::rbegin() const -> reverse_const_iterator {
         return reverse_iterator(end());
     }
 
     template <typename T, anton_stl::ssize_t Capacity>
-    inline auto Basic_Static_String<T, Capacity>::crbegin() const -> const_reverse_iterator {
+    inline auto Basic_Static_String<T, Capacity>::crbegin() const -> reverse_const_iterator {
         return reverse_iterator(end());
     }
 
@@ -65,13 +65,13 @@ namespace anton_stl {
     }
 
     template <typename T, anton_stl::ssize_t Capacity>
-    inline auto Basic_Static_String<T, Capacity>::rend() const -> const_reverse_iterator {
-        return reverse_iterator(begin());
+    inline auto Basic_Static_String<T, Capacity>::rend() const -> reverse_const_iterator {
+        return reverse_const_iterator(begin());
     }
 
     template <typename T, anton_stl::ssize_t Capacity>
-    inline auto Basic_Static_String<T, Capacity>::crend() const -> const_reverse_iterator {
-        return reverse_iterator(begin());
+    inline auto Basic_Static_String<T, Capacity>::crend() const -> reverse_const_iterator {
+        return reverse_const_iterator(begin());
     }
 
     template <typename T, anton_stl::ssize_t Capacity>

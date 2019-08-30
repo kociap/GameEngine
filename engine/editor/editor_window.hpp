@@ -20,6 +20,7 @@ class QOpenGLContext;
 class QOffscreenSurface;
 class QMouseEvent;
 class Dock_Widget;
+class Outliner;
 
 class Editor_Shared_State {
 public:
@@ -37,9 +38,12 @@ public:
     void update();
     void render();
 
+    Outliner* outliner = nullptr;
+
 private:
     anton_stl::Vector<Viewport*> viewports;
     anton_stl::Vector<Dock_Widget*> viewport_docks;
+    Dock_Widget* outliner_dock = nullptr;
     Ui::Editor_Window* ui = nullptr;
     QOpenGLContext* context;
     QOffscreenSurface* surface;

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <Type Name="anton_stl::String">
+        <DisplayString>{_data, s8}</DisplayString>
+        <StringView>_data, s8</StringView>
+        <Expand>
+            <Item Name="size">_size</Item>
+            <Item Name="capacity">_capacity</Item>
+            <Item Name="allocator">_allocator</Item>
+            <ArrayItems>
+                <Size>_size</Size>
+                <ValuePointer>_data</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+
+    <Type Name="anton_stl::String_View">
+        <DisplayString>{_begin, s8}</DisplayString>
+        <StringView>_begin, s8</StringView>
+        <Expand>
+            <Item Name="size">_end - _begin</Item>
+            <ArrayItems>
+                <Size>_end - _begin</Size>
+                <ValuePointer>_begin</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+
+    <Type Name="anton_stl::Static_Vector&lt;*,*&gt;">
+        <DisplayString>{{ size = {_size}, capacity = {(uint64_t)$T2} }}</DisplayString>
+        <Expand>
+            <ArrayItems>
+                <Size>_size</Size>
+                <ValuePointer>($T1*)storage</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+
+    <Type Name="anton_stl::Vector&lt;*,*&gt;">
+        <DisplayString>{{ size = {_size}, capacity = {_capacity} }}</DisplayString>
+        <Expand>
+            <ArrayItems>
+                <Size>_size</Size>
+                <ValuePointer>storage</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+</AutoVisualizer>

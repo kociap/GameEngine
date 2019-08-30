@@ -2,16 +2,16 @@
 
 #include <components/camera.hpp>
 #include <components/transform.hpp>
+#include <dock_widget.hpp>
 #include <ecs/ecs.hpp>
 #include <editor.hpp>
 #include <gizmo_internal.hpp>
 #include <input/input.hpp>
 #include <opengl.hpp>
+#include <outliner.hpp>
 #include <user_input_filter.hpp>
 #include <viewport.hpp>
 #include <viewport_camera.hpp>
-
-#include <dock_widget.hpp>
 
 #include <stdexcept>
 
@@ -74,11 +74,19 @@ Editor_Window::Editor_Window(QWidget* parent): QMainWindow(parent), viewports(ma
     //connect(viewport_docks[1], &Dock_Widget::window_closed, viewports[1], &Viewport::close);
     //connect(viewports[1], &Viewport::window_closed, viewport_closed);
 
+    outliner = new Outliner;
+    outliner_dock = new Dock_Widget;
+    outliner_dock->setWidget(outliner);
+    addDockWidget(Qt::BottomDockWidgetArea, outliner_dock);
+
     input_filter = new User_Input_Filter(0, 0);
     installEventFilter(input_filter);
 }
 
 Editor_Window::~Editor_Window() {
+    //delete outliner_dock;
+    //delete outliner;
+
     // We need a context to destroy opengl resources
     context->makeCurrent(surface);
     for (auto ptr: viewports) {
@@ -97,6 +105,8 @@ Editor_Window::~Editor_Window() {
 }
 
 void Editor_Window::update() {
+    outliner->update();
+
     auto const state = Input::get_key_state(Key::u);
     if (state.up_down_transitioned && !state.down) {
         if (!viewports[shared_state.active_editor]->is_cursor_locked()) {

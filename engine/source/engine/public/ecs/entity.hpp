@@ -12,6 +12,9 @@ public:
 
 constexpr Entity null_entity{static_cast<Entity::id_type>(-1)};
 
+uint64_t entity_index(Entity);
+uint64_t entity_generation(Entity);
+
 bool operator==(Entity const&, Entity const&);
 bool operator!=(Entity const&, Entity const&);
 

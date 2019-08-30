@@ -3,9 +3,9 @@
 
 #include <anton_stl/config.hpp>
 #include <anton_stl/iterators.hpp>
+#include <anton_stl/memory>
 #include <anton_stl/string_view.hpp>
 #include <memory/aligned_buffer.hpp>
-#include <memory/memory.hpp>
 #include <serialization/archives/binary.hpp>
 #include <serialization/serialization.hpp>
 #include <stdexcept>
@@ -26,8 +26,8 @@ namespace anton_stl {
         using const_reference = T const&;
         using iterator = T*;
         using const_iterator = T const*;
-        using reverse_iterator = anton_stl::reverse_iterator<iterator>;
-        using const_reverse_iterator = anton_stl::reverse_iterator<const_iterator>;
+        using reverse_iterator = anton_stl::Reverse_Iterator<iterator>;
+        using reverse_const_iterator = anton_stl::Reverse_Iterator<const_iterator>;
 
     public:
         // Implicit conversion operator
@@ -44,11 +44,11 @@ namespace anton_stl {
         [[nodiscard]] const_iterator end() const;
         [[nodiscard]] const_iterator cend() const;
         [[nodiscard]] reverse_iterator rbegin();
-        [[nodiscard]] const_reverse_iterator rbegin() const;
-        [[nodiscard]] const_reverse_iterator crbegin() const;
+        [[nodiscard]] reverse_const_iterator rbegin() const;
+        [[nodiscard]] reverse_const_iterator crbegin() const;
         [[nodiscard]] reverse_iterator rend();
-        [[nodiscard]] const_reverse_iterator rend() const;
-        [[nodiscard]] const_reverse_iterator crend() const;
+        [[nodiscard]] reverse_const_iterator rend() const;
+        [[nodiscard]] reverse_const_iterator crend() const;
 
         [[nodiscard]] size_type size() const;
         [[nodiscard]] constexpr size_type max_size() const;

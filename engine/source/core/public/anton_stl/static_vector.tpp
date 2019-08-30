@@ -75,13 +75,13 @@ namespace anton_stl {
     }
 
     template <typename T, anton_stl::ssize_t Capacity>
-    inline auto Static_Vector<T, Capacity>::rbegin() const -> const_reverse_iterator {
-        return const_reverse_iterator(end());
+    inline auto Static_Vector<T, Capacity>::rbegin() const -> reverse_const_iterator {
+        return reverse_const_iterator(end());
     }
 
     template <typename T, anton_stl::ssize_t Capacity>
-    inline auto Static_Vector<T, Capacity>::crbegin() const -> const_reverse_iterator {
-        return const_reverse_iterator(cend());
+    inline auto Static_Vector<T, Capacity>::crbegin() const -> reverse_const_iterator {
+        return reverse_const_iterator(cend());
     }
 
     template <typename T, anton_stl::ssize_t Capacity>
@@ -90,13 +90,13 @@ namespace anton_stl {
     }
 
     template <typename T, anton_stl::ssize_t Capacity>
-    inline auto Static_Vector<T, Capacity>::rend() const -> const_reverse_iterator {
-        return const_reverse_iterator(begin());
+    inline auto Static_Vector<T, Capacity>::rend() const -> reverse_const_iterator {
+        return reverse_const_iterator(begin());
     }
 
     template <typename T, anton_stl::ssize_t Capacity>
-    inline auto Static_Vector<T, Capacity>::crend() const -> const_reverse_iterator {
-        return const_reverse_iterator(cbegin());
+    inline auto Static_Vector<T, Capacity>::crend() const -> reverse_const_iterator {
+        return reverse_const_iterator(cbegin());
     }
 
     template <typename T, anton_stl::ssize_t Capacity>
@@ -121,10 +121,10 @@ namespace anton_stl {
         }
 
         if (n > _size) { // Upsizing is the more likely case
-            memory::uninitialized_fill(get_ptr(_size), get_ptr(n), value);
+            anton_stl::uninitialized_fill(get_ptr(_size), get_ptr(n), value);
             _size = n;
         } else {
-            memory::destruct(get_ptr(n), get_ptr(_size));
+            anton_stl::destruct(get_ptr(n), get_ptr(_size));
             _size = n;
         }
     }
@@ -136,17 +136,17 @@ namespace anton_stl {
         }
 
         if (n > _size) { // Upsizing is the more likely case
-            memory::uninitialized_default_construct(get_ptr(_size), get_ptr(n));
+            anton_stl::uninitialized_default_construct(get_ptr(_size), get_ptr(n));
             _size = n;
         } else {
-            memory::destruct(get_ptr(n), get_ptr(_size));
+            anton_stl::destruct(get_ptr(n), get_ptr(_size));
             _size = n;
         }
     }
 
     template <typename T, anton_stl::ssize_t Capacity>
     inline void Static_Vector<T, Capacity>::clear() {
-        memory::destruct_n(get_ptr(), _size);
+        anton_stl::destruct_n(get_ptr(), _size);
         _size = 0;
     }
 
@@ -243,7 +243,7 @@ namespace anton_stl {
 
     template <typename T, anton_stl::ssize_t Capacity>
     inline void Static_Vector<T, Capacity>::pop_back() {
-        memory::destruct(get_ptr(_size - 1));
+        anton_stl::destruct(get_ptr(_size - 1));
         --_size;
     }
 
@@ -302,7 +302,7 @@ namespace serialization {
                 }
             } catch (...) {
                 // TODO move stream backward
-                memory::destruct_n(vec.get_ptr(), size);
+                anton_stl::destruct_n(vec.get_ptr(), size);
                 throw;
             }
         } else {
@@ -316,7 +316,7 @@ namespace serialization {
                 vec._size = size;
             } catch (...) {
                 // TODO move stream backward
-                memory::destruct_n(vec.get_ptr(), size - n);
+                anton_stl::destruct_n(vec.get_ptr(), size - n);
                 throw;
             }
         }

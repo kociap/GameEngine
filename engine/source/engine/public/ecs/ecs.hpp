@@ -1,13 +1,13 @@
 #ifndef ENGINE_ENTITY_COMPONENT_SYSTEM_HPP_INCLUDE
 #define ENGINE_ENTITY_COMPONENT_SYSTEM_HPP_INCLUDE
 
+#include <anton_stl/algorithm.hpp>
 #include <anton_stl/vector.hpp>
 #include <ecs/component_access.hpp>
 #include <ecs/component_container.hpp>
 #include <ecs/entity.hpp>
 #include <engine.hpp>
 #include <integer_sequence_generator.hpp>
-#include <anton_stl/iterators.hpp>
 #include <serialization/archives/binary.hpp>
 #include <type_family.hpp>
 
@@ -31,9 +31,6 @@ private:
     };
 
 public:
-    using iterator = anton_stl::iterator<ECS>;
-    using const_iterator = anton_stl::const_iterator<ECS>;
-
     friend void serialization::serialize(serialization::Binary_Output_Archive&, ECS const&);
     friend void serialization::deserialize(serialization::Binary_Input_Archive&, ECS&);
 
@@ -64,11 +61,7 @@ public:
     }
 
     void destroy(Entity const entity) {
-        for (auto& container_data: containers) {
-            if (container_data.container->has(entity)) {
-                container_data.remove(*container_data.container, entity);
-            }
-        }
+        entities_to_remove.push_back(entity);
     }
 
     template <typename T, typename... Ctor_Args>
@@ -94,7 +87,7 @@ public:
     }
 
     template <typename... Ts>
-    void has_component(Entity const entity) {
+    bool has_component(Entity const entity) {
         static_assert(sizeof...(Ts) > 0, "Empty parameter pack");
         auto const containers = std::make_tuple(find_container<Ts>()...);
         return (... && (std::get<Component_Container<Ts>*>(containers) ? std::get<Component_Container<Ts>*>(containers)->has(entity) : false));
@@ -103,6 +96,31 @@ public:
     template <typename... Ts>
     Component_Access<Ts...> access() {
         return Component_Access<Ts...>(ensure_container<Ts>()...);
+    }
+
+    anton_stl::Vector<Entity> const& get_entities() const {
+        return entities;
+    }
+
+    anton_stl::Vector<Entity> const& get_entities_to_remove() const {
+        return entities_to_remove;
+    }
+
+    void remove_requested_entities() {
+        for (auto& container_data: containers) {
+            for (Entity const entity: entities_to_remove) {
+                if (container_data.container->has(entity)) {
+                    container_data.remove(*container_data.container, entity);
+                }
+            }
+        }
+
+        for (Entity const entity: entities_to_remove) {
+            auto iter = anton_stl::find(entities.begin(), entities.end(), entity);
+            entities.erase_unsorted(iter);
+        }
+
+        entities_to_remove.clear();
     }
 
 private:
@@ -149,6 +167,7 @@ private:
 
 private:
     anton_stl::Vector<Entity> entities;
+    anton_stl::Vector<Entity> entities_to_remove;
     anton_stl::Vector<Components_Container_Data> containers;
     Integer_Sequence_Generator id_generator;
 };

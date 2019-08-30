@@ -1,12 +1,13 @@
 #ifndef CORE_ANTON_STL_TYPE_TRAITS_HPP_INCLUDE
 #define CORE_ANTON_STL_TYPE_TRAITS_HPP_INCLUDE
 
-// Since volatile has been deprecated in C++20, this implementation provides no traits for removing, adding or identifying volatile
+// Since volatile has been deprecated in C++20, this implementation provides no traits for removing, adding or identifying volatile.
 
 // anton_stl::is_swappable, anton_stl::is_noexcept_swappable are defined in <anton_stl/utility>
+// anton_stl::is_iterator_wrapper is defined in <anton_stl/iterators>
 
-#include <anton_stl/detail/function_traits_macros.hpp>
 #include <anton_stl/config.hpp>
+#include <anton_stl/detail/function_traits_macros.hpp>
 #include <type_traits>
 
 namespace anton_stl {
@@ -477,15 +478,35 @@ namespace anton_stl {
     template <typename T>
     inline constexpr bool is_complete_type = Is_Complete_Type<T>::value;
 
+    // Is_Empty
+    //
+    template <typename T>
+    struct Is_Empty: public Bool_Constant<__is_empty(T)> {};
+
+    template <typename T>
+    inline constexpr bool is_empty = Is_Empty<T>::value;
+
+    // Is_Trivial
+    //
+    template <typename T>
+    struct Is_Trivial: public Bool_Constant<__is_trivial(T)> {
+        static_assert(disjunction<Is_Complete_Type<T>, Is_Void<T>, Is_Unbounded_Array<T>>,
+                      "Template argument must be a complete type, void or an unbounded array.");
+    };
+
+    template <typename T>
+    inline constexpr bool is_trivial = Is_Trivial<T>::value;
+
     // Is_Assignable
     //
     // Note: We assume that all compilers we use support __is_assignable,
     // which apparently is the case for Clang, MSVC and GCC
     //
-    // TODO: Add completeness check
-    //
     template <typename T, typename U>
-    struct Is_Assignable: Bool_Constant<__is_assignable(T, U)> {};
+    struct Is_Assignable: Bool_Constant<__is_assignable(T, U)> {
+        static_assert(disjunction<Is_Complete_Type<T>, Is_Void<T>, Is_Unbounded_Array<T>>,
+                      "Template argument must be a complete type, void or an unbounded array.");
+    };
 
     template <typename T, typename U>
     inline constexpr bool is_assignable = Is_Assignable<T, U>::value;
@@ -500,9 +521,9 @@ namespace anton_stl {
 
     // Is_Constructible
     //
-#if ANTON_COMPILER_ID == ANTON_COMPILER_CLANG || ANTON_COMPILER_ID == ANTON_COMPILER_MSVC
-    // Both Clang and MSVC support __is_constructible
-
+    // Note: We assume that all compilers we use support __is_constructible,
+    // which apparently is the case for Clang, MSVC and GCC
+    //
     template <typename T, typename... Args>
     struct Is_Constructible: Bool_Constant<__is_constructible(T, Args...)> {
         static_assert(disjunction<Is_Complete_Type<T>, Is_Void<T>, Is_Unbounded_Array<T>>,
@@ -510,11 +531,7 @@ namespace anton_stl {
     };
 
     template <typename T, typename... Args>
-    inline constexpr bool is_constructible = __is_constructible(T, Args...);
-#else
-// Sadly GCC does not offer any intrinsic similar to __is_constructible
-#    error "Is_Constructible trait has not been implemented"
-#endif // ANTON_COMPILER_ID == ANTON_COMPILER_CLANG || ANTON_COMPILER_ID == ANTON_COMPILER_MSVC
+    inline constexpr bool is_constructible = Is_Constructible<T, Args...>::value;
 
     // Is_Default_Constructible
     template <typename T>
@@ -526,6 +543,17 @@ namespace anton_stl {
     template <typename T>
     inline constexpr bool is_default_constructible = Is_Default_Constructible<T>::value;
 
+    // Is_Copy_Constructible
+    //
+    template <typename T>
+    struct Is_Copy_Constructible: Is_Constructible<T, add_lvalue_reference<T const>> {
+        static_assert(disjunction<Is_Complete_Type<T>, Is_Void<T>, Is_Unbounded_Array<T>>,
+                      "Template argument must be a complete type, void or an unbounded array.");
+    };
+
+    template <typename T>
+    inline constexpr bool is_copy_constructible = Is_Copy_Constructible<T>::value;
+
     // Is_Move_Constructible
     //
     template <typename T>
@@ -536,6 +564,39 @@ namespace anton_stl {
 
     template <typename T>
     inline constexpr bool is_move_constructible = Is_Move_Constructible<T>::value;
+
+    // Is_Trivially_Constructible
+    //
+    template <typename T, typename... Args>
+    struct Is_Trivially_Constructible: public Bool_Constant<__is_trivially_constructible(T, Args...)> {
+        static_assert(disjunction<Is_Complete_Type<T>, Is_Void<T>, Is_Unbounded_Array<T>>,
+                      "Template argument must be a complete type, void or an unbounded array.");
+    };
+
+    template <typename T, typename... Args>
+    inline constexpr bool is_trivially_constructible = Is_Trivially_Constructible<T, Args...>::value;
+
+    // Is_Trivially_Copy_Constructible
+    //
+    template <typename T>
+    struct Is_Trivially_Copy_Constructible: public Bool_Constant<__is_trivially_constructible(T, add_lvalue_reference<T const>)> {
+        static_assert(disjunction<Is_Complete_Type<T>, Is_Void<T>, Is_Unbounded_Array<T>>,
+                      "Template argument must be a complete type, void or an unbounded array.");
+    };
+
+    template <typename T>
+    inline constexpr bool is_trivially_copy_constructible = Is_Trivially_Copy_Constructible<T>::value;
+
+    // Is_Trivially_Move_Constructible
+    //
+    template <typename T>
+    struct Is_Trivially_Move_Constructible: public Bool_Constant<__is_trivially_constructible(T, add_rvalue_reference<T>)> {
+        static_assert(disjunction<Is_Complete_Type<T>, Is_Void<T>, Is_Unbounded_Array<T>>,
+                      "Template argument must be a complete type, void or an unbounded array.");
+    };
+
+    template <typename T>
+    inline constexpr bool is_trivially_move_constructible = Is_Trivially_Move_Constructible<T>::value;
 
     namespace detail {
         // Is_Implicitly_Default_Constructible

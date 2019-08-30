@@ -63,11 +63,11 @@ int main(int argc, char** argv) {
     }
     generated_file << '\n'
                    << "anton_stl::Vector<Component_Serialization_Funcs>& get_component_serialization_functions() {\n"
-                   << "    static anton_stl::Vector<Component_Serialization_Funcs> serialization_funcs{\n";
+                   << "    static anton_stl::Vector<Component_Serialization_Funcs> serialization_funcs{anton_stl::variadic_construct\n";
     int32_t component_index = 1;
     for (auto& [include_directory, name]: components) {
-        generated_file << "        {Type_Family::family_id<" << name << ">(), &Component_Container<" << name << ">::serialize, &Component_Container<" << name
-                       << ">::deserialize}";
+        generated_file << "        Component_Serialization_Funcs{Type_Family::family_id<" << name << ">(), &Component_Container<" << name
+                       << ">::serialize, &Component_Container<" << name << ">::deserialize}";
         if (component_index < components.size()) {
             generated_file << ",\n";
         } else {

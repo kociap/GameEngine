@@ -1,22 +1,24 @@
 set(TEMPLATE_IMPLEMENTATION_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/static_string.tpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/static_vector.tpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string_view.tpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/vector.tpp"
 )
 
 set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/function_traits_macros.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/memory_common.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/string_iterators.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/utility_common.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/algorithm.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/allocator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/config.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/iterators.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/memory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/pair.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/static_string.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/static_vector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string_view.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/type_traits.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/utility.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/vector.hpp"
@@ -30,7 +32,6 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/math/vector4.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/transform.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory/aligned_buffer.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/memory/memory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory/stack_allocate.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/serialization/archives/binary.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/serialization/serialization.hpp"

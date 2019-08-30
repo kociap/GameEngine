@@ -1,6 +1,15 @@
 #include <anton_stl/utility.hpp>
 #include <ecs/entity.hpp>
 
+// TODO: Consider making constexpr
+uint64_t entity_index(Entity entity) {
+    return entity.id & 0xFFFFFFFF;
+}
+
+uint64_t entity_generation(Entity entity) {
+    return (entity.id >> 32) & 0xFFFFFFFF;
+}
+
 bool operator==(Entity const& a, Entity const& b) {
     return a.id == b.id;
 }

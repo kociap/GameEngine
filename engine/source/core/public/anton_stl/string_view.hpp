@@ -2,55 +2,94 @@
 #define CORE_ANTON_STL_STRING_VIEW_HPP_INCLUDE
 
 #include <anton_stl/config.hpp>
+#include <anton_stl/detail/string_iterators.hpp>
 #include <anton_stl/iterators.hpp>
+#include <build_config.hpp>
 
 namespace anton_stl {
-    template <typename T>
-    class Basic_String_View {
+    class String_View {
     public:
         using size_type = anton_stl::ssize_t;
         using difference_type = anton_stl::ptrdiff_t;
-        using value_type = T;
-        using pointer = T*;
-        using const_pointer = T const*;
-        using reference = T&;
-        using const_reference = T const&;
-        using iterator = T*;
-        using const_iterator = T const*;
-        using reverse_iterator = anton_stl::reverse_iterator<iterator>;
-        using const_reverse_iterator = anton_stl::reverse_iterator<const_iterator>;
+        using value_type = char;
+        using byte_iterator = char*;
+        using byte_const_iterator = char const*;
+        using char_iterator = UTF8_Char_Iterator;
 
     public:
-        /* [[nodiscard]] */ constexpr Basic_String_View();
-        /* [[nodiscard]] */ constexpr Basic_String_View(Basic_String_View const&) = default;
-        /* [[nodiscard]] */ constexpr Basic_String_View(T const*, size_type);
-        /* [[nodiscard]] */ constexpr Basic_String_View(T const*);
-        Basic_String_View& operator=(Basic_String_View const&) = default;
+        /* [[nodiscard]] */ constexpr String_View();
+        /* [[nodiscard]] */ constexpr String_View(String_View const&) = default;
+        /* [[nodiscard]] */ constexpr String_View(value_type const*, size_type);
+        /* [[nodiscard]] */ constexpr String_View(value_type const*);
+        String_View& operator=(String_View const&) = default;
 
-        [[nodiscard]] constexpr const_reference operator[](size_type index) const;
+        [[nodiscard]] UTF8_Const_Bytes bytes() const;
+        [[nodiscard]] UTF8_Const_Bytes const_bytes() const;
+        [[nodiscard]] UTF8_Chars chars() const;
 
-        [[nodiscard]] constexpr const_iterator begin() const;
-        [[nodiscard]] constexpr const_iterator cbegin() const;
-        [[nodiscard]] constexpr const_iterator end() const;
-        [[nodiscard]] constexpr const_iterator cend() const;
-        [[nodiscard]] constexpr const_reverse_iterator rbegin() const;
-        [[nodiscard]] constexpr const_reverse_iterator crbegin() const;
-        [[nodiscard]] constexpr const_reverse_iterator rend() const;
-        [[nodiscard]] constexpr const_reverse_iterator crend() const;
+        [[nodiscard]] byte_const_iterator bytes_begin() const;
+        [[nodiscard]] byte_const_iterator bytes_cbegin() const;
+
+        [[nodiscard]] byte_const_iterator bytes_end() const;
+        [[nodiscard]] byte_const_iterator bytes_cend() const;
+
+        // Always const
+        [[nodiscard]] char_iterator chars_begin() const;
+        // Always const
+        [[nodiscard]] char_iterator chars_end() const;
 
         [[nodiscard]] constexpr size_type size() const;
         [[nodiscard]] constexpr size_type max_size() const;
 
-        [[nodiscard]] constexpr const_pointer data() const;
+        [[nodiscard]] constexpr value_type const* data() const;
 
     private:
-        T const* storage;
-        size_type _size;
+        value_type const* _begin;
+        value_type const* _end;
     };
 
-    using String_View = Basic_String_View<char>;
-} // namespace anton_stl
+    // Compares bytes
+    [[nodiscard]] bool operator==(String_View const&, String_View const&);
 
-#include <anton_stl/string_view.tpp>
+    // Compares bytes
+    [[nodiscard]] inline bool operator!=(String_View const& lhs, String_View const& rhs) {
+        return !(lhs == rhs);
+    }
+
+    inline constexpr String_View::String_View(): _begin(nullptr), _end(nullptr) {}
+
+    inline constexpr String_View::String_View(value_type const* s, size_type n): _begin(s), _end(s + n) {
+        // clang-format off
+        #if ANTON_STRING_VIEW_VERIFY_ENCODING
+                // TODO: Implement
+        #endif
+        // clang-format on
+    }
+
+    inline constexpr String_View::String_View(value_type const* s): _begin(s), _end(s) {
+        if (_begin != nullptr) {
+            while (*_end)
+                ++_end;
+        }
+
+        // clang-format off
+        #if ANTON_STRING_VIEW_VERIFY_ENCODING
+            // TODO: Implement
+        #endif
+        // clang-format on
+    }
+
+    inline constexpr auto String_View::size() const -> size_type {
+        return _end - _begin;
+    }
+
+    inline constexpr auto String_View::max_size() const -> size_type {
+        return (~size_type(0)) >> 1;
+    }
+
+    inline constexpr auto String_View::data() const -> value_type const* {
+        return _begin;
+    }
+} // namespace anton_stl
 
 #endif // !CORE_ANTON_STL_STRING_VIEW_HPP_INCLUDE

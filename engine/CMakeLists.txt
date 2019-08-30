@@ -31,6 +31,9 @@ target_compile_definitions(${ENGINE_NAME}
     ANTON_COMPILER_GCC=${ENGINE_COMPILER_GCC} 
     ANTON_COMPILER_MSVC=${ENGINE_COMPILER_MSVC} 
     ANTON_COMPILER_UNKNOWN=${ENGINE_COMPILER_UNKNOWN}
+    # Use unicode instead of multibyte charset (VS)
+    UNICODE
+    _UNICODE
 )
 target_compile_options(${ENGINE_NAME} 
     PRIVATE ${ENGINE_CXX_FLAGS}
@@ -53,6 +56,18 @@ target_link_libraries(${ENGINE_NAME}
     zlibstatic
 )
 
+add_library(AntonEngine_lib SHARED IMPORTED GLOBAL)
+target_include_directories(AntonEngine_lib INTERFACE ${PUBLIC_INCLUDE_DIRECTORIES_ROOT})
+target_compile_options(AntonEngine_lib INTERFACE ${ENGINE_CXX_FLAGS})
+# TODO: Linux support
+set_target_properties(AntonEngine_lib 
+    PROPERTIES 
+    IMPORTED_LOCATION "${ENGINE_BINARY_OUTPUT_DIRECTORY}/GameEngine.dll"
+    IMPORTED_LOCATION_DEBUG "${ENGINE_BINARY_OUTPUT_DIRECTORY}/GameEngined.dll"
+    IMPORTED_IMPLIB "${ENGINE_BINARY_OUTPUT_DIRECTORY}/GameEngine.lib"
+    IMPORTED_IMPLIB_DEBUG "${ENGINE_BINARY_OUTPUT_DIRECTORY}/GameEngined.lib"
+)
+
 add_subdirectory(tools)
 target_compile_definitions(Codegen 
     PRIVATE 
@@ -62,6 +77,9 @@ target_compile_definitions(Codegen
     ANTON_COMPILER_GCC=${ENGINE_COMPILER_GCC} 
     ANTON_COMPILER_MSVC=${ENGINE_COMPILER_MSVC} 
     ANTON_COMPILER_UNKNOWN=${ENGINE_COMPILER_UNKNOWN}
+    # Use unicode instead of multibyte charset (VS)
+    UNICODE
+    _UNICODE
 )
 target_include_directories(${ENGINE_NAME} 
     PRIVATE ${PUBLIC_INCLUDE_DIRECTORIES_ROOT}

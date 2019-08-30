@@ -3,12 +3,15 @@
     <Type Name="Vector2">
         <DisplayString>{{ x = {x}, y = {y} }}</DisplayString>
     </Type>
+
     <Type Name="Vector3">
         <DisplayString>{{ x = {x}, y = {y}, z = {z}}}</DisplayString>
     </Type>
+
     <Type Name="Vector4">
         <DisplayString>{{ x = {x}, y = {y}, z = {z}, w = {w} }}</DisplayString>
     </Type>
+
     <Type Name="Matrix4">
         <DisplayString>{{ {{ {*(components)}, {*(components + 1)}, {*(components + 2)}, {*(components + 3)} }}, {{ {*(components + 4)}, {*(components + 5)}, {*(components + 6)}, {*(components + 7)} }}, {{ {*(components + 8)}, {*(components + 9)}, {*(components + 10)}, {*(components + 11)} }}, {{ {*(components + 12)}, {*(components + 13)}, {*(components + 14)}, {*(components + 15)} }} }}</DisplayString>
         <Expand>
@@ -26,6 +29,7 @@
             </Synthetic>
         </Expand>
     </Type>
+    
     <Type Name="Matrix3">
         <DisplayString>{{ {{ {*(components)}, {*(components + 1)}, {*(components + 2)} }}, {{ {*(components + 3)}, {*(components + 4)}, {*(components + 5)} }}, {{ {*(components + 6)}, {*(components + 7)}, {*(components + 8)} }} }}</DisplayString>
         <Expand>

@@ -2,19 +2,64 @@
 #define CORE_ANTON_STL_ITERATORS_HPP_INCLUDE
 
 #include <anton_stl/config.hpp>
+#include <anton_stl/detail/memory_common.hpp>
 #include <anton_stl/type_traits.hpp>
 
-namespace std {
-    struct input_iterator_tag;
-    struct output_iterator_tag;
-    struct forward_iterator_tag;
-    struct bidirectional_iterator_tag;
-    struct random_access_iterator_tag;
-} // namespace std
-
 namespace anton_stl {
+    // Iterator category tags
+    // Explicit constructors so that the tags may not be constructed via {}
+
+    struct Input_Iterator_Tag {
+        explicit Input_Iterator_Tag() = default;
+    };
+
+    struct Output_Iterator_Tag {
+        explicit Output_Iterator_Tag() = default;
+    };
+
+    struct Forward_Iterator_Tag: public Input_Iterator_Tag {
+        explicit Forward_Iterator_Tag() = default;
+    };
+
+    struct Bidirectional_Input_Tag: public Forward_Iterator_Tag {
+        explicit Bidirectional_Input_Tag() = default;
+    };
+
+    struct Random_Access_Iterator_Tag: public Bidirectional_Input_Tag {
+        explicit Random_Access_Iterator_Tag() = default;
+    };
+
+    // Contiguous_Iterator_Tag
+    // Denotes an iterator whose elements are physically adjacent in memory.
+    //
+    struct Contiguous_Iterator_Tag: public Random_Access_Iterator_Tag {
+        explicit Contiguous_Iterator_Tag() = default;
+    };
+
+    // Is_Iterator_Category
+    //
+    template <typename T, typename Category>
+    struct Is_Iterator_Category: public anton_stl::Is_Convertible<T, Category> {};
+
+    template <typename T, typename Category>
+    inline constexpr bool is_iterator_category = Is_Iterator_Category<T, Category>::value;
+
+    // Is_Iterator_Wrapper
+    // Checks whether a type is an iterator wrapper. Relies on the class daclaring wrapped_iterator_type alias.
+    //
+    template <typename T, typename = void>
+    struct Is_Iterator_Wrapper: anton_stl::False_Type {};
+
     template <typename T>
-    struct iterator_traits {
+    struct Is_Iterator_Wrapper<T, anton_stl::void_trait<typename T::wrapped_iterator_type>>: anton_stl::True_Type {};
+
+    template <typename T>
+    inline constexpr bool is_iterator_wrapper = Is_Iterator_Wrapper<T>::value;
+
+    // Iterator_Traits
+    //
+    template <typename T>
+    struct Iterator_Traits {
         using difference_type = typename T::difference_type;
         using value_type = typename T::value_type;
         using pointer = typename T::pointer;
@@ -23,234 +68,125 @@ namespace anton_stl {
     };
 
     template <typename T>
-    struct iterator_traits<T*> {
+    struct Iterator_Traits<T*> {
         using difference_type = anton_ptrdiff_t;
         using value_type = anton_stl::remove_const<T>;
         using pointer = T*;
         using reference = T&;
-        using iterator_category = std::random_access_iterator_tag;
+        using iterator_category = anton_stl::Contiguous_Iterator_Tag;
     };
 
-    template <typename Container>
-    class const_iterator;
-
-    template <typename Container>
-    class iterator {
-        friend Container;
-        friend class const_iterator<Container>;
-
-    public:
-        using value_type = typename Container::value_type;
-        using pointer = typename Container::pointer;
-        using reference = typename Container::reference;
-        using difference_type = anton_ptrdiff_t;
-        using iterator_category = std::random_access_iterator_tag;
-
-        iterator& operator++() {
-            ++storage_ptr;
-            return *this;
-        }
-
-        iterator& operator--() {
-            --storage_ptr;
-            return *this;
-        }
-
-        iterator operator++(int) {
-            auto copy = *this;
-            return ++(*this), copy;
-        }
-
-        iterator operator--(int) {
-            auto copy = *this;
-            return --(*this), copy;
-        }
-
-        iterator& operator+=(difference_type n) {
-            storage_ptr += n;
-            return *this;
-        }
-
-        iterator& operator-=(difference_type n) {
-            storage_ptr -= n;
-            return *this;
-        }
-
-        [[nodiscard]] iterator operator+(difference_type n) {
-            return iterator(storage_ptr + n);
-        }
-
-        [[nodiscard]] iterator operator-(difference_type n) {
-            return iterator(storage_ptr - n);
-        }
-
-        // clang-format off
-        [[nodiscard]] reference operator*() const { return *storage_ptr; }
-        [[nodiscard]] pointer operator->() const { return storage_ptr; }
-        [[nodiscard]] reference operator[](difference_type n) const { return *(storage_ptr + n); }
-
-        [[nodiscard]] friend iterator operator+(difference_type n, iterator const& a) { return iterator(a.storage_ptr + n); }
-        [[nodiscard]] friend difference_type operator-(iterator const& a, iterator const& b) { return a.storage_ptr - b.storage_ptr; }
-
-        [[nodiscard]] friend bool operator==(iterator const& a, iterator const& b) { return a.storage_ptr == b.storage_ptr; }
-        [[nodiscard]] friend bool operator!=(iterator const& a, iterator const& b) { return a.storage_ptr != b.storage_ptr; }
-        [[nodiscard]] friend bool operator<(iterator const& a, iterator const& b) { return b.storage_ptr - a.storage_ptr > 0; }
-        [[nodiscard]] friend bool operator>(iterator const& a, iterator const& b) { return b < a; }
-        [[nodiscard]] friend bool operator<=(iterator const& a, iterator const& b) { return !(a > b); }
-        [[nodiscard]] friend bool operator>=(iterator const& a, iterator const& b) { return !(a < b); }
-        // clang-format on
-
-    private:
-        pointer storage_ptr = nullptr;
-        iterator(pointer ptr): storage_ptr(ptr) {}
-    };
-
-    template <typename Container>
-    class const_iterator {
-        friend Container;
-
-    public:
-        using value_type = typename Container::value_type;
-        using pointer = typename Container::const_pointer;
-        using reference = typename Container::const_reference;
-        using difference_type = anton_ptrdiff_t;
-        using iterator_category = std::random_access_iterator_tag;
-
-        const_iterator(iterator<Container> iter): storage_ptr(iter.storage_ptr) {}
-
-        const_iterator& operator++() {
-            ++storage_ptr;
-            return *this;
-        }
-
-        const_iterator operator++(int) {
-            auto copy = *this;
-            return ++(*this), copy;
-        }
-
-        const_iterator& operator--() {
-            --storage_ptr;
-            return *this;
-        }
-
-        const_iterator operator--(int) {
-            auto copy = *this;
-            return --(*this), copy;
-        }
-
-        const_iterator& operator+=(difference_type n) {
-            storage_ptr += n;
-            return *this;
-        }
-
-        const_iterator& operator-=(difference_type n) {
-            storage_ptr -= n;
-            return *this;
-        }
-
-        [[nodiscard]] const_iterator operator+(difference_type n) {
-            return const_iterator(storage_ptr + n);
-        }
-
-        [[nodiscard]] const_iterator operator-(difference_type n) {
-            return const_iterator(storage_ptr - n);
-        }
-
-        // clang-format off
-        [[nodiscard]] reference operator*() const { return *storage_ptr; }
-        [[nodiscard]] pointer operator->() const { return storage_ptr; }
-        [[nodiscard]] reference operator[](difference_type n) const { return *(storage_ptr + n); }
-
-        [[nodiscard]] friend const_iterator operator+(difference_type n, const_iterator const& a) { return const_iterator(a.storage_ptr + n); }
-        [[nodiscard]] friend difference_type operator-(const_iterator const& a, const_iterator const& b) { return a.storage_ptr - b.storage_ptr; }
-
-        [[nodiscard]] friend bool operator==(const_iterator const& a, const_iterator const& b) { return a.storage_ptr == b.storage_ptr; }
-        [[nodiscard]] friend bool operator!=(const_iterator const& a, const_iterator const& b) { return a.storage_ptr != b.storage_ptr; }
-        [[nodiscard]] friend bool operator<(const_iterator const& a, const_iterator const& b) { return b.storage_ptr - a.storage_ptr > 0; }
-        [[nodiscard]] friend bool operator>(const_iterator const& a, const_iterator const& b) { return b < a; }
-        [[nodiscard]] friend bool operator<=(const_iterator const& a, const_iterator const& b) { return !(a > b); }
-        [[nodiscard]] friend bool operator>=(const_iterator const& a, const_iterator const& b) { return !(a < b); }
-        // clang-format on
-
-    protected:
-        pointer storage_ptr = nullptr;
-        const_iterator(pointer ptr): storage_ptr(ptr) {}
-    };
-
+    // TODO: Fix this
     template <typename Iterator>
-    class reverse_iterator {
+    class Reverse_Iterator {
     public:
         using value_type = typename Iterator::value_type;
         using pointer = typename Iterator::pointer;
         using reference = typename Iterator::reference;
         using difference_type = typename Iterator::difference_type;
         using iterator_category = typename Iterator::iterator_category;
-        using iterator_type = Iterator;
+        using wrapped_iterator_type = Iterator;
 
-        explicit reverse_iterator(iterator_type iter): _iterator(--iter) {}
+        explicit Reverse_Iterator(wrapped_iterator_type iter): _iterator(--iter) {} // This
 
-        iterator_type base() const {
-            return _iterator;
+        wrapped_iterator_type base() const {
+            return _iterator + 1; // And this
         }
 
-        reverse_iterator& operator++() {
+        Reverse_Iterator& operator++() {
             --_iterator;
             return *this;
         }
 
-        reverse_iterator& operator--() {
+        Reverse_Iterator& operator--() {
             ++_iterator;
             return *this;
         }
 
-        reverse_iterator operator++(int) {
+        Reverse_Iterator operator++(int) {
             auto copy = *this;
             --_iterator;
             return copy;
         }
 
-        reverse_iterator operator--(int) {
+        Reverse_Iterator operator--(int) {
             auto copy = *this;
             ++_iterator;
             return copy;
         }
 
-        reverse_iterator& operator+=(difference_type n) {
+        Reverse_Iterator& operator+=(difference_type n) {
             _iterator -= n;
             return *this;
         }
 
-        reverse_iterator& operator-=(difference_type n) {
+        Reverse_Iterator& operator-=(difference_type n) {
             _iterator += n;
             return *this;
         }
 
-        [[nodiscard]] reverse_iterator operator+(difference_type n) {
-            return reverse_iterator(_iterator - n);
+        [[nodiscard]] Reverse_Iterator operator+(difference_type n) {
+            return Reverse_Iterator(_iterator - n);
         }
 
-        [[nodiscard]] reverse_iterator operator-(difference_type n) {
-            return reverse_iterator(_iterator + n);
+        [[nodiscard]] Reverse_Iterator operator-(difference_type n) {
+            return Reverse_Iterator(_iterator + n);
         }
 
-        // clang-format off
-        [[nodiscard]] reference operator*() const { return *_iterator; }
-        [[nodiscard]] pointer operator->() const { return _iterator.operator->(); }
-        [[nodiscard]] reference operator[](difference_type n) { return _iterator[-n]; }
+        [[nodiscard]] reference operator*() const {
+            return *_iterator;
+        }
 
-        [[nodiscard]] friend reverse_iterator operator+(difference_type n, reverse_iterator const& a) { return reverse_iterator(a._iterator - n); }
-        [[nodiscard]] friend difference_type operator-(reverse_iterator const& a, reverse_iterator const& b) { return b._iterator - a._iterator; }
+        [[nodiscard]] wrapped_iterator_type operator->() const {
+            return _iterator;
+        }
 
-        [[nodiscard]] friend bool operator==(reverse_iterator const& a, reverse_iterator const& b) { return a._iterator == b._iterator; }
-        [[nodiscard]] friend bool operator!=(reverse_iterator const& a, reverse_iterator const& b) { return a._iterator != b._iterator; }
-        [[nodiscard]] friend bool operator<(reverse_iterator const& a, reverse_iterator const& b) { return b._iterator - a._iterator < 0; }
-        [[nodiscard]] friend bool operator>(reverse_iterator const& a, reverse_iterator const& b) { return b < a; }
-        [[nodiscard]] friend bool operator<=(reverse_iterator const& a, reverse_iterator const& b) { return !(a > b); }
-        [[nodiscard]] friend bool operator>=(reverse_iterator const& a, reverse_iterator const& b) { return !(a < b); }
-        // clang-format on
+        [[nodiscard]] reference operator[](difference_type n) const {
+            return *(*this + n);
+        }
 
     private:
-        iterator_type _iterator;
+        wrapped_iterator_type _iterator;
     };
+
+    template <typename T>
+    [[nodiscard]] inline constexpr Reverse_Iterator<T> operator+(typename Reverse_Iterator<T>::difference_type n, Reverse_Iterator<T> const& a) {
+        return Reverse_Iterator<T>(a.base() - n);
+    }
+
+    template <typename T1, typename T2>
+    [[nodiscard]] inline constexpr auto operator-(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) -> decltype(b.base() - a.base()) {
+        return b.base() - a.base();
+    }
+
+    template <typename T1, typename T2>
+    [[nodiscard]] inline constexpr bool operator==(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) {
+        return a.base() == b.base();
+    }
+
+    template <typename T1, typename T2>
+    [[nodiscard]] inline constexpr bool operator!=(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) {
+        return a.base() != b.base();
+    }
+
+    template <typename T1, typename T2>
+    [[nodiscard]] inline constexpr bool operator<(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) {
+        return a.base() > b.base();
+    }
+
+    template <typename T1, typename T2>
+    [[nodiscard]] inline constexpr bool operator>(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) {
+        return a.base() < b.base();
+    }
+
+    template <typename T1, typename T2>
+    [[nodiscard]] inline constexpr bool operator<=(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) {
+        return a.base() >= b.base();
+    }
+
+    template <typename T1, typename T2>
+    [[nodiscard]] inline constexpr bool operator>=(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) {
+        return a.base() <= b.base();
+    }
 } // namespace anton_stl
 #endif // !CORE_ANTON_STL_ITERATORS_HPP_INCLUDE

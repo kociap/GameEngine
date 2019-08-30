@@ -24,6 +24,8 @@ add_subdirectory(widgets/public)
 add_subdirectory(widgets/private)
 add_subdirectory(content_browser/public)
 add_subdirectory(content_browser/private)
+add_subdirectory(outliner/public)
+add_subdirectory(outliner/private)
 
 set(SOURCE_FILES_ROOT
     ${SOURCE_FILES_ROOT}

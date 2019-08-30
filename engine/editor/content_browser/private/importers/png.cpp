@@ -1,3 +1,4 @@
+#include <anton_stl/type_traits.hpp>
 #include <anton_stl/vector.hpp>
 #include <cstdint>
 #include <importers/common.hpp>
@@ -330,7 +331,7 @@ namespace importers {
                         throw Invalid_Image_File("PLTE chunk contains too many entries");
                     }
 
-                    memory::copy(chunk_data.data, chunk_data.data + chunk_data.data_length, reinterpret_cast<uint8_t*>(color_palette.data()));
+                    anton_stl::copy(chunk_data.data, chunk_data.data + chunk_data.data_length, reinterpret_cast<uint8_t*>(color_palette.data()));
                     color_palette.resize(palette_entries);
                     PLTE_present = true;
                     break;
@@ -413,7 +414,7 @@ namespace importers {
                             throw Invalid_Image_File("Too many entries in the alpha palette");
                         }
 
-                        memory::copy(chunk_data.data, chunk_data.data + chunk_data.data_length, alpha_palette.data());
+                        anton_stl::copy(chunk_data.data, chunk_data.data + chunk_data.data_length, alpha_palette.data());
                         alpha_palette.resize(color_palette.size());
                     }
                     tRNS_present = true;
@@ -540,7 +541,6 @@ namespace importers {
                 ANTON_UNREACHABLE();
         }
         // TODO: Choose color space based on the image loaded
-        return {header.width, header.height, pixel_format, Image_Color_Space::gamma_encoded, gamma,
-                std::move(pixels_unfiltered)};
+        return {header.width, header.height, pixel_format, Image_Color_Space::gamma_encoded, gamma, anton_stl::move(pixels_unfiltered)};
     }
 } // namespace importers

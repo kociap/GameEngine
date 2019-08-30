@@ -13,8 +13,12 @@ target_compile_options(Codegen PRIVATE ${ENGINE_CXX_FLAGS})
 add_subdirectory(codegen/private)
 add_subdirectory(codegen/public)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${ENGINE_INCLUDE_DIRECTORIES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${PUBLIC_INCLUDE_DIRECTORIES_ROOT})
 target_sources(${PROJECT_NAME} 
     PRIVATE ${SOURCE_FILES} 
     PRIVATE ${HEADER_FILES}
+)
+
+target_link_libraries(Codegen
+    ${ENGINE_NAME}
 )

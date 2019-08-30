@@ -4,11 +4,11 @@
 #include <anton_stl/allocator.hpp>
 #include <anton_stl/config.hpp>
 #include <anton_stl/iterators.hpp>
+#include <anton_stl/memory.hpp>
 #include <anton_stl/type_traits.hpp>
 #include <anton_stl/utility.hpp>
 #include <debug_macros.hpp>
 #include <math/math.hpp>
-#include <memory/memory.hpp>
 #include <memory/stack_allocate.hpp>
 #include <serialization/archives/binary.hpp>
 #include <serialization/serialization.hpp>
@@ -33,8 +33,8 @@ namespace anton_stl {
         using const_reference = T const&;
         using iterator = T*; // Note:
         using const_iterator = T const*;
-        using reverse_iterator = anton_stl::reverse_iterator<iterator>;
-        using const_reverse_iterator = anton_stl::reverse_iterator<const_iterator>;
+        using reverse_iterator = anton_stl::Reverse_Iterator<iterator>;
+        using reverse_const_iterator = anton_stl::Reverse_Iterator<const_iterator>;
 
         /* [[nodiscard]] */ Vector();
         /* [[nodiscard]] */ explicit Vector(size_type size);
@@ -65,8 +65,8 @@ namespace anton_stl {
         [[nodiscard]] const_iterator cend() const;
         [[nodiscard]] reverse_iterator rbegin();
         [[nodiscard]] reverse_iterator rend();
-        [[nodiscard]] const_reverse_iterator crbegin() const;
-        [[nodiscard]] const_reverse_iterator crend() const;
+        [[nodiscard]] reverse_const_iterator crbegin() const;
+        [[nodiscard]] reverse_const_iterator crend() const;
 
         [[nodiscard]] size_type size() const;
         [[nodiscard]] size_type capacity() const;
@@ -74,6 +74,7 @@ namespace anton_stl {
         void resize(size_type n);
         void resize(size_type n, value_type const&);
         void reserve(size_type n);
+        // void reserve_exact(size_type n);
         void set_capacity(size_type n);
         void shrink_to_fit();
 
@@ -84,8 +85,11 @@ namespace anton_stl {
         void push_back(value_type&&);
         template <typename... CtorArgs>
         reference emplace_back(CtorArgs&&... args);
-        void erase_unsorted(size_type index);
+        void erase_unsorted(size_type index); // TODO: remove
         void erase_unsorted_unchecked(size_type index);
+        iterator erase_unsorted(const_iterator first);
+        // iterator erase_unsorted(const_iterator first, const_iterator last);
+        iterator erase(const_iterator first, const_iterator last);
         void pop_back();
         void clear();
 

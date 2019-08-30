@@ -6,6 +6,7 @@ set(TEMPLATE_IMPLEMENTATION_FILES
 set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/components/camera.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/directional_light_component.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/components/entity_name.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/line_component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/point_light_component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/spot_light_component.hpp"
