@@ -35,6 +35,8 @@
 ## VSCode
 .vscode
 ## Visual Studio
+.vs
+CMakeSettings.json
 ## Qt Creator
 *.user
 
