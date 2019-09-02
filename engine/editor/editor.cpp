@@ -182,7 +182,7 @@ void Editor::load_world() {
     auto instantiate_box = [default_shader_handle, box_handle, material_handle](Vector3 position, float rotation = 0) {
         Entity box = ecs->create();
         ecs->add_component<Entity_Name>(box, u8"Box");
-		Transform& box_t = ecs->add_component<Transform>(box);
+        Transform& box_t = ecs->add_component<Transform>(box);
         Static_Mesh_Component& box_sm = ecs->add_component<Static_Mesh_Component>(box);
         box_sm.mesh_handle = box_handle;
         box_sm.shader_handle = default_shader_handle;

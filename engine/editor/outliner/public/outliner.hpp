@@ -12,6 +12,7 @@ ANTON_DISABLE_WARNINGS();
 ANTON_RESTORE_WARNINGS();
 
 class QVBoxLayout;
+class QScrollArea;
 
 class Outliner: public QWidget {
     Q_OBJECT
@@ -22,13 +23,18 @@ public:
 
     void update();
     void remove_entities(anton_stl::Vector<Entity> const& entities_to_remove);
+    void select_entities(anton_stl::Vector<Entity> const&);
 
     int32_t indentation() const;
     void set_indentation(int32_t);
 
-    QVBoxLayout* layout = nullptr;
-
 private:
+    Entity last_selected = null_entity;
+
+    QVBoxLayout* layout = nullptr;
+    QScrollArea* scroll_area;
+    QWidget* scroll_area_contents;
+    QVBoxLayout* scroll_area_contents_layout;
     anton_stl::Vector<Outliner_Item> items;
 };
 

@@ -4,12 +4,19 @@
 
 ANTON_DISABLE_WARNINGS()
 #include <QLabel>
+#include <QPainter>
+#include <QStyleOption>
+#include <QVBoxLayout>
 ANTON_RESTORE_WARNINGS()
 
 Outliner_Item::Outliner_Item(Entity e, anton_stl::String_View str, QWidget* parent): QWidget(parent), entity(e) {
-    setMinimumHeight(32);
-    label = new QLabel(str.data(), this);
-    label->show();
+    layout = new QVBoxLayout(this);
+    layout->setContentsMargins(10, 5, 10, 5);
+    layout->setSpacing(0);
+    label = new QLabel(QString::fromUtf8(str.data()));
+    label->setIndent(15);
+    label->setMargin(0);
+    layout->addWidget(label);
 }
 
 Outliner_Item::Outliner_Item(Outliner_Item&& other) noexcept: label(other.label), entity(other.entity) {
@@ -30,4 +37,19 @@ Outliner_Item::~Outliner_Item() {
 
 Entity Outliner_Item::get_associated_entity() const {
     return entity;
+}
+
+void Outliner_Item::select() {
+    setStyleSheet("background-color: #FCAF20;");
+}
+
+void Outliner_Item::deselect() {
+    setStyleSheet("background-color: #FFFFFF;");
+}
+
+void Outliner_Item::paintEvent(QPaintEvent*) {
+    QStyleOption option;
+    option.init(this);
+    QPainter painter(this);
+    style()->drawPrimitive(QStyle::PE_Widget, &option, &painter, this);
 }

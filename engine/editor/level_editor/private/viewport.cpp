@@ -191,9 +191,9 @@ void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const projection_
     auto const shift_state = Input::get_key_state(Key::left_shift);
     Ray const ray = screen_to_ray(inv_view_mat, inv_projection_mat, window_content_size_x, window_content_size_y, mouse_pos);
     if (!state.down && state.up_down_transitioned) {
-        if (shift_state.down) {
-            Entity selected_entity = pick_object(ray);
-            if (selected_entity != null_entity) {
+        Entity selected_entity = pick_object(ray);
+        if (selected_entity != null_entity) {
+            if (shift_state.down) {
                 bool already_selected = false;
                 if (!(selected_entities.size() == 0) && selected_entities.front() == selected_entity) {
                     selected_entities.erase_unsorted_unchecked(0);
@@ -211,13 +211,12 @@ void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const projection_
                 if (!already_selected) {
                     selected_entities.insert_unsorted(selected_entities.cbegin(), selected_entity);
                 }
-            }
-        } else {
-            Entity selected_entity = pick_object(ray);
-            if (selected_entity != null_entity) {
+            } else {
                 selected_entities.clear();
                 selected_entities.push_back(selected_entity);
             }
+
+            Q_EMIT entity_selected(selected_entity);
         }
     }
 

@@ -84,6 +84,17 @@ namespace anton_stl {
         }
         return first;
     }
+
+    template <typename Input_Iterator, typename Predicate>
+    [[nodiscard]] inline bool any_of(Input_Iterator first, Input_Iterator last, Predicate predicate) {
+        for (; first != last; ++first) {
+            if (predicate(*first)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 } // namespace anton_stl
 
 #endif // !CORE_ANTON_STL_ALGORITHM_HPP_INCLUDE

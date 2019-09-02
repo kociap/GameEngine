@@ -76,16 +76,26 @@ Editor_Window::Editor_Window(QWidget* parent): QMainWindow(parent), viewports(ma
 
     outliner = new Outliner;
     outliner_dock = new Dock_Widget;
+    outliner_dock->setObjectName("Outliner Dock");
     outliner_dock->setWidget(outliner);
     addDockWidget(Qt::BottomDockWidgetArea, outliner_dock);
+
+    auto on_entity_selected = [this](Entity entity) {
+        shared_state.selected_entities.push_back(entity);
+        outliner->select_entities(shared_state.selected_entities);
+    };
+
+    connect(viewports[0], &Viewport::entity_selected, on_entity_selected);
+    connect(viewports[1], &Viewport::entity_selected, on_entity_selected);
 
     input_filter = new User_Input_Filter(0, 0);
     installEventFilter(input_filter);
 }
 
 Editor_Window::~Editor_Window() {
-    //delete outliner_dock;
-    //delete outliner;
+    // TODO: Exception when delete is called
+    // delete outliner_dock;
+    // delete outliner;
 
     // We need a context to destroy opengl resources
     context->makeCurrent(surface);

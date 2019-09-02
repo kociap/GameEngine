@@ -10,6 +10,8 @@ ANTON_DISABLE_WARNINGS();
 ANTON_RESTORE_WARNINGS();
 
 class QLabel;
+class QVBoxLayout;
+class QPaintEvent;
 
 class Outliner_Item: public QWidget {
     Q_OBJECT
@@ -22,8 +24,18 @@ public:
 
     Entity get_associated_entity() const;
 
+    void select();
+    void deselect();
+
+Q_SIGNALS:
+    void selected(Entity associated_entity);
+
+protected:
+    void paintEvent(QPaintEvent*) override;
+
 private:
     QLabel* label;
+    QVBoxLayout* layout;
     Entity entity;
 };
 
