@@ -1,3 +1,4 @@
+#include <anton_stl/string_utils.hpp>
 #include <anton_stl/string_view.hpp>
 
 namespace anton_stl {
@@ -42,12 +43,6 @@ namespace anton_stl {
             return false;
         }
 
-        for (String_View::size_type i = 0; i < lhs.size(); ++i) {
-            if (lhs.data()[i] != rhs.data()[i]) { // TODO: .data()[]
-                return false;
-            }
-        }
-
-        return true;
+        return compare_equal(lhs.data(), rhs.data());
     }
 } // namespace anton_stl

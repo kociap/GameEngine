@@ -3,8 +3,10 @@
 
 #ifdef NDEBUG
 #    define GE_DEBUG 0
+#    define ANTON_DEBUG 0
 #else
 #    define GE_DEBUG 1
+#    define ANTON_DEBUG 1
 #endif
 
 #ifndef GE_WITH_EDITOR
@@ -23,12 +25,20 @@
 #    define GE_BUILD_SHIPPING GE_BUILD_SHIPPING_DEBUG || GE_BUILD_SHIPPING_RELEASE
 #endif
 
+// anton_stl library
+
 #ifndef ANTON_STRING_VIEW_VERIFY_ENCODING
 #    define ANTON_STRING_VIEW_VERIFY_ENCODING 1
 #endif
 
 #ifndef ANTON_STRING_VERIFY_ENCODING
 #    define ANTON_STRING_VERIFY_ENCODING 1
+#endif
+
+// Unicode library
+
+#ifndef ANTON_UNICODE_VALIDATE_ENCODING
+#    define ANTON_UNICODE_VALIDATE_ENCODING 1
 #endif
 
 #define SERIALIZE_ON_QUIT 0

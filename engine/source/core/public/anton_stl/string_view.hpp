@@ -38,8 +38,8 @@ namespace anton_stl {
         // Always const
         [[nodiscard]] char_iterator chars_end() const;
 
+        // Size of the string in bytes
         [[nodiscard]] constexpr size_type size() const;
-        [[nodiscard]] constexpr size_type max_size() const;
 
         [[nodiscard]] constexpr value_type const* data() const;
 
@@ -81,10 +81,6 @@ namespace anton_stl {
 
     inline constexpr auto String_View::size() const -> size_type {
         return _end - _begin;
-    }
-
-    inline constexpr auto String_View::max_size() const -> size_type {
-        return (~size_type(0)) >> 1;
     }
 
     inline constexpr auto String_View::data() const -> value_type const* {

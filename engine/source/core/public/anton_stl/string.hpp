@@ -19,6 +19,7 @@ namespace anton_stl {
     // operator[] is not implemented because UTF-8 doesn't allow us to index in constant-time.
     //
     // TODO: SSO
+    // TODO: Grapheme Clusters
     //
     class String {
     public:
@@ -31,23 +32,30 @@ namespace anton_stl {
         using char_iterator = UTF8_Char_Iterator;
 
     public:
+        [[nodiscard]] static String from_utf16(char16_t const*);
+
+    public:
         String();
         explicit String(allocator_type const&);
         String(Reserve_Tag, size_type n);
         String(Reserve_Tag, size_type n, allocator_type const&);
         // Constructs String from null-terminated UTF-8 string
+        // TODO: Consider making explicit
         String(value_type const*);
         // Constructs String from null-terminated UTF-8 string
         String(value_type const*, allocator_type const&);
+        // Constructs String from null-terminated UTF-8 string
         String(value_type const*, size_type);
+        // Constructs String from null-terminated UTF-8 string
         String(value_type const*, size_type, allocator_type const&);
-        // Does not copy allocator
+        // Does not copy the allocator
         String(String const&);
         String(String const&, allocator_type const&);
         String(String&&) noexcept;
         String(String&&, allocator_type const&);
         ~String();
 
+        // Does not copy the allocator
         String& operator=(String const&);
         String& operator=(String&&) noexcept;
 
@@ -79,16 +87,17 @@ namespace anton_stl {
         // Capacity of the string in bytes.
         [[nodiscard]] size_type capacity() const;
         // Size of the string in bytes.
-        [[nodiscard]] size_type size() const;
+        [[nodiscard]] size_type size_bytes() const;
         // Counts the number of Unicode code points.
         // This is a linear-time operation.
         [[nodiscard]] size_type size_utf8() const;
 
         // Allocates at least n bytes of storage.
-        // Might allocate more.
-        void reserve(size_type n);
+        // Does nothing if requested_capacity is less than capacity().
+        void reserve(size_type requested_capacity);
         // Allocates exactly n bytes of storage.
-        void reserve_exact(size_type n);
+        // Does nothing if requested_capacity is less than capacity().
+        void reserve_exact(size_type requested_capacity);
         // Changes the size of the string to n. Useful in situations when the user
         // writes to the string via external means.
         void force_size(size_type n);
@@ -110,6 +119,9 @@ namespace anton_stl {
         value_type* _data = nullptr;
         size_type _capacity = 64;
         size_type _size = 0;
+
+        void ensure_capacity(size_type requested_capacity);
+        void ensure_capacity_exact(size_type requested_capacity);
     };
 
     // Compares bytes
@@ -121,12 +133,23 @@ namespace anton_stl {
     }
 
     // compare
-    // Compares two strings <not implemented>
+    // Compares two strings <TODO: not implemented>
     // Returns: -1 if lhs < rhs, 0 if lhs == rhs and 1 if lhs > rhs.
     //
     // TODO: Consider creating a dedicated class for the return type
     //
     [[nodiscard]] int compare(String const& lhs, String const& rhs);
+
+    String to_string(int);
+    String to_string(long);
+    String to_string(long long);
+    String to_string(unsigned int);
+    String to_string(unsigned long);
+    String to_string(unsigned long long);
+    String to_string(float);
+    String to_string(double);
+    String to_string(long double);
+    String to_string(void*);
 
 } // namespace anton_stl
 

@@ -1,5 +1,6 @@
 #include <time/time_platform.hpp>
 
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
 uint64_t get_performance_counter() {

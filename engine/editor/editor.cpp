@@ -30,6 +30,7 @@ ANTON_DISABLE_WARNINGS()
 #include <QApplication>
 #include <QCoreApplication>
 #include <QOpenGLWidget>
+#include <QPalette>
 #include <QSurfaceFormat>
 ANTON_RESTORE_WARNINGS()
 
@@ -58,7 +59,12 @@ void Editor::init(int argc, char** argv) {
     input_manager->load_bindings();
     ecs = new ECS();
 
+    QPalette dark_palette;
+    dark_palette.setColor(QPalette::Window, QColor(25, 25, 25));
+
+    // TODO: argc is taken by ref. Currently the entire thing might crash. Stupid Qt...
     qapplication = new QApplication(argc, argv);
+    qapplication->setPalette(dark_palette);
     editor_window = new Editor_Window();
     editor_window->show();
 

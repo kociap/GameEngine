@@ -56,6 +56,12 @@ target_link_libraries(${ENGINE_NAME}
     zlibstatic
 )
 
+if(WIN32)
+    target_link_libraries(${ENGINE_NAME}
+        DbgHelp
+    )
+endif()
+
 add_library(AntonEngine_lib SHARED IMPORTED GLOBAL)
 target_include_directories(AntonEngine_lib INTERFACE ${PUBLIC_INCLUDE_DIRECTORIES_ROOT})
 target_compile_options(AntonEngine_lib INTERFACE ${ENGINE_CXX_FLAGS})

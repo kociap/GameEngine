@@ -4,6 +4,7 @@
 #include <string>
 
 #ifdef _MSC_VER
+#    define WIN32_LEAN_AND_MEAN
 #    include <Windows.h>
 #else
 #    include <dlfcn.h>
@@ -19,7 +20,7 @@ Module load_module(std::string_view module_name) {
     if (!module.handle) {
         throw std::runtime_error(std::string("Could not load module ") + module_name.data());
     }
-	return module;
+    return module;
 }
 
 void* get_function_from_module(Module module, std::string_view name) {

@@ -24,9 +24,13 @@ public:
     void update();
     void remove_entities(anton_stl::Vector<Entity> const& entities_to_remove);
     void select_entities(anton_stl::Vector<Entity> const&);
+    void select_entity(Entity);
 
     int32_t indentation() const;
     void set_indentation(int32_t);
+
+Q_SIGNALS:
+    void entity_selected(Entity);
 
 private:
     Entity last_selected = null_entity;

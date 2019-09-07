@@ -80,11 +80,17 @@ Editor_Window::Editor_Window(QWidget* parent): QMainWindow(parent), viewports(ma
     outliner_dock->setWidget(outliner);
     addDockWidget(Qt::BottomDockWidgetArea, outliner_dock);
 
-    auto on_entity_selected = [this](Entity entity) {
+    auto on_entity_selected = [this](Entity const entity) {
         shared_state.selected_entities.push_back(entity);
-        outliner->select_entities(shared_state.selected_entities);
+        outliner->select_entity(entity);
     };
 
+    auto on_entity_deselected = [this](Entity const entity) {
+        auto iter = anton_stl::find(shared_state.selected_entities.begin(), shared_state.selected_entities.end(), entity);
+        shared_state.selected_entities.erase(iter, iter + 1);
+    };
+
+    connect(outliner, &Outliner::entity_selected, on_entity_selected);
     connect(viewports[0], &Viewport::entity_selected, on_entity_selected);
     connect(viewports[1], &Viewport::entity_selected, on_entity_selected);
 

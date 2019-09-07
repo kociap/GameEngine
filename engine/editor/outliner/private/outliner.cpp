@@ -34,6 +34,7 @@ Outliner::Outliner() {
     scroll_area->setWidgetResizable(true);
     scroll_area_contents = new QWidget;
     scroll_area_contents_layout = new QVBoxLayout(scroll_area_contents);
+    scroll_area_contents_layout->setSpacing(2);
     scroll_area->setWidget(scroll_area_contents);
     layout->addWidget(scroll_area);
 }
@@ -47,6 +48,7 @@ void Outliner::remove_entities(anton_stl::Vector<Entity> const& entities_to_remo
         if (auto iter = anton_stl::find_if(items.begin(), items.end(), [entity](Outliner_Item const& item) { return item.get_associated_entity() == entity; });
             iter != items.end()) {
             scroll_area_contents_layout->removeWidget(&(*iter));
+            disconnect(&(*iter), &Outliner_Item::selected, this, &Outliner::entity_selected);
             items.erase(iter, iter + 1);
         }
     }
@@ -59,6 +61,15 @@ void Outliner::select_entities(anton_stl::Vector<Entity> const& selected_entitie
             item.select();
         } else {
             item.deselect();
+        }
+    }
+}
+
+void Outliner::select_entity(Entity const entity) {
+    for (Outliner_Item& item: items) {
+        if (item.get_associated_entity() == entity) {
+            item.select();
+            break;
         }
     }
 }
@@ -79,6 +90,7 @@ void Outliner::update() {
 
             Outliner_Item& item = items.emplace_back(entity, name);
             scroll_area_contents_layout->addWidget(&item);
+            connect(&item, &Outliner_Item::selected, this, &Outliner::entity_selected);
         }
     }
 }

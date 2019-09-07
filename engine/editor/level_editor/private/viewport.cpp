@@ -447,10 +447,14 @@ static void draw_outlines(rendering::Renderer* renderer, Framebuffer* framebuffe
     opengl::clear_color(0.0f, 0.0f, 0.0f, 0.0f);
     opengl::clear(opengl::Buffer_Mask::color_buffer_bit);
     for (Entity const entity: selected_entities) {
-        auto const [transform, static_mesh] = ecs.get_component<Transform, Static_Mesh_Component>(entity);
-        Mesh const& mesh = mesh_manager.get(static_mesh.mesh_handle);
-        renderer->single_color_shader.set_matrix4("model", transform.to_matrix());
-        rendering::render_mesh(mesh);
+		// TODO: Not all selected entities have mesh component.
+		// Should we enforce some sort of mesh component in editor mode?
+        auto const [transform, static_mesh] = ecs.try_get_component<Transform, Static_Mesh_Component>(entity);
+		if (transform && static_mesh) {
+			Mesh const& mesh = mesh_manager.get(static_mesh->mesh_handle);
+			renderer->single_color_shader.set_matrix4("model", transform->to_matrix());
+			rendering::render_mesh(mesh);
+		}
     }
 
     opengl::active_texture(0);

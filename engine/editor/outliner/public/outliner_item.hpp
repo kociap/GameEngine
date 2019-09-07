@@ -12,6 +12,7 @@ ANTON_RESTORE_WARNINGS();
 class QLabel;
 class QVBoxLayout;
 class QPaintEvent;
+class QMouseEvent;
 
 class Outliner_Item: public QWidget {
     Q_OBJECT
@@ -26,17 +27,21 @@ public:
 
     void select();
     void deselect();
+    bool is_selected() const;
 
 Q_SIGNALS:
     void selected(Entity associated_entity);
+    // void deselected(Entity associated_entity);
 
 protected:
+    void mouseReleaseEvent(QMouseEvent*) override;
     void paintEvent(QPaintEvent*) override;
 
 private:
     QLabel* label;
     QVBoxLayout* layout;
     Entity entity;
+    bool _selected = false;
 };
 
 #endif // !EDITOR_OUTLINER_OUTLINER_ITEM_HPP_INCLUDE
