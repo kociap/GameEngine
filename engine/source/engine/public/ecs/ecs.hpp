@@ -79,10 +79,20 @@ public:
     template <typename... Ts>
     decltype(auto) get_component(Entity const entity) {
         if constexpr (sizeof...(Ts) == 1) {
-            Component_Container<Ts...>& components = *ensure_container<Ts...>();
-            return components.get(entity);
+            Component_Container<Ts...>* components = ensure_container<Ts...>();
+            return components->get(entity);
         } else {
             return std::make_tuple(get_component<Ts>(entity)...);
+        }
+    }
+
+    template <typename... Ts>
+    decltype(auto) try_get_component(Entity const entity) {
+        if constexpr (sizeof...(Ts) == 1) {
+            Component_Container<Ts...>* components = ensure_container<Ts...>();
+            return components->try_get(entity);
+        } else {
+            return std::make_tuple(try_get_component<Ts>(entity)...);
         }
     }
 

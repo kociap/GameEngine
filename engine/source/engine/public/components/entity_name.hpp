@@ -6,8 +6,6 @@
 #include <serialization/archives/binary.hpp>
 #include <serialization/serialization.hpp>
 
-constexpr int32_t max_entity_name_length = 512;
-
 class COMPONENT Entity_Name {
 public:
     anton_stl::String name;

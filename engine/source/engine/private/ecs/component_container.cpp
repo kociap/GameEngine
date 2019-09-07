@@ -48,7 +48,7 @@ void Component_Container_Base::add_entity(Entity const entity) {
     indirect[index] = entities.size() - 1;
 }
 
-Component_Container_Base::size_type Component_Container_Base::get_index(Entity const entity) {
+Component_Container_Base::size_type Component_Container_Base::get_component_index(Entity const entity) {
     GE_assert(has(entity), "Attempting to get index of an entity that has not been registered");
     return indirect[indirect_index(entity)];
 }

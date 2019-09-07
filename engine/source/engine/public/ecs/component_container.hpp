@@ -36,7 +36,7 @@ public:
 
 protected:
     void add_entity(Entity entity);
-    [[nodiscard]] size_type get_index(Entity entity);
+    [[nodiscard]] size_type get_component_index(Entity entity);
     void remove_entity(Entity entity);
 
 private:
@@ -97,7 +97,7 @@ public:
 
     void remove(Entity const entity) {
         if constexpr (!anton_stl::is_empty<Component>) {
-            components.erase_unsorted(get_index(entity));
+            components.erase_unsorted(get_component_index(entity));
         }
 
         remove_entity(entity);
@@ -105,10 +105,11 @@ public:
 
     [[nodiscard]] Component& get(Entity const entity) {
         GE_assert(has(entity), "Attempting to get component of an entity that has not been registered");
+
         if constexpr (anton_stl::is_empty<Component>) {
             return components;
         } else {
-            return components[get_index(entity)];
+            return components[get_component_index(entity)];
         }
     }
 
@@ -116,7 +117,7 @@ public:
         if constexpr (anton_stl::is_empty<Component>) {
             return has(entity) ? &components : nullptr;
         } else {
-            return has(entity) ? components.data() + get_index(entity) : nullptr;
+            return has(entity) ? components.data() + get_component_index(entity) : nullptr;
         }
     }
 
