@@ -2,8 +2,8 @@
 
 #include <anton_stl/detail/utility_common.hpp>
 #include <math/math.hpp>
-#include <typeinfo>
 #include <new>
+#include <typeinfo>
 
 namespace anton_stl {
     static Allocator default_allocator;
@@ -83,10 +83,10 @@ namespace anton_stl {
     }
 
     bool operator==(Polymorphic_Allocator const& lhs, Polymorphic_Allocator const& rhs) {
-        return lhs.get_wrapped_allocator() == rhs.get_wrapped_allocator();
+        return *lhs.get_wrapped_allocator() == *rhs.get_wrapped_allocator();
     }
 
     bool operator!=(Polymorphic_Allocator const& lhs, Polymorphic_Allocator const& rhs) {
-        return lhs.get_wrapped_allocator() == rhs.get_wrapped_allocator();
+        return *lhs.get_wrapped_allocator() == *rhs.get_wrapped_allocator();
     }
 } // namespace anton_stl

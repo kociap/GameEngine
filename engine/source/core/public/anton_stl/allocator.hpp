@@ -19,9 +19,17 @@ namespace anton_stl {
         [[nodiscard]] virtual bool is_equal(Memory_Allocator const&) const = 0;
     };
 
+    [[nodiscard]] inline bool operator==(Memory_Allocator const& lhs, Memory_Allocator const& rhs) {
+        return lhs.is_equal(rhs);
+    }
+
+    [[nodiscard]] inline bool operator!=(Memory_Allocator const& lhs, Memory_Allocator const& rhs) {
+        return !(lhs == rhs);
+    }
+
     // get_default_allocator
     //
-    Memory_Allocator* get_default_allocator();
+    [[nodiscard]] Memory_Allocator* get_default_allocator();
 
     // Allocator
     // A generic allocator that provides malloc like functionality to allocate properly aligned memory.
