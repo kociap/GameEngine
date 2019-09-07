@@ -39,6 +39,7 @@ enum BasicType {
     btHresult = 31,
     btChar16 = 32, // char16_t
     btChar32 = 33, // char32_t
+    btChar8 = 34,  // char8_t
 };
 
 // Describes the variety of User-Defined Types (UDT)
@@ -55,7 +56,7 @@ enum UdtKind {
 
 namespace anton_engine::windows::debugging {
 
-    [[nodiscard]] static anton_stl::String get_base_type_name(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
+    [[nodiscard]] static anton_stl::String process_base_type(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
         ULONG64 length = 0;
         if (!SymGetTypeInfo(process, module_base, index, TI_GET_LENGTH, &length)) {
             [[maybe_unused]] uint64_t const error_code = get_last_error();
@@ -77,21 +78,31 @@ namespace anton_engine::windows::debugging {
                 return {u8"char"};
             case btWChar:
                 return {u8"wchar_t"};
+            case btChar8:
+                return {u8"char8_t"};
+            case btChar16:
+                return {u8"char16_t"};
+            case btChar32:
+                return {u8"char32_t"};
             case btInt:
                 if (length == 1) {
-                    return {u8"int8_t"};
+                    return {u8"char"};
                 } else if (length == 2) {
-                    return {u8"int16_t"};
+                    return {u8"short"};
+                } else if (length == 8) {
+                    return {u8"long long"};
                 } else {
-                    return {u8"int32_t"};
+                    return {u8"int"};
                 }
             case btUInt:
                 if (length == 1) {
-                    return {u8"uint8_t"};
+                    return {u8"unsigned char"};
                 } else if (length == 2) {
-                    return {u8"uint16_t"};
+                    return {u8"unsigned short"};
+                } else if (length == 8) {
+                    return {u8"unsigned long long"};
                 } else {
-                    return {u8"uint32_t"};
+                    return {u8"unsigned int"};
                 }
             case btLong:
                 return {u8"long"};
@@ -109,10 +120,20 @@ namespace anton_engine::windows::debugging {
         }
     }
 
+    [[nodiscard]] static anton_stl::String process_typedef(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
+        if (WCHAR* typedef_name = nullptr; SymGetTypeInfo(process, module_base, index, TI_GET_SYMNAME, &typedef_name)) {
+            anton_stl::String name = anton_stl::String::from_utf16(reinterpret_cast<char16_t*>(typedef_name));
+            LocalFree(typedef_name);
+            return name;
+        } else {
+            return {u8"unknown_typedef"};
+        }
+    }
+
     [[nodiscard]] static anton_stl::String process_pointer_type(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
         bool is_reference = false;
-		// For some bizzare reason `process` changes after the call to SymGetTypeInfo, 
-		// so we make a copy of the valid value and use it instead.
+        // For some bizzare reason `process` changes after the call to SymGetTypeInfo,
+        // so we make a copy of the valid value and use it instead.
         HANDLE const prcs = process;
         if (!SymGetTypeInfo(process, module_base, index, TI_GET_IS_REFERENCE, &is_reference)) {
             [[maybe_unused]] uint64_t error_code = get_last_error();
@@ -243,7 +264,10 @@ namespace anton_engine::windows::debugging {
 
         switch (type_tag) {
             case SymTagBaseType:
-                return get_base_type_name(process, module_base, index);
+                return process_base_type(process, module_base, index);
+
+            case SymTagTypedef:
+                return process_typedef(process, module_base, index);
 
             case SymTagPointerType:
                 return process_pointer_type(process, module_base, index);

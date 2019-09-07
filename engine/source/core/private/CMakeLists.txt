@@ -9,6 +9,10 @@ if(WIN32) # TODO other platforms
         "${CMAKE_CURRENT_SOURCE_DIR}/windows/common.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/windows/debugging.hpp"
     )
+else()
+    set(PLATROFM_SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/assert/assert_posix.cpp"
+    )
 endif()
 
 set(SOURCE_FILES ${SOURCE_FILES} ${PLATFORM_SOURCES}

@@ -17,6 +17,18 @@ set_source_files_properties(
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 find_package(OpenGL REQUIRED)
+
+# Debug Interface Access. Might use it one day for better assert
+# if(WIN32) 
+#     find_path(DIA_SDK_DIRECTORY
+#         NAMES "include/dia2.h"
+#         HINTS "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/DIA SDK"
+#               "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/DIA SDK"
+#     )
+
+#     set(DIA_SDK_INCLUDE_DIRECTORY "${DIA_SDK_DIRECTORY}/include")
+# endif()
+
 add_subdirectory(dependencies)
 add_subdirectory(source)
 add_subdirectory(editor)
@@ -35,18 +47,25 @@ target_compile_definitions(${ENGINE_NAME}
     UNICODE
     _UNICODE
 )
+
 target_compile_options(${ENGINE_NAME} 
     PRIVATE ${ENGINE_CXX_FLAGS}
 )
+
 target_include_directories(${ENGINE_NAME} 
-    PUBLIC ${PUBLIC_INCLUDE_DIRECTORIES_ROOT}
-    PRIVATE ${PRIVATE_INCLUDE_DIRECTORIES_ROOT}
+    PUBLIC 
+        ${PUBLIC_INCLUDE_DIRECTORIES_ROOT}
+    PRIVATE 
+        ${PRIVATE_INCLUDE_DIRECTORIES_ROOT}
+        ${DIA_SDK_INCLUDE_DIRECTORY}
 )
+
 target_sources(${ENGINE_NAME} 
     PRIVATE ${UI_FILES_ROOT}
     PRIVATE ${SOURCE_FILES_ROOT} 
     PRIVATE ${HEADER_FILES_ROOT}
 )
+
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCE_FILES_ROOT} ${HEADER_FILES_ROOT} ${UI_FILES_ROOT})
 target_link_libraries(${ENGINE_NAME}
     ${OPENGL_LIBRARIES}

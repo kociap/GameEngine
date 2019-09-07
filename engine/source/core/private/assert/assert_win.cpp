@@ -1,10 +1,14 @@
 #include <assert.hpp>
 
+#include <diagnostic_macros.hpp>
+
+ANTON_DISABLE_WARNINGS();
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 // Windows.h must be included before DbgHelp.h. Otherwise we get undefined identifiers in DbgHelp.h
 #include <DbgHelp.h>
 #include <debugapi.h>
+ANTON_RESTORE_WARNINGS();
 
 #include <anton_stl/string.hpp>
 #include <anton_stl/string_utils.hpp>
@@ -15,8 +19,7 @@
 #include <string.h> // memset
 
 namespace anton_engine {
-
-    void anton_assert(char const* message) {
+    void anton_assert(char const* message, char const* file, unsigned long long line) {
         HANDLE current_process = GetCurrentProcess();
         SymInitialize(current_process, nullptr, true);
         DWORD current_options = SymGetOptions();
@@ -50,7 +53,6 @@ namespace anton_engine {
                 }
             } else {
                 call_stack.append(anton_stl::to_string(stack_trace[i]));
-                // anton_stl::String error_message = get_last_error_message(); // TODO: Maybe log?
             }
 
             call_stack.append(u8"\n");
@@ -59,7 +61,11 @@ namespace anton_engine {
         anton_stl::String dialog_text(anton_stl::reserve, 1024);
         dialog_text.append(u8"Assertion failed:\n");
         dialog_text.append(message);
-        dialog_text.append(u8"\n\nStack Trace:\n");
+        dialog_text.append(u8"\nin file ");
+        dialog_text.append(file);
+        dialog_text.append(u8" line ");
+        dialog_text.append(anton_stl::to_string(line));
+        dialog_text.append(u8"\n\nStackTrace:\n");
         dialog_text.append(call_stack);
         fprintf(stderr, "%s", dialog_text.data());
         fflush(stderr);
