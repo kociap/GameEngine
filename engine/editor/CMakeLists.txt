@@ -12,10 +12,6 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/editor_subsystem_fwd.hpp"
 )
 
-set(UI_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/editor_window.ui"
-)
-
 add_subdirectory(level_editor/public)
 add_subdirectory(level_editor/private)
 add_subdirectory(misc/public)
@@ -36,12 +32,6 @@ set(SOURCE_FILES_ROOT
 set(HEADER_FILES_ROOT
     ${HEADER_FILES_ROOT}
     ${HEADER_FILES}
-    PARENT_SCOPE
-)
-
-set(UI_FILES_ROOT
-    ${UI_FILES_ROOT}
-    ${UI_FILES}
     PARENT_SCOPE
 )
 

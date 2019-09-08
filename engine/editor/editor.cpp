@@ -26,8 +26,9 @@
 #include <viewport.hpp>
 #include <viewport_camera.hpp>
 
+#include <editor_qapplication.hpp>
+
 ANTON_DISABLE_WARNINGS()
-#include <QApplication>
 #include <QCoreApplication>
 #include <QOpenGLWidget>
 #include <QPalette>
@@ -35,7 +36,7 @@ ANTON_DISABLE_WARNINGS()
 ANTON_RESTORE_WARNINGS()
 
 Editor_Window* Editor::editor_window = nullptr;
-QApplication* Editor::qapplication = nullptr;
+Editor_QApplication* Editor::qapplication = nullptr;
 Resource_Manager<Mesh>* Editor::mesh_manager = nullptr;
 Resource_Manager<Shader>* Editor::shader_manager = nullptr;
 Resource_Manager<Material>* Editor::material_manager = nullptr;
@@ -43,7 +44,7 @@ Input::Manager* Editor::input_manager = nullptr;
 ECS* Editor::ecs = nullptr;
 bool Editor::close = false;
 
-void Editor::init(int argc, char** argv) {
+void Editor::init() {
     QSurfaceFormat surface_format;
     surface_format.setVersion(4, 5);
     surface_format.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
@@ -62,8 +63,7 @@ void Editor::init(int argc, char** argv) {
     QPalette dark_palette;
     dark_palette.setColor(QPalette::Window, QColor(25, 25, 25));
 
-    // TODO: argc is taken by ref. Currently the entire thing might crash. Stupid Qt...
-    qapplication = new QApplication(argc, argv);
+    qapplication = new Editor_QApplication();
     qapplication->setPalette(dark_palette);
     editor_window = new Editor_Window();
     editor_window->show();

@@ -20,7 +20,6 @@ ANTON_DISABLE_WARNINGS()
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
 #include <QSurfaceFormat>
-#include <ui_editor_window.h>
 ANTON_RESTORE_WARNINGS()
 
 constexpr uint32_t max_viewports = 4;
@@ -40,9 +39,6 @@ Editor_Window::Editor_Window(QWidget* parent): QMainWindow(parent), viewports(ma
     opengl::load_functions();
     opengl::load_constants();
     gizmo::init();
-
-    ui = new Ui::Editor_Window;
-    ui->setupUi(this);
 
     //auto viewport_closed = [this](int32_t const index) {
     //    removeDockWidget(viewport_docks[index]);
@@ -117,7 +113,6 @@ Editor_Window::~Editor_Window() {
     delete context;
     delete surface;
     delete input_filter;
-    delete ui;
 }
 
 void Editor_Window::update() {

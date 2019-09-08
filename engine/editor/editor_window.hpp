@@ -4,7 +4,6 @@
 #include <anton_stl/vector.hpp>
 #include <diagnostic_macros.hpp>
 #include <ecs/entity.hpp>
-#include <memory> // TODO: Why is this included here?
 
 ANTON_DISABLE_WARNINGS()
 #include <QMainWindow>
@@ -44,7 +43,6 @@ private:
     anton_stl::Vector<Viewport*> viewports;
     anton_stl::Vector<Dock_Widget*> viewport_docks;
     Dock_Widget* outliner_dock = nullptr;
-    Ui::Editor_Window* ui = nullptr;
     QOpenGLContext* context;
     QOffscreenSurface* surface;
     User_Input_Filter* input_filter;

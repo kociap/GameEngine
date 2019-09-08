@@ -7,7 +7,7 @@
 class Editor {
 private:
     static Editor_Window* editor_window;
-    static QApplication* qapplication;
+    static Editor_QApplication* qapplication;
     static Resource_Manager<Mesh>* mesh_manager;
     static Resource_Manager<Shader>* shader_manager;
     static Resource_Manager<Material>* material_manager;
@@ -17,8 +17,7 @@ private:
     static bool close;
 
 public:
-    // argc and argv required by Qt
-    static void init(int argc, char** argv);
+    static void init();
     static void terminate();
     static void loop();
     static bool should_close();
@@ -30,8 +29,8 @@ public:
     static Input::Manager& get_input_manager();
     static ECS& get_ecs();
 
-	// Because why not
-	static void load_world();
+    // Because why not
+    static void load_world();
 };
 
 #endif // !EDITOR_HPP_INCLUDE

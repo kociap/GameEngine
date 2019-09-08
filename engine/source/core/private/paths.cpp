@@ -3,8 +3,13 @@
 #include <utils/filesystem.hpp>
 
 namespace paths {
+    static std::filesystem::path _engine_executable_name;
     static std::filesystem::path _engine_executable_directory;
     static std::filesystem::path _project_directory;
+
+    void set_engine_executable_name(std::filesystem::path name) {
+        _engine_executable_name = std::move(name);
+    }
 
     void set_engine_executable_directory(std::filesystem::path path) {
         _engine_executable_directory = std::move(path);
@@ -12,6 +17,10 @@ namespace paths {
 
     void set_project_directory(std::filesystem::path path) {
         _project_directory = std::move(path);
+    }
+
+    std::filesystem::path engine_executable_name() {
+        return _engine_executable_name;
     }
 
     std::filesystem::path engine_executable_directory() {

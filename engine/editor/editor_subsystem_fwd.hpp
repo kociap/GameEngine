@@ -2,7 +2,7 @@
 #define EDITOR_SUBSYSTEM_FWD_HPP_INCLUDE
 
 class Editor_Window;
-class QApplication;
+class Editor_QApplication;
 
 class ECS;
 namespace Input {

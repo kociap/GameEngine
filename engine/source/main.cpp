@@ -25,6 +25,7 @@ int main(int argc, char** argv) {
     // }
 
     std::filesystem::path exe_directory(argv[0], std::filesystem::path::generic_format);
+    paths::set_engine_executable_name(exe_directory.filename());
     exe_directory.remove_filename();
     paths::set_engine_executable_directory(exe_directory);
     //std::filesystem::path project_directory(argv[1], std::filesystem::path::generic_format);

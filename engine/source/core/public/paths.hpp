@@ -5,6 +5,7 @@
 #include <filesystem>
 
 namespace paths {
+    std::filesystem::path engine_executable_name();
     std::filesystem::path engine_executable_directory();
     std::filesystem::path project_directory();
 

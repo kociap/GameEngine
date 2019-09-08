@@ -1,6 +1,7 @@
 set(SOURCE_FILES
     ${SOURCE_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/dock_widget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/editor_qapplication.cpp"
     PARENT_SCOPE
 )
 

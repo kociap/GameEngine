@@ -4,6 +4,7 @@
 #include <filesystem>
 
 namespace paths {
+    void set_engine_executable_name(std::filesystem::path);
     void set_engine_executable_directory(std::filesystem::path);
     void set_project_directory(std::filesystem::path);
 } // namespace paths
