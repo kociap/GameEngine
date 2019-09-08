@@ -1,6 +1,7 @@
+#include <outliner_entity_list.hpp>
+
 #include <anton_stl/type_traits.hpp>
 #include <anton_stl/utility.hpp>
-#include <outliner_item.hpp>
 
 ANTON_DISABLE_WARNINGS()
 #include <QColor>
@@ -63,7 +64,9 @@ bool Outliner_Item::is_selected() const {
 
 void Outliner_Item::mouseReleaseEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
-        Q_EMIT selected(entity);
+        if (!is_selected()) {
+            Q_EMIT selected(entity, true);
+        }
     }
 }
 

@@ -76,19 +76,27 @@ Editor_Window::Editor_Window(QWidget* parent): QMainWindow(parent), viewports(ma
     outliner_dock->setWidget(outliner);
     addDockWidget(Qt::BottomDockWidgetArea, outliner_dock);
 
-    auto on_entity_selected = [this](Entity const entity) {
-        shared_state.selected_entities.push_back(entity);
-        outliner->select_entity(entity);
+    auto on_entity_selected = [this](Entity const entity, bool clear_previous_selection) {
+        if (clear_previous_selection) {
+            shared_state.selected_entities.clear();
+        }
+
+        shared_state.selected_entities.insert_unsorted(shared_state.selected_entities.cbegin(), entity);
+        outliner->select_entities(shared_state.selected_entities);
     };
 
     auto on_entity_deselected = [this](Entity const entity) {
         auto iter = anton_stl::find(shared_state.selected_entities.begin(), shared_state.selected_entities.end(), entity);
         shared_state.selected_entities.erase(iter, iter + 1);
+        outliner->deselect_entity(entity);
     };
 
     connect(outliner, &Outliner::entity_selected, on_entity_selected);
+    connect(outliner, &Outliner::entity_deselected, on_entity_deselected);
     connect(viewports[0], &Viewport::entity_selected, on_entity_selected);
+    connect(viewports[0], &Viewport::entity_deselected, on_entity_deselected);
     connect(viewports[1], &Viewport::entity_selected, on_entity_selected);
+    connect(viewports[1], &Viewport::entity_deselected, on_entity_deselected);
 
     input_filter = new User_Input_Filter(0, 0);
     installEventFilter(input_filter);

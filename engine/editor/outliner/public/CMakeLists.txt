@@ -1,6 +1,7 @@
 set(HEADER_FILES
     ${HEADER_FILES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/outliner_item.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/outliner_entity_list.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/outliner_header.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/outliner.hpp"
     PARENT_SCOPE
 )

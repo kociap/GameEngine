@@ -48,7 +48,8 @@ protected:
 Q_SIGNALS:
     void window_closed(int32_t index);
     void made_active(int32_t index);
-    void entity_selected(Entity);
+    void entity_selected(Entity, bool clear_previous_selection);
+    void entity_deselected(Entity);
 
 private:
     Framebuffer* framebuffer = nullptr;

@@ -195,28 +195,25 @@ void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const projection_
         if (selected_entity != null_entity) {
             if (shift_state.down) {
                 bool already_selected = false;
-                if (!(selected_entities.size() == 0) && selected_entities.front() == selected_entity) {
-                    selected_entities.erase_unsorted_unchecked(0);
+                if (selected_entities.size() != 0 && selected_entity == selected_entities[0]) {
                     already_selected = true;
                 } else {
                     for (anton_stl::Vector<Entity>::size_type i = 1; i < selected_entities.size(); ++i) {
                         if (selected_entities[i] == selected_entity) {
-                            swap(selected_entities[0], selected_entities[i]);
-                            already_selected = true;
+                            Q_EMIT entity_deselected(selected_entity);
                             break;
                         }
                     }
                 }
 
-                if (!already_selected) {
-                    selected_entities.insert_unsorted(selected_entities.cbegin(), selected_entity);
+                if (already_selected) {
+                    Q_EMIT entity_deselected(selected_entity);
+                } else {
+                    Q_EMIT entity_selected(selected_entity, false);
                 }
             } else {
-                selected_entities.clear();
-                selected_entities.push_back(selected_entity);
+                Q_EMIT entity_selected(selected_entity, true);
             }
-
-            Q_EMIT entity_selected(selected_entity);
         }
     }
 
@@ -447,14 +444,14 @@ static void draw_outlines(rendering::Renderer* renderer, Framebuffer* framebuffe
     opengl::clear_color(0.0f, 0.0f, 0.0f, 0.0f);
     opengl::clear(opengl::Buffer_Mask::color_buffer_bit);
     for (Entity const entity: selected_entities) {
-		// TODO: Not all selected entities have mesh component.
-		// Should we enforce some sort of mesh component in editor mode?
+        // TODO: Not all selected entities have mesh component.
+        // Should we enforce some sort of mesh component in editor mode?
         auto const [transform, static_mesh] = ecs.try_get_component<Transform, Static_Mesh_Component>(entity);
-		if (transform && static_mesh) {
-			Mesh const& mesh = mesh_manager.get(static_mesh->mesh_handle);
-			renderer->single_color_shader.set_matrix4("model", transform->to_matrix());
-			rendering::render_mesh(mesh);
-		}
+        if (transform && static_mesh) {
+            Mesh const& mesh = mesh_manager.get(static_mesh->mesh_handle);
+            renderer->single_color_shader.set_matrix4("model", transform->to_matrix());
+            rendering::render_mesh(mesh);
+        }
     }
 
     opengl::active_texture(0);

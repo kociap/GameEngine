@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <diagnostic_macros.hpp>
 #include <ecs/entity.hpp>
-#include <outliner_item.hpp>
+#include <outliner_entity_list.hpp>
 
 ANTON_DISABLE_WARNINGS();
 #include <QWidget>
@@ -25,12 +25,14 @@ public:
     void remove_entities(anton_stl::Vector<Entity> const& entities_to_remove);
     void select_entities(anton_stl::Vector<Entity> const&);
     void select_entity(Entity);
+    void deselect_entity(Entity);
 
     int32_t indentation() const;
     void set_indentation(int32_t);
 
 Q_SIGNALS:
-    void entity_selected(Entity);
+    void entity_selected(Entity, bool clear_previous_selection);
+    void entity_deselected(Entity);
 
 private:
     Entity last_selected = null_entity;

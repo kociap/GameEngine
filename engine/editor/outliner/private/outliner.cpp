@@ -49,6 +49,7 @@ void Outliner::remove_entities(anton_stl::Vector<Entity> const& entities_to_remo
             iter != items.end()) {
             scroll_area_contents_layout->removeWidget(&(*iter));
             disconnect(&(*iter), &Outliner_Item::selected, this, &Outliner::entity_selected);
+            disconnect(&(*iter), &Outliner_Item::deselected, this, &Outliner::entity_deselected);
             items.erase(iter, iter + 1);
         }
     }
@@ -74,6 +75,15 @@ void Outliner::select_entity(Entity const entity) {
     }
 }
 
+void Outliner::deselect_entity(Entity const entity) {
+    for (Outliner_Item& item: items) {
+        if (item.get_associated_entity() == entity) {
+            item.deselect();
+            break;
+        }
+    }
+}
+
 void Outliner::update() {
     // TODO: A better way to handle adding new entities
     ECS& ecs = Editor::get_ecs();
@@ -91,6 +101,7 @@ void Outliner::update() {
             Outliner_Item& item = items.emplace_back(entity, name);
             scroll_area_contents_layout->addWidget(&item);
             connect(&item, &Outliner_Item::selected, this, &Outliner::entity_selected);
+            connect(&item, &Outliner_Item::deselected, this, &Outliner::entity_deselected);
         }
     }
 }
