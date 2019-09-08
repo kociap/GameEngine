@@ -1,4 +1,4 @@
-#include <outliner_entity_list.hpp>
+#include <outliner_item.hpp>
 
 #include <anton_stl/type_traits.hpp>
 #include <anton_stl/utility.hpp>

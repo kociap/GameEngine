@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <diagnostic_macros.hpp>
 #include <ecs/entity.hpp>
-#include <outliner_entity_list.hpp>
+#include <outliner_item.hpp>
 
 ANTON_DISABLE_WARNINGS();
 #include <QWidget>
@@ -29,6 +29,9 @@ public:
 
     int32_t indentation() const;
     void set_indentation(int32_t);
+
+    void sort_entities_by_name_ascending();
+    void sort_entities_by_name_descending();
 
 Q_SIGNALS:
     void entity_selected(Entity, bool clear_previous_selection);

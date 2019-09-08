@@ -1,7 +1,7 @@
 set(SOURCE_FILES
     ${SOURCE_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/outliner_header.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/outliner_entity_list.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/outliner_item.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/outliner.cpp"
     PARENT_SCOPE
 )

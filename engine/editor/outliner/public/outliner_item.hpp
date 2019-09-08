@@ -1,5 +1,5 @@
-#ifndef EDITOR_OUTLINER_OUTLINER_ENTITY_LIST_HPP_INCLUDE
-#define EDITOR_OUTLINER_OUTLINER_ENTITY_LIST_HPP_INCLUDE
+#ifndef EDITOR_OUTLINER_OUTLINER_ITEM_HPP_INCLUDE
+#define EDITOR_OUTLINER_OUTLINER_ITEM_HPP_INCLUDE
 
 #include <anton_stl/string_view.hpp>
 #include <anton_stl/vector.hpp>
@@ -45,21 +45,4 @@ private:
     bool _selected = false;
 };
 
-class Outliner_Entity_List: public QWidget {
-    Q_OBJECT
-
-public:
-    Outliner_Entity_List();
-
-    void add_entity(Entity);
-    void add_entities(anton_stl::Vector<Entity> const&);
-
-    void sort_entities_by_name_ascending();
-    void sort_entities_by_name_descending();
-
-private:
-    anton_stl::Vector<Outliner_Item> items;
-    QVBoxLayout* layout = nullptr;
-};
-
-#endif // !EDITOR_OUTLINER_OUTLINER_ENTITY_LIST_HPP_INCLUDE
+#endif // !EDITOR_OUTLINER_OUTLINER_ITEM_HPP_INCLUDE
