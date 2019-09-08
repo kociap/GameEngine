@@ -1,6 +1,6 @@
 if(WIN32) # TODO other platforms
     set(PLATFORM_SOURCES 
-        "${CMAKE_CURRENT_SOURCE_DIR}/assert/assert_win.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/anton_assert/anton_assert_win.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/windows/common.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/windows/debugging.cpp"
     )
@@ -11,7 +11,7 @@ if(WIN32) # TODO other platforms
     )
 else()
     set(PLATROFM_SOURCES
-        "${CMAKE_CURRENT_SOURCE_DIR}/assert/assert_posix.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/anton_assert/anton_assert_posix.cpp"
     )
 endif()
 

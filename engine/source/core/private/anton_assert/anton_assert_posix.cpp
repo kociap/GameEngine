@@ -1,4 +1,4 @@
-#include <assert.hpp>
+#include <anton_assert.hpp>
 
 #include <stdio.h>
 #include <stdlib.h>

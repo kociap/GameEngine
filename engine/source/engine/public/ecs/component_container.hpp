@@ -1,6 +1,7 @@
 #ifndef ENGINE_ECS_COMPONENT_CONTAINER_HPP_INCLUDE
 #define ENGINE_ECS_COMPONENT_CONTAINER_HPP_INCLUDE
 
+#include <anton_assert.hpp>
 #include <anton_stl/type_traits.hpp>
 #include <anton_stl/vector.hpp>
 #include <debug_macros.hpp>
@@ -84,7 +85,7 @@ public:
 
     template <typename... Args>
     Component& add(Entity const entity, Args&&... args) {
-        GE_assert(!has(entity), "Attempting to add duplicate entity");
+        ANTON_ASSERT(!has(entity), "Attempting to add duplicate entity");
         if constexpr (anton_stl::is_empty<Component>) {
             add_entity(entity);
             return components;
@@ -104,7 +105,7 @@ public:
     }
 
     [[nodiscard]] Component& get(Entity const entity) {
-        GE_assert(has(entity), "Attempting to get component of an entity that has not been registered");
+        ANTON_ASSERT(has(entity), "Attempting to get component of an entity that has not been registered");
 
         if constexpr (anton_stl::is_empty<Component>) {
             return components;

@@ -270,8 +270,8 @@ namespace anton_stl {
 
     template <typename T, typename Allocator>
     inline void Vector<T, Allocator>::insert_unsorted(const_iterator position, value_type const& value) {
-        GE_assert(get_iterator_underlying_ptr(position) >= get_ptr() && get_iterator_underlying_ptr(position) <= get_ptr(_size),
-                  "Vector::insert invalid iterator");
+        ANTON_ASSERT(get_iterator_underlying_ptr(position) >= get_ptr() && get_iterator_underlying_ptr(position) <= get_ptr(_size),
+                     "Vector::insert invalid iterator");
 
         size_type offset = static_cast<size_type>(get_iterator_underlying_ptr(position) - storage);
         check_size();

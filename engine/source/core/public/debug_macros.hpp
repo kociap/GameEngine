@@ -11,30 +11,13 @@
 #    define ANTON_UNREACHABLE()
 #endif
 
-#ifndef ANTON_DISABLE_VERIFY
-#    define ANTON_DISABLE_VERIFY 0
-#endif
-
-#if !ANTON_DISABLE_VERIFY
-// ANTON_VERIFY
-// Debug and Release builds assert. Must be disabled explicitly.
-#    define ANTON_VERIFY(condition, msg) GE_UNUSED((condition) || (_wassert(_CRT_WIDE(msg), _CRT_WIDE(__FILE__), __LINE__), false))
-#else
-#    define ANTON_VERIFY() ((void)0)
-#endif // !ANTON_DISABLE_VERIFY
-
 #ifndef NDEBUG
 
-#    include <assert.hpp>
-#    include <cassert>
 #    include <stdexcept>
 
 void _GE_log(std::string);
 void _GE_conditional_log(bool condition, std::string);
 void _GE_check_gl_errors();
-
-// #    define GE_assert(condition, msg) GE_UNUSED((condition) || (_wassert(_CRT_WIDE(msg), _CRT_WIDE(__FILE__), __LINE__), false))
-#    define GE_assert(condition, msg) ANTON_ASSERT(condition, msg)
 
 #    define GE_log(msg) _GE_log((msg))
 

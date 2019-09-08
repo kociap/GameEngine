@@ -1,5 +1,6 @@
 #include <framebuffer.hpp>
 
+#include <anton_assert.hpp>
 #include <debug_macros.hpp>
 #include <glad.hpp>
 #include <opengl.hpp>
@@ -63,7 +64,7 @@ void Framebuffer::create_framebuffer() {
         throw std::invalid_argument("One or both dimensions are less than or equal 0");
     }
 
-    GE_assert(!info.multisampled || info.samples > 0, "Multisampled framebuffer must have more than 0 samples");
+    ANTON_ASSERT(!info.multisampled || info.samples > 0, "Multisampled framebuffer must have more than 0 samples");
 
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);

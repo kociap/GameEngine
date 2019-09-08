@@ -1,5 +1,6 @@
 #include <input/input_core.hpp>
 
+#include <anton_assert.hpp>
 #include <assets.hpp>
 #include <debug_macros.hpp>
 #include <math/math.hpp>
@@ -215,7 +216,7 @@ namespace Input {
         }
 
         for (auto& action: actions) {
-            GE_assert(action.bind_press_event || action.bind_release_event, "Action is not bound to any event");
+            ANTON_ASSERT(action.bind_press_event || action.bind_release_event, "Action is not bound to any event");
             bool paired_action = action.bind_press_event && action.bind_release_event;
             action.down = paired_action && action.down; // If not paired, reset every time because we don't know the state
             action.pressed = false;

@@ -2,6 +2,7 @@
 
 #include <glad.hpp>
 
+#include <anton_assert.hpp>
 #include <debug_macros.hpp>
 #include <utils/enum.hpp>
 
@@ -53,7 +54,7 @@ namespace opengl {
         glBindBuffer(utils::enum_to_value(buffer), handle);
         CHECK_GL_ERRORS();
     }
-    
+
     void bind_framebuffer(uint32_t target, uint32_t framebuffer) {
         glBindFramebuffer(target, framebuffer);
         CHECK_GL_ERRORS();
@@ -74,14 +75,14 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
-    void blit_framebuffer(int32_t s_x0, int32_t s_y0, int32_t s_x1, int32_t s_y1, int32_t d_x0, int32_t d_y0, int32_t d_x1, int32_t d_y1,
-                          Buffer_Mask mask, uint32_t filter) {
+    void blit_framebuffer(int32_t s_x0, int32_t s_y0, int32_t s_x1, int32_t s_y1, int32_t d_x0, int32_t d_y0, int32_t d_x1, int32_t d_y1, Buffer_Mask mask,
+                          uint32_t filter) {
         glBlitFramebuffer(s_x0, s_y0, s_x1, s_y1, d_x0, d_y0, d_x1, d_y1, utils::enum_to_value(mask), filter);
         CHECK_GL_ERRORS();
     }
 
     void buffer_data(Buffer_Type target, int64_t size, void* data, uint32_t usage) {
-        GE_assert(size >= 0, "Size of the buffer's data store may not be negative.");
+        ANTON_ASSERT(size >= 0, "Size of the buffer's data store may not be negative.");
         glBufferData(utils::enum_to_value(target), size, data, usage);
         CHECK_GL_ERRORS();
     }
@@ -122,7 +123,7 @@ namespace opengl {
     }
 
     void draw_arrays(uint32_t mode, int32_t first, int32_t count) {
-        GE_assert(count >= 0, "The number of indices may not be negative.");
+        ANTON_ASSERT(count >= 0, "The number of indices may not be negative.");
         glDrawArrays(mode, first, count);
         CHECK_GL_ERRORS();
     }
@@ -133,8 +134,8 @@ namespace opengl {
     }
 
     void draw_elements_instanced(uint32_t mode, int32_t indices_count, int64_t offset, int32_t instances) {
-        GE_assert(indices_count >= 0, "The number of indices may not be negative.");
-        GE_assert(instances >= 0, "The number of instances may not be negative.");
+        ANTON_ASSERT(indices_count >= 0, "The number of indices may not be negative.");
+        ANTON_ASSERT(instances >= 0, "The number of instances may not be negative.");
         glDrawElementsInstanced(mode, indices_count, GL_UNSIGNED_INT, reinterpret_cast<void*>(offset), instances);
         CHECK_GL_ERRORS();
     }
@@ -162,7 +163,7 @@ namespace opengl {
     }
 
     void gen_buffers(int32_t n, uint32_t* buffers) {
-        GE_assert(n >= 0, "The number of buffer objects to be generated may not be negative.");
+        ANTON_ASSERT(n >= 0, "The number of buffer objects to be generated may not be negative.");
         glGenBuffers(n, buffers);
         CHECK_GL_ERRORS();
     }
@@ -173,13 +174,13 @@ namespace opengl {
     }
 
     void gen_renderbuffers(int32_t n, uint32_t* renderbuffers) {
-        GE_assert(n >= 0, "The number of renderbuffer objects to be generated may not be negative.");
+        ANTON_ASSERT(n >= 0, "The number of renderbuffer objects to be generated may not be negative.");
         glGenRenderbuffers(n, renderbuffers);
         CHECK_GL_ERRORS();
     }
 
     void gen_vertex_arrays(int32_t n, uint32_t* vaos) {
-        GE_assert(n >= 0, "The number of vertex array objects to be generated may not be negative.");
+        ANTON_ASSERT(n >= 0, "The number of vertex array objects to be generated may not be negative.");
         glGenVertexArrays(n, vaos);
         CHECK_GL_ERRORS();
     }
@@ -191,20 +192,20 @@ namespace opengl {
     }
 
     void renderbuffer_storage(uint32_t target, Sized_Internal_Format internal_format, int32_t width, int32_t height) {
-        GE_assert(width >= 0 && height >= 0, "Renderbuffer's storage width and height may not be less than 0.");
+        ANTON_ASSERT(width >= 0 && height >= 0, "Renderbuffer's storage width and height may not be less than 0.");
         glRenderbufferStorage(target, utils::enum_to_value(internal_format), width, height);
         CHECK_GL_ERRORS();
     }
 
     void renderbuffer_storage_multisample(uint32_t target, int32_t samples, Sized_Internal_Format internal_format, int32_t width, int32_t height) {
-        GE_assert(width >= 0 && height >= 0, "width and height may not be less than 0.");
-        GE_assert(samples >= 0, "Multisampled renderbuffer's samples may not be less than 0.");
+        ANTON_ASSERT(width >= 0 && height >= 0, "width and height may not be less than 0.");
+        ANTON_ASSERT(samples >= 0, "Multisampled renderbuffer's samples may not be less than 0.");
         glRenderbufferStorageMultisample(target, samples, utils::enum_to_value(internal_format), width, height);
         CHECK_GL_ERRORS();
     }
 
     void shader_source(uint32_t shader, int32_t count, char const** strings, int32_t const* lengths) {
-        GE_assert(count >= 0, "The number of shader sources may not be negative.");
+        ANTON_ASSERT(count >= 0, "The number of shader sources may not be negative.");
         glShaderSource(shader, count, strings, lengths);
         CHECK_GL_ERRORS();
     }
@@ -214,8 +215,8 @@ namespace opengl {
 
     void tex_image_2D(uint32_t target, int32_t level, Sized_Internal_Format sized_internal_format, int32_t width, int32_t height, Format pixels_format,
                       Type pixels_type, void const* pixels) {
-        GE_assert(width >= 0 && height >= 0, "width and height supplied to opengl::tex_image_2D may not be less than 0.");
-        GE_assert(level >= 0, "mipmap level may not be less than 0.");
+        ANTON_ASSERT(width >= 0 && height >= 0, "width and height supplied to opengl::tex_image_2D may not be less than 0.");
+        ANTON_ASSERT(level >= 0, "mipmap level may not be less than 0.");
         auto internal_format = utils::enum_to_value(sized_internal_format);
         auto format = utils::enum_to_value(pixels_format);
         auto type = utils::enum_to_value(pixels_type);
@@ -226,20 +227,21 @@ namespace opengl {
 
     void tex_image_2D_multisample(uint32_t target, int32_t samples, Sized_Internal_Format sized_internal_format, int32_t width, int32_t height,
                                   bool fixed_sample_locations /* = true */) {
-        GE_assert(samples >= 0 && width >= 0 && height >= 0, "samples, width and height supplied to opengl::tex_image_2D_multisample may not be less than 0");
+        ANTON_ASSERT(samples >= 0 && width >= 0 && height >= 0,
+                     "samples, width and height supplied to opengl::tex_image_2D_multisample may not be less than 0");
         auto internal_format = utils::enum_to_value(sized_internal_format);
         glTexImage2DMultisample(target, samples, internal_format, width, height, fixed_sample_locations);
         CHECK_GL_ERRORS();
     }
 
     void vertex_array_attribute(uint32_t index, int32_t size, uint32_t type, int32_t stride, int64_t offset, bool normalized) {
-        GE_assert(stride >= 0, "Stride may not be negative.");
+        ANTON_ASSERT(stride >= 0, "Stride may not be negative.");
         glVertexAttribPointer(index, size, type, normalized ? GL_TRUE : GL_FALSE, stride, reinterpret_cast<void*>(offset));
         CHECK_GL_ERRORS();
     }
 
     void viewport(int32_t x, int32_t y, int32_t width, int32_t height) {
-        GE_assert(width >= 0 && height >= 0, "width or height supplied to opengl::viewport is negative");
+        ANTON_ASSERT(width >= 0 && height >= 0, "width or height supplied to opengl::viewport is negative");
         glViewport(x, y, width, height);
         CHECK_GL_ERRORS();
     }

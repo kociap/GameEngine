@@ -1,5 +1,5 @@
 #include <anton_stl/detail/string_iterators.hpp>
-#include <debug_macros.hpp>
+#include <anton_assert.hpp>
 
 namespace anton_stl {
     constexpr uint8_t continuation_byte_signature_mask = 0b11000000;

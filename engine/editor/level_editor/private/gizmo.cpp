@@ -1,5 +1,6 @@
 #include <gizmo.hpp>
 
+#include <anton_assert.hpp>
 #include <anton_stl/utility.hpp>
 #include <anton_stl/vector.hpp>
 #include <assets.hpp>
@@ -56,6 +57,7 @@ namespace gizmo {
     static uint32_t vertex_vbo = 0;
     static uint32_t points_vbo = 0;
     static uint32_t instanced_points_vbo = 0;
+    // TODO: Cleanup causes exception
     static Shader line_shader = Shader(false);
     static Shader billboard_shader = Shader(false);
 
@@ -65,14 +67,14 @@ namespace gizmo {
     }
 
     void draw_line(Vector3 start, Vector3 end, Color color, float width, float t, bool depth_test) {
-        GE_assert(width > 0.0f, "Line width may not be less than or equal 0");
+        ANTON_ASSERT(width > 0.0f, "Line width may not be less than or equal 0");
         line_vertices.emplace_back(start, color);
         line_vertices.emplace_back(end, color);
         line_render_state.push_back({t, width, depth_test});
     }
 
     void draw_polyline(anton_stl::Vector<Vertex> vertices, bool closed, float width, float t, bool depth_test) {
-        GE_assert(width > 0.0f, "Line width may not be less than or equal 0");
+        ANTON_ASSERT(width > 0.0f, "Line width may not be less than or equal 0");
         if (closed) {
             line_loops.push_back(std::move(vertices));
             line_loops_render_state.push_back({t, width, depth_test});
@@ -142,7 +144,7 @@ namespace gizmo {
     void draw_polygon(anton_stl::Vector<Vertex> /* vertices */, float /* time */, bool /* depth_test */) {}
 
     void draw_circle(Vector3 position, Vector3 normal, float radius, Color color, uint32_t point_count, float line_width, float t, bool depth_test) {
-        GE_assert(line_width > 0.0f, "Line width may not be less than or equal 0");
+        ANTON_ASSERT(line_width > 0.0f, "Line width may not be less than or equal 0");
 
         anton_stl::Vector<Vertex> vertices(point_count);
         float angle = math::radians(360.0f / static_cast<float>(point_count));

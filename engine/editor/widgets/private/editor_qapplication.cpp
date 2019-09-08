@@ -1,8 +1,9 @@
+#define _CRT_SECURE_NO_WARNINGS 1
+
 #include <editor_qapplication.hpp>
 #include <paths.hpp>
 #include <utils/filesystem.hpp>
 
-#define _CRT_SECURE_NO_WARNINGS
 
 #include <string.h> // strcpy
 #include <string>

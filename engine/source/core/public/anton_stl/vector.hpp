@@ -1,6 +1,7 @@
 #ifndef CORE_ANTON_STL_VECTOR_HPP_INCLUDE
 #define CORE_ANTON_STL_VECTOR_HPP_INCLUDE
 
+#include <anton_assert.hpp>
 #include <anton_stl/allocator.hpp>
 #include <anton_stl/config.hpp>
 #include <anton_stl/iterators.hpp>

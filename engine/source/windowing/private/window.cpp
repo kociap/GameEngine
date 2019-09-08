@@ -1,7 +1,7 @@
 #include <window.hpp>
 
+#include <anton_assert.hpp>
 #include <build_config.hpp>
-#include <debug_macros.hpp>
 #include <diagnostic_macros.hpp>
 #include <opengl.hpp>
 #include <stdexcept>
@@ -20,7 +20,7 @@ void joystick_config_callback(int, int);
 void process_gamepad_input();
 
 Window::Window(int32_t width, int32_t height): window_width(width), window_height(height) {
-    GE_assert(window_width > 0 && window_height > 0, "Window dimensions may not be 0");
+    ANTON_ASSERT(window_width > 0 && window_height > 0, "Window dimensions may not be 0");
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);

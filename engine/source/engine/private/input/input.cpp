@@ -1,5 +1,6 @@
 #include <input/input.hpp>
 
+#include <anton_assert.hpp>
 #include <debug_macros.hpp>
 #include <input/input_core.hpp>
 
@@ -38,7 +39,7 @@ namespace Input {
     }
 
     Key_State get_key_state(Key k) {
-        GE_assert(k != Key::none && k != Key::any_key, "Key may not be none or any_key");
+        ANTON_ASSERT(k != Key::none && k != Key::any_key, "Key may not be none or any_key");
         Manager& input_manager = get_input_manager();
         return input_manager.key_states[k];
     }

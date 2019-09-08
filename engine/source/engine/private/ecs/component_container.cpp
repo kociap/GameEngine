@@ -41,7 +41,7 @@ Component_Container_Base::size_type Component_Container_Base::size() const {
 }
 
 void Component_Container_Base::add_entity(Entity const entity) {
-    GE_assert(!has(entity), "Entity has already been registered");
+    ANTON_ASSERT(!has(entity), "Entity has already been registered");
     entities.emplace_back(entity);
     auto index = indirect_index(entity);
     ensure(index);
@@ -49,12 +49,12 @@ void Component_Container_Base::add_entity(Entity const entity) {
 }
 
 Component_Container_Base::size_type Component_Container_Base::get_component_index(Entity const entity) {
-    GE_assert(has(entity), "Attempting to get index of an entity that has not been registered");
+    ANTON_ASSERT(has(entity), "Attempting to get index of an entity that has not been registered");
     return indirect[indirect_index(entity)];
 }
 
 void Component_Container_Base::remove_entity(Entity const entity) {
-    GE_assert(has(entity), "Attempting to remove entity that has not been registered");
+    ANTON_ASSERT(has(entity), "Attempting to remove entity that has not been registered");
     auto index = indirect_index(entity);
     auto back_index = indirect_index(entities.back());
     entities.erase_unsorted(index);
