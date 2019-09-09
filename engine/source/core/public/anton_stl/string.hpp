@@ -132,8 +132,15 @@ namespace anton_stl {
         return !(lhs == rhs);
     }
 
+    [[nodiscard]] anton_stl::String operator+(anton_stl::String const& lhs, anton_stl::String const& rhs);
+    [[nodiscard]] anton_stl::String operator+(anton_stl::String_View, anton_stl::String const&);
+    [[nodiscard]] anton_stl::String operator+(anton_stl::String const&, anton_stl::String_View);
+    [[nodiscard]] anton_stl::String operator+(char const*, anton_stl::String const&);
+    [[nodiscard]] anton_stl::String operator+(anton_stl::String const&, char const*);
+
     // compare
-    // Compares two strings <TODO: not implemented>
+    // Compares two strings.
+    // CURRENTLY COMPARES ONLY ASCII
     // Returns: -1 if lhs < rhs, 0 if lhs == rhs and 1 if lhs > rhs.
     //
     // TODO: Consider creating a dedicated class for the return type

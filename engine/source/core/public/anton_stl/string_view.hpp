@@ -39,7 +39,7 @@ namespace anton_stl {
         [[nodiscard]] char_iterator chars_end() const;
 
         // Size of the string in bytes
-        [[nodiscard]] constexpr size_type size() const;
+        [[nodiscard]] constexpr size_type size_bytes() const;
 
         [[nodiscard]] constexpr value_type const* data() const;
 
@@ -59,7 +59,7 @@ namespace anton_stl {
     inline constexpr String_View::String_View(): _begin(nullptr), _end(nullptr) {}
 
     inline constexpr String_View::String_View(value_type const* s, size_type n): _begin(s), _end(s + n) {
-        // clang-format off
+// clang-format off
         #if ANTON_STRING_VIEW_VERIFY_ENCODING
                 // TODO: Implement
         #endif
@@ -72,14 +72,14 @@ namespace anton_stl {
                 ++_end;
         }
 
-        // clang-format off
+// clang-format off
         #if ANTON_STRING_VIEW_VERIFY_ENCODING
             // TODO: Implement
         #endif
         // clang-format on
     }
 
-    inline constexpr auto String_View::size() const -> size_type {
+    inline constexpr auto String_View::size_bytes() const -> size_type {
         return _end - _begin;
     }
 

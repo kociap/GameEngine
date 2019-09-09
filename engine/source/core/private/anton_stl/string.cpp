@@ -201,9 +201,9 @@ namespace anton_stl {
     }
 
     void String::append(String_View str) {
-        ensure_capacity(_size + str.size() + 1);
+        ensure_capacity(_size + str.size_bytes() + 1);
         anton_stl::copy(str.bytes_begin(), str.bytes_end(), _data + _size);
-        _size = _size + str.size();
+        _size = _size + str.size_bytes();
     }
 
     auto String::data() -> value_type* {
@@ -262,6 +262,35 @@ namespace anton_stl {
         }
 
         return compare_equal(lhs.data(), rhs.data());
+    }
+
+    String operator+(String const& lhs, String const& rhs) {
+        String str(reserve, lhs.size_bytes() + rhs.size_bytes());
+        str.append(lhs);
+        str.append(rhs);
+        return str;
+    }
+
+    String operator+(String_View lhs, anton_stl::String const& rhs) {
+        String str(reserve, lhs.size_bytes() + rhs.size_bytes());
+        str.append(lhs);
+        str.append(rhs);
+        return str;
+    }
+
+    String operator+(String const& lhs, String_View rhs) {
+        String str(reserve, lhs.size_bytes() + rhs.size_bytes());
+        str.append(lhs);
+        str.append(rhs);
+        return str;
+    }
+
+    String operator+(char const* lhs, anton_stl::String const& rhs) {
+        return String_View(lhs) + rhs;
+    }
+
+    String operator+(String const& lhs, char const* rhs) {
+        return lhs + String_View(rhs);
     }
 
     anton_stl::String to_string(int value) {

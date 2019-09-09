@@ -39,7 +39,7 @@ namespace anton_stl {
     }
 
     bool operator==(String_View const& lhs, String_View const& rhs) {
-        if (lhs.size() != rhs.size()) {
+        if (lhs.size_bytes() != rhs.size_bytes()) {
             return false;
         }
 
