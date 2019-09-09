@@ -66,6 +66,7 @@ void Editor::init() {
     qapplication = new Editor_QApplication();
     qapplication->setPalette(dark_palette);
     editor_window = new Editor_Window();
+    editor_window->setup_interface();
     editor_window->show();
 
     Editor::load_world();
@@ -133,6 +134,10 @@ Input::Manager& Editor::get_input_manager() {
 
 ECS& Editor::get_ecs() {
     return *ecs;
+}
+
+Editor_Window& Editor::get_window() {
+    return *editor_window;
 }
 
 #include <assets.hpp>

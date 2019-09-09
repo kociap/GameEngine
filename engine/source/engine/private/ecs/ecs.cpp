@@ -1,10 +1,17 @@
 #include <ecs/ecs.hpp>
 
 #include <anton_assert.hpp>
+#include <anton_stl/algorithm.hpp>
 #include <anton_stl/memory.hpp>
 #include <ecs/component_serialization.hpp>
 
-#include <algorithm>
+#include <build_config.hpp>
+
+#if ANTON_WITH_EDITOR
+#    include <editor.hpp>
+#    include <editor_window.hpp>
+#    include <outliner.hpp>
+#endif
 
 ECS::~ECS() {
     for (auto& container_data: containers) {
@@ -13,12 +20,24 @@ ECS::~ECS() {
     }
 }
 
+Entity ECS::create() {
+    // TODO: More clever entity creation (generations and reusing ids)
+#if !ANTON_WITH_EDITOR
+    return entities.emplace_back(id_generator.next());
+#else
+    Entity entity = entities.emplace_back(id_generator.next());
+    Editor_Window& editor = Editor::get_window();
+    editor.outliner->add_entity(entity);
+    return entity;
+#endif
+}
+
 void ECS::serialize_component_container(Type_Family::family_t identifier, serialization::Binary_Output_Archive& archive,
                                         Component_Container_Base const* container) const {
     ANTON_ASSERT(get_component_serialization_funcs != nullptr, "Function get_component_serialization_funcs has not been loaded");
     auto& serialization_funcs = get_component_serialization_funcs();
-    auto iter = std::find_if(serialization_funcs.begin(), serialization_funcs.end(),
-                             [identifier](Component_Serialization_Funcs const& funcs) { return funcs.identifier == identifier; });
+    auto iter = anton_stl::find_if(serialization_funcs.begin(), serialization_funcs.end(),
+                                   [identifier](Component_Serialization_Funcs const& funcs) { return funcs.identifier == identifier; });
     ANTON_ASSERT(iter != serialization_funcs.end(), "Identifier was not found in the component registry");
     iter->serialize(archive, container);
 }
@@ -27,8 +46,8 @@ void ECS::deserialize_component_container(Type_Family::family_t identifier, seri
                                           Component_Container_Base*& container) {
     ANTON_ASSERT(get_component_serialization_funcs != nullptr, "Function get_component_serialization_funcs has not been loaded");
     auto& serialization_funcs = get_component_serialization_funcs();
-    auto iter = std::find_if(serialization_funcs.begin(), serialization_funcs.end(),
-                             [identifier](Component_Serialization_Funcs const& funcs) { return funcs.identifier == identifier; });
+    auto iter = anton_stl::find_if(serialization_funcs.begin(), serialization_funcs.end(),
+                                   [identifier](Component_Serialization_Funcs const& funcs) { return funcs.identifier == identifier; });
     ANTON_ASSERT(iter != serialization_funcs.end(), "Identifier was not found in the component registry");
     iter->deserialize(archive, container);
 }

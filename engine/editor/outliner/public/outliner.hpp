@@ -22,6 +22,7 @@ public:
     ~Outliner() override;
 
     void update();
+    void add_entity(Entity);
     void remove_entities(anton_stl::Vector<Entity> const& entities_to_remove);
     void select_entities(anton_stl::Vector<Entity> const&);
     void select_entity(Entity);

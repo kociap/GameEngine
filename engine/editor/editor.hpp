@@ -28,6 +28,7 @@ public:
     static Resource_Manager<Material>& get_material_manager();
     static Input::Manager& get_input_manager();
     static ECS& get_ecs();
+    static Editor_Window& get_window();
 
     // Because why not
     static void load_world();

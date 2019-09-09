@@ -49,13 +49,17 @@ public:
         return c ? c->raw() : nullptr;
     }
 
+    // Create entity without any attached components
+    Entity create();
+
+    // Create entity with Components... components attached.
+    // Components... must be default constructible.
     template <typename... Components>
     auto create() {
-        // TODO more clever entity creation (generations and reusing ids)
-        Entity entity = entities.emplace_back(id_generator.next());
         if constexpr (sizeof...(Components) == 0) {
-            return entity;
+            return create();
         } else {
+            Entity entity = create();
             return std::tuple<Entity, Components&...>{entity, add_component<Components>(entity)...};
         }
     }

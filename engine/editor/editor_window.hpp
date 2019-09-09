@@ -34,6 +34,7 @@ public:
     explicit Editor_Window(QWidget* parent = nullptr);
     ~Editor_Window();
 
+    void setup_interface();
     void update();
     void render();
 

@@ -43,6 +43,23 @@ Outliner::~Outliner() {
     delete layout;
 }
 
+void Outliner::add_entity(Entity const entity) {
+    // TODO: How do I update the name?
+    ECS& ecs = Editor::get_ecs();
+    anton_stl::String_View name;
+    Entity_Name* entity_name = ecs.try_get_component<Entity_Name>(entity);
+    if (entity_name) {
+        name = entity_name->name;
+    } else {
+        name = u8"<unnamed entity>";
+    }
+
+    Outliner_Item& item = items.emplace_back(entity, name);
+    scroll_area_contents_layout->addWidget(&item);
+    connect(&item, &Outliner_Item::selected, this, &Outliner::entity_selected);
+    connect(&item, &Outliner_Item::deselected, this, &Outliner::entity_deselected);
+}
+
 void Outliner::remove_entities(anton_stl::Vector<Entity> const& entities_to_remove) {
     for (Entity const entity: entities_to_remove) {
         if (auto iter = anton_stl::find_if(items.begin(), items.end(), [entity](Outliner_Item const& item) { return item.get_associated_entity() == entity; });
@@ -84,24 +101,4 @@ void Outliner::deselect_entity(Entity const entity) {
     }
 }
 
-void Outliner::update() {
-    // TODO: A better way to handle adding new entities
-    ECS& ecs = Editor::get_ecs();
-    for (Entity const entity: ecs.get_entities()) {
-        if (auto iter = anton_stl::find_if(items.begin(), items.end(), [entity](Outliner_Item const& item) { return item.get_associated_entity() == entity; });
-            iter == items.end()) {
-            anton_stl::String_View name;
-            if (ecs.has_component<Entity_Name>(entity)) {
-                Entity_Name& entity_name = ecs.get_component<Entity_Name>(entity);
-                name = entity_name.name;
-            } else {
-                name = u8"<unnamed entity>";
-            }
-
-            Outliner_Item& item = items.emplace_back(entity, name);
-            scroll_area_contents_layout->addWidget(&item);
-            connect(&item, &Outliner_Item::selected, this, &Outliner::entity_selected);
-            connect(&item, &Outliner_Item::deselected, this, &Outliner::entity_deselected);
-        }
-    }
-}
+void Outliner::update() {}

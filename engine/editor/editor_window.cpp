@@ -40,64 +40,6 @@ Editor_Window::Editor_Window(QWidget* parent): QMainWindow(parent), viewports(ma
     opengl::load_constants();
     gizmo::init();
 
-    //auto viewport_closed = [this](int32_t const index) {
-    //    removeDockWidget(viewport_docks[index]);
-    //    delete viewport_docks[index];
-    //    viewport_docks[index] = nullptr;
-    //    delete viewports[index];
-    //    viewports[index] = nullptr;
-    //};
-
-    viewports[0] = new Viewport(0, context);
-    viewport_docks[0] = new Dock_Widget;
-    viewport_docks[0]->setWidget(viewports[0]);
-    addDockWidget(Qt::TopDockWidgetArea, viewport_docks[0]);
-    connect(viewports[0], &Viewport::made_active, [this](int32_t const index) {
-        shared_state.active_editor = index;
-        GE_log("Changed active viewport to " + std::to_string(index));
-    });
-    //connect(viewport_docks[0], &Dock_Widget::window_closed, viewports[0], &Viewport::close);
-    //connect(viewports[0], &Viewport::window_closed, viewport_closed);
-
-    viewports[1] = new Viewport(1, context);
-    viewport_docks[1] = new Dock_Widget;
-    viewport_docks[1]->setWidget(viewports[1]);
-    addDockWidget(Qt::TopDockWidgetArea, viewport_docks[1]);
-    connect(viewports[1], &Viewport::made_active, [this](int32_t const index) {
-        shared_state.active_editor = index;
-        GE_log("Changed active viewport to " + std::to_string(index));
-    });
-    //connect(viewport_docks[1], &Dock_Widget::window_closed, viewports[1], &Viewport::close);
-    //connect(viewports[1], &Viewport::window_closed, viewport_closed);
-
-    outliner = new Outliner;
-    outliner_dock = new Dock_Widget;
-    outliner_dock->setObjectName("Outliner Dock");
-    outliner_dock->setWidget(outliner);
-    addDockWidget(Qt::BottomDockWidgetArea, outliner_dock);
-
-    auto on_entity_selected = [this](Entity const entity, bool clear_previous_selection) {
-        if (clear_previous_selection) {
-            shared_state.selected_entities.clear();
-        }
-
-        shared_state.selected_entities.insert_unsorted(shared_state.selected_entities.cbegin(), entity);
-        outliner->select_entities(shared_state.selected_entities);
-    };
-
-    auto on_entity_deselected = [this](Entity const entity) {
-        auto iter = anton_stl::find(shared_state.selected_entities.begin(), shared_state.selected_entities.end(), entity);
-        shared_state.selected_entities.erase(iter, iter + 1);
-        outliner->deselect_entity(entity);
-    };
-
-    connect(outliner, &Outliner::entity_selected, on_entity_selected);
-    connect(outliner, &Outliner::entity_deselected, on_entity_deselected);
-    connect(viewports[0], &Viewport::entity_selected, on_entity_selected);
-    connect(viewports[0], &Viewport::entity_deselected, on_entity_deselected);
-    connect(viewports[1], &Viewport::entity_selected, on_entity_selected);
-    connect(viewports[1], &Viewport::entity_deselected, on_entity_deselected);
-
     input_filter = new User_Input_Filter(0, 0);
     installEventFilter(input_filter);
 }
@@ -121,6 +63,66 @@ Editor_Window::~Editor_Window() {
     delete context;
     delete surface;
     delete input_filter;
+}
+
+void Editor_Window::setup_interface() {
+    //auto viewport_closed = [this](int32_t const index) {
+    //    removeDockWidget(viewport_docks[index]);
+    //    delete viewport_docks[index];
+    //    viewport_docks[index] = nullptr;
+    //    delete viewports[index];
+    //    viewports[index] = nullptr;
+    //};
+
+    outliner = new Outliner;
+    outliner_dock = new Dock_Widget;
+    outliner_dock->setObjectName("Outliner Dock");
+    outliner_dock->setWidget(outliner);
+    addDockWidget(Qt::BottomDockWidgetArea, outliner_dock);
+
+    viewports[0] = new Viewport(0, context);
+    viewport_docks[0] = new Dock_Widget;
+    viewport_docks[0]->setWidget(viewports[0]);
+    addDockWidget(Qt::TopDockWidgetArea, viewport_docks[0]);
+    connect(viewports[0], &Viewport::made_active, [this](int32_t const index) {
+        shared_state.active_editor = index;
+        GE_log("Changed active viewport to " + std::to_string(index));
+    });
+    //connect(viewport_docks[0], &Dock_Widget::window_closed, viewports[0], &Viewport::close);
+    //connect(viewports[0], &Viewport::window_closed, viewport_closed);
+
+    viewports[1] = new Viewport(1, context);
+    viewport_docks[1] = new Dock_Widget;
+    viewport_docks[1]->setWidget(viewports[1]);
+    addDockWidget(Qt::TopDockWidgetArea, viewport_docks[1]);
+    connect(viewports[1], &Viewport::made_active, [this](int32_t const index) {
+        shared_state.active_editor = index;
+        GE_log("Changed active viewport to " + std::to_string(index));
+    });
+    //connect(viewport_docks[1], &Dock_Widget::window_closed, viewports[1], &Viewport::close);
+    //connect(viewports[1], &Viewport::window_closed, viewport_closed);
+
+    auto on_entity_selected = [this](Entity const entity, bool clear_previous_selection) {
+        if (clear_previous_selection) {
+            shared_state.selected_entities.clear();
+        }
+
+        shared_state.selected_entities.insert_unsorted(shared_state.selected_entities.cbegin(), entity);
+        outliner->select_entities(shared_state.selected_entities);
+    };
+
+    auto on_entity_deselected = [this](Entity const entity) {
+        auto iter = anton_stl::find(shared_state.selected_entities.begin(), shared_state.selected_entities.end(), entity);
+        shared_state.selected_entities.erase(iter, iter + 1);
+        outliner->deselect_entity(entity);
+    };
+
+    connect(outliner, &Outliner::entity_selected, on_entity_selected);
+    connect(outliner, &Outliner::entity_deselected, on_entity_deselected);
+    connect(viewports[0], &Viewport::entity_selected, on_entity_selected);
+    connect(viewports[0], &Viewport::entity_deselected, on_entity_deselected);
+    connect(viewports[1], &Viewport::entity_selected, on_entity_selected);
+    connect(viewports[1], &Viewport::entity_deselected, on_entity_deselected);
 }
 
 void Editor_Window::update() {
