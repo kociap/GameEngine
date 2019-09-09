@@ -29,3 +29,31 @@ uint64_t get_performance_frequency() {
 double get_time() {
     return static_cast<double>(get_performance_counter()) / static_cast<double>(get_performance_frequency());
 }
+
+// uint16_t year;
+//     // 1 through 12
+//     uint16_t month;
+//     // 1 through 31
+//     uint16_t day;
+//     // 0 (Sunday) through 6 (Saturday)
+//     uint16_t day_of_week;
+//     // 0 through 23
+//     uint16_t hour;
+//     // 0 through 59
+//     uint16_t minutes;
+//     // 0 through 59
+//     uint16_t seconds;
+//     // 0 through 999
+//     uint16_t milliseconds;
+
+System_Time get_utc_system_time() {
+    SYSTEMTIME t = {};
+    GetSystemTime(&t);
+    return {t.wYear, t.wMonth, t.wDay, t.wDayOfWeek, t.wHour, t.wMinute, t.wSecond, t.wMilliseconds};
+}
+
+System_Time get_local_system_time() {
+    SYSTEMTIME t = {};
+    GetLocalTime(&t);
+    return {t.wYear, t.wMonth, t.wDay, t.wDayOfWeek, t.wHour, t.wMinute, t.wSecond, t.wMilliseconds};
+}
