@@ -9,10 +9,6 @@ ANTON_DISABLE_WARNINGS()
 #include <QMainWindow>
 ANTON_RESTORE_WARNINGS()
 
-namespace Ui {
-    class Editor_Window;
-}
-
 class User_Input_Filter;
 class Viewport;
 class QOpenGLContext;
@@ -20,6 +16,7 @@ class QOffscreenSurface;
 class QMouseEvent;
 class Dock_Widget;
 class Outliner;
+class Log_Viewer;
 
 class Editor_Shared_State {
 public:
@@ -39,11 +36,13 @@ public:
     void render();
 
     Outliner* outliner = nullptr;
+    Log_Viewer* log_viewer = nullptr;
 
 private:
     anton_stl::Vector<Viewport*> viewports;
     anton_stl::Vector<Dock_Widget*> viewport_docks;
     Dock_Widget* outliner_dock = nullptr;
+    Dock_Widget* log_viewer_dock = nullptr;
     QOpenGLContext* context;
     QOffscreenSurface* surface;
     User_Input_Filter* input_filter;

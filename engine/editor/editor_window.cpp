@@ -1,19 +1,24 @@
 #include <editor_window.hpp>
 
+#include <anton_stl/string.hpp>
 #include <components/camera.hpp>
 #include <components/transform.hpp>
-#include <dock_widget.hpp>
 #include <ecs/ecs.hpp>
-#include <editor.hpp>
 #include <gizmo_internal.hpp>
 #include <input/input.hpp>
 #include <opengl.hpp>
+#include <viewport_camera.hpp>
+
+#include <dock_widget.hpp>
+#include <editor.hpp>
+#include <log_viewer.hpp>
 #include <outliner.hpp>
 #include <user_input_filter.hpp>
 #include <viewport.hpp>
-#include <viewport_camera.hpp>
 
 #include <stdexcept>
+
+#include <logging.hpp>
 
 ANTON_DISABLE_WARNINGS()
 #include <QMouseEvent>
@@ -74,6 +79,12 @@ void Editor_Window::setup_interface() {
     //    viewports[index] = nullptr;
     //};
 
+    log_viewer_dock = new Dock_Widget;
+    log_viewer_dock->setObjectName("Log Viewer Dock");
+    log_viewer = new Log_Viewer;
+    log_viewer_dock->setWidget(log_viewer);
+    addDockWidget(Qt::BottomDockWidgetArea, log_viewer_dock);
+
     outliner = new Outliner;
     outliner_dock = new Dock_Widget;
     outliner_dock->setObjectName("Outliner Dock");
@@ -86,7 +97,7 @@ void Editor_Window::setup_interface() {
     addDockWidget(Qt::TopDockWidgetArea, viewport_docks[0]);
     connect(viewports[0], &Viewport::made_active, [this](int32_t const index) {
         shared_state.active_editor = index;
-        GE_log("Changed active viewport to " + std::to_string(index));
+        anton_engine::log_message(anton_engine::Log_Message_Severity::info, u8"Changed active viewport to " + anton_stl::to_string(index));
     });
     //connect(viewport_docks[0], &Dock_Widget::window_closed, viewports[0], &Viewport::close);
     //connect(viewports[0], &Viewport::window_closed, viewport_closed);
@@ -97,7 +108,7 @@ void Editor_Window::setup_interface() {
     addDockWidget(Qt::TopDockWidgetArea, viewport_docks[1]);
     connect(viewports[1], &Viewport::made_active, [this](int32_t const index) {
         shared_state.active_editor = index;
-        GE_log("Changed active viewport to " + std::to_string(index));
+        anton_engine::log_message(anton_engine::Log_Message_Severity::info, u8"Changed active viewport to " + anton_stl::to_string(index));
     });
     //connect(viewport_docks[1], &Dock_Widget::window_closed, viewports[1], &Viewport::close);
     //connect(viewports[1], &Viewport::window_closed, viewport_closed);

@@ -22,6 +22,8 @@ add_subdirectory(content_browser/public)
 add_subdirectory(content_browser/private)
 add_subdirectory(outliner/public)
 add_subdirectory(outliner/private)
+add_subdirectory(log_viewer/public)
+add_subdirectory(log_viewer/private)
 
 set(SOURCE_FILES_ROOT
     ${SOURCE_FILES_ROOT}

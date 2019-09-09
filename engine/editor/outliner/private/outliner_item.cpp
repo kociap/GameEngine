@@ -24,13 +24,19 @@ Outliner_Item::Outliner_Item(Entity e, anton_stl::String_View str, QWidget* pare
 }
 
 Outliner_Item::Outliner_Item(Outliner_Item&& other) noexcept: label(other.label), entity(other.entity) {
+    other.layout->removeWidget(label);
     other.label = nullptr;
+    layout->addWidget(label);
     other.entity = null_entity;
 }
 
 Outliner_Item& Outliner_Item::operator=(Outliner_Item&& other) noexcept {
     using anton_stl::swap;
+    other.layout->removeWidget(other.label);
+    layout->removeWidget(label);
     swap(label, other.label);
+    layout->addWidget(label);
+    other.layout->addWidget(other.label);
     swap(entity, other.entity);
     return *this;
 }
