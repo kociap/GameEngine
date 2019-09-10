@@ -23,6 +23,5 @@ namespace anton_engine {
 } // namespace anton_engine
 
 ANTON_DEFAULT_SERIALIZABLE(anton_engine::Entity);
-ANTON_DEFAULT_DESERIALIZABLE(anton_engine::Entity);
 
 #endif // !ENGINE_ENTITY_HPP_INCLUDE

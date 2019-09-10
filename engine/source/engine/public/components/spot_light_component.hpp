@@ -19,6 +19,5 @@ namespace anton_engine {
 } // namespace anton_engine
 
 ANTON_DEFAULT_SERIALIZABLE(anton_engine::Spot_Light_Component);
-ANTON_DEFAULT_DESERIALIZABLE(anton_engine::Spot_Light_Component);
 
 #endif // !ENGINE_COMPONENTS_SPOTLIGHT_LIGHT_COMPONENT_HPP_INCLUDE

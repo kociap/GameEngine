@@ -24,6 +24,5 @@ namespace anton_engine {
 } // namespace anton_engine
 
 ANTON_DEFAULT_SERIALIZABLE(anton_engine::Transform);
-ANTON_DEFAULT_DESERIALIZABLE(anton_engine::Transform);
 
 #endif // !ENGINE_COMPONENTS_TRANSFORM_COMPONENT_HPP_INCLUDE

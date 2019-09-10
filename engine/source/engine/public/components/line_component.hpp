@@ -23,6 +23,5 @@ namespace anton_engine {
 } // namespace anton_engine
 
 ANTON_DEFAULT_SERIALIZABLE(anton_engine::Line_Component);
-ANTON_DEFAULT_DESERIALIZABLE(anton_engine::Line_Component);
 
 #endif // !ENGINE_COMPONENTS_LINE_COMPONENT_HPP_INCLUDE
