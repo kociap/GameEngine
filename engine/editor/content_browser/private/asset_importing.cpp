@@ -2,7 +2,6 @@
 
 #include <anton_stl/vector.hpp>
 #include <assets_internal.hpp>
-#include <debug_macros.hpp>
 #include <importers/image.hpp>
 #include <importers/mesh.hpp>
 #include <importers/obj.hpp>

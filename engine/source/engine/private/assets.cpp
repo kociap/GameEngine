@@ -5,7 +5,7 @@
 #include <anton_stl/vector.hpp>
 #include <assets_internal.hpp>
 #include <build_config.hpp>
-#include <debug_macros.hpp>
+#include <debug_macros.hpp> // CHECK_GL_ERRORS
 #include <importers/obj.hpp>
 #include <importers/png.hpp>
 #include <importers/tga.hpp>

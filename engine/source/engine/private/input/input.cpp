@@ -1,8 +1,9 @@
 #include <input/input.hpp>
 
 #include <anton_assert.hpp>
-#include <debug_macros.hpp>
 #include <input/input_core.hpp>
+#include <logging.hpp>
+#include <anton_stl/string.hpp>
 
 namespace anton_engine::Input {
     float get_axis(std::string const& axis_name) {
@@ -12,7 +13,7 @@ namespace anton_engine::Input {
                 return axis.value;
             }
         }
-        GE_log("Unknown axis " + axis_name);
+        ANTON_LOG_WARNING("Unknown axis " + anton_stl::String(axis_name.data()));
         return 0;
     }
 
@@ -23,7 +24,7 @@ namespace anton_engine::Input {
                 return axis.raw_value;
             }
         }
-        GE_log("Unknown axis " + axis_name);
+        ANTON_LOG_WARNING("Unknown axis " + anton_stl::String(axis_name.data()));
         return 0;
     }
 
@@ -34,7 +35,7 @@ namespace anton_engine::Input {
                 return {action.down, action.pressed, action.released};
             }
         }
-        GE_log("Unknown action " + action_name);
+        ANTON_LOG_WARNING("Unknown action " + anton_stl::String(action_name.data()));
         return {};
     }
 

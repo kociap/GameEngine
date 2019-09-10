@@ -1,6 +1,5 @@
 #include <user_input_filter.hpp>
 
-#include <debug_macros.hpp>
 #include <editor.hpp>
 #include <engine.hpp>
 #include <input/input_core.hpp>

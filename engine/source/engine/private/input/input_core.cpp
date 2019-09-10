@@ -2,7 +2,7 @@
 
 #include <anton_assert.hpp>
 #include <assets.hpp>
-#include <debug_macros.hpp>
+#include <logging.hpp>
 #include <math/math.hpp>
 #include <math/vector2.hpp>
 #include <paths.hpp>
@@ -54,7 +54,7 @@ namespace anton_engine::Input {
         anton_stl::Vector<utils::xml::Tag> tags(utils::xml::parse(str));
         for (utils::xml::Tag& tag: tags) {
             if (tag.name != "axis" && tag.name != "action") {
-                GE_log("Unknown tag, skipping...");
+                ANTON_LOG_INFO("Unknown tag, skipping...");
                 continue;
             }
 
@@ -65,21 +65,21 @@ namespace anton_engine::Input {
             auto sensitivity_prop = find_property(tag.properties, [](auto& property) { return property.name == "sensitivity"; });
 
             if (axis_prop == tag.properties.end() && action_prop == tag.properties.end()) {
-                GE_log("Missing action/axis property, skipping...");
+                ANTON_LOG_INFO("Missing action/axis property, skipping...");
                 continue;
             }
             if (key_prop == tag.properties.end()) {
-                GE_log("Missing key property, skipping...");
+                ANTON_LOG_INFO("Missing key property, skipping...");
                 continue;
             }
 
             if (axis_prop != tag.properties.end()) {
                 if (sensitivity_prop == tag.properties.end()) {
-                    GE_log("Missing sensitivity property, skipping...");
+                    ANTON_LOG_INFO("Missing sensitivity property, skipping...");
                     continue;
                 }
                 if (accumulation_speed_prop == tag.properties.end()) {
-                    GE_log("Missing scale property, skipping...");
+                    ANTON_LOG_INFO("Missing scale property, skipping...");
                     continue;
                 }
                 axis_mappings.emplace_back(axis_prop->value, key_from_string(key_prop->value), std::stof(accumulation_speed_prop->value),

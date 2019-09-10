@@ -3,9 +3,10 @@
 #include <input/input.hpp>
 
 #include <assets.hpp>
-#include <debug_macros.hpp>
+#include <anton_stl/string.hpp>
 #include <editor.hpp>
 #include <engine.hpp>
+#include <logging.hpp>
 #include <renderer.hpp>
 #include <resource_manager.hpp>
 #include <shader.hpp>
@@ -19,14 +20,11 @@ namespace anton_engine {
             Shader shader = create_shader(assets::load_shader_file(std::forward<T>(path))...);
             swap(shader_to_reload, shader);
         } catch (Program_Linking_Failed const& e) {
-            GE_log("Failed to reload shaders due to linking error");
-            GE_log(e.what());
+            ANTON_LOG_ERROR(anton_stl::String(u8"Failed to reload shaders due to linking error: ") + e.what());
         } catch (Shader_Compilation_Failed const& e) {
-            GE_log("Failed to reload shaders due to compilation error");
-            GE_log(e.what());
+            ANTON_LOG_ERROR(anton_stl::String(u8"Failed to reload shaders due to compilation error: ") + e.what());
         } catch (std::exception const& e) {
-            GE_log("Failed to reload shaders due to unknown error");
-            GE_log(e.what());
+            ANTON_LOG_ERROR(anton_stl::String(u8"Failed to reload shaders due to unknown error: ") + e.what()); //
         }
     }
 
@@ -50,14 +48,6 @@ namespace anton_engine {
     }
 
     void Debug_Hotkeys::update(Debug_Hotkeys&) {
-        auto print_press = Input::get_action("print_press");
-        if (print_press.pressed) {
-            GE_log("Pressed");
-        }
-        if (print_press.released) {
-            GE_log("Released");
-        }
-
         auto reload = Input::get_action("reload_shaders");
         if (reload.released) {
             // TODO reloading shaders

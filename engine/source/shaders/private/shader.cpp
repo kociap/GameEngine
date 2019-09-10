@@ -7,7 +7,7 @@ ANTON_RESTORE_WARNINGS()
 
 #include <anton_stl/vector.hpp>
 #include <color.hpp>
-#include <debug_macros.hpp>
+#include <debug_macros.hpp> // CHECK_GL_ERRORS
 #include <math/matrix4.hpp>
 #include <math/vector3.hpp>
 #include <opengl.hpp>

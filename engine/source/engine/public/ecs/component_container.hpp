@@ -4,7 +4,6 @@
 #include <anton_assert.hpp>
 #include <anton_stl/type_traits.hpp>
 #include <anton_stl/vector.hpp>
-#include <debug_macros.hpp>
 #include <ecs/component_container_iterator.hpp>
 #include <ecs/entity.hpp>
 #include <serialization/archives/binary.hpp>

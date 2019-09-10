@@ -1,8 +1,8 @@
 #include <importers/tga.hpp>
 
 #include <anton_stl/memory.hpp>
+#include <debug_macros.hpp> // ANTON_UNREACHABLE
 #include <cstdint>
-#include <debug_macros.hpp>
 #include <importers/common.hpp>
 
 namespace anton_engine::importers {

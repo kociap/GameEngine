@@ -3,8 +3,9 @@
 #include <glad.hpp>
 
 #include <anton_assert.hpp>
-#include <debug_macros.hpp>
+#include <debug_macros.hpp> // CHECK_GL_ERRORS
 #include <utils/enum.hpp>
+#include <stdexcept>
 
 namespace anton_engine::opengl {
     static int32_t max_combined_texture_units = 0;

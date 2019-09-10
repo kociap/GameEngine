@@ -4,7 +4,6 @@
 #include <anton_stl/utility.hpp>
 #include <anton_stl/vector.hpp>
 #include <assets.hpp>
-#include <debug_macros.hpp>
 #include <gizmo_internal.hpp>
 #include <glad.hpp>
 #include <math/math.hpp>
@@ -16,10 +15,10 @@
 #include <time.hpp>
 
 namespace anton_engine::gizmo {
-	static void swap(anton_engine::gizmo::Vertex& a, anton_engine::gizmo::Vertex& b) {
-		swap(a.position, b.position);
-		swap(a.color, b.color);
-	}
+    static void swap(anton_engine::gizmo::Vertex& a, anton_engine::gizmo::Vertex& b) {
+        swap(a.position, b.position);
+        swap(a.color, b.color);
+    }
 
     struct Point_Draw_Data {
         Vector3 origin;

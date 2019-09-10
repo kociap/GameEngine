@@ -2,19 +2,10 @@
 
 #include <glad.hpp>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 
 namespace anton_engine {
-    void _GE_log(std::string str) {
-        std::cout << str << "\n";
-    }
-
-    void _GE_conditional_log(bool cond, std::string msg) {
-        if (!cond) {
-            std::cout << msg << "\n";
-            std::cout << msg << "\n";
-        }
-    }
 
     void _GE_check_gl_errors() {
         GLenum error = glGetError();

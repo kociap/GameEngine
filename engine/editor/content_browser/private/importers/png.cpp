@@ -1,8 +1,10 @@
+#include <importers/png.hpp>
+
+#include <debug_macros.hpp> // ANTON_UNREACHABLE
 #include <anton_stl/type_traits.hpp>
 #include <anton_stl/vector.hpp>
 #include <cstdint>
 #include <importers/common.hpp>
-#include <importers/png.hpp>
 #include <math/math.hpp>
 #include <stdexcept>
 #include <zlib.h>

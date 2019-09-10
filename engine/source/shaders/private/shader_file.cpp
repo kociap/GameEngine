@@ -1,7 +1,7 @@
 #include <shader_file.hpp>
 
 #include <anton_stl/vector.hpp>
-#include <debug_macros.hpp>
+#include <debug_macros.hpp> // CHECK_GL_ERRORS
 #include <glad.hpp>
 #include <iostream>
 #include <opengl.hpp>

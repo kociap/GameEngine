@@ -20,10 +20,11 @@ namespace anton_engine {
         layout->addWidget(message);
     }
 
-    Log_Message::Log_Message(Log_Message&& other) noexcept {
+    Log_Message::Log_Message(Log_Message&& other) noexcept: QWidget() {
         setParent(static_cast<QWidget*>(other.parent())); // TODO: Hope this doesn't fail
         other.setParent(nullptr);
         layout = other.layout;
+        other.layout = nullptr;
         layout->setParent(this);
         other.layout = nullptr;
         // Already belongs to our layout. No need to reparent.

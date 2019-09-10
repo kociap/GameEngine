@@ -5,7 +5,6 @@
 #include <components/camera.hpp>
 #include <components/static_mesh_component.hpp>
 #include <components/transform.hpp>
-#include <debug_macros.hpp>
 #include <ecs/ecs.hpp>
 #include <editor.hpp>
 #include <framebuffer.hpp>
@@ -16,6 +15,7 @@
 #include <input/input_core.hpp>
 #include <intersection_tests.hpp>
 #include <line.hpp>
+#include <logging.hpp>
 #include <math/vector2.hpp>
 #include <mesh/mesh.hpp>
 #include <obb.hpp>
@@ -113,7 +113,7 @@ namespace anton_engine {
     }
 
     void Viewport::resizeEvent(QResizeEvent*) {
-        GE_log("Resize event");
+        ANTON_LOG_INFO("Resize event");
         int32_t w = width();
         int32_t h = height();
         resize(w, h);
@@ -127,7 +127,7 @@ namespace anton_engine {
             input_manager.add_event(Input::Mouse_Event(delta_x, delta_y, 0.0f));
             QCursor::setPos(lock_pos_x, lock_pos_y);
         } else {
-            GE_log("Non-cursor-locked mouse event");
+            ANTON_LOG_INFO("Non-cursor-locked mouse event");
         }
     }
 
@@ -480,7 +480,7 @@ namespace anton_engine {
     void Viewport::render(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform,
                           anton_stl::Vector<Entity> const& selected_entities) {
         if (!context->makeCurrent(windowHandle())) {
-            GE_log("Could not make context current. Skipping rendering.");
+            ANTON_LOG_WARNING("Could not make context current. Skipping rendering.");
             return;
         }
 

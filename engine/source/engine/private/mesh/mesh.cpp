@@ -1,6 +1,6 @@
-#include <debug_macros.hpp>
-#include <glad.hpp>
 #include <mesh/mesh.hpp>
+
+#include <glad.hpp>
 #include <opengl.hpp>
 #include <renderer.hpp>
 #include <shader.hpp>

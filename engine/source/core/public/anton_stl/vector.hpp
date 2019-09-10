@@ -8,7 +8,6 @@
 #include <anton_stl/memory.hpp>
 #include <anton_stl/type_traits.hpp>
 #include <anton_stl/utility.hpp>
-#include <debug_macros.hpp>
 #include <math/math.hpp>
 #include <memory/stack_allocate.hpp>
 #include <serialization/archives/binary.hpp>

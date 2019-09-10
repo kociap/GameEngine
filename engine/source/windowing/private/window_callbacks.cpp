@@ -7,13 +7,14 @@ ANTON_DISABLE_WARNINGS();
 #include <GLFW/glfw3.h>
 ANTON_RESTORE_WARNINGS();
 
+#include <anton_stl/string.hpp>
 #include <build_config.hpp>
-#include <debug_macros.hpp>
 #include <engine.hpp>
 #include <framebuffer.hpp>
 #include <glad.hpp>
 #include <input/input_core.hpp>
 #include <key.hpp>
+#include <logging.hpp>
 #include <renderer.hpp>
 
 #include <stdexcept>
@@ -146,8 +147,8 @@ namespace anton_engine {
 
     void joystick_config_callback(int const joy, int const joy_event) {
         if (joy_event == GLFW_CONNECTED && glfwJoystickIsGamepad(joy)) {
-            std::string joy_name(glfwGetJoystickName(joy));
-            GE_log("Gamepad connected: " + joy_name + " " + std::to_string(joy));
+            anton_stl::String joy_name(glfwGetJoystickName(joy));
+            ANTON_LOG_INFO("Gamepad connected: " + joy_name + " " + anton_stl::to_string(joy));
         }
     }
 

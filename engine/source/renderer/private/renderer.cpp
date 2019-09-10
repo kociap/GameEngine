@@ -11,7 +11,7 @@
 #include <components/spot_light_component.hpp>
 #include <components/static_mesh_component.hpp>
 #include <components/transform.hpp>
-#include <debug_macros.hpp>
+#include <debug_macros.hpp> // CHECK_GL_ERRORS
 #include <ecs/ecs.hpp>
 #include <editor.hpp>
 #include <engine.hpp>

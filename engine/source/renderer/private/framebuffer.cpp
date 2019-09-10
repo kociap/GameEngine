@@ -1,7 +1,7 @@
 #include <framebuffer.hpp>
 
 #include <anton_assert.hpp>
-#include <debug_macros.hpp>
+#include <debug_macros.hpp> // CHECK_GL_ERRORS
 #include <glad.hpp>
 #include <opengl.hpp>
 #include <stdexcept>
