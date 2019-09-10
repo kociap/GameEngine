@@ -1,6 +1,6 @@
 #include <serialization/archives/binary.hpp>
 
-namespace serialization {
+namespace anton_engine::serialization {
     void Binary_Input_Archive::read_binary(void* p, anton_ssize_t bytes) {
         char* ptr = reinterpret_cast<char*>(p);
         file.read(ptr, bytes);
@@ -10,4 +10,4 @@ namespace serialization {
         char const* ptr = reinterpret_cast<char const*>(p);
         file.write(ptr, bytes);
     }
-} // namespace serialization
+} // namespace anton_engine::serialization

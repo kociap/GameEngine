@@ -3,7 +3,7 @@
 
 #include <anton_stl/type_traits.hpp>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     template <typename T>
     inline constexpr enable_if<is_move_constructible<T> && is_move_assignable<T>, void> swap(T& a, T& b) {
         T tmp(anton_stl::move(a));
@@ -35,6 +35,6 @@ namespace anton_stl {
 
     template <anton_stl::ssize_t I, typename T>
     using tuple_element = typename Tuple_Element<I, T>::type;
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
 #endif // !CORE_ANTON_STL_UTILITY_COMMON_HPP_INCLUDE

@@ -15,12 +15,12 @@
 #include <shader_file.hpp>
 #include <time.hpp>
 
-void swap(gizmo::Vertex& a, gizmo::Vertex& b) {
-    swap(a.position, b.position);
-    swap(a.color, b.color);
-}
+namespace anton_engine::gizmo {
+	static void swap(anton_engine::gizmo::Vertex& a, anton_engine::gizmo::Vertex& b) {
+		swap(a.position, b.position);
+		swap(a.color, b.color);
+	}
 
-namespace gizmo {
     struct Point_Draw_Data {
         Vector3 origin;
         float size;
@@ -438,4 +438,4 @@ namespace gizmo {
         glEnable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
     }
-} // namespace gizmo
+} // namespace anton_engine::gizmo

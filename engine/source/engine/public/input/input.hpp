@@ -5,7 +5,7 @@
 #include <key.hpp>
 #include <string>
 
-namespace Input {
+namespace anton_engine::Input {
     struct Action_State {
         bool down = false;
         bool pressed = false;
@@ -17,6 +17,6 @@ namespace Input {
     [[nodiscard]] Action_State get_action(std::string const& action);
     [[nodiscard]] Key_State get_key_state(Key);
     // [[nodiscard]] Any_Key_State get_any_key_state();
-}; // namespace Input
+}; // namespace anton_engine::Input
 
 #endif // !ENGINE_INPUT_INPUT_HPP_INCLUDE

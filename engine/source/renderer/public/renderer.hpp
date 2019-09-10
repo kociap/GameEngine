@@ -6,16 +6,18 @@
 #include <cstdint>
 #include <shader.hpp>
 
-class Camera;
-class Line_Component;
-class Static_Mesh_Component;
-class Matrix4;
-class Transform;
-class Mesh;
+namespace anton_engine {
+    class Camera;
+    class Line_Component;
+    class Static_Mesh_Component;
+    class Matrix4;
+    class Transform;
+    class Mesh;
 
-class Framebuffer;
+    class Framebuffer;
+} // namespace anton_engine
 
-namespace rendering {
+namespace anton_engine::rendering {
     // TODO this thing has to go
     class Renderer {
     public:
@@ -68,5 +70,6 @@ namespace rendering {
     // Intended for rendering textures to the screen or applying postprocessing effects
     // Rebinds element buffer and vertex buffer with binding index 0
     void render_texture_quad();
-} // namespace rendering
+} // namespace anton_engine::rendering
+
 #endif // !ENGINE_RENDERER_RENDERER_HPP_INCLUDE

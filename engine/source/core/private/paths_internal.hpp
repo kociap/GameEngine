@@ -3,10 +3,10 @@
 
 #include <filesystem>
 
-namespace paths {
+namespace anton_engine::paths {
     void set_engine_executable_name(std::filesystem::path);
     void set_engine_executable_directory(std::filesystem::path);
     void set_project_directory(std::filesystem::path);
-} // namespace paths
+} // namespace anton_engine::paths
 
 #endif // !CORE_PATHS_INTERNAL_HPP_INCLUDE

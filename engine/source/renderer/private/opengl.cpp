@@ -6,7 +6,7 @@
 #include <debug_macros.hpp>
 #include <utils/enum.hpp>
 
-namespace opengl {
+namespace anton_engine::opengl {
     static int32_t max_combined_texture_units = 0;
     static int32_t max_renderbuffer_size = 0;
     static int32_t max_color_attachments = 0;
@@ -246,4 +246,4 @@ namespace opengl {
         CHECK_GL_ERRORS();
     }
 
-} // namespace opengl
+} // namespace anton_engine::opengl

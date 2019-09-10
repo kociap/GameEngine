@@ -3,16 +3,18 @@
 
 #include <config.hpp>
 
-class Integer_Sequence_Generator {
-public:
-    Integer_Sequence_Generator(id_type start_number = 0): _next(start_number) {}
+namespace anton_engine {
+    class Integer_Sequence_Generator {
+    public:
+        Integer_Sequence_Generator(id_type start_number = 0): _next(start_number) {}
 
-    id_type next() {
-        return _next++;
-    }
+        id_type next() {
+            return _next++;
+        }
 
-private:
-    id_type _next;
-};
+    private:
+        id_type _next;
+    };
+} // namespace anton_engine
 
 #endif // !CORE_INTEGER_SEQUENCE_GENERATOR_HPP_INCLUDE

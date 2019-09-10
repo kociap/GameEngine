@@ -1,7 +1,7 @@
-#include <anton_stl/detail/string_iterators.hpp>
 #include <anton_assert.hpp>
+#include <anton_stl/detail/string_iterators.hpp>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     constexpr uint8_t continuation_byte_signature_mask = 0b11000000;
     constexpr uint8_t continuation_byte_signature = 0b10000000;
     constexpr uint8_t continuation_byte_value_mask = 0b00111111;
@@ -146,4 +146,4 @@ namespace anton_stl {
     auto UTF8_Chars::cend() const -> const_iterator {
         return _end;
     }
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl

@@ -9,7 +9,7 @@
 
 // TODO alloc_aligned
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     template <typename T>
     void destruct(T* elem) {
         elem->~T();
@@ -215,5 +215,5 @@ namespace anton_stl {
             return dest;
         }
     }
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 #endif // !CORE_ANTON_STL_MEMORY_HPP_INCLUDE

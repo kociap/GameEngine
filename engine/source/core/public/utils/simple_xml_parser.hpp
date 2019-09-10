@@ -2,7 +2,7 @@
 #include <istream>
 #include <string>
 
-namespace utils {
+namespace anton_engine::utils {
     namespace xml {
         enum class Tag_Type { self_closing, opening, closing };
 
@@ -19,4 +19,4 @@ namespace utils {
 
         anton_stl::Vector<Tag> parse(std::string const&);
     } // namespace xml
-} // namespace utils
+} // namespace anton_engine::utils

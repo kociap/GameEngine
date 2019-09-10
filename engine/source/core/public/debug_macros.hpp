@@ -15,9 +15,11 @@
 
 #    include <stdexcept>
 
-void _GE_log(std::string);
-void _GE_conditional_log(bool condition, std::string);
-void _GE_check_gl_errors();
+namespace anton_engine {
+    void _GE_log(std::string);
+    void _GE_conditional_log(bool condition, std::string);
+    void _GE_check_gl_errors();
+} // namespace anton_engine
 
 #    define GE_log(msg) _GE_log((msg))
 

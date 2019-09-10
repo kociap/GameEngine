@@ -3,7 +3,7 @@
 
 #include <stdexcept>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     // at
     // Performs bounds checking and accesses an element at index in container.
     //
@@ -95,6 +95,6 @@ namespace anton_stl {
 
         return false;
     }
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
 #endif // !CORE_ANTON_STL_ALGORITHM_HPP_INCLUDE

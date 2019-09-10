@@ -7,7 +7,7 @@
 #undef max
 #undef min
 
-namespace math {
+namespace anton_engine::math {
     template <typename T>
     struct constants;
 
@@ -55,6 +55,6 @@ namespace math {
     T min(T a, T b) {
         return a < b ? a : b;
     }
-} // namespace math
+} // namespace anton_engine::math
 
 #endif // !CORE_MATH_MATH_HPP_INCLUDE

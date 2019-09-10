@@ -6,10 +6,10 @@
 #include <opengl_enums_defs.hpp>
 #include <utils/enum.hpp>
 
-namespace opengl {
+namespace anton_engine::opengl {
     // Uses unsigned normalized type.
     // Size of the obtained texture is driver dependent.
-    enum class Base_Internal_Format: uint32_t {
+    enum class Base_Internal_Format : uint32_t {
         depth_component = GL_DEPTH_COMPONENT,
         depth_stencil = GL_DEPTH_STENCIL,
         stencil_index = GL_STENCIL_INDEX,
@@ -19,7 +19,7 @@ namespace opengl {
         rgba = GL_RGBA,
     };
 
-    enum class Sized_Internal_Format: uint32_t {
+    enum class Sized_Internal_Format : uint32_t {
         // unsigned normalized
         r8 = GL_R8,
         r16 = GL_R16,
@@ -89,11 +89,11 @@ namespace opengl {
         stencil_index16 = GL_STENCIL_INDEX16, // Not required
     };
 
-    enum class Compressed_Internal_Format: uint32_t {
+    enum class Compressed_Internal_Format : uint32_t {
         // TODO compressed
     };
 
-    enum class Format: uint32_t {
+    enum class Format : uint32_t {
         stencil_index = GL_STENCIL_INDEX,
         depth_component = GL_DEPTH_COMPONENT,
         depth_stencil = GL_DEPTH_STENCIL,
@@ -115,7 +115,7 @@ namespace opengl {
         bgra_integer = GL_BGRA_INTEGER,
     };
 
-    enum class Type: uint32_t {
+    enum class Type : uint32_t {
         unsigned_byte = GL_UNSIGNED_BYTE,
         signed_byte = GL_BYTE,
         unsigned_short = GL_UNSIGNED_SHORT,
@@ -126,20 +126,20 @@ namespace opengl {
         signed_float = GL_FLOAT,
     };
 
-    enum class Attachment: uint32_t {
+    enum class Attachment : uint32_t {
         color_attachment_0 = GL_COLOR_ATTACHMENT0,
         depth_attachment = GL_DEPTH_ATTACHMENT,
         depth_stencil_attachment = GL_DEPTH_STENCIL_ATTACHMENT,
         stencil_attachment = GL_STENCIL_ATTACHMENT,
     };
 
-    enum class Buffer_Mask: uint32_t {
+    enum class Buffer_Mask : uint32_t {
         color_buffer_bit = GL_COLOR_BUFFER_BIT,
         depth_buffer_bit = GL_DEPTH_BUFFER_BIT,
         stencil_buffer_bit = GL_STENCIL_BUFFER_BIT,
     };
 
-    enum class Buffer_Type: uint32_t {
+    enum class Buffer_Type : uint32_t {
         array_buffer = GL_ARRAY_BUFFER,
         atomic_counter_buffer = GL_ATOMIC_COUNTER_BUFFER,
         copy_read_buffer = GL_COPY_READ_BUFFER,
@@ -155,7 +155,7 @@ namespace opengl {
         uniform_buffer = GL_UNIFORM_BUFFER,
     };
 
-    enum class Shader_Type: uint32_t {
+    enum class Shader_Type : uint32_t {
         vertex_shader = GL_VERTEX_SHADER,
         fragment_shader = GL_FRAGMENT_SHADER,
         geometry_shader = GL_GEOMETRY_SHADER,
@@ -164,7 +164,7 @@ namespace opengl {
         compute_shader = GL_COMPUTE_SHADER,
     };
 
-    enum class Texture_Type: uint32_t {
+    enum class Texture_Type : uint32_t {
         texture_1D = GL_TEXTURE_1D,
         texture_2D = GL_TEXTURE_2D,
         texture_3D = GL_TEXTURE_3D,
@@ -178,7 +178,7 @@ namespace opengl {
         texture_2D_multisample_array = GL_TEXTURE_2D_MULTISAMPLE_ARRAY,
     };
 
-    enum class Texture_Filter: uint32_t {
+    enum class Texture_Filter : uint32_t {
         nearest = GL_NEAREST,
         linear = GL_LINEAR,
         nearest_mipmap_nearest = GL_NEAREST_MIPMAP_NEAREST,
@@ -203,8 +203,8 @@ namespace opengl {
     void bind_renderbuffer(uint32_t handle);
     void bind_texture(Texture_Type texture, uint32_t handle);
     void bind_vertex_array(uint32_t handle);
-    void blit_framebuffer(int32_t src_x0, int32_t src_y0, int32_t src_x1, int32_t src_y1, int32_t dst_x0, int32_t dst_y0, int32_t dst_x1,
-                          int32_t dst_y1, Buffer_Mask, uint32_t filter);
+    void blit_framebuffer(int32_t src_x0, int32_t src_y0, int32_t src_x1, int32_t src_y1, int32_t dst_x0, int32_t dst_y0, int32_t dst_x1, int32_t dst_y1,
+                          Buffer_Mask, uint32_t filter);
     // Size in bytes
     void buffer_data(Buffer_Type target, int64_t size, void* data, uint32_t usage);
     void clear(Buffer_Mask buffers);
@@ -236,8 +236,7 @@ namespace opengl {
                       void const* pixels);
     void tex_image_2D(uint32_t target, int32_t level, Sized_Internal_Format, int32_t width, int32_t height, Format pixels_format, Type pixels_type,
                       void const* pixels);
-    void tex_image_2D_multisample(uint32_t target, int32_t samples, Sized_Internal_Format, int32_t width, int32_t height,
-                                  bool fixed_sample_locations = true);
+    void tex_image_2D_multisample(uint32_t target, int32_t samples, Sized_Internal_Format, int32_t width, int32_t height, bool fixed_sample_locations = true);
     void vertex_array_attribute(uint32_t index, int32_t size, uint32_t type, int32_t stride, int64_t offset, bool normalized = false);
     // Lower left corner of the viewport, its width and height
     // Both width and height may not be negative
@@ -245,22 +244,24 @@ namespace opengl {
 
     void load_functions();
     void load_constants();
-} // namespace opengl
+} // namespace anton_engine::opengl
 
-template <>
-struct utils::enable_enum_add_operator<opengl::Attachment> {
-    static constexpr bool value = true;
-};
+namespace anton_engine {
+    template <>
+    struct utils::enable_enum_add_operator<opengl::Attachment> {
+        static constexpr bool value = true;
+    };
 
-template <>
-struct utils::enable_enum_bitwise_or<opengl::Buffer_Mask> {
-    static constexpr bool value = true;
-};
+    template <>
+    struct utils::enable_enum_bitwise_or<opengl::Buffer_Mask> {
+        static constexpr bool value = true;
+    };
 
-template <>
-struct utils::enable_enum_bitwise_and<opengl::Buffer_Mask> {
-    static constexpr bool value = true;
-};
+    template <>
+    struct utils::enable_enum_bitwise_and<opengl::Buffer_Mask> {
+        static constexpr bool value = true;
+    };
+} // namespace anton_engine
 
 #include <opengl_enums_undefs.hpp>
 #endif // !RENDERER_OPENGL_HPP_INCLUDE

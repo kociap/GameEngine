@@ -2,7 +2,7 @@
 
 #include <cctype>
 
-namespace utils {
+namespace anton_engine::utils {
     namespace xml {
         enum class State { tag_open, tag_name, tag_name_end, tag_close, property_name, property_name_end, property_value, property_value_end };
 
@@ -86,4 +86,4 @@ namespace utils {
             return tags;
         }
     } // namespace xml
-} // namespace utils
+} // namespace anton_engine::utils

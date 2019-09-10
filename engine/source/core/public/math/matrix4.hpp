@@ -1,48 +1,50 @@
-#ifndef GAME_ENGINE_CORE_MATH_MARTIX4_HPP_INCLUDE
-#define GAME_ENGINE_CORE_MATH_MARTIX4_HPP_INCLUDE
+#ifndef CORE_MATH_MARTIX4_HPP_INCLUDE
+#define CORE_MATH_MARTIX4_HPP_INCLUDE
 
 #include <cstdint>
 #include <math/vector4.hpp>
 
-// Row major
-class Matrix4 {
-public:
-    static ENGINE_API Matrix4 const zero;
-    static ENGINE_API Matrix4 const identity;
+namespace anton_engine {
+    // Row major
+    class Matrix4 {
+    public:
+        static ENGINE_API Matrix4 const zero;
+        static ENGINE_API Matrix4 const identity;
 
-    Matrix4();
-    Matrix4(Vector4, Vector4, Vector4, Vector4);
+        Matrix4();
+        Matrix4(Vector4, Vector4, Vector4, Vector4);
 
-    float& operator()(int row, int column);
-    float operator()(int row, int column) const;
+        float& operator()(int row, int column);
+        float operator()(int row, int column) const;
 
-    Matrix4& operator+=(float);
-    Matrix4& operator-=(float);
-    Matrix4& operator*=(float);
-    Matrix4& operator/=(float);
+        Matrix4& operator+=(float);
+        Matrix4& operator-=(float);
+        Matrix4& operator*=(float);
+        Matrix4& operator/=(float);
 
-    Matrix4& transpose();
+        Matrix4& transpose();
 
-    float const* get_raw() const;
+        float const* get_raw() const;
 
-private:
-    float components[16];
-};
+    private:
+        float components[16];
+    };
 
-Matrix4 operator+(Matrix4, float);
-Matrix4 operator-(Matrix4, float);
-Matrix4 operator*(Matrix4, float);
-Matrix4 operator/(Matrix4, float);
-Matrix4 operator+(Matrix4, Matrix4);
-Matrix4 operator-(Matrix4, Matrix4);
-Matrix4 operator*(Matrix4, Matrix4);
-Vector4 operator*(Vector4, Matrix4);
+    Matrix4 operator+(Matrix4, float);
+    Matrix4 operator-(Matrix4, float);
+    Matrix4 operator*(Matrix4, float);
+    Matrix4 operator/(Matrix4, float);
+    Matrix4 operator+(Matrix4, Matrix4);
+    Matrix4 operator-(Matrix4, Matrix4);
+    Matrix4 operator*(Matrix4, Matrix4);
+    Vector4 operator*(Vector4, Matrix4);
+} // namespace anton_engine
 
-namespace math {
+namespace anton_engine::math {
     Matrix4 transpose(Matrix4);
     float determinant(Matrix4);
     Matrix4 adjugate(Matrix4);
     Matrix4 inverse(Matrix4);
-} // namespace math
+} // namespace anton_engine::math
 
-#endif // !GAME_ENGINE_CORE_MATH_MARTIX4_HPP_INCLUDE
+#endif // !CORE_MATH_MARTIX4_HPP_INCLUDE

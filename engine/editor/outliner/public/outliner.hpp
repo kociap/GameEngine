@@ -14,38 +14,40 @@ ANTON_RESTORE_WARNINGS();
 class QVBoxLayout;
 class QScrollArea;
 
-class Outliner: public QWidget {
-    Q_OBJECT
+namespace anton_engine {
+    class Outliner: public QWidget {
+        Q_OBJECT
 
-public:
-    Outliner();
-    ~Outliner() override;
+    public:
+        Outliner();
+        ~Outliner() override;
 
-    void update();
-    void add_entity(Entity);
-    void remove_entities(anton_stl::Vector<Entity> const& entities_to_remove);
-    void select_entities(anton_stl::Vector<Entity> const&);
-    void select_entity(Entity);
-    void deselect_entity(Entity);
+        void update();
+        void add_entity(Entity);
+        void remove_entities(anton_stl::Vector<Entity> const& entities_to_remove);
+        void select_entities(anton_stl::Vector<Entity> const&);
+        void select_entity(Entity);
+        void deselect_entity(Entity);
 
-    int32_t indentation() const;
-    void set_indentation(int32_t);
+        int32_t indentation() const;
+        void set_indentation(int32_t);
 
-    void sort_entities_by_name_ascending();
-    void sort_entities_by_name_descending();
+        void sort_entities_by_name_ascending();
+        void sort_entities_by_name_descending();
 
-Q_SIGNALS:
-    void entity_selected(Entity, bool clear_previous_selection);
-    void entity_deselected(Entity);
+    Q_SIGNALS:
+        void entity_selected(Entity, bool clear_previous_selection);
+        void entity_deselected(Entity);
 
-private:
-    Entity last_selected = null_entity;
+    private:
+        Entity last_selected = null_entity;
 
-    QVBoxLayout* layout = nullptr;
-    QScrollArea* scroll_area;
-    QWidget* scroll_area_contents;
-    QVBoxLayout* scroll_area_contents_layout;
-    anton_stl::Vector<Outliner_Item> items;
-};
+        QVBoxLayout* layout = nullptr;
+        QScrollArea* scroll_area;
+        QWidget* scroll_area_contents;
+        QVBoxLayout* scroll_area_contents_layout;
+        anton_stl::Vector<Outliner_Item> items;
+    };
+} // namespace anton_engine
 
 #endif // !EDITOR_OUTLINER_OUTLINER_HPP_INCLUDE

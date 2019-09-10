@@ -7,42 +7,44 @@
 #include <math/vector3.hpp>
 #include <string>
 
-struct Vertex {
-    Vector3 position;
-    Vector3 normal;
-    Vector3 tangent;
-    Vector3 bitangent;
-    Vector2 uv_coordinates;
+namespace anton_engine {
+    struct Vertex {
+        Vector3 position;
+        Vector3 normal;
+        Vector3 tangent;
+        Vector3 bitangent;
+        Vector2 uv_coordinates;
 
-    Vertex() = default;
-    Vertex(Vector3 pos, Vector3 normal, Vector3 tangent, Vector3 bitangent, Vector2 uv);
-};
+        Vertex() = default;
+        Vertex(Vector3 pos, Vector3 normal, Vector3 tangent, Vector3 bitangent, Vector2 uv);
+    };
 
-class Mesh {
-public:
-    Mesh();
-    Mesh(anton_stl::Vector<Vertex> const& vertices, anton_stl::Vector<uint32_t> const& indices);
-    Mesh(anton_stl::Vector<Vertex>&& vertices, anton_stl::Vector<uint32_t>&& indices);
-    Mesh(Mesh&&) noexcept;
-    Mesh& operator=(Mesh&&) noexcept;
-    ~Mesh();
+    class Mesh {
+    public:
+        Mesh();
+        Mesh(anton_stl::Vector<Vertex> const& vertices, anton_stl::Vector<uint32_t> const& indices);
+        Mesh(anton_stl::Vector<Vertex>&& vertices, anton_stl::Vector<uint32_t>&& indices);
+        Mesh(Mesh&&) noexcept;
+        Mesh& operator=(Mesh&&) noexcept;
+        ~Mesh();
 
-    Mesh(Mesh const&) = delete;
-    Mesh& operator=(Mesh const&) = delete;
+        Mesh(Mesh const&) = delete;
+        Mesh& operator=(Mesh const&) = delete;
 
-    uint32_t get_vbo() const;
-    uint32_t get_ebo() const;
+        uint32_t get_vbo() const;
+        uint32_t get_ebo() const;
 
-private:
-    void prepare_mesh();
+    private:
+        void prepare_mesh();
 
-public:
-    anton_stl::Vector<Vertex> vertices;
-    anton_stl::Vector<uint32_t> indices;
+    public:
+        anton_stl::Vector<Vertex> vertices;
+        anton_stl::Vector<uint32_t> indices;
 
-private:
-    uint32_t vbo = 0;
-    uint32_t ebo = 0;
-};
+    private:
+        uint32_t vbo = 0;
+        uint32_t ebo = 0;
+    };
+} // namespace anton_engine
 
 #endif // !ENGINE_MESH_HPP_INCLUDE

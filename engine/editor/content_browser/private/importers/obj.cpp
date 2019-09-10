@@ -2,7 +2,7 @@
 
 #include <cctype>
 
-namespace importers {
+namespace anton_engine::importers {
     using stream_iterator = anton_stl::Vector<uint8_t>::const_iterator;
 
     struct Face_Internal {
@@ -234,4 +234,4 @@ namespace importers {
         }
         return meshes;
     }
-} // namespace importers
+} // namespace anton_engine::importers

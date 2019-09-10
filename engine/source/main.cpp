@@ -1,20 +1,22 @@
-#include <build_config.hpp>
-
 #include <ecs/component_serialization.hpp>
 #include <filesystem>
 #include <module_loader.hpp>
 #include <paths_internal.hpp>
 #include <stdexcept>
 #include <string>
-#include <string_view>
 
-#if !GE_WITH_EDITOR
-int engine_main();
-#else
+#include <build_config.hpp>
+namespace anton_engine {
+#if ANTON_WITH_EDITOR
+
 int editor_main();
+#else
+int engine_main();
 #endif // !GE_WITH_EDITOR
+}
 
 int main(int argc, char** argv) {
+	using namespace anton_engine;
     // Required arguments: path to executable and path to the project file
     // if (argc < 2) {
     //     throw std::runtime_error("Missing path to project file");
@@ -41,7 +43,8 @@ int main(int argc, char** argv) {
     char const* game_module_name = "GameEngine_Game.dll";
 #endif
     Module game_module = load_module(game_module_name);
-    get_component_serialization_funcs = get_function_from_module<get_component_serialization_funcs_t>(game_module, "get_component_serialization_functions");
+    get_component_serialization_funcs =
+        get_function_from_module<get_component_serialization_funcs_t>(game_module, "get_component_serialization_functions");
 
 #if !GE_WITH_EDITOR
     engine_main();

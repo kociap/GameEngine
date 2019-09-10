@@ -20,15 +20,17 @@
 #    include <engine.hpp>
 #endif
 
-Input::Manager& get_input_manager() {
+namespace anton_engine {
+    Input::Manager& get_input_manager() {
 #if GE_WITH_EDITOR
-    return Editor::get_input_manager();
+        return Editor::get_input_manager();
 #else
-    return Engine::get_input_manager();
+        return Engine::get_input_manager();
 #endif
-}
+    }
+} // namespace anton_engine
 
-namespace Input {
+namespace anton_engine::Input {
     static Action_Mapping const* find_mapping_with_key(anton_stl::Vector<Action_Mapping> const& mappings, std::string const& action, Key key) {
         for (auto& mapping: mappings) {
             if (mapping.key == key && mapping.action == action) {
@@ -342,4 +344,4 @@ namespace Input {
         gamepad_stick_event_queue.clear();
         gamepad_event_queue.clear();
     }
-} // namespace Input
+} // namespace anton_engine::Input

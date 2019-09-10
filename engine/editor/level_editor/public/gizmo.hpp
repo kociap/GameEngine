@@ -5,7 +5,7 @@
 #include <color.hpp>
 #include <math/vector3.hpp>
 
-namespace gizmo {
+namespace anton_engine::gizmo {
     struct Vertex {
         Vector3 position;
         Color color;
@@ -24,6 +24,6 @@ namespace gizmo {
     void draw_circle(Vector3 position, Vector3 normal, float radius, Color, uint32_t point_count, float line_width = 1.0f, float time = 0.0f,
                      bool depth_test = true);
     void draw_circle_filled(Vector3 position, Vector3 normal, float radius, Color, uint32_t point_count, float time = 0.0f, bool depth_test = true);
-} // namespace gizmo
+} // namespace anton_engine::gizmo
 
 #endif // !EDITOR_LEVEL_EDITOR_GIZMO_HPP_INCLUDE

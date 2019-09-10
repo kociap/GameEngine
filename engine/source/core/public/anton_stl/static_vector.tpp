@@ -1,4 +1,4 @@
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     template <typename T, anton_stl::ssize_t Capacity>
     inline auto Static_Vector<T, Capacity>::operator[](size_type index) -> reference {
         return *get_ptr(index);
@@ -278,9 +278,9 @@ namespace anton_stl {
             throw std::length_error("Attempt to construct more than capacity() elements in Static_Vector");
         }
     }
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
-namespace serialization {
+namespace anton_engine::serialization {
     template <typename T, anton_stl::ssize_t Capacity>
     inline void serialize(Binary_Output_Archive& out, anton_stl::Static_Vector<T, Capacity> const& vec) {
         out.write(vec.size());
@@ -321,4 +321,4 @@ namespace serialization {
             }
         }
     }
-} // namespace serialization
+} // namespace anton_engine::serialization

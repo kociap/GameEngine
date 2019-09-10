@@ -17,7 +17,7 @@
 #include <stdexcept> // includes std::allocator
 #include <type_traits>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     template <typename T, typename Allocator = anton_stl::Allocator>
     class Vector {
         static_assert(std::is_nothrow_move_constructible_v<T> || std::is_copy_constructible_v<T> || std::is_trivially_copy_constructible_v<T>,
@@ -120,14 +120,14 @@ namespace anton_stl {
 
         friend void serialization::deserialize(serialization::Binary_Input_Archive&, Vector<T, Allocator>&);
     };
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
-namespace serialization {
+namespace anton_engine::serialization {
     template <typename T, typename Allocator>
     void serialize(Binary_Output_Archive&, anton_stl::Vector<T, Allocator> const&);
     template <typename T, typename Allocator>
     void deserialize(Binary_Input_Archive&, anton_stl::Vector<T, Allocator>&);
-} // namespace serialization
+} // namespace anton_engine::serialization
 
 #include <anton_stl/vector.tpp>
 

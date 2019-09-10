@@ -4,7 +4,7 @@
 #include <debug_macros.hpp>
 #include <input/input_core.hpp>
 
-namespace Input {
+namespace anton_engine::Input {
     float get_axis(std::string const& axis_name) {
         Manager& input_manager = get_input_manager();
         for (Axis& axis: input_manager.axes) {
@@ -48,4 +48,4 @@ namespace Input {
     //     Manager& input_manager = get_input_manager();
     //     return input_manager.any_key_state;
     // }
-} // namespace Input
+} // namespace anton_engine::Input

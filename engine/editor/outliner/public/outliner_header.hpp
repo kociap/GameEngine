@@ -7,6 +7,8 @@ ANTON_DISABLE_WARNINGS();
 #include <QWidget>
 ANTON_RESTORE_WARNINGS();
 
-class Outliner_Header: public QWidget {};
+namespace anton_engine {
+    class Outliner_Header: public QWidget {};
+} // namespace anton_engine
 
 #endif // !EDITOR_OUTLINER_OUTLINER_HEADER_HPP_INCLUDE

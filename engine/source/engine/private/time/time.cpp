@@ -3,7 +3,7 @@
 #include <time.hpp>
 #include <time/time_platform.hpp>
 
-namespace time_core {
+namespace anton_engine::time_core {
     // The number of frames since the start of the game
     static uint64_t frame_count = 0;
     // The time it took to complete the previous frame
@@ -37,9 +37,9 @@ namespace time_core {
         previous_frame_time = frame_time;
         frame_time += delta_time;
     }
-} // namespace time_core
+} // namespace anton_engine::time_core
 
-namespace timing {
+namespace anton_engine::timing {
     double get_delta_time() {
         return time_core::delta_time;
     }
@@ -59,9 +59,9 @@ namespace timing {
     uint64_t get_frame_count() {
         return time_core::frame_count;
     }
-} // namespace timing
+} // namespace anton_engine::timing
 
-namespace timingf {
+namespace anton_engine::timingf {
     float get_delta_time() {
         return static_cast<float>(time_core::delta_time);
     }
@@ -77,4 +77,4 @@ namespace timingf {
     float get_unscaled_time() {
         return static_cast<float>(time_core::unscaled_frame_time);
     }
-} // namespace timingf
+} // namespace anton_engine::timingf

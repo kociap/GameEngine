@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <type_traits>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     template <typename T, anton_stl::ssize_t Capacity>
     class Static_Vector {
         static_assert(Capacity >= 0, "Static_Vector's capacity may not be less than 0");
@@ -99,14 +99,14 @@ namespace anton_stl {
         friend void serialization::deserialize(serialization::Binary_Input_Archive&, anton_stl::Static_Vector<T, Capacity>&);
         friend void swap(Static_Vector<T, Capacity>&, Static_Vector<T, Capacity>&);
     };
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
-namespace serialization {
+namespace anton_engine::serialization {
     template <typename T, uint64_t Capacity>
     void serialize(Binary_Output_Archive&, anton_stl::Static_Vector<T, Capacity> const&);
     template <typename T, uint64_t Capacity>
     void deserialize(Binary_Input_Archive&, anton_stl::Static_Vector<T, Capacity>&);
-} // namespace serialization
+} // namespace anton_engine::serialization
 
 #include <anton_stl/static_vector.tpp>
 

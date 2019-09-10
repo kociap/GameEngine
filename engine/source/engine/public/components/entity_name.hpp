@@ -6,14 +6,16 @@
 #include <serialization/archives/binary.hpp>
 #include <serialization/serialization.hpp>
 
-class COMPONENT Entity_Name {
-public:
-    anton_stl::String name;
-};
+namespace anton_engine {
+    class COMPONENT Entity_Name {
+    public:
+        anton_stl::String name;
+    };
 
-namespace serialization {
-    void serialize(Binary_Output_Archive&, Entity_Name const&);
-    void deserialize(Binary_Input_Archive&, Entity_Name&);
-} // namespace serialization
+    namespace serialization {
+        void serialize(Binary_Output_Archive&, Entity_Name const&);
+        void deserialize(Binary_Input_Archive&, Entity_Name&);
+    } // namespace serialization
+} // namespace anton_engine
 
 #endif // !ENGINE_COMPONENTS_ENTITY_NAME_HPP_INCLUDE

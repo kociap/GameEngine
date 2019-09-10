@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <zlib.h>
 
-namespace importers {
+namespace anton_engine::importers {
     constexpr uint64_t png_header = 0x89504E470D0A1A0A;
 
     // Chunk properties bits
@@ -543,4 +543,4 @@ namespace importers {
         // TODO: Choose color space based on the image loaded
         return {header.width, header.height, pixel_format, Image_Color_Space::gamma_encoded, gamma, anton_stl::move(pixels_unfiltered)};
     }
-} // namespace importers
+} // namespace anton_engine::importers

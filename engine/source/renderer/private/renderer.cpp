@@ -26,39 +26,41 @@
 #include <resource_manager.hpp>
 #include <shader.hpp>
 
-static Resource_Manager<Mesh>& get_mesh_manager() {
+namespace anton_engine {
+    static Resource_Manager<Mesh>& get_mesh_manager() {
 #if GE_WITH_EDITOR
-    return Editor::get_mesh_manager();
+        return Editor::get_mesh_manager();
 #else
-    return Engine::get_mesh_manager();
+        return Engine::get_mesh_manager();
 #endif
-}
+    }
 
-static Resource_Manager<Shader>& get_shader_manager() {
+    static Resource_Manager<Shader>& get_shader_manager() {
 #if GE_WITH_EDITOR
-    return Editor::get_shader_manager();
+        return Editor::get_shader_manager();
 #else
-    return Engine::get_shader_manager();
+        return Engine::get_shader_manager();
 #endif
-}
+    }
 
-static Resource_Manager<Material>& get_material_manager() {
+    static Resource_Manager<Material>& get_material_manager() {
 #if GE_WITH_EDITOR
-    return Editor::get_material_manager();
+        return Editor::get_material_manager();
 #else
-    return Engine::get_material_manager();
+        return Engine::get_material_manager();
 #endif
-}
+    }
 
-static ECS& get_ecs() {
+    static ECS& get_ecs() {
 #if GE_WITH_EDITOR
-    return Editor::get_ecs();
+        return Editor::get_ecs();
 #else
-    return Engine::get_ecs();
+        return Engine::get_ecs();
 #endif
-}
+    }
+} // namespace anton_engine
 
-namespace rendering {
+namespace anton_engine::rendering {
     Renderer::Renderer(int32_t width, int32_t height): single_color_shader(false), outline_mix_shader(false) {
         build_framebuffers(width, height);
 
@@ -456,4 +458,4 @@ namespace rendering {
         Mesh& mesh = mesh_manager.get(component.mesh_handle);
         render_mesh(mesh);
     }
-} // namespace rendering
+} // namespace anton_engine::rendering

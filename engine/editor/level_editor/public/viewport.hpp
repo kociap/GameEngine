@@ -8,69 +8,72 @@
 #include <math/matrix4.hpp>
 #include <math/vector3.hpp>
 
-ANTON_DISABLE_WARNINGS()
+ANTON_DISABLE_WARNINGS();
 #include <QWidget>
-ANTON_RESTORE_WARNINGS()
+ANTON_RESTORE_WARNINGS();
 
-class Framebuffer;
 class QOpenGLContext;
 class QPaintEngine;
 class QMouseEvent;
 class QCloseEvent;
-namespace rendering {
-    class Renderer;
-}
 
-class Viewport: public QWidget {
-    Q_OBJECT
+namespace anton_engine {
+    class Framebuffer;
+    namespace rendering {
+        class Renderer;
+    }
 
-public:
-    explicit Viewport(int32_t viewport_index, QOpenGLContext* context);
-    Viewport(int32_t viewport_index, QWidget* parent, QOpenGLContext* context);
-    ~Viewport() override;
+    class Viewport: public QWidget {
+        Q_OBJECT
 
-    void process_actions(Matrix4 view_mat, Matrix4 projection_mat, Matrix4 inv_view_mat, Matrix4 inv_projection_mat, Transform camera_transform,
-                         anton_stl::Vector<Entity>& selected_entities);
-    void render(Matrix4 view_mat, Matrix4 projection_mat, Transform camera_transform, anton_stl::Vector<Entity> const&);
-    void resize(int32_t w, int32_t h);
-    bool is_cursor_locked() const;
-    void lock_cursor_at(int32_t x, int32_t y);
-    void unlock_cursor();
+    public:
+        explicit Viewport(int32_t viewport_index, QOpenGLContext* context);
+        Viewport(int32_t viewport_index, QWidget* parent, QOpenGLContext* context);
+        ~Viewport() override;
 
-    QPaintEngine* paintEngine() const override;
+        void process_actions(Matrix4 view_mat, Matrix4 projection_mat, Matrix4 inv_view_mat, Matrix4 inv_projection_mat, Transform camera_transform,
+                             anton_stl::Vector<Entity>& selected_entities);
+        void render(Matrix4 view_mat, Matrix4 projection_mat, Transform camera_transform, anton_stl::Vector<Entity> const&);
+        void resize(int32_t w, int32_t h);
+        bool is_cursor_locked() const;
+        void lock_cursor_at(int32_t x, int32_t y);
+        void unlock_cursor();
 
-protected:
-    void closeEvent(QCloseEvent*) override;
-    void resizeEvent(QResizeEvent*) override;
-    void mouseMoveEvent(QMouseEvent*) override;
-    void mousePressEvent(QMouseEvent*) override;
+        QPaintEngine* paintEngine() const override;
 
-Q_SIGNALS:
-    void window_closed(int32_t index);
-    void made_active(int32_t index);
-    void entity_selected(Entity, bool clear_previous_selection);
-    void entity_deselected(Entity);
+    protected:
+        void closeEvent(QCloseEvent*) override;
+        void resizeEvent(QResizeEvent*) override;
+        void mouseMoveEvent(QMouseEvent*) override;
+        void mousePressEvent(QMouseEvent*) override;
 
-private:
-    Framebuffer* framebuffer = nullptr;
-    rendering::Renderer* renderer = nullptr;
-    QOpenGLContext* context;
+    Q_SIGNALS:
+        void window_closed(int32_t index);
+        void made_active(int32_t index);
+        void entity_selected(Entity, bool clear_previous_selection);
+        void entity_deselected(Entity);
 
-    Entity viewport_entity = null_entity;
-    int32_t index;
+    private:
+        Framebuffer* framebuffer = nullptr;
+        rendering::Renderer* renderer = nullptr;
+        QOpenGLContext* context;
 
-    // No idea what most of that means
-    Transform cached_gizmo_transform;
-    Vector3 gizmo_mouse_grab_point;
-    Vector3 gizmo_grabbed_axis;
-    Vector3 gizmo_plane_normal;
-    float gizmo_plane_distance;
-    bool gizmo_grabbed = false;
+        Entity viewport_entity = null_entity;
+        int32_t index;
 
-    // Mouse movement
-    int32_t lock_pos_x = 0;
-    int32_t lock_pos_y = 0;
-    bool cursor_locked = false;
-};
+        // No idea what most of that means
+        Transform cached_gizmo_transform;
+        Vector3 gizmo_mouse_grab_point;
+        Vector3 gizmo_grabbed_axis;
+        Vector3 gizmo_plane_normal;
+        float gizmo_plane_distance;
+        bool gizmo_grabbed = false;
+
+        // Mouse movement
+        int32_t lock_pos_x = 0;
+        int32_t lock_pos_y = 0;
+        bool cursor_locked = false;
+    };
+} // namespace anton_engine
 
 #endif // !EDITOR_LEVEL_EDITOR_VIEWPORT_HPP_INCLUDE

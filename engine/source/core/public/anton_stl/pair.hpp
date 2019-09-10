@@ -1,11 +1,10 @@
 #ifndef CORE_ANTON_STL_PAIR_HPP_INCLUDE
 #define CORE_ANTON_STL_PAIR_HPP_INCLUDE
 
-#include <anton_stl/type_traits.hpp>
 #include <anton_stl/detail/utility_common.hpp>
-#include <utility>
+#include <anton_stl/type_traits.hpp>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     namespace detail {
         template <typename T1, typename U1, typename T2, typename U2>
         inline constexpr bool enable_explicit = is_constructible<T1, U1>&& is_constructible<T2, U2> && !(is_convertible<U1, T1> && is_convertible<U2, T2>);
@@ -196,21 +195,22 @@ namespace anton_stl {
         static_assert(!is_same<T1, T2>, "Type based get may not be called with anton_stl::Pair with the same types.");
         return move(p.second);
     }
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
 // We provide std::tuple_size and std::tuple_element to enable structured bindings
 namespace std {
     template <typename T1, typename T2>
-    struct tuple_size<anton_stl::Pair<T1, T2>>: anton_stl::Tuple_Size<anton_stl::Pair<T1, T2>> {};
+    struct tuple_size<anton_engine::anton_stl::Pair<T1, T2>>: anton_engine::anton_stl::Tuple_Size<anton_engine::anton_stl::Pair<T1, T2>> {};
 
     template <typename T1, typename T2>
-    struct tuple_size<anton_stl::Pair<T1, T2> const>: anton_stl::Tuple_Size<anton_stl::Pair<T1, T2> const> {};
+    struct tuple_size<anton_engine::anton_stl::Pair<T1, T2> const>: anton_engine::anton_stl::Tuple_Size<anton_engine::anton_stl::Pair<T1, T2> const> {};
 
-    template <anton_stl::ssize_t I, typename T1, typename T2>
-    struct tuple_element<I, anton_stl::Pair<T1, T2>>: anton_stl::Tuple_Element<I, anton_stl::Pair<T1, T2>> {};
+    template <anton_engine::anton_stl::ssize_t I, typename T1, typename T2>
+    struct tuple_element<I, anton_engine::anton_stl::Pair<T1, T2>>: anton_engine::anton_stl::Tuple_Element<I, anton_engine::anton_stl::Pair<T1, T2>> {};
 
-    template <anton_stl::ssize_t I, typename T1, typename T2>
-    struct tuple_element<I, anton_stl::Pair<T1, T2> const>: anton_stl::Tuple_Element<I, anton_stl::Pair<T1, T2> const> {};
+    template <anton_engine::anton_stl::ssize_t I, typename T1, typename T2>
+    struct tuple_element<I, anton_engine::anton_stl::Pair<T1, T2> const>
+        : anton_engine::anton_stl::Tuple_Element<I, anton_engine::anton_stl::Pair<T1, T2> const> {};
 } // namespace std
 
 #endif //! CORE_ANTON_STL_PAIR_HPP_INCLUDE

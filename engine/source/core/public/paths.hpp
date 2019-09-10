@@ -4,7 +4,7 @@
 #include <build_config.hpp>
 #include <filesystem>
 
-namespace paths {
+namespace anton_engine::paths {
     std::filesystem::path engine_executable_name();
     std::filesystem::path engine_executable_directory();
     std::filesystem::path project_directory();
@@ -14,6 +14,6 @@ namespace paths {
     std::filesystem::path assets_directory();
     std::filesystem::path shaders_directory();
 #endif
-} // namespace paths
+} // namespace anton_engine::paths
 
 #endif // !CORE_PATHS_HPP_INCLUDE

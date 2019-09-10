@@ -8,17 +8,19 @@ ANTON_RESTORE_WARNINGS()
 
 class QCloseEvent;
 
-class Dock_Widget: public QDockWidget {
-    Q_OBJECT
+namespace anton_engine {
+    class Dock_Widget: public QDockWidget {
+        Q_OBJECT
 
-public:
-    using QDockWidget::QDockWidget;
+    public:
+        using QDockWidget::QDockWidget;
 
-protected:
-    void closeEvent(QCloseEvent*) override;
+    protected:
+        void closeEvent(QCloseEvent*) override;
 
-Q_SIGNALS:
-    void window_closed();
-};
+    Q_SIGNALS:
+        void window_closed();
+    };
+} // namespace anton_engine
 
 #endif // !EDITOR_MISC_DOCK_WIDGET_HPP_INCLUDE

@@ -6,22 +6,26 @@
 #include <cstdint>
 #include <string>
 
-class Shader_File {
-public:
-    Shader_File() = delete;
-    Shader_File(Shader_File const&) = delete;
-    Shader_File& operator=(Shader_File const&) = delete;
+namespace anton_engine {
+    class Shader;
 
-    Shader_File(std::string name, opengl::Shader_Type type, std::string const& source);
-    Shader_File(Shader_File&& shader) noexcept;
-    Shader_File& operator=(Shader_File&& shader) noexcept;
-    ~Shader_File();
+    class Shader_File {
+    public:
+        Shader_File() = delete;
+        Shader_File(Shader_File const&) = delete;
+        Shader_File& operator=(Shader_File const&) = delete;
 
-private:
-    friend class Shader;
+        Shader_File(std::string name, opengl::Shader_Type type, std::string const& source);
+        Shader_File(Shader_File&& shader) noexcept;
+        Shader_File& operator=(Shader_File&& shader) noexcept;
+        ~Shader_File();
 
-    opengl::Shader_Type type;
-    uint32_t shader;
-};
+    private:
+        friend class Shader;
+
+        opengl::Shader_Type type;
+        uint32_t shader;
+    };
+} // namespace anton_engine
 
 #endif // !SHADERS_SHADER_FILE_HPP_INCLUDE

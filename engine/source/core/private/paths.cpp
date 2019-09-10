@@ -2,7 +2,7 @@
 #include <paths_internal.hpp>
 #include <utils/filesystem.hpp>
 
-namespace paths {
+namespace anton_engine::paths {
     static std::filesystem::path _engine_executable_name;
     static std::filesystem::path _engine_executable_directory;
     static std::filesystem::path _project_directory;
@@ -41,4 +41,4 @@ namespace paths {
         return utils::concat_paths(_engine_executable_directory, "shaders");
     }
 #endif
-} // namespace paths
+} // namespace anton_engine::paths

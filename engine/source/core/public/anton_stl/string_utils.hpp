@@ -1,7 +1,7 @@
 #ifndef CORE_STRING_UTILS_HPP_INCLUDE
 #define CORE_STRING_UTILS_HPP_INCLUDE
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     inline bool compare_equal(char const* lhs, char const* rhs) {
         while (*lhs != '\0' && *rhs != '\0' && *lhs == *rhs) {
             ++lhs;
@@ -31,6 +31,6 @@ namespace anton_stl {
         // If we reached the end of both strings, they are equal
         return *lhs == char32_t(0) && *rhs == char32_t(0);
     }
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
 #endif // !CORE_STRING_UTILS_HPP_INCLUDE

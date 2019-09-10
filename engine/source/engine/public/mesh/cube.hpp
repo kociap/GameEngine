@@ -3,9 +3,11 @@
 
 #include <mesh/mesh.hpp>
 
-class Cube: public Mesh {
-public:
-    Cube();
-};
+namespace anton_engine {
+    class Cube: public Mesh {
+    public:
+        Cube();
+    };
+} // namespace anton_engine
 
 #endif // !ENGINE_MESH_CUBE_HPP_INCLUDE

@@ -13,7 +13,7 @@
 #include <cstdint>  // uintptr_t
 #include <string.h> // memset
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     String String::from_utf16(char16_t const* str) {
         char codepoint_utf8[5] = {};
         String string;
@@ -353,9 +353,9 @@ namespace anton_stl {
         int written_chars = sprintf(buffer, "0x%016llx", address);
         return {buffer, written_chars};
     }
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
-namespace serialization {
+namespace anton_engine::serialization {
     void serialize(Binary_Output_Archive& out, anton_stl::String const& str) {
         out.write(str.capacity());
         out.write(str.size_bytes());
@@ -371,4 +371,4 @@ namespace serialization {
         str.force_size(size);
         in.read_binary(str.data(), size);
     }
-} // namespace serialization
+} // namespace anton_engine::serialization

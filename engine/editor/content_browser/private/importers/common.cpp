@@ -1,6 +1,6 @@
 #include <importers/common.hpp>
 
-namespace importers {
+namespace anton_engine::importers {
     uint8_t read_uint8(uint8_t const* const stream, int64_t& pos) {
         pos += 1;
         return *(stream + pos - 1);
@@ -69,4 +69,4 @@ namespace importers {
         pos += 8;
         return read_uint64_be(stream + pos - 8);
     }
-} // namespace importers
+} // namespace anton_engine::importers

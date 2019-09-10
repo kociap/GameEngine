@@ -1,7 +1,7 @@
 #include <anton_stl/string_utils.hpp>
 #include <anton_stl/string_view.hpp>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     auto String_View::bytes() const -> UTF8_Const_Bytes {
         return {_begin, _end};
     }
@@ -45,4 +45,4 @@ namespace anton_stl {
 
         return compare_equal(lhs.data(), rhs.data());
     }
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl

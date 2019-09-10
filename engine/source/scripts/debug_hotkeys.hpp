@@ -4,14 +4,16 @@
 #include <class_macros.hpp>
 #include <serialization/serialization.hpp>
 
-class COMPONENT Debug_Hotkeys {
-public:
-    bool cursor_captured = false;
+namespace anton_engine {
+    class COMPONENT Debug_Hotkeys {
+    public:
+        bool cursor_captured = false;
 
-    static void update(Debug_Hotkeys&);
-};
+        static void update(Debug_Hotkeys&);
+    };
+} // namespace anton_engine
 
-DEFAULT_SERIALIZABLE(Debug_Hotkeys);
-DEFAULT_DESERIALIZABLE(Debug_Hotkeys);
+ANTON_DEFAULT_SERIALIZABLE(anton_engine::Debug_Hotkeys);
+ANTON_DEFAULT_DESERIALIZABLE(anton_engine::Debug_Hotkeys);
 
 #endif // !SCRIPTS_DEBUG_HOTKEYS_HPP_INCLUDE

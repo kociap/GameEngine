@@ -3,20 +3,22 @@
 
 #include <cstdint>
 
-template <typename T>
-class Handle {
-public:
-    uint64_t value = static_cast<uint64_t>(-1);
-};
+namespace anton_engine {
+    template <typename T>
+    class Handle {
+    public:
+        uint64_t value = static_cast<uint64_t>(-1);
+    };
 
-template <typename T>
-bool operator==(Handle<T> const& a, Handle<T> const& b) {
-    return a.value == b.value;
-}
+    template <typename T>
+    bool operator==(Handle<T> const& a, Handle<T> const& b) {
+        return a.value == b.value;
+    }
 
-template <typename T>
-bool operator!=(Handle<T> const& a, Handle<T> const& b) {
-    return a.value != b.value;
-}
+    template <typename T>
+    bool operator!=(Handle<T> const& a, Handle<T> const& b) {
+        return a.value != b.value;
+    }
+} // namespace anton_engine
 
 #endif //! CORE_HANDLE_HPP_INCLUDE

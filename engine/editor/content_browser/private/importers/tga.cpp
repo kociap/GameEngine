@@ -5,7 +5,7 @@
 #include <debug_macros.hpp>
 #include <importers/common.hpp>
 
-namespace importers {
+namespace anton_engine::importers {
     constexpr int32_t footer_byte_size = 26;
     constexpr int32_t extension_area_size = 495;
     // Offsets of fields in the extension area relative to its start
@@ -310,4 +310,4 @@ namespace importers {
 
         return image;
     }
-} // namespace importers
+} // namespace anton_engine::importers

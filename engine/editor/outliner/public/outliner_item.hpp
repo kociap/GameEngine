@@ -15,34 +15,36 @@ class QVBoxLayout;
 class QPaintEvent;
 class QMouseEvent;
 
-class Outliner_Item: public QWidget {
-    Q_OBJECT
+namespace anton_engine {
+    class Outliner_Item: public QWidget {
+        Q_OBJECT
 
-public:
-    explicit Outliner_Item(Entity, anton_stl::String_View, QWidget* parent = nullptr);
-    Outliner_Item(Outliner_Item&&) noexcept;
-    Outliner_Item& operator=(Outliner_Item&&) noexcept;
-    ~Outliner_Item() override;
+    public:
+        explicit Outliner_Item(Entity, anton_stl::String_View, QWidget* parent = nullptr);
+        Outliner_Item(Outliner_Item&&) noexcept;
+        Outliner_Item& operator=(Outliner_Item&&) noexcept;
+        ~Outliner_Item() override;
 
-    Entity get_associated_entity() const;
+        Entity get_associated_entity() const;
 
-    void select();
-    void deselect();
-    bool is_selected() const;
+        void select();
+        void deselect();
+        bool is_selected() const;
 
-Q_SIGNALS:
-    void selected(Entity associated_entity, bool clear_previous_selection);
-    void deselected(Entity associated_entity);
+    Q_SIGNALS:
+        void selected(Entity associated_entity, bool clear_previous_selection);
+        void deselected(Entity associated_entity);
 
-protected:
-    void mouseReleaseEvent(QMouseEvent*) override;
-    void paintEvent(QPaintEvent*) override;
+    protected:
+        void mouseReleaseEvent(QMouseEvent*) override;
+        void paintEvent(QPaintEvent*) override;
 
-private:
-    QLabel* label;
-    QVBoxLayout* layout;
-    Entity entity;
-    bool _selected = false;
-};
+    private:
+        QLabel* label;
+        QVBoxLayout* layout;
+        Entity entity;
+        bool _selected = false;
+    };
+} // namespace anton_engine
 
 #endif // !EDITOR_OUTLINER_OUTLINER_ITEM_HPP_INCLUDE

@@ -5,7 +5,7 @@
 #include <macro_undefs.hpp>
 
 // "time" collides with time.h's time function. I have no idea what a better name for this namespace could be
-namespace timing {
+namespace anton_engine::timing {
     // The time it took to complete the previous frame
     double get_delta_time();
 
@@ -20,10 +20,10 @@ namespace timing {
 
     // The number of frames since the start of the game
     uint64_t get_frame_count();
-}; // namespace timing
+}; // namespace anton_engine::timing
 
 // Time, but with floats instead of doubles
-namespace timingf {
+namespace anton_engine::timingf {
     // The time it took to complete the previous frame
     float get_delta_time();
 
@@ -38,6 +38,6 @@ namespace timingf {
 
     // The number of frames since the start of the game
     using timing::get_frame_count;
-} // namespace timingf
+} // namespace anton_engine::timingf
 
 #endif // !ENGINE_TIME_HPP_INCLUDE

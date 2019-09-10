@@ -5,7 +5,7 @@
 #include <new>
 #include <typeinfo>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     static Allocator default_allocator;
 
     Memory_Allocator* get_default_allocator() {
@@ -89,4 +89,4 @@ namespace anton_stl {
     bool operator!=(Polymorphic_Allocator const& lhs, Polymorphic_Allocator const& rhs) {
         return *lhs.get_wrapped_allocator() == *rhs.get_wrapped_allocator();
     }
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl

@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-namespace unicode {
+namespace anton_engine::unicode {
     // convert_utf16_to_utf8
     // Converts a UTF-16 codepoint contained in buffer_utf16 to UTF-8 codepoint
     // and writes it to buffer_utf8.
@@ -19,6 +19,6 @@ namespace unicode {
     // Otherwise the behaviour is undefined.
     //
     int32_t convert_utf16_to_utf8(char16_t const* buffer_utf16, char* buffer_utf8);
-} // namespace unicode
+} // namespace anton_engine::unicode
 
 #endif // !CORE_UNICODE_COMMON_HPP_INCLUDE

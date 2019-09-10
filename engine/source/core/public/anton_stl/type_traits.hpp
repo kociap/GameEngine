@@ -8,9 +8,8 @@
 
 #include <anton_stl/config.hpp>
 #include <anton_stl/detail/function_traits_macros.hpp>
-#include <type_traits>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     //
     // Traits Base
     //
@@ -727,6 +726,6 @@ namespace anton_stl {
     template <typename T>
     inline constexpr bool is_trivially_destructible = Is_Trivially_Destructible<T>::value;
 #endif // ANTON_COMPILER_ID == ANTON_COMPILER_CLANG || ANTON_COMPILER_ID == ANTON_COMPILER_MSVC
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
 #endif // !CORE_ANTON_STL_TYPE_TRAITS_HPP_INCLUDE

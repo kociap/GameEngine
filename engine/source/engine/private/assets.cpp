@@ -20,7 +20,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace assets {
+namespace anton_engine::assets {
     std::string read_file_raw_string(std::filesystem::path const& filename) {
         std::ifstream file(filename);
         if (!file) {
@@ -212,4 +212,4 @@ namespace assets {
         }
         return meshes;
     }
-} // namespace assets
+} // namespace anton_engine::assets

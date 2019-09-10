@@ -5,7 +5,7 @@
 #include <anton_stl/detail/memory_common.hpp>
 #include <anton_stl/type_traits.hpp>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     // Iterator category tags
     // Explicit constructors so that the tags may not be constructed via {}
 
@@ -188,5 +188,5 @@ namespace anton_stl {
     [[nodiscard]] inline constexpr bool operator>=(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) {
         return a.base() <= b.base();
     }
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 #endif // !CORE_ANTON_STL_ITERATORS_HPP_INCLUDE

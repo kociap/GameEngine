@@ -5,22 +5,24 @@
 #include <config.hpp>
 #include <handle.hpp>
 
-template <typename T>
-class Resource_Manager {
-public:
-    using iterator = typename anton_stl::Vector<T>::iterator;
+namespace anton_engine {
+    template <typename T>
+    class Resource_Manager {
+    public:
+        using iterator = typename anton_stl::Vector<T>::iterator;
 
-    iterator begin();
-    iterator end();
+        iterator begin();
+        iterator end();
 
-    Handle<T> add(T&&);
-    T& get(Handle<T>);
-    void remove(Handle<T>);
+        Handle<T> add(T&&);
+        T& get(Handle<T>);
+        void remove(Handle<T>);
 
-private:
-    anton_stl::Vector<T> resources;
-    anton_stl::Vector<id_type> identifiers;
-};
+    private:
+        anton_stl::Vector<T> resources;
+        anton_stl::Vector<id_type> identifiers;
+    };
+} // namespace anton_engine
 
 #include <resource_manager.tpp>
 

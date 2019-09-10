@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-namespace importers {
+namespace anton_engine::importers {
     uint8_t read_uint8(uint8_t const* const stream, int64_t& pos);
 
     // Little-endian read functions
@@ -25,6 +25,6 @@ namespace importers {
     uint16_t read_uint16_be(uint8_t const* const stream, int64_t& pos);
     uint32_t read_uint32_be(uint8_t const* const stream, int64_t& pos);
     uint64_t read_uint64_be(uint8_t const* const stream, int64_t& pos);
-} // namespace importers
+} // namespace anton_engine::importers
 
 #endif // !EDITOR_ASSET_IMPORTER_IMPORTERS_COMMON_HPP_INCLUDE

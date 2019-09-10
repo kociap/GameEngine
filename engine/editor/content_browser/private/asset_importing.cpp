@@ -20,7 +20,7 @@
 // _INLINE_VAR constexpr size_t _FNV_offset_basis = 14695981039346656037ULL;
 // _INLINE_VAR constexpr size_t _FNV_prime = 1099511628211ULL;
 
-namespace asset_importing {
+namespace anton_engine::asset_importing {
     struct Texture_Format {
         opengl::Format format;
         opengl::Sized_Internal_Format internal_format;
@@ -121,4 +121,4 @@ namespace asset_importing {
 
         throw std::runtime_error("Unsupported file format");
     }
-} // namespace asset_importing
+} // namespace anton_engine::asset_importing

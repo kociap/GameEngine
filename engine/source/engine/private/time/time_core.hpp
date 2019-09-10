@@ -3,9 +3,9 @@
 
 #include <cstdint>
 
-namespace time_core {
+namespace anton_engine::time_core {
     void init();
     void update_time();
-}
+} // namespace anton_engine::time_core
 
 #endif // !ENGINE_TIME_TIME_CORE_HPP_INCLUDE

@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-namespace utils {
+namespace anton_engine::utils {
     std::filesystem::path concat_paths(std::filesystem::path const& a, std::filesystem::path const& b) {
         std::filesystem::path copy(a);
         copy /= b; // TODO use generic separator
@@ -28,4 +28,4 @@ namespace utils {
         file.read(reinterpret_cast<char*>(file_contents.data()), file_size); // TODO reinterpret_cast
         return file_contents;
     }
-} // namespace utils
+} // namespace anton_engine::utils

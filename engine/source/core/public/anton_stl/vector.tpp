@@ -1,4 +1,4 @@
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     template <typename T, typename Allocator>
     inline Vector<T, Allocator>::Vector() {
         storage = allocate(_capacity);
@@ -500,9 +500,9 @@ namespace anton_stl {
             grow(new_capacity);
         }
     }
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
-namespace serialization {
+namespace anton_engine::serialization {
     template <typename T, typename Allocator>
     inline void serialize(Binary_Output_Archive& out, anton_stl::Vector<T, Allocator> const& vec) {
         using size_type = typename anton_stl::Vector<T, Allocator>::size_type;
@@ -549,4 +549,4 @@ namespace serialization {
             }
         }
     }
-} // namespace serialization
+} // namespace anton_engine::serialization

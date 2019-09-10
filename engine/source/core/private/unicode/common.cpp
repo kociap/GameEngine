@@ -4,7 +4,7 @@
 
 #include <stdexcept>
 
-namespace unicode {
+namespace anton_engine::unicode {
     int32_t convert_utf16_to_utf8(char16_t const* buffer_utf16, char* buffer_utf8) {
         if constexpr (ANTON_UNICODE_VALIDATE_ENCODING) {
             // TODO: Implement
@@ -36,4 +36,4 @@ namespace unicode {
             }
         }
     }
-} // namespace unicode
+} // namespace anton_engine::unicode

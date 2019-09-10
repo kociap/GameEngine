@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-namespace math {
+namespace anton_engine::math {
     float inv_sqrt(float a) {
         return 1 / sqrt(a);
     }
@@ -31,4 +31,4 @@ namespace math {
             return target;
         }
     }
-} // namespace math
+} // namespace anton_engine::math

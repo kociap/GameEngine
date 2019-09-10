@@ -10,7 +10,7 @@
 
 // TODO add support for multiple gamepads
 
-namespace Input {
+namespace anton_engine::Input {
     struct Action_Mapping {
         std::string action;
         Key key;
@@ -120,8 +120,10 @@ namespace Input {
         void process_mouse_events();
         void process_gamepad_events();
     };
-} // namespace Input
+} // namespace anton_engine::Input
 
-Input::Manager& get_input_manager();
+namespace anton_engine {
+    Input::Manager& get_input_manager();
+}
 
 #endif // !ENGINE_INPUT_INPUT_CORE_HPP_INCLUDE

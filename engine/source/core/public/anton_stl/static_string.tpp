@@ -1,4 +1,4 @@
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     template <typename T, anton_stl::ssize_t Capacity>
     inline Basic_Static_String<T, Capacity>::operator anton_stl::Basic_String_View<T>() const {
         return Basic_String_View<T>(data(), size());
@@ -134,9 +134,9 @@ namespace anton_stl {
     inline T const* Basic_Static_String<T, Capacity>::get_ptr() const {
         return std::launder(reinterpret_cast<T const*>(storage));
     }
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
-namespace serialization {
+namespace anton_engine::serialization {
     template <typename T, anton_stl::ssize_t Capacity>
     inline void serialize(Binary_Output_Archive& out, anton_stl::Basic_Static_String<T, Capacity> const& str) {
         out.write(str.size());
@@ -152,4 +152,4 @@ namespace serialization {
         auto sizeof_T = static_cast<typename anton_stl::Basic_Static_String<T, Capacity>::size_type>(sizeof(T));
         in.read_binary(str.data(), str.size() * sizeof_T);
     }
-} // namespace serialization
+} // namespace anton_engine::serialization

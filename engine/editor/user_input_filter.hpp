@@ -9,18 +9,20 @@ ANTON_RESTORE_WARNINGS()
 
 class QEvent;
 
-class User_Input_Filter: public QObject {
-    Q_OBJECT
+namespace anton_engine {
+    class User_Input_Filter: public QObject {
+        Q_OBJECT
 
-public:
-    User_Input_Filter(int32_t initial_cursor_x, int32_t initial_custor_y);
+    public:
+        User_Input_Filter(int32_t initial_cursor_x, int32_t initial_custor_y);
 
-protected:
-    bool eventFilter(QObject*, QEvent*) override;
+    protected:
+        bool eventFilter(QObject*, QEvent*) override;
 
-private:
-    int32_t last_cursor_pos_x;
-    int32_t last_cursor_pos_y;
-};
+    private:
+        int32_t last_cursor_pos_x;
+        int32_t last_cursor_pos_y;
+    };
+} // namespace anton_engine
 
 #endif // !EDITOR_USER_INPUT_FILTER_HPP_INCLUDE

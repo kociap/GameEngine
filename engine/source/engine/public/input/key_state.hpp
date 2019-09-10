@@ -1,7 +1,7 @@
 #ifndef ENGINE_INPUT_KEY_STATE_HPP_INCLUDE
 #define ENGINE_INPUT_KEY_STATE_HPP_INCLUDE
 
-namespace Input {
+namespace anton_engine::Input {
     struct Key_State {
         double last_up_down_transition_time = 0.0;
         float raw_value = 0.0f;
@@ -21,6 +21,6 @@ namespace Input {
         // Is any key being held down?
         bool down = false;
     };
-} // namespace Input
+} // namespace anton_engine::Input
 
 #endif // !ENGINE_INPUT_KEY_STATE_HPP_INCLUDE

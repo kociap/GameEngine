@@ -10,7 +10,7 @@
 #include <serialization/serialization.hpp>
 #include <stdexcept>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     template <typename T, anton_stl::ssize_t Capacity>
     class Basic_Static_String {
         static_assert(Capacity >= 0, "Basic_Static_String's capacity may not be less than 0");
@@ -71,14 +71,14 @@ namespace anton_stl {
 
     template <anton_size_t Capacity>
     using Static_String = Basic_Static_String<char, Capacity>;
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
-namespace serialization {
+namespace anton_engine::serialization {
     template <typename T, anton_size_t Capacity>
     void serialize(Binary_Output_Archive&, anton_stl::Basic_Static_String<T, Capacity> const&);
     template <typename T, anton_size_t Capacity>
     void deserialize(Binary_Input_Archive&, anton_stl::Basic_Static_String<T, Capacity>&);
-} // namespace serialization
+} // namespace anton_engine::serialization
 
 #include <anton_stl/static_string.tpp>
 

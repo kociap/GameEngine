@@ -6,7 +6,7 @@
 #include <anton_stl/iterators.hpp>
 #include <build_config.hpp>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     class String_View {
     public:
         using size_type = anton_stl::ssize_t;
@@ -59,7 +59,7 @@ namespace anton_stl {
     inline constexpr String_View::String_View(): _begin(nullptr), _end(nullptr) {}
 
     inline constexpr String_View::String_View(value_type const* s, size_type n): _begin(s), _end(s + n) {
-// clang-format off
+        // clang-format off
         #if ANTON_STRING_VIEW_VERIFY_ENCODING
                 // TODO: Implement
         #endif
@@ -72,7 +72,7 @@ namespace anton_stl {
                 ++_end;
         }
 
-// clang-format off
+        // clang-format off
         #if ANTON_STRING_VIEW_VERIFY_ENCODING
             // TODO: Implement
         #endif
@@ -86,6 +86,6 @@ namespace anton_stl {
     inline constexpr auto String_View::data() const -> value_type const* {
         return _begin;
     }
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
 #endif // !CORE_ANTON_STL_STRING_VIEW_HPP_INCLUDE

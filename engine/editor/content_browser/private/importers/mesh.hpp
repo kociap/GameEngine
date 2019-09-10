@@ -6,7 +6,7 @@
 #include <math/vector2.hpp>
 #include <math/vector3.hpp>
 
-namespace importers {
+namespace anton_engine::importers {
     class Face {
     public:
         anton_stl::Vector<uint32_t> indices;
@@ -20,6 +20,6 @@ namespace importers {
         anton_stl::Vector<Vector3> normals;
         anton_stl::Vector<Vector3> texture_coordinates;
     };
-} // namespace importers
+} // namespace anton_engine::importers
 
 #endif // !EDITOR_ASSET_IMPORTER_IMPORTERS_MESH_HPP_INCLUDE

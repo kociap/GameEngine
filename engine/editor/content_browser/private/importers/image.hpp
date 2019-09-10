@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <stdexcept>
 
-namespace importers {
+namespace anton_engine::importers {
     constexpr uint64_t jpeg_header = 0xFFD8;
 
     class Unknown_Critical_Chunk: public std::runtime_error {
@@ -51,6 +51,6 @@ namespace importers {
         Image(uint32_t width, uint32_t height, Image_Pixel_Format pixel_format, Image_Color_Space color_space, float gamma, anton_stl::Vector<uint8_t>&& data)
             : width(width), height(height), gamma(gamma), pixel_format(pixel_format), color_space(color_space), data(std::move(data)) {}
     };
-} // namespace importers
+} // namespace anton_engine::importers
 
 #endif // !EDITOR_ASSET_IMPORTER_IMPORTERS_IMAGE_HPP_INCLUDE

@@ -3,11 +3,11 @@
 
 #include <anton_stl/config.hpp>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     template <anton_stl::size_t size, anton_stl::size_t alignment>
     struct Aligned_Buffer {
         alignas(alignment) char buffer[size];
     };
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
 #endif // !CORE_ANTON_STL_ALIGNED_BUFFER_HPP_INCLUDE

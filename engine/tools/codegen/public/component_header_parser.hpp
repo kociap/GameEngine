@@ -5,6 +5,8 @@
 #include <file.hpp>
 #include <string>
 
-anton_stl::Vector<std::string> parse_component_header(File& file);
+namespace anton_engine {
+    anton_stl::Vector<std::string> parse_component_header(File& file);
+}
 
 #endif // !TOOLS_CODEGEN_COMPONENT_HEADER_PARSER_HPP_INCLUDE

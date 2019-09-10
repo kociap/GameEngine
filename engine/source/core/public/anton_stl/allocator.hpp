@@ -5,7 +5,7 @@
 #include <anton_stl/config.hpp>
 #include <diagnostic_macros.hpp>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     // Memory_Allocator
     // An abstract class that provides an interface for all allocators that are supposed
     // to be used with Polymorphic_Allocator in polymorphic containers.
@@ -109,6 +109,6 @@ namespace anton_stl {
 
     [[nodiscard]] bool operator==(Polymorphic_Allocator const&, Polymorphic_Allocator const&);
     [[nodiscard]] bool operator!=(Polymorphic_Allocator const&, Polymorphic_Allocator const&);
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
 #endif // !CORE_ANTON_STL_ALLOCATOR_HPP_INCLUDE

@@ -3,23 +3,25 @@
 
 #include <cstdint>
 
-// Globally unique identifier class
-// value is never equal 0
-class Guid {
-public:
-    Guid();
-    Guid(Guid const&) = delete;
-    Guid& operator=(Guid const&) = delete;
-    Guid(Guid&&) noexcept = default;
-    Guid& operator=(Guid&&) noexcept = default;
-    ~Guid() = default;
+namespace anton_engine {
+    // Globally unique identifier class
+    // value is never equal 0
+    class Guid {
+    public:
+        Guid();
+        Guid(Guid const&) = delete;
+        Guid& operator=(Guid const&) = delete;
+        Guid(Guid&&) noexcept = default;
+        Guid& operator=(Guid&&) noexcept = default;
+        ~Guid() = default;
 
-    uint64_t value() const;
+        uint64_t value() const;
 
-private:
-    uint64_t _value;
-};
+    private:
+        uint64_t _value;
+    };
 
-bool operator==(Guid const&, Guid const&);
+    bool operator==(Guid const&, Guid const&);
+} // namespace anton_engine
 
 #endif //!ENGINE_GUID_HPP_INCLUDE

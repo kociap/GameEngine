@@ -6,7 +6,7 @@
 
 // TODO: constexpr
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     class String;
     class String_View;
     class UTF8_Chars;
@@ -186,6 +186,6 @@ namespace anton_stl {
         value_type const* _begin;
         value_type const* _end;
     };
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
 #endif // !CORE_ANTON_STL_DETAIL_STRING_ITERATORS_HPP_INCLUDE

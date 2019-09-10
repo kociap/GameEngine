@@ -7,7 +7,7 @@
 #include <anton_stl/iterators.hpp>
 #include <anton_stl/string_view.hpp>
 
-namespace anton_stl {
+namespace anton_engine::anton_stl {
     // String
     // UTF-8 encoded string
     //
@@ -158,14 +158,14 @@ namespace anton_stl {
     String to_string(long double);
     String to_string(void*);
 
-} // namespace anton_stl
+} // namespace anton_engine::anton_stl
 
-namespace serialization {
+namespace anton_engine::serialization {
     class Binary_Output_Archive;
     class Binary_Input_Archive;
 
     void serialize(Binary_Output_Archive&, anton_stl::String const&);
     void deserialize(Binary_Input_Archive&, anton_stl::String&);
-} // namespace serialization
+} // namespace anton_engine::serialization
 
 #endif // !CORE_ANTON_STL_STRING_HPP_INCLUDE

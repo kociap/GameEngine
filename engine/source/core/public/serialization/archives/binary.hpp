@@ -5,7 +5,7 @@
 #include <fstream>
 #include <new>
 
-namespace serialization {
+namespace anton_engine::serialization {
     class Binary_Input_Archive {
     public:
         explicit Binary_Input_Archive(std::ifstream& strm): file(strm) {}
@@ -39,6 +39,6 @@ namespace serialization {
     private:
         std::ofstream& file;
     };
-} // namespace serialization
+} // namespace anton_engine::serialization
 
 #endif // !CORE_SERIALIZATION_ACHIVES_BINARY_HPP_INCLUDE
