@@ -39,6 +39,7 @@ namespace anton_engine {
 
         Outliner* outliner = nullptr;
         Log_Viewer* log_viewer = nullptr;
+        Editor_Shared_State shared_state;
 
     private:
         anton_stl::Vector<Viewport*> viewports;
@@ -48,7 +49,6 @@ namespace anton_engine {
         QOpenGLContext* context;
         QOffscreenSurface* surface;
         User_Input_Filter* input_filter;
-        Editor_Shared_State shared_state;
     };
 } // namespace anton_engine
 

@@ -7,6 +7,7 @@
 #include <components/transform.hpp>
 #include <ecs/ecs.hpp>
 #include <editor.hpp>
+#include <editor_events.hpp>
 #include <framebuffer.hpp>
 #include <gizmo.hpp>
 #include <gizmo_internal.hpp>
@@ -201,19 +202,19 @@ namespace anton_engine {
                     } else {
                         for (anton_stl::Vector<Entity>::size_type i = 1; i < selected_entities.size(); ++i) {
                             if (selected_entities[i] == selected_entity) {
-                                Q_EMIT entity_deselected(selected_entity);
+                                editor_events::entity_deselected(selected_entity);
                                 break;
                             }
                         }
                     }
 
                     if (already_selected) {
-                        Q_EMIT entity_deselected(selected_entity);
+                        editor_events::entity_deselected(selected_entity);
                     } else {
-                        Q_EMIT entity_selected(selected_entity, false);
+                        editor_events::entity_selected(selected_entity, false);
                     }
                 } else {
-                    Q_EMIT entity_selected(selected_entity, true);
+                    editor_events::entity_selected(selected_entity, true);
                 }
             }
         }

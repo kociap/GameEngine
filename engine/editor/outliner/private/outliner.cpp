@@ -33,10 +33,9 @@ namespace anton_engine {
         layout = new QVBoxLayout(this);
         scroll_area = new QScrollArea;
         scroll_area->setWidgetResizable(true);
-        scroll_area_contents = new QWidget;
-        scroll_area_contents_layout = new QVBoxLayout(scroll_area_contents);
-        scroll_area_contents_layout->setSpacing(2);
-        scroll_area->setWidget(scroll_area_contents);
+        list_widget = new List_Widget<Outliner_Item>();
+        list_widget->set_spacing(2);
+        scroll_area->setWidget(list_widget);
         layout->addWidget(scroll_area);
     }
 
@@ -55,27 +54,23 @@ namespace anton_engine {
             name = u8"<unnamed entity>";
         }
 
-        Outliner_Item& item = items.emplace_back(entity, name);
-        scroll_area_contents_layout->addWidget(&item);
-        connect(&item, &Outliner_Item::selected, this, &Outliner::entity_selected);
-        connect(&item, &Outliner_Item::deselected, this, &Outliner::entity_deselected);
+        Outliner_Item& item = list_widget->emplace_back(entity, name);
+        item.show();
     }
 
     void Outliner::remove_entities(anton_stl::Vector<Entity> const& entities_to_remove) {
         for (Entity const entity: entities_to_remove) {
-            if (auto iter =
-                    anton_stl::find_if(items.begin(), items.end(), [entity](Outliner_Item const& item) { return item.get_associated_entity() == entity; });
-                iter != items.end()) {
-                scroll_area_contents_layout->removeWidget(&(*iter));
-                disconnect(&(*iter), &Outliner_Item::selected, this, &Outliner::entity_selected);
-                disconnect(&(*iter), &Outliner_Item::deselected, this, &Outliner::entity_deselected);
-                items.erase(iter, iter + 1);
+            if (auto iter = anton_stl::find_if(list_widget->begin(), list_widget->end(),
+                                               [entity](Outliner_Item const& item) { return item.get_associated_entity() == entity; });
+                iter != list_widget->end()) {
+                iter->setParent(nullptr);
+                list_widget->erase(iter, iter + 1);
             }
         }
     }
 
     void Outliner::select_entities(anton_stl::Vector<Entity> const& selected_entities) {
-        for (Outliner_Item& item: items) {
+        for (Outliner_Item& item: *list_widget) {
             if (anton_stl::any_of(selected_entities.begin(), selected_entities.end(),
                                   [&item](Entity const entity) { return item.get_associated_entity() == entity; })) {
                 item.select();
@@ -86,7 +81,7 @@ namespace anton_engine {
     }
 
     void Outliner::select_entity(Entity const entity) {
-        for (Outliner_Item& item: items) {
+        for (Outliner_Item& item: *list_widget) {
             if (item.get_associated_entity() == entity) {
                 item.select();
                 break;
@@ -95,7 +90,7 @@ namespace anton_engine {
     }
 
     void Outliner::deselect_entity(Entity const entity) {
-        for (Outliner_Item& item: items) {
+        for (Outliner_Item& item: *list_widget) {
             if (item.get_associated_entity() == entity) {
                 item.deselect();
                 break;

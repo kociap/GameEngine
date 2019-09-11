@@ -112,28 +112,6 @@ namespace anton_engine {
         });
         //connect(viewport_docks[1], &Dock_Widget::window_closed, viewports[1], &Viewport::close);
         //connect(viewports[1], &Viewport::window_closed, viewport_closed);
-
-        auto on_entity_selected = [this](Entity const entity, bool clear_previous_selection) {
-            if (clear_previous_selection) {
-                shared_state.selected_entities.clear();
-            }
-
-            shared_state.selected_entities.insert_unsorted(shared_state.selected_entities.cbegin(), entity);
-            outliner->select_entities(shared_state.selected_entities);
-        };
-
-        auto on_entity_deselected = [this](Entity const entity) {
-            auto iter = anton_stl::find(shared_state.selected_entities.begin(), shared_state.selected_entities.end(), entity);
-            shared_state.selected_entities.erase(iter, iter + 1);
-            outliner->deselect_entity(entity);
-        };
-
-        connect(outliner, &Outliner::entity_selected, on_entity_selected);
-        connect(outliner, &Outliner::entity_deselected, on_entity_deselected);
-        connect(viewports[0], &Viewport::entity_selected, on_entity_selected);
-        connect(viewports[0], &Viewport::entity_deselected, on_entity_deselected);
-        connect(viewports[1], &Viewport::entity_selected, on_entity_selected);
-        connect(viewports[1], &Viewport::entity_deselected, on_entity_deselected);
     }
 
     void Editor_Window::update() {

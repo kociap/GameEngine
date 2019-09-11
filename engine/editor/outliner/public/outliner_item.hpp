@@ -11,9 +11,9 @@ ANTON_DISABLE_WARNINGS();
 ANTON_RESTORE_WARNINGS();
 
 class QLabel;
-class QVBoxLayout;
 class QPaintEvent;
 class QMouseEvent;
+class QResizeEvent;
 
 namespace anton_engine {
     class Outliner_Item: public QWidget {
@@ -37,11 +37,11 @@ namespace anton_engine {
 
     protected:
         void mouseReleaseEvent(QMouseEvent*) override;
+        void resizeEvent(QResizeEvent*) override;
         void paintEvent(QPaintEvent*) override;
 
     private:
         QLabel* label;
-        QVBoxLayout* layout;
         Entity entity;
         bool _selected = false;
     };

@@ -7,6 +7,8 @@
 #include <ecs/entity.hpp>
 #include <outliner_item.hpp>
 
+#include <list_widget.hpp>
+
 ANTON_DISABLE_WARNINGS();
 #include <QWidget>
 ANTON_RESTORE_WARNINGS();
@@ -16,8 +18,6 @@ class QScrollArea;
 
 namespace anton_engine {
     class Outliner: public QWidget {
-        Q_OBJECT
-
     public:
         Outliner();
         ~Outliner() override;
@@ -35,18 +35,12 @@ namespace anton_engine {
         void sort_entities_by_name_ascending();
         void sort_entities_by_name_descending();
 
-    Q_SIGNALS:
-        void entity_selected(Entity, bool clear_previous_selection);
-        void entity_deselected(Entity);
-
     private:
         Entity last_selected = null_entity;
 
+        List_Widget<Outliner_Item>* list_widget = nullptr;
         QVBoxLayout* layout = nullptr;
         QScrollArea* scroll_area;
-        QWidget* scroll_area_contents;
-        QVBoxLayout* scroll_area_contents_layout;
-        anton_stl::Vector<Outliner_Item> items;
     };
 } // namespace anton_engine
 

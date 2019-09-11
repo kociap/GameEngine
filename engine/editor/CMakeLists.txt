@@ -1,4 +1,5 @@
 set(SOURCE_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/editor_events.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/editor_main.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/editor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/editor_window.cpp"
@@ -6,10 +7,11 @@ set(SOURCE_FILES
 )
     
 set(HEADER_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/editor.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/editor_window.hpp" 
-    "${CMAKE_CURRENT_SOURCE_DIR}/user_input_filter.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/editor_events.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/editor_subsystem_fwd.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/editor_window.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/editor.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/user_input_filter.hpp"
 )
 
 add_subdirectory(level_editor/public)
