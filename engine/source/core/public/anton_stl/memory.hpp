@@ -71,7 +71,7 @@ namespace anton_engine::anton_stl {
         Forward_Iterator dest_copy = dest;
         try {
             for (; first != last; ++first, ++dest) {
-                ::new (anton_stl::addressof(*dest)) value_type(std::move(*first));
+                ::new (anton_stl::addressof(*dest)) value_type(anton_stl::move(*first));
             }
         } catch (...) {
             anton_stl::destruct(dest_copy, dest);
@@ -86,7 +86,7 @@ namespace anton_engine::anton_stl {
         Forward_Iterator dest_copy = dest;
         try {
             for (; n > 0; --n, ++first, ++dest) {
-                ::new (anton_stl::addressof(*dest)) value_type(std::move(*first));
+                ::new (anton_stl::addressof(*dest)) value_type(anton_stl::move(*first));
             }
         } catch (...) {
             anton_stl::destruct(dest_copy, dest);

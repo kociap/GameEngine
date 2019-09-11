@@ -73,10 +73,10 @@ namespace anton_engine::anton_stl {
 
         void resize(size_type n);
         void resize(size_type n, value_type const&);
+        // Allocates at least n bytes of storage.
+        // Does nothing if requested_capacity is less than capacity().
         void reserve(size_type n);
-        // void reserve_exact(size_type n);
         void set_capacity(size_type n);
-        void shrink_to_fit();
 
         template <typename Input_Iterator>
         void assign(Input_Iterator first, Input_Iterator last);
@@ -94,10 +94,10 @@ namespace anton_engine::anton_stl {
         void clear();
 
     private:
-        Allocator allocator;
+        Allocator _allocator;
         size_type _capacity = 64;
         size_type _size = 0;
-        T* storage = nullptr;
+        T* _data = nullptr;
 
     private:
         void attempt_copy(T* from, T* to);
@@ -109,13 +109,10 @@ namespace anton_engine::anton_stl {
         T const* get_ptr(size_type index = 0) const;
         T* get_iterator_underlying_ptr(iterator const&);
         T const* get_iterator_underlying_ptr(const_iterator const&) const;
+
         T* allocate(size_type);
         void deallocate(void*, size_type);
-
-        void move_contents(T* const& from, T* const& to, size_type number_of_elements_to_copy);
-        void grow(size_type new_capacity);
-        void shrink(size_type new_capacity);
-        void check_size();
+        void ensure_capacity(size_type requested_capacity);
 
         friend void serialization::deserialize(serialization::Binary_Input_Archive&, Vector<T, Allocator>&);
     };

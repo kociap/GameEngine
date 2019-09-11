@@ -1,55 +1,55 @@
 namespace anton_engine::anton_stl {
     template <typename T, typename Allocator>
     inline Vector<T, Allocator>::Vector() {
-        storage = allocate(_capacity);
+        _data = allocate(_capacity);
     }
 
     template <typename T, typename Allocator>
     inline Vector<T, Allocator>::Vector(size_type const n) {
         _capacity = math::max(_capacity, n);
-        storage = allocate(_capacity);
+        _data = allocate(_capacity);
         try {
-            anton_stl::uninitialized_default_construct_n(storage, n);
+            anton_stl::uninitialized_default_construct_n(_data, n);
             _size = n;
         } catch (...) {
-            deallocate(storage, _capacity);
+            deallocate(_data, _capacity);
             throw;
         }
     }
 
     template <typename T, typename Allocator>
     inline Vector<T, Allocator>::Vector(anton_stl::Reserve_Tag, size_type const n): _capacity(n) {
-        storage = allocate(_capacity);
+        _data = allocate(_capacity);
     }
 
     template <typename T, typename Allocator>
     inline Vector<T, Allocator>::Vector(size_type n, value_type const& value) {
         _capacity = math::max(_capacity, n);
-        storage = allocate(_capacity);
+        _data = allocate(_capacity);
         try {
-            anton_stl::uninitialized_fill_n(storage, n, value);
+            anton_stl::uninitialized_fill_n(_data, n, value);
             _size = n;
         } catch (...) {
-            deallocate(storage, _capacity);
+            deallocate(_data, _capacity);
             throw;
         }
     }
 
     template <typename T, typename Allocator>
-    inline Vector<T, Allocator>::Vector(Vector const& v): allocator(v.allocator), _capacity(v._capacity) {
-        storage = allocate(_capacity);
+    inline Vector<T, Allocator>::Vector(Vector const& v): _allocator(v._allocator), _capacity(v._capacity) {
+        _data = allocate(_capacity);
         try {
-            anton_stl::uninitialized_copy_n(v.storage, v._size, storage);
+            anton_stl::uninitialized_copy_n(v._data, v._size, _data);
             _size = v._size;
         } catch (...) {
-            deallocate(storage, _capacity);
+            deallocate(_data, _capacity);
             throw;
         }
     }
 
     template <typename T, typename Allocator>
-    inline Vector<T, Allocator>::Vector(Vector&& v) noexcept: allocator(std::move(v.allocator)), _capacity(v._capacity), _size(v._size), storage(v.storage) {
-        v.storage = nullptr;
+    inline Vector<T, Allocator>::Vector(Vector&& v) noexcept: _allocator(std::move(v._allocator)), _capacity(v._capacity), _size(v._size), _data(v._data) {
+        v._data = nullptr;
         v._capacity = 0;
         v._size = 0;
     }
@@ -58,39 +58,39 @@ namespace anton_engine::anton_stl {
     template <typename... Args>
     inline Vector<T, Allocator>::Vector(Variadic_Construct_Tag, Args&&... args) {
         _capacity = math::max(_capacity, static_cast<size_type>(sizeof...(Args)));
-        storage = allocate(_capacity);
+        _data = allocate(_capacity);
         try {
-            anton_stl::uninitialized_variadic_construct(storage, anton_stl::forward<Args>(args)...);
+            anton_stl::uninitialized_variadic_construct(_data, anton_stl::forward<Args>(args)...);
             _size = static_cast<size_type>(sizeof...(Args));
         } catch (...) {
-            deallocate(storage, _capacity);
+            deallocate(_data, _capacity);
             throw;
         }
     }
 
     template <typename T, typename Allocator>
     inline Vector<T, Allocator>::~Vector() {
-        if (storage != nullptr) {
-            anton_stl::destruct_n(storage, _size);
-            deallocate(storage, _capacity);
+        if (_data != nullptr) {
+            anton_stl::destruct_n(_data, _size);
+            deallocate(_data, _capacity);
         }
     }
 
     template <typename T, typename Allocator>
     inline Vector<T, Allocator>& Vector<T, Allocator>::operator=(Vector const& v) {
         static_assert(std::allocator_traits<Allocator>::propagate_on_container_copy_assignment::value, "Allocator is not copy assignable");
-        allocator = v.allocator;
+        _allocator = v._allocator;
         T* new_storage = allocate(v._capacity);
         try {
-            anton_stl::uninitialized_copy_n(v.storage, v._size, new_storage);
+            anton_stl::uninitialized_copy_n(v._data, v._size, new_storage);
         } catch (...) {
             deallocate(new_storage, v._capacity);
             throw;
         }
-        anton_stl::destruct_n(storage, _size);
-        // Note: assumes v.allocator == allocator is true
-        deallocate(storage, _capacity);
-        storage = new_storage;
+        anton_stl::destruct_n(_data, _size);
+        // Note: assumes v._allocator == _allocator is true
+        deallocate(_data, _capacity);
+        _data = new_storage;
         _size = v._size;
         _capacity = v._capacity;
         return *this;
@@ -100,8 +100,8 @@ namespace anton_engine::anton_stl {
     inline Vector<T, Allocator>& Vector<T, Allocator>::operator=(Vector&& v) noexcept {
         // Note: We ignore the fact that the allocator_traits<Allocator>::propagate_on_container_swap might be false
         // or the allocators do not compare equal.
-        swap(storage, v.storage);
-        swap(allocator, v.allocator);
+        swap(_data, v._data);
+        swap(_allocator, v._allocator);
         swap(_capacity, v._capacity);
         swap(_size, v._size);
         return *this;
@@ -208,10 +208,7 @@ namespace anton_engine::anton_stl {
 
     template <typename T, typename Allocator>
     inline void Vector<T, Allocator>::resize(size_type n, value_type const& value) {
-        if (n > _capacity) {
-            grow(n); // TODO apply growing policy here?
-        }
-
+        ensure_capacity(n);
         if (n > _size) {
             anton_stl::uninitialized_fill(get_ptr(_size), get_ptr(n), value);
         } else {
@@ -222,10 +219,7 @@ namespace anton_engine::anton_stl {
 
     template <typename T, typename Allocator>
     inline void Vector<T, Allocator>::resize(size_type n) {
-        if (n > _capacity) {
-            grow(n); // TODO apply growing policy here?
-        }
-
+        ensure_capacity(n);
         if (n > _size) {
             anton_stl::uninitialized_default_construct(get_ptr(_size), get_ptr(n));
         } else {
@@ -236,36 +230,36 @@ namespace anton_engine::anton_stl {
 
     template <typename T, typename Allocator>
     inline void Vector<T, Allocator>::reserve(size_type n) {
-        if (n > _capacity) {
-            grow(n);
-        }
+        ensure_capacity(n);
     }
 
     template <typename T, typename Allocator>
-    inline void Vector<T, Allocator>::set_capacity(size_type n) {
-        if (n > _capacity) { // Expected to happen more often
-            grow(n);
-        } else if (n < _capacity) {
-            shrink(n);
-        }
-    }
-
-    template <typename T, typename Allocator>
-    inline void Vector<T, Allocator>::shrink_to_fit() {
-        if (_size < _capacity) {
-            shrink(_size);
+    inline void Vector<T, Allocator>::set_capacity(size_type new_capacity) {
+        if (new_capacity != _capacity) {
+            T* new_data = allocate(new_capacity);
+            try {
+                // TODO: More reallocation options
+                if constexpr (std::is_nothrow_move_constructible_v<T>) {
+                    uninitialized_move_n(_data, math::min(new_capacity, _size), new_data);
+                } else {
+                    uninitialized_copy_n(_data, math::min(new_capacity, _size), new_data);
+                }
+            } catch (...) { deallocate(new_data, new_capacity); }
+            destruct_n(_data, _size);
+            deallocate(_data, _capacity);
+            _data = new_data;
+            _capacity = new_capacity;
+            _size = math::min(new_capacity, _size);
         }
     }
 
     template <typename T, typename Allocator>
     template <typename Input_Iterator>
     inline void Vector<T, Allocator>::assign(Input_Iterator first, Input_Iterator last) {
-        iterator my_first = begin();
-        for (iterator my_end = end(); my_first != my_end && first != last; ++my_first, ++first) {
-            *my_first = *first;
-        }
-
-        // TODO insert other elements if first != last or erase elements past my_first if first == last
+        ensure_capacity(last - first);
+        destruct_n(_data, _size);
+        copy(first, last, _data);
+        _size = last - first;
     }
 
     template <typename T, typename Allocator>
@@ -273,8 +267,8 @@ namespace anton_engine::anton_stl {
         ANTON_ASSERT(get_iterator_underlying_ptr(position) >= get_ptr() && get_iterator_underlying_ptr(position) <= get_ptr(_size),
                      "Vector::insert invalid iterator");
 
-        size_type offset = static_cast<size_type>(get_iterator_underlying_ptr(position) - storage);
-        check_size();
+        ensure_capacity(_size + 1);
+        size_type offset = static_cast<size_type>(get_iterator_underlying_ptr(position) - _data);
         if (offset == _size) {
             attempt_construct(get_ptr(offset), value);
             ++_size;
@@ -293,7 +287,7 @@ namespace anton_engine::anton_stl {
 
     template <typename T, typename Allocator>
     inline void Vector<T, Allocator>::push_back(value_type const& val) {
-        check_size();
+        ensure_capacity(_size + 1);
         T* elem_ptr = get_ptr(_size);
         attempt_construct(elem_ptr, val);
         ++_size;
@@ -301,7 +295,7 @@ namespace anton_engine::anton_stl {
 
     template <typename T, typename Allocator>
     inline void Vector<T, Allocator>::push_back(value_type&& val) {
-        check_size();
+        ensure_capacity(_size + 1);
         T* elem_ptr = get_ptr(_size);
         attempt_construct(elem_ptr, std::move(val));
         ++_size;
@@ -310,7 +304,7 @@ namespace anton_engine::anton_stl {
     template <typename T, typename Allocator>
     template <typename... CtorArgs>
     inline auto Vector<T, Allocator>::emplace_back(CtorArgs&&... args) -> reference {
-        check_size();
+        ensure_capacity(_size + 1);
         T* elem_ptr = get_ptr(_size);
         attempt_construct(elem_ptr, std::forward<CtorArgs>(args)...);
         ++_size;
@@ -420,12 +414,12 @@ namespace anton_engine::anton_stl {
 
     template <typename T, typename Allocator>
     inline T* Vector<T, Allocator>::get_ptr(size_type index) {
-        return std::launder(storage) + index;
+        return std::launder(_data) + index;
     }
 
     template <typename T, typename Allocator>
     inline T const* Vector<T, Allocator>::get_ptr(size_type index) const {
-        return std::launder(storage) + index;
+        return std::launder(_data) + index;
     }
 
     template <typename T, typename Allocator>
@@ -441,63 +435,36 @@ namespace anton_engine::anton_stl {
 
     template <typename T, typename Allocator>
     inline T* Vector<T, Allocator>::allocate(size_type const size) {
-        void* mem = allocator.allocate(size * static_cast<anton_stl::ssize_t>(sizeof(T)), static_cast<anton_stl::ssize_t>(alignof(T)));
+        void* mem = _allocator.allocate(size * static_cast<anton_stl::ssize_t>(sizeof(T)), static_cast<anton_stl::ssize_t>(alignof(T)));
         return static_cast<T*>(mem);
     }
 
     template <typename T, typename Allocator>
     inline void Vector<T, Allocator>::deallocate(void* mem, size_type const size) {
-        allocator.deallocate(mem, size * static_cast<anton_stl::ssize_t>(sizeof(T)), static_cast<anton_stl::ssize_t>(alignof(T)));
+        _allocator.deallocate(mem, size * static_cast<anton_stl::ssize_t>(sizeof(T)), static_cast<anton_stl::ssize_t>(alignof(T)));
     }
 
     template <typename T, typename Allocator>
-    inline void Vector<T, Allocator>::move_contents(T* const& from, T* const& to, size_type number_of_elements_to_copy) {
-        // TODO
-        if constexpr (std::is_nothrow_move_constructible_v<T> /* || !std::is_copy_constructible_v<T> */) {
-            anton_stl::uninitialized_move_n(from, number_of_elements_to_copy, to);
-        } else {
-            anton_stl::uninitialized_copy_n(from, number_of_elements_to_copy, to);
-        }
-    }
+    inline void Vector<T, Allocator>::ensure_capacity(size_type requested_capacity) {
+        if (requested_capacity > _capacity) {
+            size_type new_capacity = _capacity;
+            while (new_capacity < requested_capacity) {
+                new_capacity *= 2;
+            }
 
-    // TODO remove? is essentially shrink, but with less functionality
-    template <typename T, typename Allocator>
-    inline void Vector<T, Allocator>::grow(size_type new_capacity) {
-        // Assumes new_capacity >= _capacity
-        T* new_storage = allocate(new_capacity);
-        try {
-            move_contents(storage, new_storage, _size);
-        } catch (...) {
-            deallocate(new_storage, _capacity);
-            throw;
-        }
-        anton_stl::swap(storage, new_storage);
-        anton_stl::destruct_n(new_storage, _size);
-        deallocate(new_storage, _capacity);
-        _capacity = new_capacity;
-    }
-
-    template <typename T, typename Allocator>
-    inline void Vector<T, Allocator>::shrink(size_type new_capacity) {
-        T* new_storage = allocate(new_capacity);
-        size_type min_cap_size = math::min(new_capacity, _size);
-        try {
-            move_contents(storage, new_storage, min_cap_size);
-        } catch (...) {
-            deallocate(new_storage, new_capacity);
-            throw;
-        }
-        swap(storage, new_storage);
-        anton_stl::destruct_n(new_storage, _size);
-        _capacity = new_capacity;
-        _size = min_cap_size;
-    }
-
-    template <typename T, typename Allocator>
-    inline void Vector<T, Allocator>::check_size() {
-        if (_size == _capacity) {
-            size_type new_capacity = _capacity * 2;
-            grow(new_capacity);
+            T* new_data = allocate(new_capacity);
+            try {
+                // TODO: More reallocation options
+                if constexpr (std::is_nothrow_move_constructible_v<T>) {
+                    uninitialized_move(_data, _data + _size, new_data);
+                } else {
+                    uninitialized_copy(_data, _data + _size, new_data);
+                }
+            } catch (...) { deallocate(new_data, new_capacity); }
+            destruct_n(_data, _size);
+            deallocate(_data, _capacity);
+            _data = new_data;
+            _capacity = new_capacity;
         }
     }
 } // namespace anton_engine::anton_stl
