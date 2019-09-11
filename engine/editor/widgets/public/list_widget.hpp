@@ -90,6 +90,7 @@ namespace anton_engine {
             uint32_t current_height = 0;
             uint32_t effective_height = (height() - spacing * (items.size() - 1));
             uint32_t remainder = effective_height % items.size();
+            uint32_t minimum_height = 0;
             for (auto& item: items) {
                 uint32_t item_height = math::max((int64_t)item.minimumHeight(), effective_height / items.size());
                 if (remainder > 0) {
@@ -98,7 +99,10 @@ namespace anton_engine {
                 }
                 item.setGeometry(0, current_height, width(), item_height);
                 current_height += item_height + spacing;
+                minimum_height += item.minimumHeight() + spacing;
             }
+
+            setMinimumHeight(minimum_height - spacing);
         }
 
     private:

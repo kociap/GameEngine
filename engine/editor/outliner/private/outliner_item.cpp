@@ -22,7 +22,6 @@ namespace anton_engine {
         label->setIndent(15);
         label->setMargin(0);
         label->show();
-        show();
     }
 
     Outliner_Item::Outliner_Item(Outliner_Item&& other) noexcept: label(other.label), entity(other.entity) {

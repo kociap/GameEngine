@@ -3,6 +3,7 @@
 
 #include <anton_stl/string_view.hpp>
 #include <anton_stl/vector.hpp>
+#include <list_widget.hpp>
 #include <logging.hpp>
 
 #include <diagnostic_macros.hpp>
@@ -12,8 +13,8 @@ ANTON_RESTORE_WARNINGS();
 
 class QLabel;
 class QVBoxLayout;
-class QHBoxLayout;
 class QScrollArea;
+class QResizeEvent;
 
 namespace anton_engine {
     class Log_Message: public QWidget {
@@ -23,8 +24,10 @@ namespace anton_engine {
         Log_Message& operator=(Log_Message&&) noexcept;
         ~Log_Message() override;
 
+    protected:
+        void resizeEvent(QResizeEvent*) override;
+
     private:
-        QHBoxLayout* layout = nullptr;
         QLabel* message = nullptr;
     };
 
@@ -39,13 +42,11 @@ namespace anton_engine {
         void remove_all_messages();
 
     private:
-        anton_stl::Vector<Log_Message> messages;
         QVBoxLayout* layout = nullptr;
         QScrollArea* scroll_area = nullptr;
         QWidget* content = nullptr;
         QVBoxLayout* content_layout = nullptr;
-        QWidget* message_list = nullptr;
-        QVBoxLayout* message_list_layout = nullptr;
+        List_Widget<Log_Message>* message_list = nullptr;
     };
 } // namespace anton_engine
 
