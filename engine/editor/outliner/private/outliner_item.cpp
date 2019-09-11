@@ -70,6 +70,10 @@ namespace anton_engine {
         return entity;
     }
 
+    void Outliner_Item::set_name(anton_stl::String_View name) {
+        label->setText(QString::fromUtf8(name.data()));
+    }
+
     void Outliner_Item::select() {
         QPalette selected_palette;
         auto role = backgroundRole();

@@ -44,7 +44,6 @@ namespace anton_engine {
     }
 
     void Outliner::add_entity(Entity const entity) {
-        // TODO: How do I update the name?
         ECS& ecs = Editor::get_ecs();
         anton_stl::String_View name;
         Entity_Name* entity_name = ecs.try_get_component<Entity_Name>(entity);
@@ -98,5 +97,15 @@ namespace anton_engine {
         }
     }
 
-    void Outliner::update() {}
+    void Outliner::update() {
+        ECS& ecs = Editor::get_ecs();
+        for (Outliner_Item& item: *list_widget) {
+            Entity_Name* entity_name = ecs.try_get_component<Entity_Name>(item.get_associated_entity());
+            if (entity_name) {
+                item.set_name(entity_name->name);
+            } else {
+                item.set_name(u8"<unnamed entity>");
+            }
+        }
+    }
 } // namespace anton_engine

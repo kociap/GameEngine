@@ -26,6 +26,7 @@ namespace anton_engine {
         ~Outliner_Item() override;
 
         Entity get_associated_entity() const;
+        void set_name(anton_stl::String_View);
 
         void select();
         void deselect();
