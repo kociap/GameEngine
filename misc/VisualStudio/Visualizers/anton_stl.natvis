@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
-    <Type Name="anton_stl::String">
+    <Type Name="anton_engine::anton_stl::String">
         <DisplayString>{_data, s8}</DisplayString>
         <StringView>_data, s8</StringView>
         <Expand>
@@ -14,7 +14,7 @@
         </Expand>
     </Type>
 
-    <Type Name="anton_stl::String_View">
+    <Type Name="anton_engine::anton_stl::String_View">
         <DisplayString>{_begin, s8}</DisplayString>
         <StringView>_begin, s8</StringView>
         <Expand>
@@ -26,7 +26,7 @@
         </Expand>
     </Type>
 
-    <Type Name="anton_stl::Static_Vector&lt;*,*&gt;">
+    <Type Name="anton_engine::anton_stl::Static_Vector&lt;*,*&gt;">
         <DisplayString>{{ size = {_size}, capacity = {(uint64_t)$T2} }}</DisplayString>
         <Expand>
             <ArrayItems>
@@ -36,7 +36,7 @@
         </Expand>
     </Type>
 
-    <Type Name="anton_stl::Vector&lt;*,*&gt;">
+    <Type Name="anton_engine::anton_stl::Vector&lt;*,*&gt;">
         <DisplayString>{{ size = {_size}, capacity = {_capacity} }}</DisplayString>
         <Expand>
             <ArrayItems>
