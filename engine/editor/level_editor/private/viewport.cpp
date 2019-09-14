@@ -128,7 +128,7 @@ namespace anton_engine {
             input_manager.add_event(Input::Mouse_Event(delta_x, delta_y, 0.0f));
             QCursor::setPos(lock_pos_x, lock_pos_y);
         } else {
-            ANTON_LOG_INFO("Non-cursor-locked mouse event");
+            // ANTON_LOG_INFO("Non-cursor-locked mouse event");
         }
     }
 
@@ -181,6 +181,45 @@ namespace anton_engine {
         gizmo::draw_line(pos + x - y - z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
     }
 
+    // target_size in pixels
+    static float compute_handle_scale(Vector3 const point1, Vector3 const point2, uint32_t const target_size, Matrix4 const view_projection_mat,
+                                      Vector2 const viewport_size) {
+        Vector4 const p1_clip = Vector4(point1, 1) * view_projection_mat;
+        Vector4 const p2_clip = Vector4(point2, 1) * view_projection_mat;
+        Vector3 const p1_clip_homogenous = Vector3(p1_clip) / p1_clip.w;
+        Vector3 const p2_clip_homogenous = Vector3(p2_clip) / p2_clip.w;
+        Vector3 const handle = p2_clip_homogenous - p1_clip_homogenous;
+        // Project the handle onto the near plane
+        // Since (0, 0, 1) is the near plane normal, we only have to cast the handle to Vector2
+        Vector2 const projected_handle = Vector2(handle);
+        Vector2 const handle_pixels = math::multiply_componentwise(projected_handle, viewport_size);
+        return ((math::length(projected_handle) / math::length(handle)) * target_size) / math::length(handle_pixels);
+    }
+
+    static void draw_translate_handle(Vector3 const axis, Color const color, Matrix4 const view_projection_mat, Vector3 const camera_position,
+                                      Vector3 const object_position, Vector2 const viewport_size) {
+        // TODO: Hardcoded size of handles
+        uint32_t const target_handle_size = 150;
+        float const handle_scale = compute_handle_scale(object_position, object_position + axis, target_handle_size, view_projection_mat, viewport_size);
+        float const cone_height = handle_scale * 0.23f;
+        float const cone_radius = handle_scale * 0.07f;
+        Vector3 const forward_end = object_position + handle_scale * axis;
+        gizmo::draw_line(object_position, forward_end, color, 1.0f, 0.0f, false);
+        gizmo::draw_cone(forward_end, axis, cone_radius, 8, cone_height, color, 0.0f, false);
+    }
+
+    static void draw_translate_handles(Matrix4 const view_projection_mat, Vector3 const camera_position, Vector3 const object_position,
+                                       Vector2 const viewport_size) {
+        // TODO: Add a way to customize the colors via settings?
+        Color const axis_blue = {15.f / 255.f, 77.f / 255.f, 186.f / 255.f};
+        Color const axis_green = {0, 220.0f / 255.0f, 0};
+        Color const axis_red = {179.f / 255.f, 20.f / 255.f, 5.f / 255.f};
+        // TODO: Renders only global space handles
+        draw_translate_handle(Vector3::forward, axis_blue, view_projection_mat, camera_position, object_position, viewport_size);
+        draw_translate_handle(Vector3::right, axis_red, view_projection_mat, camera_position, object_position, viewport_size);
+        draw_translate_handle(Vector3::up, axis_green, view_projection_mat, camera_position, object_position, viewport_size);
+    }
+
     void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const projection_mat, Matrix4 const inv_view_mat, Matrix4 const inv_projection_mat,
                                    Transform const camera_transform, anton_stl::Vector<Entity>& selected_entities) {
         int32_t const window_content_size_x = width();
@@ -219,35 +258,7 @@ namespace anton_engine {
             }
         }
 
-        static int gizmo_transform_space = 0;
-        /*if (imgui::BeginCombo("Space", space_prev_val)) {
-            if (imgui::Selectable("World")) {
-                gizmo_transform_space = 0;
-                space_prev_val = "World";
-            }
-            if (imgui::Selectable("Local")) {
-                gizmo_transform_space = 1;
-                space_prev_val = "Local";
-            }
-            imgui::EndCombo();
-        }*/
-
-        //static int gizmo_type = 0;
-        /*if (imgui::BeginCombo("Type", type_prev_val)) {
-            if (imgui::Selectable("Translate")) {
-                gizmo_transform_space = 0;
-                type_prev_val = "Translate";
-            }
-            if (imgui::Selectable("Rotate")) {
-                gizmo_transform_space = 1;
-                type_prev_val = "Rotate";
-            }
-            if (imgui::Selectable("Scale")) {
-                gizmo_transform_space = 2;
-                type_prev_val = "Scale";
-            }
-            imgui::EndCombo();
-        }*/
+        int gizmo_transform_space = 0;
 
         Color axis_blue = {15.f / 255.f, 77.f / 255.f, 186.f / 255.f};
         Color axis_green = {0, 220.0f / 255.0f, 0};
@@ -260,6 +271,7 @@ namespace anton_engine {
             ECS& ecs = Editor::get_ecs();
             Transform& transform_ref = ecs.get_component<Transform>(selected_entities.front());
             Transform transform = transform_ref;
+
             // TODO Have to somehow make those truly fixed size (window_size independent)
             float w_comp = (Vector4(0, 0, 0, 1) * transform.to_matrix() * view_mat * projection_mat).w;
             float handle_scale = w_comp * 0.1f;
@@ -323,26 +335,14 @@ namespace anton_engine {
                     }
                 }
 
-                // Global space handles
-                // blue handle
-                Vector3 line_end = transform_ref.local_position + handle_scale * Vector3::forward;
-                gizmo::draw_line(transform_ref.local_position, line_end, axis_blue, 1.0f, 0.0f, false);
-                gizmo::draw_cone(line_end, Vector3::forward, cone_radius, 8, cone_height, axis_blue, 0.0f, false);
-                // red handle
-                line_end = transform_ref.local_position + handle_scale * Vector3::right;
-                gizmo::draw_line(transform_ref.local_position, line_end, axis_red, 1.0f, 0.0f, false);
-                gizmo::draw_cone(line_end, Vector3::right, cone_radius, 8, cone_height, axis_red, 0.0f, false);
-                // green handle
-                line_end = transform_ref.local_position + handle_scale * Vector3::up;
-                gizmo::draw_line(transform_ref.local_position, line_end, axis_green, 1.0f, 0.0f, false);
-                gizmo::draw_cone(line_end, Vector3::up, cone_radius, 8, cone_height, axis_green, 0.0f, false);
-
                 draw_wireframe_cuboid(obb[0].center - transform.local_position + transform_ref.local_position, obb[0].local_x * obb[0].halfwidths.x,
                                       obb[0].local_y * obb[0].halfwidths.y, obb[0].local_z * obb[0].halfwidths.z);
                 draw_wireframe_cuboid(obb[1].center - transform.local_position + transform_ref.local_position, obb[1].local_x * obb[1].halfwidths.x,
                                       obb[1].local_y * obb[1].halfwidths.y, obb[1].local_z * obb[1].halfwidths.z);
                 draw_wireframe_cuboid(obb[2].center - transform.local_position + transform_ref.local_position, obb[2].local_x * obb[2].halfwidths.x,
                                       obb[2].local_y * obb[2].halfwidths.y, obb[2].local_z * obb[2].halfwidths.z);
+                draw_translate_handles(view_mat * projection_mat, camera_transform.local_position, transform_ref.local_position,
+                                       Vector2(window_content_size_x, window_content_size_y));
             } else if (gizmo_transform_space == 1) {
                 // rotation
             } else {

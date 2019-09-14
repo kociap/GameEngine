@@ -37,7 +37,8 @@ namespace anton_engine {
         float const normalized_x = 2.0f * point.x / static_cast<float>(screen_width) - 1.0f;
         float const normalized_y = 2.0f * point.y / static_cast<float>(screen_height) - 1.0f;
 
-        Vector4 const ray_start = Vector4(normalized_x, normalized_y, 1.0f, 1.0f);
+        // Since z=1 is far and z=-1 is near in NDC, we use -1 for the start and 0 for the end to get better precision.
+        Vector4 const ray_start = Vector4(normalized_x, normalized_y, -1.0f, 1.0f);
         Vector4 const ray_end = Vector4(normalized_x, normalized_y, 0.0f, 1.0f);
 
         Vector4 const ray_start_world_space = ray_start * inv_view_projection_matrix;

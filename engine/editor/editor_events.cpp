@@ -1,9 +1,9 @@
 #include <editor_events.hpp>
 
+#include <anton_stl/algorithm.hpp>
 #include <editor.hpp>
 #include <editor_window.hpp>
 #include <outliner.hpp>
-#include <anton_stl/algorithm.hpp>
 
 namespace anton_engine::editor_events {
     void entity_added(Entity const entity) {
