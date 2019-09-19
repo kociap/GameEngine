@@ -1,6 +1,7 @@
 #ifndef CORE_MATH_MATH_HPP_INCLUDE
 #define CORE_MATH_MATH_HPP_INCLUDE
 
+#include <cmath>
 #include <limits>
 
 // Safety measures
@@ -39,12 +40,34 @@ namespace anton_engine::math {
         return radians * constants<float>::rad_to_deg;
     }
 
-    float inv_sqrt(float number);
-    float sign(float);
-    float abs(float);
-    float sin(float);
-    float cos(float);
-    float step_to_value(float current, float target, float change);
+    inline float inv_sqrt(float a) {
+        return 1 / sqrt(a);
+    }
+
+    inline float sign(float a) {
+        return static_cast<float>((a > 0.0f) - (a < 0.0f));
+    }
+
+    inline float sin(float angle) {
+        return std::sinf(angle);
+    }
+
+    inline float cos(float angle) {
+        return std::cosf(angle);
+    }
+
+    inline float abs(float a) {
+        return std::abs(a);
+    }
+
+    inline float step_to_value(float current, float target, float change) {
+        float delta = target - current;
+        if (abs(delta) > change) {
+            return current + sign(delta) * change;
+        } else {
+            return target;
+        }
+    }
 
     template <typename T>
     T max(T a, T b) {
@@ -56,5 +79,4 @@ namespace anton_engine::math {
         return a < b ? a : b;
     }
 } // namespace anton_engine::math
-
 #endif // !CORE_MATH_MATH_HPP_INCLUDE
