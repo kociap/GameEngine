@@ -240,9 +240,9 @@ namespace anton_engine::anton_stl {
             try {
                 // TODO: More reallocation options
                 if constexpr (std::is_nothrow_move_constructible_v<T>) {
-                    uninitialized_move_n(_data, math::min(new_capacity, _size), new_data);
+                    anton_stl::uninitialized_move_n(_data, math::min(new_capacity, _size), new_data);
                 } else {
-                    uninitialized_copy_n(_data, math::min(new_capacity, _size), new_data);
+                    anton_stl::uninitialized_copy_n(_data, math::min(new_capacity, _size), new_data);
                 }
             } catch (...) { deallocate(new_data, new_capacity); }
             destruct_n(_data, _size);
@@ -456,9 +456,9 @@ namespace anton_engine::anton_stl {
             try {
                 // TODO: More reallocation options
                 if constexpr (std::is_nothrow_move_constructible_v<T>) {
-                    uninitialized_move(_data, _data + _size, new_data);
+                    anton_stl::uninitialized_move(_data, _data + _size, new_data);
                 } else {
-                    uninitialized_copy(_data, _data + _size, new_data);
+                    anton_stl::uninitialized_copy(_data, _data + _size, new_data);
                 }
             } catch (...) { deallocate(new_data, new_capacity); }
             destruct_n(_data, _size);
