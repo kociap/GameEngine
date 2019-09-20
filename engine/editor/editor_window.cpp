@@ -1,6 +1,7 @@
 #include <editor_window.hpp>
 
 #include <anton_stl/string.hpp>
+#include <builtin_shaders.hpp>
 #include <components/camera.hpp>
 #include <components/transform.hpp>
 #include <ecs/ecs.hpp>
@@ -44,6 +45,7 @@ namespace anton_engine {
         context->makeCurrent(surface);
         opengl::load_functions();
         opengl::load_constants();
+        load_builtin_shaders();
         gizmo::init();
 
         input_filter = new User_Input_Filter(0, 0);
@@ -66,6 +68,7 @@ namespace anton_engine {
         }
 
         gizmo::terminate();
+        unload_builtin_shaders();
         delete context;
         delete surface;
         delete input_filter;

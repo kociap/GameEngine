@@ -27,9 +27,8 @@ namespace anton_engine {
         }
     }
 
-    Shader::Shader(Shader&& shader) noexcept {
-        std::swap(shader.program, program);
-        std::swap(shader.uniform_cache, uniform_cache);
+    Shader::Shader(Shader&& other) noexcept: uniform_cache(anton_stl::move(other.uniform_cache)) {
+        std::swap(other.program, program);
     }
 
     Shader& Shader::operator=(Shader&& shader) noexcept {
@@ -39,7 +38,9 @@ namespace anton_engine {
     }
 
     Shader::~Shader() {
-        opengl::delete_program(program);
+        if (program != 0) {
+            opengl::delete_program(program);
+        }
     }
 
     void Shader::attach(Shader_File const& shader) {

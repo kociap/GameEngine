@@ -9,7 +9,7 @@
 #include <string_view>
 
 namespace anton_engine {
-    static void compile_shader(uint32_t shader, std::string const& name = "Unnamed Shader") {
+    static void compile_shader(uint32_t shader, anton_stl::String_View name = "Unnamed Shader") {
         glCompileShader(shader);
         CHECK_GL_ERRORS();
         GLint compilation_status;
@@ -20,18 +20,18 @@ namespace anton_engine {
             anton_stl::Vector<GLchar> log(log_length);
             glGetShaderInfoLog(shader, log_length, &log_length, &log[0]);
             std::string log_string(log.begin(), log.end());
-            log_string = "Shader compilation failed (" + name + ")\n" + log_string;
+            log_string = std::string("Shader compilation failed (") + name.data() + ")\n" + log_string;
             throw Shader_Compilation_Failed(std::move(log_string));
         }
         CHECK_GL_ERRORS();
     }
 
-    static void set_shader_source(uint32_t shader, std::string_view source) {
+    static void set_shader_source(uint32_t shader, anton_stl::String_View source) {
         char const* src = source.data();
         opengl::shader_source(shader, 1, &src, nullptr);
     }
 
-    Shader_File::Shader_File(std::string n, opengl::Shader_Type type, std::string const& source): type(type), shader(0) {
+    Shader_File::Shader_File(anton_stl::String_View n, opengl::Shader_Type type, anton_stl::String_View source): type(type), shader(0) {
         shader = opengl::create_shader(type);
         if (shader == 0) {
             throw Shader_Not_Created("");

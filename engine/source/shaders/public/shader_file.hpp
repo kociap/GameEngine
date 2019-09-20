@@ -3,8 +3,8 @@
 
 #include <opengl.hpp>
 
+#include <anton_stl/string_view.hpp>
 #include <cstdint>
-#include <string>
 
 namespace anton_engine {
     class Shader;
@@ -15,7 +15,7 @@ namespace anton_engine {
         Shader_File(Shader_File const&) = delete;
         Shader_File& operator=(Shader_File const&) = delete;
 
-        Shader_File(std::string name, opengl::Shader_Type type, std::string const& source);
+        Shader_File(anton_stl::String_View name, opengl::Shader_Type type, anton_stl::String_View source);
         Shader_File(Shader_File&& shader) noexcept;
         Shader_File& operator=(Shader_File&& shader) noexcept;
         ~Shader_File();

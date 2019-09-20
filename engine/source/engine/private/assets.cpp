@@ -32,7 +32,7 @@ namespace anton_engine::assets {
     }
 
     opengl::Shader_Type shader_type_from_filename(std::filesystem::path const& filename) {
-        std::string extension(filename.extension().string());
+        std::string extension(filename.extension().generic_string());
         if (extension == ".vert") {
             return opengl::Shader_Type::vertex_shader;
         } else if (extension == ".frag") {
@@ -54,7 +54,8 @@ namespace anton_engine::assets {
         // TODO will not compile in shipping build
         std::filesystem::path full_path = utils::concat_paths(paths::shaders_directory(), path);
         std::string shader_source = read_file_raw_string(full_path);
-        return Shader_File(path.generic_string(), shader_type_from_filename(path), shader_source);
+        std::string path_as_str = path.generic_string();
+        return Shader_File(path_as_str.data(), shader_type_from_filename(path), shader_source.data());
     }
 
     static uint8_t read_uint8(std::ifstream& stream) {

@@ -1,8 +1,8 @@
 #ifndef SHADERS_SHADER_HPP_INCLUDE
 #define SHADERS_SHADER_HPP_INCLUDE
 
+#include <anton_stl/type_traits.hpp>
 #include <string>
-#include <type_traits>
 #include <unordered_map>
 
 namespace anton_engine {
@@ -25,6 +25,7 @@ namespace anton_engine {
         void use();
         void detach(Shader_File const&);
 
+        // TODO: String_View
         void set_int(std::string const&, int);
         void set_int(char const*, int);
         void set_float(std::string const&, float);
@@ -38,20 +39,21 @@ namespace anton_engine {
         void set_matrix4(std::string const&, Matrix4 const&);
         void set_matrix4(char const*, Matrix4 const&);
 
-        friend void swap(Shader&, Shader&);
+        uint32_t get_shader_native_handle() const {
+            return program;
+        }
 
-        // TODO use char const* as key?
+        friend void swap(Shader&, Shader&);
+        friend void delete_shader(Shader&);
+
+    private:
         std::unordered_map<std::string, int32_t> uniform_cache;
         uint32_t program = 0;
     };
 
-    void delete_shader(Shader&);
-
     template <typename... Ts>
-    // Return type causes internal compiler error on msvc
-    // auto create_shader(Ts const&... shaders) -> std::enable_if_t<(... && std::is_same_v<Shader_File, std::decay_t<Ts>>), Shader> {
     auto create_shader(Ts const&... shaders) {
-        static_assert((... && std::is_same_v<Shader_File, std::decay_t<Ts>>), "Passed arguments are not of Shader_File type");
+        static_assert((... && anton_stl::is_same<Shader_File, anton_stl::decay<Ts>>), "Passed arguments are not of Shader_File type");
         Shader shader;
         (shader.attach(shaders), ...);
         shader.link();
