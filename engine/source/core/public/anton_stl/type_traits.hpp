@@ -136,6 +136,16 @@ namespace anton_engine::anton_stl {
     // Type transformations
     //
 
+    // Type_Identity
+    //
+    template <typename T>
+    struct Type_Identity {
+        using type = T;
+    };
+
+    template <typename T>
+    using type_identity = typename Type_Identity<T>::type;
+
     namespace detail {
         template <typename T, typename = void>
         struct Add_Reference {
@@ -187,6 +197,9 @@ namespace anton_engine::anton_stl {
         using type = T;
     };
 
+	template<typename T>
+	using remove_extent = typename Remove_Extent<T>::type;
+
     // Remove_All_Extents
     //
     template <typename T>
@@ -203,6 +216,9 @@ namespace anton_engine::anton_stl {
     struct Remove_All_Extents<T[N]> {
         using type = typename Remove_All_Extents<T>::type;
     };
+
+	template<typename T>
+	using remove_all_extents = typename Remove_All_Extents<T>::type;
 
     // Remove_Function_Qualifiers
     // Removes all function qualifiers (const, &, && and noexcept) from a function type.
@@ -268,6 +284,24 @@ namespace anton_engine::anton_stl {
 
     template <typename T>
     using remove_const_ref = typename Remove_Const_Ref<T>::type;
+
+    // Add_Pointer
+    //
+    template <typename T>
+    struct Add_Pointer {
+    private:
+        template <typename U>
+        static auto test(int) -> anton_stl::Type_Identity<anton_stl::remove_reference<T>*>;
+
+        template <typename U>
+        static auto test(...) -> anton_stl::Type_Identity<T>;
+
+    public:
+        using type = typename decltype(test<T>(0))::type;
+    };
+
+    template <typename T>
+    using add_pointer = typename Add_Pointer<T>::type;
 
     //
     // Functions
@@ -452,6 +486,21 @@ namespace anton_engine::anton_stl {
 
     template <typename T>
     inline constexpr bool is_void = Is_Void<T>::value;
+
+    // Decay
+    //
+    template <typename T>
+    struct Decay {
+    private:
+        using U = anton_stl::remove_reference<T>;
+
+    public:
+        using type = anton_stl::conditional<anton_stl::is_array<U>, anton_stl::remove_extent<U>*,
+                                            anton_stl::conditional<anton_stl::is_function<T>, anton_stl::add_pointer<T>, anton_stl::remove_const<T>>>;
+    };
+
+    template <typename T>
+    using decay = typename Decay<T>::type;
 
     namespace detail {
         template <typename T>
