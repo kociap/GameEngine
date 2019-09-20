@@ -61,6 +61,32 @@ namespace anton_engine {
 } // namespace anton_engine
 
 namespace anton_engine::rendering {
+    struct Point_Light_Data {
+        alignas(16) Vector3 position;
+        alignas(16) Color color;
+        float intensity;
+        float attentuation_constant;
+        float attentuation_linear;
+        float attentuation_quadratic;
+        float diffuse_strength;
+        float specular_strength;
+    };
+
+    struct Directional_Light_Data {
+        alignas(16) Color color;
+        alignas(16) Vector3 direction;
+        float intensity;
+        float diffuse_strength;
+        float specular_strength;
+    };
+
+    struct Lights_Data {
+        int point_lights_count;
+        int directional_light_count;
+        Point_Light_Data point_lights[16];
+        Directional_Light_Data directional_lights[16];
+    };
+
     Renderer::Renderer(int32_t width, int32_t height): single_color_shader(false), outline_mix_shader(false) {
         build_framebuffers(width, height);
 
@@ -117,6 +143,12 @@ namespace anton_engine::rendering {
         glVertexAttribFormat(4, 2, GL_FLOAT, false, offsetof(Vertex, uv_coordinates));
         glVertexAttribBinding(4, 0);
 
+        // TODO: May not be per renderer instance
+        glGenBuffers(1, &lights_data_ubo);
+        glBindBuffer(GL_UNIFORM_BUFFER, lights_data_ubo);
+        glBufferStorage(GL_UNIFORM_BUFFER, sizeof(Lights_Data), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glBindBufferBase(GL_UNIFORM_BUFFER, 0, lights_data_ubo);
+
         setup_opengl();
         set_gamma_value(2.2f);
     }
@@ -169,91 +201,55 @@ namespace anton_engine::rendering {
         build_framebuffers(width, height);
     }
 
-    static void set_light_properties(Shader& shader, std::string const& index, Directional_Light_Component const& directional_light) {
-        shader.set_float("directional_lights[" + index + "].intensity", directional_light.intensity);
-        shader.set_float("directional_lights[" + index + "].diffuse_strength", 0.8f);
-        shader.set_float("directional_lights[" + index + "].specular_strength", 1.0f);
-        shader.set_vec3("directional_lights[" + index + "].color", directional_light.color);
-        shader.set_vec3("directional_lights[" + index + "].direction", directional_light.direction);
-    }
-
-    static void set_light_properties(Shader& shader, std::string const& index, Transform& transform, Spot_Light_Component const& spot_light) {
-        shader.set_float("spot_lights[" + index + "].attentuation_constant", 1.0f);
-        shader.set_float("spot_lights[" + index + "].attentuation_linear", 0.09f);
-        shader.set_float("spot_lights[" + index + "].attentuation_quadratic", 0.032f);
-        shader.set_float("spot_lights[" + index + "].intensity", spot_light.intensity);
-        shader.set_float("spot_lights[" + index + "].diffuse_strength", 0.8f);
-        shader.set_float("spot_lights[" + index + "].specular_strength", 1.0f);
-        shader.set_vec3("spot_lights[" + index + "].position", transform.local_position);
-        shader.set_vec3("spot_lights[" + index + "].color", spot_light.color);
-        shader.set_vec3("spot_lights[" + index + "].direction", spot_light.direction);
-        shader.set_float("spot_lights[" + index + "].cutoff_angle", spot_light.cutoff_angle);
-        shader.set_float("spot_lights[" + index + "].blend_angle", spot_light.blend_angle);
-    }
-
-    static void set_light_properties(Shader& shader, std::string const& index, Transform& transform, Point_Light_Component const& point_light) {
-        shader.set_float("point_lights[" + index + "].attentuation_constant", 1.0f);
-        shader.set_float("point_lights[" + index + "].attentuation_linear", 0.09f);
-        shader.set_float("point_lights[" + index + "].attentuation_quadratic", 0.032f);
-        shader.set_float("point_lights[" + index + "].intensity", point_light.intensity);
-        shader.set_float("point_lights[" + index + "].diffuse_strength", 0.8f);
-        shader.set_float("point_lights[" + index + "].specular_strength", 1.0f);
-        shader.set_vec3("point_lights[" + index + "].position", transform.local_position);
-        shader.set_vec3("point_lights[" + index + "].color", point_light.color);
-    }
-
-    static void set_shader_props(ECS& ecs, Shader& shader) {
-        shader.use();
-        shader.set_float("ambient_strength", 0.02f);
-        shader.set_vec3("ambient_color", Color(1.0f, 1.0f, 1.0f));
-        auto directional_lights = ecs.access<Directional_Light_Component>();
-        auto spot_lights = ecs.access<Transform, Spot_Light_Component>();
-        auto point_lights = ecs.access<Transform, Point_Light_Component>();
-        uint32_t i = 0;
-        for (Entity const entity: directional_lights) {
-            set_light_properties(shader, std::to_string(i), directional_lights.get(entity));
-            ++i;
+    static void update_lights_ubo(ECS& ecs, uint32_t lights_ubo) {
+        Lights_Data lights_data = {};
+        {
+            auto directional_lights = ecs.access<Directional_Light_Component>();
+            lights_data.directional_light_count = directional_lights.size();
+            int32_t i = 0;
+            for (Entity const entity: directional_lights) {
+                Directional_Light_Component& light = directional_lights.get(entity);
+                lights_data.directional_lights[i] = {light.color, light.direction, light.intensity, 0.8f, 1.0f};
+                ++i;
+            }
         }
-        i = 0;
-        for (Entity const entity: spot_lights) {
-            auto [transform, spot_light] = spot_lights.get<Transform, Spot_Light_Component>(entity);
-            set_light_properties(shader, std::to_string(i), transform, spot_light);
-            ++i;
-        }
-        i = 0;
-        for (Entity const entity: point_lights) {
-            auto [transform, point_light] = point_lights.get<Transform, Point_Light_Component>(entity);
-            set_light_properties(shader, std::to_string(i), transform, point_light);
-            ++i;
+        // {
+        //     auto spot_lights = ecs.access<Transform, Spot_Light_Component>();
+        //     int32_t i = 0;
+        //     for (Entity const entity: spot_lights) {
+        //         auto [transform, light] = spot_lights.get<Transform, Spot_Light_Component>(entity);
+        //         light_data.spot_lights[i] = {transform.local_position, light.direction, light.color, light.intensity, light.cutoff_angle, light.blend_angle,
+        //                                      1.0f, 0.09f, 0.032f, 0.8f, 1.0f};
+        //         ++i;
+        //     }
+        // }
+        {
+            auto point_lights = ecs.access<Transform, Point_Light_Component>();
+            lights_data.point_lights_count = point_lights.size();
+            int32_t i = 0;
+            for (Entity const entity: point_lights) {
+                auto [transform, light] = point_lights.get<Transform, Point_Light_Component>(entity);
+                lights_data.point_lights[i] = {transform.local_position, light.color, light.intensity, 1.0f, 0.09f, 0.032f, 0.8f, 1.0f};
+                ++i;
+            }
         }
 
-        int32_t point_lights_count = static_cast<int32_t>(point_lights.size());
-        shader.set_int("point_lights_count", point_lights_count);
-        int32_t directional_lights_count = static_cast<int32_t>(directional_lights.size());
-        shader.set_int("directional_lights_count", directional_lights_count);
-
-        // uhh?????????????????????
-        shader.set_float("material.shininess", 32.0f);
+        glNamedBufferSubData(lights_ubo, 0, sizeof(Lights_Data), &lights_data);
     }
 
     void Renderer::load_shader_light_properties() {
+        deferred_shading_shader.use();
+        deferred_shading_shader.set_float("ambient_strength", 0.02f);
+        deferred_shading_shader.set_vec3("ambient_color", Color(1.0f, 1.0f, 1.0f));
+        // uhh?????????????????????
+        deferred_shading_shader.set_float("material.shininess", 32.0f);
         ECS& ecs = get_ecs();
-        Resource_Manager<Shader>& shader_manager = get_shader_manager();
-        for (Shader& shader: shader_manager) {
-            set_shader_props(ecs, shader);
-        }
-
-        set_shader_props(ecs, deferred_shading_shader);
+        update_lights_ubo(ecs, lights_data_ubo);
     }
 
     void Renderer::update_dynamic_lights() {
         ECS& ecs = get_ecs();
-        Resource_Manager<Shader>& shader_manager = get_shader_manager();
-        for (Shader& shader: shader_manager) {
-            set_shader_props(ecs, shader);
-        }
-
-        set_shader_props(ecs, deferred_shading_shader);
+        update_lights_ubo(ecs, lights_data_ubo);
     }
 
     void Renderer::set_gamma_value(float gamma) {

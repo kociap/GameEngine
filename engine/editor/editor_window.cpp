@@ -24,6 +24,7 @@ ANTON_DISABLE_WARNINGS();
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
 #include <QSurfaceFormat>
+#include <QWindow>
 ANTON_RESTORE_WARNINGS();
 
 namespace anton_engine {
@@ -102,14 +103,14 @@ namespace anton_engine {
         //connect(viewport_docks[0], &Dock_Widget::window_closed, viewports[0], &Viewport::close);
         //connect(viewports[0], &Viewport::window_closed, viewport_closed);
 
-        viewports[1] = new Viewport(1, context);
-        viewport_docks[1] = new Dock_Widget;
-        viewport_docks[1]->setWidget(viewports[1]);
-        addDockWidget(Qt::TopDockWidgetArea, viewport_docks[1]);
-        connect(viewports[1], &Viewport::made_active, [this](int32_t const index) {
-            shared_state.active_editor = index;
-            anton_engine::log_message(anton_engine::Log_Message_Severity::info, u8"Changed active viewport to " + anton_stl::to_string(index));
-        });
+        // viewports[1] = new Viewport(1, context);
+        // viewport_docks[1] = new Dock_Widget;
+        // viewport_docks[1]->setWidget(viewports[1]);
+        // addDockWidget(Qt::TopDockWidgetArea, viewport_docks[1]);
+        // connect(viewports[1], &Viewport::made_active, [this](int32_t const index) {
+        //     shared_state.active_editor = index;
+        //     anton_engine::log_message(anton_engine::Log_Message_Severity::info, u8"Changed active viewport to " + anton_stl::to_string(index));
+        // });
         //connect(viewport_docks[1], &Dock_Widget::window_closed, viewports[1], &Viewport::close);
         //connect(viewports[1], &Viewport::window_closed, viewport_closed);
     }
@@ -142,6 +143,11 @@ namespace anton_engine {
     }
 
     void Editor_Window::render() {
+        static bool made_current = false;
+        if (!made_current) {
+            context->makeCurrent(viewports[0]->windowHandle());
+        }
+
         auto viewport_camera_view = Editor::get_ecs().access<Viewport_Camera, Camera, Transform>();
         for (Entity const entity: viewport_camera_view) {
             auto [viewport_camera, camera, transform] = viewport_camera_view.get<Viewport_Camera, Camera, Transform>(entity);

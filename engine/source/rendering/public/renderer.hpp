@@ -52,6 +52,8 @@ namespace anton_engine::rendering {
         // Uses binding index 0
         uint32_t mesh_vao;
 
+        uint32_t lights_data_ubo;
+
         Shader default_shader;
         // Postprocessing shaders
         // TODO move to postprocessing

@@ -14,7 +14,7 @@ struct Camera {
 
 struct Point_Light {
     vec3 position;
-    vec3 color;
+    vec4 color;
     float intensity;
     float attentuation_constant;
     float attentuation_linear;
@@ -24,7 +24,7 @@ struct Point_Light {
 };
 
 struct Directional_Light {
-    vec3 color;
+    vec4 color;
     vec3 direction;
     float intensity;
     float diffuse_strength;
@@ -32,10 +32,12 @@ struct Directional_Light {
 };
 
 // Move to SSBO (somehow and someday)
-uniform Point_Light[16] point_lights;
-uniform Directional_Light[16] directional_lights;
-uniform int point_lights_count;
-uniform int directional_lights_count;
+layout(std140, binding = 0) uniform Lights_Data {
+    int point_lights_count;
+    int directional_lights_count;
+    Point_Light[16] point_lights;
+    Directional_Light[16] directional_lights;
+};
 
 uniform Material material;
 uniform Camera camera;
@@ -85,7 +87,7 @@ vec3 compute_point_lighting(Point_Light light, vec3 surface_position, vec3 surfa
 
     diffuse *= light.diffuse_strength;
     specular *= light.specular_strength;
-    return attentuation * light.color * (diffuse + specular);
+    return attentuation * vec3(light.color) * (diffuse + specular);
 }
 
 vec3 compute_directional_lighting(Directional_Light light, vec3 surface_normal, vec3 view_vec, vec3 albedo_color, float specular_factor) {
@@ -94,5 +96,5 @@ vec3 compute_directional_lighting(Directional_Light light, vec3 surface_normal, 
     vec3 specular = vec3(specular_factor * pow(max(0.0, dot(surface_normal, half_vec)), material.shininess));
     diffuse *= light.diffuse_strength;
     specular *= light.specular_strength;
-    return light.intensity * light.color * (diffuse + specular);
+    return light.intensity * vec3(light.color) * (diffuse + specular);
 }

@@ -17,6 +17,7 @@
 #include <intersection_tests.hpp>
 #include <line.hpp>
 #include <logging.hpp>
+#include <math/transform.hpp>
 #include <math/vector2.hpp>
 #include <mesh/mesh.hpp>
 #include <obb.hpp>
@@ -65,6 +66,7 @@ namespace anton_engine {
         construct_info.height = h;
         framebuffer = new Framebuffer(construct_info);
         renderer = new rendering::Renderer(w, h);
+        renderer->load_shader_light_properties();
 
         ECS& ecs = Editor::get_ecs();
         auto [entity, viewport_camera, camera, transform] = ecs.create<Viewport_Camera, Camera, Transform>();
@@ -181,26 +183,18 @@ namespace anton_engine {
         gizmo::draw_line(pos + x - y - z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
     }
 
-    // target_size in pixels
-    static float compute_handle_scale(Vector3 const point1, Vector3 const point2, uint32_t const target_size, Matrix4 const view_projection_mat,
-                                      Vector2 const viewport_size) {
-        Vector4 const p1_clip = Vector4(point1, 1) * view_projection_mat;
-        Vector4 const p2_clip = Vector4(point2, 1) * view_projection_mat;
-        Vector3 const p1_clip_homogenous = Vector3(p1_clip) / p1_clip.w;
-        Vector3 const p2_clip_homogenous = Vector3(p2_clip) / p2_clip.w;
-        Vector3 const handle = p2_clip_homogenous - p1_clip_homogenous;
-        // Project the handle onto the near plane
-        // Since (0, 0, 1) is the near plane normal, we only have to cast the handle to Vector2
-        Vector2 const projected_handle = Vector2(handle);
-        Vector2 const handle_pixels = math::multiply_componentwise(projected_handle, viewport_size);
-        return ((math::length(projected_handle) / math::length(handle)) * target_size) / math::length(handle_pixels);
+    // // target_size in pixels
+    static float compute_handle_scale(Matrix4 const world_transform, uint32_t const target_size, Matrix4 const pers_mat, float const pixel_size) {
+        float const projected_w_comp = (world_transform[3] * pers_mat).w;
+        return /* scale_basis * */ target_size * pixel_size * projected_w_comp;
     }
 
     static void draw_translate_handle(Vector3 const axis, Color const color, Matrix4 const view_projection_mat, Vector3 const camera_position,
                                       Vector3 const object_position, Vector2 const viewport_size) {
         // TODO: Hardcoded size of handles
         uint32_t const target_handle_size = 150;
-        float const handle_scale = compute_handle_scale(object_position, object_position + axis, target_handle_size, view_projection_mat, viewport_size);
+        float const handle_scale =
+            compute_handle_scale(math::transform::translate(object_position), target_handle_size, view_projection_mat, 1 / viewport_size.y);
         float const cone_height = handle_scale * 0.23f;
         float const cone_radius = handle_scale * 0.07f;
         Vector3 const forward_end = object_position + handle_scale * axis;
@@ -480,10 +474,11 @@ namespace anton_engine {
 
     void Viewport::render(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform,
                           anton_stl::Vector<Entity> const& selected_entities) {
-        if (!context->makeCurrent(windowHandle())) {
-            ANTON_LOG_WARNING("Could not make context current. Skipping rendering.");
-            return;
-        }
+        // TODO: Repeatedly calling makeCurrent kills performance!!
+        // if (!context->makeCurrent(windowHandle();)) {
+        //     ANTON_LOG_WARNING("Could not make context current. Skipping rendering.");
+        //     return;
+        // }
 
         // TODO fix this shitcode
         uint32_t texture = renderer->render_frame_as_texture(view_mat, proj_mat, camera_transform, width(), height());
