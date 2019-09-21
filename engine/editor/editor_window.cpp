@@ -9,6 +9,7 @@
 #include <input/input.hpp>
 #include <logging.hpp>
 #include <opengl.hpp>
+#include <renderer.hpp>
 #include <viewport_camera.hpp>
 
 #include <dock_widget.hpp>
@@ -45,6 +46,7 @@ namespace anton_engine {
         context->makeCurrent(surface);
         opengl::load_functions();
         opengl::load_constants();
+        rendering::setup_rendering();
         load_builtin_shaders();
         gizmo::init();
 
@@ -150,6 +152,8 @@ namespace anton_engine {
         if (!made_current) {
             context->makeCurrent(viewports[0]->windowHandle());
         }
+
+        rendering::update_dynamic_lights();
 
         auto viewport_camera_view = Editor::get_ecs().access<Viewport_Camera, Camera, Transform>();
         for (Entity const entity: viewport_camera_view) {

@@ -475,7 +475,7 @@ namespace anton_engine {
     void Viewport::render(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform,
                           anton_stl::Vector<Entity> const& selected_entities) {
         // TODO: Repeatedly calling makeCurrent kills performance!!
-        // if (!context->makeCurrent(windowHandle();)) {
+        // if (!context->makeCurrent(windowHandle())) {
         //     ANTON_LOG_WARNING("Could not make context current. Skipping rendering.");
         //     return;
         // }
@@ -490,7 +490,7 @@ namespace anton_engine {
         opengl::bind_texture(opengl::Texture_Type::texture_2D, texture);
         renderer->gamma_correction_shader.use();
         // TODO vao swap
-        opengl::bind_vertex_array(renderer->mesh_vao);
+        rendering::bind_mesh_vao();
         rendering::render_texture_quad();
         context->swapBuffers(windowHandle());
     }

@@ -87,6 +87,84 @@ namespace anton_engine::rendering {
         Directional_Light_Data directional_lights[16];
     };
 
+    static uint32_t lights_data_ubo = 0;
+    // Standard vao used for rendering meshes with position, normals, texture coords, tangent and bitangent
+    // Uses binding index 0
+    static uint32_t mesh_vao = 0;
+
+    void setup_rendering() {
+        glDisable(GL_FRAMEBUFFER_SRGB);
+        glEnable(GL_CULL_FACE);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_PROGRAM_POINT_SIZE); // TODO geometry shader stuff, remove
+        CHECK_GL_ERRORS();
+
+        glGenVertexArrays(1, &mesh_vao);
+        glBindVertexArray(mesh_vao);
+        glEnableVertexAttribArray(0);
+        glVertexAttribFormat(0, 3, GL_FLOAT, false, offsetof(Vertex, position));
+        glVertexAttribBinding(0, 0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribFormat(1, 3, GL_FLOAT, false, offsetof(Vertex, normal));
+        glVertexAttribBinding(1, 0);
+        glEnableVertexAttribArray(2);
+        glVertexAttribFormat(2, 3, GL_FLOAT, false, offsetof(Vertex, tangent));
+        glVertexAttribBinding(2, 0);
+        glEnableVertexAttribArray(3);
+        glVertexAttribFormat(3, 3, GL_FLOAT, false, offsetof(Vertex, bitangent));
+        glVertexAttribBinding(3, 0);
+        glEnableVertexAttribArray(4);
+        glVertexAttribFormat(4, 2, GL_FLOAT, false, offsetof(Vertex, uv_coordinates));
+        glVertexAttribBinding(4, 0);
+
+        glGenBuffers(1, &lights_data_ubo);
+        glBindBuffer(GL_UNIFORM_BUFFER, lights_data_ubo);
+        glBufferStorage(GL_UNIFORM_BUFFER, sizeof(Lights_Data), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glBindBufferBase(GL_UNIFORM_BUFFER, 0, lights_data_ubo);
+    }
+
+    void update_dynamic_lights() {
+        ECS& ecs = get_ecs();
+        Lights_Data lights_data = {};
+        {
+            auto directional_lights = ecs.access<Directional_Light_Component>();
+            lights_data.directional_light_count = directional_lights.size();
+            int32_t i = 0;
+            for (Entity const entity: directional_lights) {
+                Directional_Light_Component& light = directional_lights.get(entity);
+                lights_data.directional_lights[i] = {light.color, light.direction, light.intensity, 0.8f, 1.0f};
+                ++i;
+            }
+        }
+        // {
+        //     auto spot_lights = ecs.access<Transform, Spot_Light_Component>();
+        //     int32_t i = 0;
+        //     for (Entity const entity: spot_lights) {
+        //         auto [transform, light] = spot_lights.get<Transform, Spot_Light_Component>(entity);
+        //         light_data.spot_lights[i] = {transform.local_position, light.direction, light.color, light.intensity, light.cutoff_angle, light.blend_angle,
+        //                                      1.0f, 0.09f, 0.032f, 0.8f, 1.0f};
+        //         ++i;
+        //     }
+        // }
+        {
+            auto point_lights = ecs.access<Transform, Point_Light_Component>();
+            lights_data.point_lights_count = point_lights.size();
+            int32_t i = 0;
+            for (Entity const entity: point_lights) {
+                auto [transform, light] = point_lights.get<Transform, Point_Light_Component>(entity);
+                lights_data.point_lights[i] = {transform.local_position, light.color, light.intensity, 1.0f, 0.09f, 0.032f, 0.8f, 1.0f};
+                ++i;
+            }
+        }
+
+        glNamedBufferSubData(lights_data_ubo, 0, sizeof(Lights_Data), &lights_data);
+    }
+
+    void bind_mesh_vao() {
+        glBindVertexArray(mesh_vao);
+        CHECK_GL_ERRORS();
+    }
+
     Renderer::Renderer(int32_t width, int32_t height): single_color_shader(false), outline_mix_shader(false) {
         build_framebuffers(width, height);
 
@@ -125,31 +203,6 @@ namespace anton_engine::rendering {
         auto single_color_frag = assets::load_shader_file("single_color.frag");
         single_color_shader = create_shader(single_color_frag, single_color_vert);
 
-        glGenVertexArrays(1, &mesh_vao);
-        glBindVertexArray(mesh_vao);
-        glEnableVertexAttribArray(0);
-        glVertexAttribFormat(0, 3, GL_FLOAT, false, offsetof(Vertex, position));
-        glVertexAttribBinding(0, 0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribFormat(1, 3, GL_FLOAT, false, offsetof(Vertex, normal));
-        glVertexAttribBinding(1, 0);
-        glEnableVertexAttribArray(2);
-        glVertexAttribFormat(2, 3, GL_FLOAT, false, offsetof(Vertex, tangent));
-        glVertexAttribBinding(2, 0);
-        glEnableVertexAttribArray(3);
-        glVertexAttribFormat(3, 3, GL_FLOAT, false, offsetof(Vertex, bitangent));
-        glVertexAttribBinding(3, 0);
-        glEnableVertexAttribArray(4);
-        glVertexAttribFormat(4, 2, GL_FLOAT, false, offsetof(Vertex, uv_coordinates));
-        glVertexAttribBinding(4, 0);
-
-        // TODO: May not be per renderer instance
-        glGenBuffers(1, &lights_data_ubo);
-        glBindBuffer(GL_UNIFORM_BUFFER, lights_data_ubo);
-        glBufferStorage(GL_UNIFORM_BUFFER, sizeof(Lights_Data), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glBindBufferBase(GL_UNIFORM_BUFFER, 0, lights_data_ubo);
-
-        setup_opengl();
         set_gamma_value(2.2f);
     }
 
@@ -201,68 +254,17 @@ namespace anton_engine::rendering {
         build_framebuffers(width, height);
     }
 
-    static void update_lights_ubo(ECS& ecs, uint32_t lights_ubo) {
-        Lights_Data lights_data = {};
-        {
-            auto directional_lights = ecs.access<Directional_Light_Component>();
-            lights_data.directional_light_count = directional_lights.size();
-            int32_t i = 0;
-            for (Entity const entity: directional_lights) {
-                Directional_Light_Component& light = directional_lights.get(entity);
-                lights_data.directional_lights[i] = {light.color, light.direction, light.intensity, 0.8f, 1.0f};
-                ++i;
-            }
-        }
-        // {
-        //     auto spot_lights = ecs.access<Transform, Spot_Light_Component>();
-        //     int32_t i = 0;
-        //     for (Entity const entity: spot_lights) {
-        //         auto [transform, light] = spot_lights.get<Transform, Spot_Light_Component>(entity);
-        //         light_data.spot_lights[i] = {transform.local_position, light.direction, light.color, light.intensity, light.cutoff_angle, light.blend_angle,
-        //                                      1.0f, 0.09f, 0.032f, 0.8f, 1.0f};
-        //         ++i;
-        //     }
-        // }
-        {
-            auto point_lights = ecs.access<Transform, Point_Light_Component>();
-            lights_data.point_lights_count = point_lights.size();
-            int32_t i = 0;
-            for (Entity const entity: point_lights) {
-                auto [transform, light] = point_lights.get<Transform, Point_Light_Component>(entity);
-                lights_data.point_lights[i] = {transform.local_position, light.color, light.intensity, 1.0f, 0.09f, 0.032f, 0.8f, 1.0f};
-                ++i;
-            }
-        }
-
-        glNamedBufferSubData(lights_ubo, 0, sizeof(Lights_Data), &lights_data);
-    }
-
     void Renderer::load_shader_light_properties() {
         deferred_shading_shader.use();
         deferred_shading_shader.set_float("ambient_strength", 0.02f);
         deferred_shading_shader.set_vec3("ambient_color", Color(1.0f, 1.0f, 1.0f));
         // uhh?????????????????????
         deferred_shading_shader.set_float("material.shininess", 32.0f);
-        ECS& ecs = get_ecs();
-        update_lights_ubo(ecs, lights_data_ubo);
-    }
-
-    void Renderer::update_dynamic_lights() {
-        ECS& ecs = get_ecs();
-        update_lights_ubo(ecs, lights_data_ubo);
     }
 
     void Renderer::set_gamma_value(float gamma) {
         gamma_correction_shader.use();
         gamma_correction_shader.set_float("gamma", 1 / gamma);
-    }
-
-    void Renderer::setup_opengl() {
-        glDisable(GL_FRAMEBUFFER_SRGB);
-        glEnable(GL_CULL_FACE);
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_PROGRAM_POINT_SIZE); // TODO geometry shader stuff, remove
-        CHECK_GL_ERRORS();
     }
 
     void Renderer::swap_postprocess_buffers() {
@@ -369,8 +371,6 @@ namespace anton_engine::rendering {
 
     uint32_t Renderer::render_frame_as_texture(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform, int32_t const viewport_width,
                                                int32_t const viewport_height) {
-        update_dynamic_lights();
-
         glEnable(GL_DEPTH_TEST);
         opengl::viewport(0, 0, viewport_width, viewport_height);
         Framebuffer::bind(*framebuffer);

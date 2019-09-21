@@ -35,8 +35,6 @@ namespace anton_engine::rendering {
         void render_shadow_map(Matrix4 const& view_transform, Matrix4 const& projection_transform);
         void render_scene(Transform camera_transform, Matrix4 view_transform, Matrix4 projection_transform);
         void render_with_shader(Shader& shader, Transform const& camera_transform, Matrix4 const& view_transform, Matrix4 const& projection_transform);
-        void update_dynamic_lights();
-        void setup_opengl();
 
         void build_framebuffers(int32_t width, int32_t height);
         void delete_framebuffers();
@@ -48,11 +46,6 @@ namespace anton_engine::rendering {
         Framebuffer* framebuffer;
         Framebuffer* postprocess_front_buffer;
         Framebuffer* postprocess_back_buffer;
-        // Standard vao used for rendering meshes with position, normals, texture coords, tangent and bitangent
-        // Uses binding index 0
-        uint32_t mesh_vao;
-
-        uint32_t lights_data_ubo;
 
         Shader default_shader;
         // Postprocessing shaders
@@ -67,6 +60,10 @@ namespace anton_engine::rendering {
         uint32_t shadow_width = 1024;
         uint32_t shadow_height = 1024;
     };
+
+    void setup_rendering();
+    void update_dynamic_lights();
+    void bind_mesh_vao();
 
     // Render a quad taking up the whole viewport
     // Intended for rendering textures to the screen or applying postprocessing effects
