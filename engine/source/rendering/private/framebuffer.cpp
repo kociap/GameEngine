@@ -244,6 +244,10 @@ namespace anton_engine {
         create_framebuffer();
     }
 
+    Vector2 Framebuffer::size() const {
+        return {static_cast<float>(info.width), static_cast<float>(info.height)};
+    }
+
     uint32_t Framebuffer::get_color_texture(int32_t const index) const {
         if (info.multisampled) {
             throw std::runtime_error("Framebuffer is multisampled. Unable to get texture");

@@ -1,5 +1,7 @@
 set(SOURCE_FILES
     ${SOURCE_FILES}
+    "${CMAKE_CURRENT_SOURCE_DIR}/gizmo/arrow_3d.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/gizmo/gizmo.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/gizmo.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/viewport_camera.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/viewport.cpp"

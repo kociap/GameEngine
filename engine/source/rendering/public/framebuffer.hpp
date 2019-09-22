@@ -4,6 +4,7 @@
 #include <anton_stl/static_vector.hpp>
 #include <array>
 #include <cstdint>
+#include <math/vector2.hpp>
 #include <opengl.hpp>
 
 namespace anton_engine {
@@ -71,6 +72,7 @@ namespace anton_engine {
         Framebuffer& operator=(Framebuffer const&) = delete;
 
         void resize(int32_t width, int32_t height);
+        Vector2 size() const;
         uint32_t get_color_texture(int32_t index) const;
         uint32_t get_depth_texture() const;
 

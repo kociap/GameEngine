@@ -10,6 +10,7 @@
 #include <editor_events.hpp>
 #include <framebuffer.hpp>
 #include <gizmo.hpp>
+#include <gizmo/arrow_3d.hpp>
 #include <gizmo_internal.hpp>
 #include <glad.hpp>
 #include <input/input.hpp>
@@ -183,37 +184,6 @@ namespace anton_engine {
         gizmo::draw_line(pos + x - y - z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
     }
 
-    // // target_size in pixels
-    static float compute_handle_scale(Matrix4 const world_transform, uint32_t const target_size, Matrix4 const pers_mat, float const pixel_size) {
-        float const projected_w_comp = (world_transform[3] * pers_mat).w;
-        return /* scale_basis * */ target_size * pixel_size * projected_w_comp;
-    }
-
-    static void draw_translate_handle(Vector3 const axis, Color const color, Matrix4 const view_projection_mat, Vector3 const camera_position,
-                                      Vector3 const object_position, Vector2 const viewport_size) {
-        // TODO: Hardcoded size of handles
-        uint32_t const target_handle_size = 150;
-        float const handle_scale =
-            compute_handle_scale(math::transform::translate(object_position), target_handle_size, view_projection_mat, 1 / viewport_size.y);
-        float const cone_height = handle_scale * 0.23f;
-        float const cone_radius = handle_scale * 0.07f;
-        Vector3 const forward_end = object_position + handle_scale * axis;
-        gizmo::draw_line(object_position, forward_end, color, 1.0f, 0.0f, false);
-        gizmo::draw_cone(forward_end, axis, cone_radius, 8, cone_height, color, 0.0f, false);
-    }
-
-    static void draw_translate_handles(Matrix4 const view_projection_mat, Vector3 const camera_position, Vector3 const object_position,
-                                       Vector2 const viewport_size) {
-        // TODO: Add a way to customize the colors via settings?
-        Color const axis_blue = {15.f / 255.f, 77.f / 255.f, 186.f / 255.f};
-        Color const axis_green = {0, 220.0f / 255.0f, 0};
-        Color const axis_red = {179.f / 255.f, 20.f / 255.f, 5.f / 255.f};
-        // TODO: Renders only global space handles
-        draw_translate_handle(Vector3::forward, axis_blue, view_projection_mat, camera_position, object_position, viewport_size);
-        draw_translate_handle(Vector3::right, axis_red, view_projection_mat, camera_position, object_position, viewport_size);
-        draw_translate_handle(Vector3::up, axis_green, view_projection_mat, camera_position, object_position, viewport_size);
-    }
-
     void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const projection_mat, Matrix4 const inv_view_mat, Matrix4 const inv_projection_mat,
                                    Transform const camera_transform, anton_stl::Vector<Entity>& selected_entities) {
         int32_t const window_content_size_x = width();
@@ -335,8 +305,6 @@ namespace anton_engine {
                                       obb[1].local_y * obb[1].halfwidths.y, obb[1].local_z * obb[1].halfwidths.z);
                 draw_wireframe_cuboid(obb[2].center - transform.local_position + transform_ref.local_position, obb[2].local_x * obb[2].halfwidths.x,
                                       obb[2].local_y * obb[2].halfwidths.y, obb[2].local_z * obb[2].halfwidths.z);
-                draw_translate_handles(view_mat * projection_mat, camera_transform.local_position, transform_ref.local_position,
-                                       Vector2(window_content_size_x, window_content_size_y));
             } else if (gizmo_transform_space == 1) {
                 // rotation
             } else {
@@ -460,15 +428,46 @@ namespace anton_engine {
         renderer->swap_postprocess_buffers();
     }
 
-    static uint32_t draw_gizmo(rendering::Renderer* renderer, Framebuffer* framebuffer, Vector3 const camera_pos, Matrix4 const view,
-                               Matrix4 const projection) {
+    static void draw_translate_handle(Color const color, Matrix4 const world_transform, Matrix4 const vp_mat, Vector2 const viewport_size) {
+        // TODO: Hardcoded size of handles
+        uint32_t const target_handle_size = 125;
+        gizmo::Arrow_3D arrow = {gizmo::Arrow_3D_Style::cone, color, target_handle_size};
+        gizmo::draw_arrow_3d(arrow, world_transform, vp_mat, viewport_size);
+
+        // float const handle_scale =
+        //     compute_handle_scale(math::transform::translate(object_position), target_handle_size, view_projection_mat, 1 / viewport_size.y);
+        // float const cone_height = handle_scale * 0.23f;
+        // float const cone_radius = handle_scale * 0.07f;
+        // Vector3 const forward_end = object_position + handle_scale * axis;
+        // gizmo::draw_line(object_position, forward_end, color, 1.0f, 0.0f, false);
+        // gizmo::draw_cone(forward_end, axis, cone_radius, 8, cone_height, color, 0.0f, false);
+    }
+
+    static void draw_translate_handles(Matrix4 const offset, Matrix4 const view_projection_mat, Vector2 const viewport_size) {
+        // TODO: Add a way to customize the colors via settings?
+        Color const axis_blue = {15.f / 255.f, 77.f / 255.f, 186.f / 255.f};
+        Color const axis_green = {0, 220.0f / 255.0f, 0};
+        Color const axis_red = {179.f / 255.f, 20.f / 255.f, 5.f / 255.f};
+        // TODO: Renders only global space handles
+        draw_translate_handle(axis_blue, Matrix4({1, 0, 0, 0}, {0, -1, 0, 0}, {0, 0, -1, 0}, {0, 0, 0, 1}) * offset, view_projection_mat, viewport_size);
+        draw_translate_handle(axis_red, Matrix4({0, 0, 1, 0}, {0, 1, 0, 0}, {-1, 0, 0, 0}, {0, 0, 0, 1}) * offset, view_projection_mat, viewport_size);
+        draw_translate_handle(axis_green, Matrix4({1, 0, 0, 0}, {0, 0, 1, 0}, {0, -1, 0, 0}, {0, 0, 0, 1}) * offset, view_projection_mat, viewport_size);
+    }
+
+    static uint32_t draw_gizmo(rendering::Renderer* renderer, Framebuffer* framebuffer, Vector3 const camera_pos, Matrix4 const view, Matrix4 const projection,
+                               anton_stl::Vector<Entity> const& selected_entities) {
         glEnable(GL_DEPTH_TEST);
         Framebuffer::bind(*renderer->postprocess_front_buffer, Framebuffer::Bind_Mode::read);
         Framebuffer::bind(*framebuffer, Framebuffer::Bind_Mode::draw);
         Framebuffer::blit(*renderer->postprocess_front_buffer, *framebuffer, opengl::Buffer_Mask::color_buffer_bit);
         Framebuffer::bind(*framebuffer);
         gizmo::draw(camera_pos, view, projection);
-        glDisable(GL_DEPTH_TEST);
+        // TODO: That's terrible
+        if (selected_entities.size() > 0) {
+            ECS& ecs = Editor::get_ecs();
+            Transform& transform_ref = ecs.get_component<Transform>(selected_entities.front());
+            draw_translate_handles(math::transform::translate(transform_ref.local_position), view * projection, framebuffer->size());
+        }
         return framebuffer->get_color_texture(0);
     }
 
@@ -484,12 +483,12 @@ namespace anton_engine {
         uint32_t texture = renderer->render_frame_as_texture(view_mat, proj_mat, camera_transform, width(), height());
         draw_outlines(renderer, framebuffer, texture, selected_entities, view_mat, proj_mat, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f});
         // TODO change camera position from local to global
-        texture = draw_gizmo(renderer, framebuffer, camera_transform.local_position, view_mat, proj_mat);
+        texture = draw_gizmo(renderer, framebuffer, camera_transform.local_position, view_mat, proj_mat, selected_entities);
+        glDisable(GL_DEPTH_TEST);
         opengl::bind_framebuffer(GL_FRAMEBUFFER, context->defaultFramebufferObject());
         opengl::active_texture(0);
         opengl::bind_texture(opengl::Texture_Type::texture_2D, texture);
         renderer->gamma_correction_shader.use();
-        // TODO vao swap
         rendering::bind_mesh_vao();
         rendering::render_texture_quad();
         context->swapBuffers(windowHandle());
