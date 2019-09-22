@@ -48,6 +48,7 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/diagnostic_macros.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/handle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/integer_sequence_generator.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/intrinsics.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/logging.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/macro_undefs.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/paths.hpp"

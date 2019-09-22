@@ -6,7 +6,6 @@
 #include <string>
 
 namespace anton_engine {
-
     void _GE_check_gl_errors() {
         GLenum error = glGetError();
         if (error == GL_INVALID_ENUM) {

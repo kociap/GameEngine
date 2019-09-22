@@ -1,7 +1,7 @@
 #include <importers/tga.hpp>
 
 #include <anton_stl/memory.hpp>
-#include <debug_macros.hpp> // ANTON_UNREACHABLE
+#include <intrinsics.hpp>
 #include <cstdint>
 #include <importers/common.hpp>
 
