@@ -192,13 +192,10 @@ namespace anton_engine::opengl {
     // Minimum number of framebuffer color attachments
     constexpr uint32_t min_color_attachments = 8;
 
-    int32_t get_max_combined_texture_units();
-    int32_t get_max_renderbuffer_size();
-    int32_t get_max_color_attachments();
-    int32_t get_max_draw_buffers();
-    int32_t get_aliased_line_width_range();
-    int32_t get_smooth_line_width_range();
-    int32_t get_smooth_line_width_granularity();
+    [[nodiscard]] int32_t get_max_combined_texture_units();
+    [[nodiscard]] int32_t get_max_renderbuffer_size();
+    [[nodiscard]] int32_t get_max_color_attachments();
+    [[nodiscard]] int32_t get_max_draw_buffers();
 
     void active_texture(uint32_t index);
     void bind_buffer(Buffer_Type, uint32_t handle);

@@ -12,9 +12,6 @@ namespace anton_engine::opengl {
     static int32_t max_renderbuffer_size = 0;
     static int32_t max_color_attachments = 0;
     static int32_t max_draw_buffers = 0;
-    static int32_t aliased_line_width_range = 0;
-    static int32_t smooth_line_width_range = 0;
-    static int32_t smooth_line_width_granularity = 0;
 
     void load_functions() {
         if (!gladLoadGL()) {
@@ -23,15 +20,10 @@ namespace anton_engine::opengl {
     }
 
     void load_constants() {
-        CHECK_GL_ERRORS();
         glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_units);
         glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &max_renderbuffer_size);
         glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &max_color_attachments);
         glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
-        glGetIntegerv(GL_ALIASED_LINE_WIDTH_RANGE, &aliased_line_width_range);
-        glGetIntegerv(GL_SMOOTH_LINE_WIDTH_RANGE, &smooth_line_width_range);
-        glGetIntegerv(GL_SMOOTH_LINE_WIDTH_GRANULARITY, &smooth_line_width_granularity);
-        CHECK_GL_ERRORS();
     }
 
     int32_t get_max_combined_texture_units() {
@@ -48,18 +40,6 @@ namespace anton_engine::opengl {
 
     int32_t get_max_draw_buffers() {
         return max_draw_buffers;
-    }
-
-    int32_t get_aliased_line_width_range() {
-        return aliased_line_width_range;
-    }
-
-    int32_t get_smooth_line_width_range() {
-        return smooth_line_width_range;
-    }
-
-    int32_t get_smooth_line_width_granularity() {
-        return smooth_line_width_granularity;
     }
 
     void active_texture(uint32_t index) {
