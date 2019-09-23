@@ -9,6 +9,7 @@
 namespace anton_engine::gizmo {
     // Arrow head style
     enum class Arrow_3D_Style {
+        // none
         cone,
         cube,
     };

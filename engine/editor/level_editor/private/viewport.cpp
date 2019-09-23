@@ -11,6 +11,7 @@
 #include <framebuffer.hpp>
 #include <gizmo.hpp>
 #include <gizmo/arrow_3d.hpp>
+#include <gizmo/dial_3d.hpp>
 #include <gizmo_internal.hpp>
 #include <glad.hpp>
 #include <input/input.hpp>
@@ -431,8 +432,10 @@ namespace anton_engine {
     static void draw_translate_handle(Color const color, Matrix4 const world_transform, Matrix4 const vp_mat, Vector2 const viewport_size) {
         // TODO: Hardcoded size of handles
         uint32_t const target_handle_size = 125;
-        gizmo::Arrow_3D arrow = {gizmo::Arrow_3D_Style::cone, color, target_handle_size};
-        gizmo::draw_arrow_3d(arrow, world_transform, vp_mat, viewport_size);
+        // gizmo::Arrow_3D arrow = {gizmo::Arrow_3D_Style::cone, color, target_handle_size};
+        // gizmo::draw_arrow_3d(arrow, world_transform, vp_mat, viewport_size);
+        gizmo::Dial_3D dial = {color, target_handle_size};
+        gizmo::draw_dial_3d(dial, world_transform, vp_mat, viewport_size);
 
         // float const handle_scale =
         //     compute_handle_scale(math::transform::translate(object_position), target_handle_size, view_projection_mat, 1 / viewport_size.y);
