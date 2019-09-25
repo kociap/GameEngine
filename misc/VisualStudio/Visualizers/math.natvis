@@ -13,34 +13,34 @@
     </Type>
 
     <Type Name="anton_engine::Matrix4">
-        <DisplayString>{{ {{ {*(components)}, {*(components + 1)}, {*(components + 2)}, {*(components + 3)} }}, {{ {*(components + 4)}, {*(components + 5)}, {*(components + 6)}, {*(components + 7)} }}, {{ {*(components + 8)}, {*(components + 9)}, {*(components + 10)}, {*(components + 11)} }}, {{ {*(components + 12)}, {*(components + 13)}, {*(components + 14)}, {*(components + 15)} }} }}</DisplayString>
+        <DisplayString>{{ {{ {rows[0].x}, {rows[0].y}, {rows[0].z}, {rows[0].w} }}, {{ {rows[1].x}, {rows[1].y}, {rows[1].z}, {rows[1].w} }}, {{ {rows[2].x}, {rows[2].y}, {rows[2].z}, {rows[2].w} }}, {{ {rows[3].x}, {rows[3].y}, {rows[3].z}, {rows[3].w} }} }}</DisplayString>
         <Expand>
             <Synthetic Name="row 0">
-                <DisplayString>{{ {*(components)}, {*(components + 1)}, {*(components + 2)}, {*(components + 3)} }}</DisplayString>
+                <DisplayString>{{ {rows[0].x}, {rows[0].y}, {rows[0].z}, {rows[0].w} }}</DisplayString>
             </Synthetic>
             <Synthetic Name="row 1">
-                <DisplayString>{{ {*(components + 4)}, {*(components + 5)}, {*(components + 6)}, {*(components + 7)} }}</DisplayString>
+                <DisplayString>{{ {rows[1].x}, {rows[1].y}, {rows[1].z}, {rows[1].w} }}</DisplayString>
             </Synthetic>
             <Synthetic Name="row 2">
-                <DisplayString>{{ {*(components + 8)}, {*(components + 9)}, {*(components + 10)}, {*(components + 11)} }}</DisplayString>
+                <DisplayString>{{ {rows[2].x}, {rows[2].y}, {rows[2].z}, {rows[2].w} }}</DisplayString>
             </Synthetic>
             <Synthetic Name="row 3">
-                <DisplayString>{{ {*(components + 12)}, {*(components + 13)}, {*(components + 14)}, {*(components + 15)} }}</DisplayString>
+                <DisplayString>{{ {rows[3].x}, {rows[3].y}, {rows[3].z}, {rows[3].w} }}</DisplayString>
             </Synthetic>
         </Expand>
     </Type>
     
     <Type Name="anton_engine::Matrix3">
-        <DisplayString>{{ {{ {*(components)}, {*(components + 1)}, {*(components + 2)} }}, {{ {*(components + 3)}, {*(components + 4)}, {*(components + 5)} }}, {{ {*(components + 6)}, {*(components + 7)}, {*(components + 8)} }} }}</DisplayString>
+        <DisplayString>{{ {{ {rows[0].x}, {rows[0].y}, {rows[0].z} }}, {{ {rows[1].x}, {rows[1].y}, {rows[1].z} }}, {{ {rows[2].x}, {rows[2].y}, {rows[2].z} }} }}</DisplayString>
         <Expand>
             <Synthetic Name="row 0">
-                <DisplayString>{{ {*(components)}, {*(components + 1)}, {*(components + 2)} }}</DisplayString>
+                <DisplayString>{{ {rows[0].x}, {rows[0].y}, {rows[0].z} }}</DisplayString>
             </Synthetic>
             <Synthetic Name="row 1">
-                <DisplayString>{{ {*(components + 3)}, {*(components + 4)}, {*(components + 5)} }}</DisplayString>
+                <DisplayString>{{ {rows[1].x}, {rows[1].y}, {rows[1].z} }}</DisplayString>
             </Synthetic>
             <Synthetic Name="row 2">
-                <DisplayString>{{ {*(components + 6)}, {*(components + 7)}, {*(components + 8)} }}</DisplayString>
+                <DisplayString>{{ {rows[2].x}, {rows[2].y}, {rows[2].z} }}</DisplayString>
             </Synthetic>
         </Expand>
     </Type>
