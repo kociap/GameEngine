@@ -25,7 +25,9 @@ namespace anton_engine::gizmo {
     };
 
     struct Dial_Vertex_Data {
-        Vector3 circle[dial_vertex_count];
+        Vector3 vertices[2 * dial_vertex_count + 2];
+        Vector3 normals[2 * dial_vertex_count + 2];
+        float scale_factors[2 * dial_vertex_count + 2];
     };
 
     struct Gizmos_Vertex_Data {
@@ -75,44 +77,102 @@ namespace anton_engine::gizmo {
         vertices[15] = offset + Vector3{-half_size, half_size, half_size};
     }
 
-    static void generate_dial_geometry(Vector3* const vertices) {
-        float const angle = math::constants<float>::pi * 2.0f / dial_vertex_count;
-        for (int32_t i = 0; i < dial_vertex_count; ++i) {
-            vertices[i] = {math::cos(angle * i), math::sin(angle * i), 0};
+    static void compute_dial_vert_normal_and_factor(Vector3 const vert_prev, Vector3 const vert_curr, Vector3 const vert_next, Vector3* const normal_out,
+                                                    float* const factor_out) {
+        // normal = (vert[i] - vert[i - 2]) + (vert[i + 2] - vert[i])
+        Vector3 const normal = math::normalize(vert_next - vert_prev);
+        normal_out[0] = normal;
+        normal_out[1] = normal;
+
+        Vector3 const line_segment = math::normalize(vert_curr - vert_prev);
+        Vector3 const tangent = Vector3{-normal.y, normal.x, 0};
+        float const factor = 1 / math::dot(line_segment, tangent);
+        factor_out[0] = factor;
+        factor_out[1] = factor;
+    }
+
+    static void generate_dial_geometry(Dial_Vertex_Data* const dial) {
+        float const angle = math::constants<float>::pi / dial_vertex_count;
+        for (int32_t i = 0; i <= 2 * dial_vertex_count; i += 2) {
+            Vector3 const pos = {math::cos(angle * i), math::sin(angle * i), 0};
+            dial->vertices[i] = pos;
+            dial->vertices[i + 1] = pos;
         }
+
+        for (int32_t i = 2; i <= 2 * dial_vertex_count - 2; i += 2) {
+            // normal = (vert[i] - vert[i - 2]) + (vert[i + 2] - vert[i])
+            Vector3 const normal = math::normalize(dial->vertices[i + 2] - dial->vertices[i - 2]);
+            dial->normals[i] = normal;
+            dial->normals[i + 1] = normal;
+
+            Vector3 const tangent = Vector3{-normal.y, normal.x, 0};
+            Vector3 const line_segment = math::normalize(dial->vertices[i] - dial->vertices[i - 2]);
+            float const factor = 1.0f / math::abs(math::dot(Vector3{-line_segment.y, line_segment.x, 0}, tangent));
+            dial->scale_factors[i] = factor;
+            dial->scale_factors[i + 1] = factor;
+        }
+
+        // First and last vertices are duplicates
+        Vector3 const normal = math::normalize(dial->vertices[2] - dial->vertices[2 * dial_vertex_count - 2]);
+        dial->normals[0] = normal;
+        dial->normals[1] = normal;
+        dial->normals[2 * dial_vertex_count] = normal;
+        dial->normals[2 * dial_vertex_count + 1] = normal;
+
+        Vector3 const line_segment = math::normalize(dial->vertices[0] - dial->vertices[2 * dial_vertex_count - 2]);
+        Vector3 const tangent = Vector3{-normal.y, normal.x, 0};
+        float const factor = 1 / math::abs(math::dot(Vector3{-line_segment.y, line_segment.x, 0}, tangent));
+        dial->scale_factors[0] = factor;
+        dial->scale_factors[1] = factor;
+        dial->scale_factors[2 * dial_vertex_count] = factor;
+        dial->scale_factors[2 * dial_vertex_count + 1] = factor;
     }
 
     // TODO: Local buffers to make this work
     static uint32_t vbo = 0;
     static uint32_t vao = 0;
+    static uint32_t line_vao = 0;
 
     constexpr int32_t cone_base_index = 0;
     constexpr int32_t cube_base_index = 2 + cone_vertex_count;
-    constexpr int32_t dial_base_index = cube_base_index + 2 + cube_vertex_count;
 
     static void initialize_ogl() {
+        Gizmos_Vertex_Data gizmos_vertex_data;
+        generate_cone_geometry(gizmos_vertex_data.arrow.cone);
+        generate_cube_geometry(gizmos_vertex_data.arrow.cube);
+        generate_dial_geometry(&gizmos_vertex_data.dial);
+
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferStorage(GL_ARRAY_BUFFER, sizeof(Gizmos_Vertex_Data), &gizmos_vertex_data, 0);
+
         glGenVertexArrays(1, &vao);
         glBindVertexArray(vao);
         glEnableVertexAttribArray(0);
         glVertexAttribFormat(0, 3, GL_FLOAT, GL_FALSE, 0);
         glVertexAttribBinding(0, 0);
-
-        Gizmos_Vertex_Data gizmos_vertex_data;
-        generate_cone_geometry(gizmos_vertex_data.arrow.cone);
-        generate_cube_geometry(gizmos_vertex_data.arrow.cube);
-        generate_dial_geometry(gizmos_vertex_data.dial.circle);
-
-        glGenBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferStorage(GL_ARRAY_BUFFER, sizeof(Gizmos_Vertex_Data), &gizmos_vertex_data, 0);
         glBindVertexBuffer(0, vbo, 0, sizeof(Vector3));
+
+        glGenVertexArrays(1, &line_vao);
+        glBindVertexArray(line_vao);
+        glEnableVertexAttribArray(0);
+        glVertexAttribFormat(0, 3, GL_FLOAT, false, 0);
+        glVertexAttribBinding(0, 0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribFormat(1, 3, GL_FLOAT, false, 0);
+        glVertexAttribBinding(1, 1);
+        glEnableVertexAttribArray(2);
+        glVertexAttribFormat(2, 1, GL_FLOAT, false, 0);
+        glVertexAttribBinding(2, 2);
+        uint64_t base_offset = offsetof(Gizmos_Vertex_Data, dial);
+        glBindVertexBuffer(0, vbo, base_offset + offsetof(Dial_Vertex_Data, vertices), sizeof(Vector3));
+        glBindVertexBuffer(1, vbo, base_offset + offsetof(Dial_Vertex_Data, normals), sizeof(Vector3));
+        glBindVertexBuffer(2, vbo, base_offset + offsetof(Dial_Vertex_Data, scale_factors), sizeof(float));
     }
 
     void draw_arrow_3d(Arrow_3D const arrow, Matrix4 const world_transform, Matrix4 const view_projection_matrix, Vector2 const viewport_size) {
         if (ANTON_UNLIKELY(vao == 0)) {
             initialize_ogl();
-        } else {
-            glBindVertexArray(vao);
         }
 
         Shader& uniform_color_shader = get_builtin_shader(Builtin_Shader::uniform_color_3d);
@@ -120,6 +180,7 @@ namespace anton_engine::gizmo {
         uniform_color_shader.set_vec4("color", arrow.color);
         float scale = compute_scale(world_transform, arrow.size, view_projection_matrix, viewport_size);
         uniform_color_shader.set_matrix4("mvp_mat", math::transform::scale(scale) * world_transform * view_projection_matrix);
+        glBindVertexArray(vao);
         if (arrow.draw_style == Arrow_3D_Style::cone) {
             glDrawArrays(GL_LINES, cone_base_index, 2);
             GLint first[2] = {cone_base_index + 2, cone_base_index + 2 + cone_base_point_count + 2};
@@ -131,18 +192,22 @@ namespace anton_engine::gizmo {
         }
     }
 
-    void draw_dial_3d(Dial_3D const dial, Matrix4 const world_transform, Matrix4 const view_projection_matrix, Vector2 const viewport_size) {
+    void draw_dial_3d(Dial_3D const dial, Matrix4 const world_transform, Matrix4 const view_mat, Matrix4 const projection_mat, Vector3 const camera_pos,
+                      Vector2 const viewport_size) {
         if (ANTON_UNLIKELY(vao == 0)) {
             initialize_ogl();
-        } else {
-            glBindVertexArray(vao);
         }
 
-        Shader& uniform_color_shader = get_builtin_shader(Builtin_Shader::uniform_color_3d);
+        Shader& uniform_color_shader = get_builtin_shader(Builtin_Shader::uniform_color_line_3d);
         uniform_color_shader.use();
+        Matrix4 const vp_mat = view_mat * projection_mat;
+        float scale = compute_scale(world_transform, dial.size, vp_mat, viewport_size);
+        uniform_color_shader.set_matrix4("model_mat", math::transform::scale(scale) * world_transform);
+        uniform_color_shader.set_matrix4("vp_mat", vp_mat);
         uniform_color_shader.set_vec4("color", dial.color);
-        float scale = compute_scale(world_transform, dial.size, view_projection_matrix, viewport_size);
-        uniform_color_shader.set_matrix4("mvp_mat", math::transform::scale(scale) * world_transform * view_projection_matrix);
-        glDrawArrays(GL_LINE_LOOP, dial_base_index, dial_vertex_count);
+        uniform_color_shader.set_vec3("camera_pos", camera_pos);
+        uniform_color_shader.set_float("line_width", scale * 0.018f);
+        glBindVertexArray(line_vao);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 2 * dial_vertex_count + 2);
     }
 } // namespace anton_engine::gizmo

@@ -6,6 +6,7 @@
 namespace anton_engine {
     enum class Builtin_Shader {
         uniform_color_3d = 0,
+        uniform_color_line_3d = 1,
     };
 
     // TODO: Should be private (most likely)

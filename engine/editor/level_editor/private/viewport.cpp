@@ -429,13 +429,14 @@ namespace anton_engine {
         renderer->swap_postprocess_buffers();
     }
 
-    static void draw_translate_handle(Color const color, Matrix4 const world_transform, Matrix4 const vp_mat, Vector2 const viewport_size) {
+    static void draw_translate_handle(Color const color, Matrix4 const world_transform, Matrix4 const view, Matrix4 const projection, Vector3 const camera_pos,
+                                      Vector2 const viewport_size) {
         // TODO: Hardcoded size of handles
         uint32_t const target_handle_size = 125;
         // gizmo::Arrow_3D arrow = {gizmo::Arrow_3D_Style::cone, color, target_handle_size};
         // gizmo::draw_arrow_3d(arrow, world_transform, vp_mat, viewport_size);
         gizmo::Dial_3D dial = {color, target_handle_size};
-        gizmo::draw_dial_3d(dial, world_transform, vp_mat, viewport_size);
+        gizmo::draw_dial_3d(dial, world_transform, view, projection, camera_pos, viewport_size);
 
         // float const handle_scale =
         //     compute_handle_scale(math::transform::translate(object_position), target_handle_size, view_projection_mat, 1 / viewport_size.y);
@@ -446,15 +447,23 @@ namespace anton_engine {
         // gizmo::draw_cone(forward_end, axis, cone_radius, 8, cone_height, color, 0.0f, false);
     }
 
-    static void draw_translate_handles(Matrix4 const offset, Matrix4 const view_projection_mat, Vector2 const viewport_size) {
+    static void draw_translate_handles(Matrix4 const offset, Matrix4 const view, Matrix4 const projection, Vector3 const camera_pos,
+                                       Vector2 const viewport_size) {
         // TODO: Add a way to customize the colors via settings?
-        Color const axis_blue = {15.f / 255.f, 77.f / 255.f, 186.f / 255.f};
-        Color const axis_green = {0, 220.0f / 255.0f, 0};
-        Color const axis_red = {179.f / 255.f, 20.f / 255.f, 5.f / 255.f};
+        Color const axis_blue = {15.f / 255.f, 77.f / 255.f, 186.f / 255.f, 0.85f};
+        Color const axis_green = {0, 220.0f / 255.0f, 0, 0.85f};
+        Color const axis_red = {179.f / 255.f, 20.f / 255.f, 5.f / 255.f, 0.85f};
         // TODO: Renders only global space handles
-        draw_translate_handle(axis_blue, Matrix4({1, 0, 0, 0}, {0, -1, 0, 0}, {0, 0, -1, 0}, {0, 0, 0, 1}) * offset, view_projection_mat, viewport_size);
-        draw_translate_handle(axis_red, Matrix4({0, 0, 1, 0}, {0, 1, 0, 0}, {-1, 0, 0, 0}, {0, 0, 0, 1}) * offset, view_projection_mat, viewport_size);
-        draw_translate_handle(axis_green, Matrix4({1, 0, 0, 0}, {0, 0, 1, 0}, {0, -1, 0, 0}, {0, 0, 0, 1}) * offset, view_projection_mat, viewport_size);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_DEPTH_TEST);
+        draw_translate_handle(axis_blue, Matrix4({1, 0, 0, 0}, {0, -1, 0, 0}, {0, 0, -1, 0}, {0, 0, 0, 1}) * offset, view, projection, camera_pos,
+                              viewport_size);
+        draw_translate_handle(axis_green, Matrix4({1, 0, 0, 0}, {0, 0, 1, 0}, {0, -1, 0, 0}, {0, 0, 0, 1}) * offset, view, projection, camera_pos,
+                              viewport_size);
+        draw_translate_handle(axis_red, Matrix4({0, 0, 1, 0}, {0, 1, 0, 0}, {-1, 0, 0, 0}, {0, 0, 0, 1}) * offset, view, projection, camera_pos, viewport_size);
+        glDisable(GL_BLEND);
+        glEnable(GL_DEPTH_TEST);
     }
 
     static uint32_t draw_gizmo(rendering::Renderer* renderer, Framebuffer* framebuffer, Vector3 const camera_pos, Matrix4 const view, Matrix4 const projection,
@@ -469,7 +478,7 @@ namespace anton_engine {
         if (selected_entities.size() > 0) {
             ECS& ecs = Editor::get_ecs();
             Transform& transform_ref = ecs.get_component<Transform>(selected_entities.front());
-            draw_translate_handles(math::transform::translate(transform_ref.local_position), view * projection, framebuffer->size());
+            draw_translate_handles(math::transform::translate(transform_ref.local_position), view, projection, camera_pos, framebuffer->size());
         }
         return framebuffer->get_color_texture(0);
     }
