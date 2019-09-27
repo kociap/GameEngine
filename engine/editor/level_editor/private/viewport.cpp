@@ -29,6 +29,7 @@
 #include <resource_manager.hpp>
 #include <shader_file.hpp>
 #include <viewport_camera.hpp>
+#include <builtin_shaders.hpp>
 
 ANTON_DISABLE_WARNINGS();
 #include <QCloseEvent>
@@ -68,7 +69,6 @@ namespace anton_engine {
         construct_info.height = h;
         framebuffer = new Framebuffer(construct_info);
         renderer = new rendering::Renderer(w, h);
-        renderer->load_shader_light_properties();
 
         ECS& ecs = Editor::get_ecs();
         auto [entity, viewport_camera, camera, transform] = ecs.create<Viewport_Camera, Camera, Transform>();
@@ -398,10 +398,9 @@ namespace anton_engine {
         Framebuffer::bind(*framebuffer, Framebuffer::Bind_Mode::draw);
         Framebuffer::blit(*renderer->framebuffer, *framebuffer, opengl::Buffer_Mask::depth_buffer_bit);
 
-        renderer->single_color_shader.use();
-        renderer->single_color_shader.set_vec4("color", outline_color);
-        renderer->single_color_shader.set_matrix4("view", view);
-        renderer->single_color_shader.set_matrix4("projection", projection);
+		Shader& uniform_color_shader = get_builtin_shader(Builtin_Shader::uniform_color_3d);
+        uniform_color_shader.use();
+        uniform_color_shader.set_vec4("color", outline_color);
 
         ECS& ecs = Editor::get_ecs();
         Resource_Manager<Mesh>& mesh_manager = Editor::get_mesh_manager();
@@ -414,7 +413,8 @@ namespace anton_engine {
             auto const [transform, static_mesh] = ecs.try_get_component<Transform, Static_Mesh_Component>(entity);
             if (transform && static_mesh) {
                 Mesh const& mesh = mesh_manager.get(static_mesh->mesh_handle);
-                renderer->single_color_shader.set_matrix4("model", transform->to_matrix());
+                Matrix4 const mvp_mat = transform->to_matrix() * view * projection;
+                uniform_color_shader.set_matrix4("mvp_mat", mvp_mat);
                 rendering::render_mesh(mesh);
             }
         }

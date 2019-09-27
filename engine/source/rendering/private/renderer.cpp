@@ -4,6 +4,7 @@
 #include <anton_stl/utility.hpp>
 #include <assets.hpp>
 #include <build_config.hpp>
+#include <builtin_shaders.hpp>
 #include <components/camera.hpp>
 #include <components/directional_light_component.hpp>
 #include <components/line_component.hpp>
@@ -87,6 +88,12 @@ namespace anton_engine::rendering {
         Directional_Light_Data directional_lights[16];
     };
 
+    struct Environment_Data {
+        alignas(16) Color ambient_color;
+        float ambient_strentgh;
+        float shininess; // TODO: Remove. Has basically no meaning since it should be per material and should be a different property.
+    };
+
     // Dynamic lights data. Bound to binding 0.
     static uint32_t lights_data_ubo = 0;
     // Persistently mapped vertex buffer for rendering geometry.
@@ -97,6 +104,15 @@ namespace anton_engine::rendering {
     // Standard vao used for rendering meshes with position, normals, texture coords, tangent and bitangent.
     // Uses binding index 0.
     static uint32_t mesh_vao = 0;
+
+    static uint64_t align_size(uint64_t const size, uint64_t const alignment) {
+        uint64_t const misalignment = size & (alignment - 1);
+        return size + (misalignment != 0 ? alignment - misalignment : 0);
+    }
+
+    // static uint64_t align_size(uint64_t const size, uint64_t const alignment) {
+    //     return (size + alignment - 1) / alignment * alignment;
+    // }
 
     void setup_rendering() {
         CHECK_GL_ERRORS();
@@ -121,19 +137,29 @@ namespace anton_engine::rendering {
         glEnableVertexAttribArray(4);
         glVertexAttribFormat(4, 2, GL_FLOAT, false, offsetof(Vertex, uv_coordinates));
         glVertexAttribBinding(4, 0);
-        CHECK_GL_ERRORS();
+
         glGenBuffers(1, &vertex_buffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-        CHECK_GL_ERRORS();
         // Huge buffer
         glBufferStorage(GL_ARRAY_BUFFER, vertex_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT);
-        CHECK_GL_ERRORS();
         mapped_vertex_buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vertex_buffer_size, GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT);
-        CHECK_GL_ERRORS();
+
         glGenBuffers(1, &lights_data_ubo);
         glBindBuffer(GL_UNIFORM_BUFFER, lights_data_ubo);
-        glBufferStorage(GL_UNIFORM_BUFFER, sizeof(Lights_Data), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glBindBufferBase(GL_UNIFORM_BUFFER, 0, lights_data_ubo);
+
+        uint64_t const uniform_required_alignment = opengl::get_uniform_buffer_offset_alignment();
+        uint64_t const environment_data_offset = align_size(sizeof(Lights_Data), uniform_required_alignment);
+        glBufferStorage(GL_UNIFORM_BUFFER, environment_data_offset + sizeof(Environment_Data), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glBindBufferRange(GL_UNIFORM_BUFFER, 0, lights_data_ubo, 0, sizeof(Lights_Data));
+        CHECK_GL_ERRORS();
+        int size;
+        glGetBufferParameteriv(GL_UNIFORM_BUFFER, GL_BUFFER_SIZE, &size);
+        // TODO: We load hardcoded environment properties at startup, but they should be modifiable.
+        Environment_Data environment_data = {{1.0f, 1.0f, 1.0f}, 0.02f, 32.0f};
+        glBufferSubData(GL_UNIFORM_BUFFER, environment_data_offset, sizeof(Environment_Data), &environment_data);
+        CHECK_GL_ERRORS();
+        glBindBufferRange(GL_UNIFORM_BUFFER, 1, lights_data_ubo, environment_data_offset, sizeof(Environment_Data));
+        CHECK_GL_ERRORS();
     }
 
     void update_dynamic_lights() {
@@ -177,7 +203,7 @@ namespace anton_engine::rendering {
         glBindVertexArray(mesh_vao);
     }
 
-    Renderer::Renderer(int32_t width, int32_t height): single_color_shader(false), outline_mix_shader(false) {
+    Renderer::Renderer(int32_t width, int32_t height): outline_mix_shader(false) {
         build_framebuffers(width, height);
 
         // TODO move to postprocessing
@@ -198,17 +224,6 @@ namespace anton_engine::rendering {
         passthrough_quad_shader = create_shader(quad_vert, quad_frag);
         passthrough_quad_shader.use();
         passthrough_quad_shader.set_int("scene_texture", 0);
-
-        auto deferred_frag = assets::load_shader_file("deferred_shading.frag");
-        deferred_shading_shader = create_shader(deferred_frag, quad_vert);
-        deferred_shading_shader.use();
-        deferred_shading_shader.set_int("gbuffer_position", 0);
-        deferred_shading_shader.set_int("gbuffer_normal", 1);
-        deferred_shading_shader.set_int("gbuffer_albedo_spec", 2);
-
-        auto single_color_vert = assets::load_shader_file("single_color.vert");
-        auto single_color_frag = assets::load_shader_file("single_color.frag");
-        single_color_shader = create_shader(single_color_frag, single_color_vert);
 
         set_gamma_value(2.2f);
     }
@@ -241,7 +256,6 @@ namespace anton_engine::rendering {
 
     void Renderer::delete_framebuffers() {
         delete framebuffer;
-        //delete light_depth_buffer;
         delete postprocess_back_buffer;
         delete postprocess_front_buffer;
     }
@@ -249,14 +263,6 @@ namespace anton_engine::rendering {
     void Renderer::resize(int32_t width, int32_t height) {
         delete_framebuffers();
         build_framebuffers(width, height);
-    }
-
-    void Renderer::load_shader_light_properties() {
-        deferred_shading_shader.use();
-        deferred_shading_shader.set_float("ambient_strength", 0.02f);
-        deferred_shading_shader.set_vec3("ambient_color", Color(1.0f, 1.0f, 1.0f));
-        // uhh?????????????????????
-        deferred_shading_shader.set_float("material.shininess", 32.0f);
     }
 
     void Renderer::set_gamma_value(float gamma) {
@@ -325,14 +331,13 @@ namespace anton_engine::rendering {
 
         glDisable(GL_DEPTH_TEST);
         Framebuffer::bind(*postprocess_back_buffer);
-        opengl::active_texture(0);
-        opengl::bind_texture(opengl::Texture_Type::texture_2D, framebuffer->get_color_texture(0));
-        opengl::active_texture(1);
-        opengl::bind_texture(opengl::Texture_Type::texture_2D, framebuffer->get_color_texture(1));
-        opengl::active_texture(2);
-        opengl::bind_texture(opengl::Texture_Type::texture_2D, framebuffer->get_color_texture(2));
-        deferred_shading_shader.use();
-        deferred_shading_shader.set_vec3("camera.position", camera_transform.local_position);
+        glBindTextureUnit(0, framebuffer->get_color_texture(0));
+        glBindTextureUnit(1, framebuffer->get_color_texture(1));
+        glBindTextureUnit(2, framebuffer->get_color_texture(2));
+
+        Shader& deferred_shading = get_builtin_shader(Builtin_Shader::deferred_shading);
+        deferred_shading.use();
+        deferred_shading.set_vec3("camera.position", camera_transform.local_position);
         render_texture_quad();
 
         swap_postprocess_buffers();

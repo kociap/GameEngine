@@ -28,23 +28,11 @@ namespace anton_engine {
         }
     }
 
-    static void reload_renderer_shaders(char const*) {
-        rendering::Renderer& rend = Engine::get_renderer();
-        //reload_shader(rend.fxaa_shader, "postprocessing/postprocess_vertex.vert", fxaa);
-        reload_shader(rend.tangents, "tangents.vert", "tangents.geom", "tangents.frag");
-        reload_shader(rend.deferred_shading_shader, "quad.vert", "deferred_shading.frag");
-        rend.deferred_shading_shader.use();
-        rend.deferred_shading_shader.set_int("gbuffer_position", 0);
-        rend.deferred_shading_shader.set_int("gbuffer_normal", 1);
-        rend.deferred_shading_shader.set_int("gbuffer_albedo_spec", 2);
-    }
-
     static char const* current_fxaa = "postprocessing/fxaa.frag";
     static char const* next_fxaa = "postprocessing/nv_fxaa_port.frag";
 
     static void swap_fxaa_shader() {
         std::swap(current_fxaa, next_fxaa);
-        reload_renderer_shaders(current_fxaa);
     }
 
     void Debug_Hotkeys::update(Debug_Hotkeys&) {
@@ -52,7 +40,6 @@ namespace anton_engine {
         if (reload.released) {
             // TODO reloading shaders
             //Engine::get_shader_manager().reload_shaders();
-            reload_renderer_shaders(current_fxaa);
         }
 
         auto swap_fxaa = Input::get_action("swap_fxaa_shaders");

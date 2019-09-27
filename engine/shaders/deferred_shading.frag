@@ -1,17 +1,5 @@
 #version 450 core
 
-struct Material {
-    sampler2D texture_diffuse;
-    sampler2D texture_specular;
-    sampler2D normal_map;
-    float shininess;
-    bool normal_map_attached;
-};
-
-struct Camera {
-    vec3 position;
-};
-
 struct Point_Light {
     vec3 position;
     vec4 color;
@@ -39,14 +27,21 @@ layout(std140, binding = 0) uniform Lights_Data {
     Directional_Light[16] directional_lights;
 };
 
-uniform Material material;
-uniform Camera camera;
-uniform vec3 ambient_color;
-uniform float ambient_strength;
+layout(std140, binding = 1) uniform Environment_Data {
+    vec4 ambient_color;
+    float ambient_strength;
+    float todo_remove_shininess;
+};
 
-uniform sampler2D gbuffer_position;
-uniform sampler2D gbuffer_normal;
-uniform sampler2D gbuffer_albedo_spec;
+struct Camera {
+    vec3 position;
+};
+
+uniform Camera camera;
+
+layout(binding = 0) uniform sampler2D gbuffer_position;
+layout(binding = 1) uniform sampler2D gbuffer_normal;
+layout(binding = 2) uniform sampler2D gbuffer_albedo_spec;
 
 in vec2 tex_coords;
 out vec4 frag_color;
@@ -61,7 +56,7 @@ void main() {
     vec3 albedo = albedo_spec.rgb;
     float specular = albedo_spec.a;
     vec3 view_vec = normalize(camera.position - surface_position);
-    vec3 ambient = albedo * ambient_color * ambient_strength;
+    vec3 ambient = albedo * vec3(ambient_color) * ambient_strength;
 
     vec3 light_color = vec3(0);
     for(int i = 0; i < point_lights_count; ++i) {
@@ -80,7 +75,7 @@ vec3 compute_point_lighting(Point_Light light, vec3 surface_position, vec3 surfa
     vec3 half_vec = normalize(view_vec + light_vec);
     float source_frag_dist = length(light.position - surface_position);
     vec3 diffuse = albedo_color * max(dot(surface_normal, light_vec), 0.0);
-    vec3 specular = vec3(specular_factor * pow(max(dot(surface_normal, half_vec), 0.0), material.shininess));
+    vec3 specular = vec3(specular_factor * pow(max(dot(surface_normal, half_vec), 0.0), todo_remove_shininess));
 
     float attentuation = light.intensity / (light.attentuation_constant + source_frag_dist * light.attentuation_linear +
                                             source_frag_dist * source_frag_dist * light.attentuation_quadratic);
@@ -93,7 +88,7 @@ vec3 compute_point_lighting(Point_Light light, vec3 surface_position, vec3 surfa
 vec3 compute_directional_lighting(Directional_Light light, vec3 surface_normal, vec3 view_vec, vec3 albedo_color, float specular_factor) {
     vec3 half_vec = normalize(view_vec - light.direction);
     vec3 diffuse = albedo_color * max(0.0, dot(surface_normal, -light.direction));
-    vec3 specular = vec3(specular_factor * pow(max(0.0, dot(surface_normal, half_vec)), material.shininess));
+    vec3 specular = vec3(specular_factor * pow(max(0.0, dot(surface_normal, half_vec)), todo_remove_shininess));
     diffuse *= light.diffuse_strength;
     specular *= light.specular_strength;
     return light.intensity * vec3(light.color) * (diffuse + specular);

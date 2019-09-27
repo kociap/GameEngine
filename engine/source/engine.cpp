@@ -46,7 +46,6 @@ namespace anton_engine {
         ecs = new ECS();
 
         renderer = new rendering::Renderer(main_window->width(), main_window->height());
-        renderer->load_shader_light_properties();
         load_world();
     }
 

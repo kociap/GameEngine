@@ -196,6 +196,7 @@ namespace anton_engine::opengl {
     [[nodiscard]] int32_t get_max_renderbuffer_size();
     [[nodiscard]] int32_t get_max_color_attachments();
     [[nodiscard]] int32_t get_max_draw_buffers();
+    [[nodiscard]] int32_t get_uniform_buffer_offset_alignment();
 
     void active_texture(uint32_t index);
     void bind_buffer(Buffer_Type, uint32_t handle);

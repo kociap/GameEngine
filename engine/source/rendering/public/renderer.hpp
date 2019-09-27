@@ -26,7 +26,6 @@ namespace anton_engine::rendering {
         void resize(int32_t width, int32_t height);
         void render_frame(Matrix4 view_mat, Matrix4 proj_mat, Transform camera_transform, int32_t viewport_width, int32_t viewport_height);
         uint32_t render_frame_as_texture(Matrix4 view_mat, Matrix4 proj_mat, Transform camera_transform, int32_t viewport_width, int32_t viewport_height);
-        void load_shader_light_properties();
         void set_gamma_value(float);
         void swap_postprocess_buffers();
 
@@ -46,9 +45,6 @@ namespace anton_engine::rendering {
         // TODO move to postprocessing
         Shader gamma_correction_shader;
         Shader passthrough_quad_shader;
-        Shader tangents;
-        Shader deferred_shading_shader;
-        Shader single_color_shader;
         Shader outline_mix_shader;
     };
 

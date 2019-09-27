@@ -6,7 +6,7 @@
 #include <utils/enum.hpp>
 
 namespace anton_engine {
-    static anton_stl::Vector<Shader> builtin_shaders = anton_stl::Vector<Shader>(anton_stl::reserve, 2);
+    static anton_stl::Vector<Shader> builtin_shaders = anton_stl::Vector<Shader>(anton_stl::reserve, 3);
 
     // TODO: Should be private (most likely)
     void load_builtin_shaders() {
@@ -16,6 +16,10 @@ namespace anton_engine {
 
         Shader_File uniform_color_line_vert = assets::load_shader_file("uniform_color_line.vert");
         builtin_shaders.push_back(create_shader(uniform_color_line_vert, uniform_color_frag));
+
+        auto postprocess_vert = assets::load_shader_file("postprocessing/postprocess_vertex.vert");
+        auto deferred_frag = assets::load_shader_file("deferred_shading.frag");
+        builtin_shaders.push_back(create_shader(deferred_frag, postprocess_vert));
     }
 
     void unload_builtin_shaders() {

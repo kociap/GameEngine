@@ -12,6 +12,7 @@ namespace anton_engine::opengl {
     static int32_t max_renderbuffer_size = 0;
     static int32_t max_color_attachments = 0;
     static int32_t max_draw_buffers = 0;
+    static int32_t uniform_buffer_offset_alignment = 0;
 
     void load_functions() {
         if (!gladLoadGL()) {
@@ -24,6 +25,7 @@ namespace anton_engine::opengl {
         glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &max_renderbuffer_size);
         glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &max_color_attachments);
         glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
+        glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uniform_buffer_offset_alignment);
     }
 
     int32_t get_max_combined_texture_units() {
@@ -40,6 +42,10 @@ namespace anton_engine::opengl {
 
     int32_t get_max_draw_buffers() {
         return max_draw_buffers;
+    }
+
+    int32_t get_uniform_buffer_offset_alignment() {
+        return uniform_buffer_offset_alignment;
     }
 
     void active_texture(uint32_t index) {
