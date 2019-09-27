@@ -18,7 +18,6 @@ namespace anton_engine {
 } // namespace anton_engine
 
 namespace anton_engine::rendering {
-    // TODO this thing has to go
     class Renderer {
     public:
         Renderer(int32_t width, int32_t height);
@@ -32,15 +31,10 @@ namespace anton_engine::rendering {
         void swap_postprocess_buffers();
 
     private:
-        void render_shadow_map(Matrix4 const& view_transform, Matrix4 const& projection_transform);
         void render_scene(Transform camera_transform, Matrix4 view_transform, Matrix4 projection_transform);
-        void render_with_shader(Shader& shader, Transform const& camera_transform, Matrix4 const& view_transform, Matrix4 const& projection_transform);
 
         void build_framebuffers(int32_t width, int32_t height);
         void delete_framebuffers();
-
-    private:
-        Framebuffer* framebuffer_multisampled;
 
     public:
         Framebuffer* framebuffer;
@@ -56,9 +50,6 @@ namespace anton_engine::rendering {
         Shader deferred_shading_shader;
         Shader single_color_shader;
         Shader outline_mix_shader;
-
-        uint32_t shadow_width = 1024;
-        uint32_t shadow_height = 1024;
     };
 
     void setup_rendering();

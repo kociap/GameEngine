@@ -87,17 +87,22 @@ namespace anton_engine::rendering {
         Directional_Light_Data directional_lights[16];
     };
 
+    // Dynamic lights data. Bound to binding 0.
     static uint32_t lights_data_ubo = 0;
-    // Standard vao used for rendering meshes with position, normals, texture coords, tangent and bitangent
-    // Uses binding index 0
+    // Persistently mapped vertex buffer for rendering geometry.
+    static uint32_t vertex_buffer = 0;
+    constexpr int64_t vertex_buffer_vertex_count = 1048576;
+    constexpr int64_t vertex_buffer_size = vertex_buffer_vertex_count * sizeof(Vertex);
+    static void* mapped_vertex_buffer = nullptr;
+    // Standard vao used for rendering meshes with position, normals, texture coords, tangent and bitangent.
+    // Uses binding index 0.
     static uint32_t mesh_vao = 0;
 
     void setup_rendering() {
+        CHECK_GL_ERRORS();
         glDisable(GL_FRAMEBUFFER_SRGB);
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
-        glEnable(GL_PROGRAM_POINT_SIZE); // TODO geometry shader stuff, remove
-        CHECK_GL_ERRORS();
 
         glGenVertexArrays(1, &mesh_vao);
         glBindVertexArray(mesh_vao);
@@ -116,7 +121,15 @@ namespace anton_engine::rendering {
         glEnableVertexAttribArray(4);
         glVertexAttribFormat(4, 2, GL_FLOAT, false, offsetof(Vertex, uv_coordinates));
         glVertexAttribBinding(4, 0);
-
+        CHECK_GL_ERRORS();
+        glGenBuffers(1, &vertex_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+        CHECK_GL_ERRORS();
+        // Huge buffer
+        glBufferStorage(GL_ARRAY_BUFFER, vertex_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT);
+        CHECK_GL_ERRORS();
+        mapped_vertex_buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vertex_buffer_size, GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT);
+        CHECK_GL_ERRORS();
         glGenBuffers(1, &lights_data_ubo);
         glBindBuffer(GL_UNIFORM_BUFFER, lights_data_ubo);
         glBufferStorage(GL_UNIFORM_BUFFER, sizeof(Lights_Data), nullptr, GL_DYNAMIC_STORAGE_BIT);
@@ -162,7 +175,6 @@ namespace anton_engine::rendering {
 
     void bind_mesh_vao() {
         glBindVertexArray(mesh_vao);
-        CHECK_GL_ERRORS();
     }
 
     Renderer::Renderer(int32_t width, int32_t height): single_color_shader(false), outline_mix_shader(false) {
@@ -194,11 +206,6 @@ namespace anton_engine::rendering {
         deferred_shading_shader.set_int("gbuffer_normal", 1);
         deferred_shading_shader.set_int("gbuffer_albedo_spec", 2);
 
-        auto tangents_vert = assets::load_shader_file("tangents.vert");
-        auto tangents_geom = assets::load_shader_file("tangents.geom");
-        auto tangents_frag = assets::load_shader_file("tangents.frag");
-        tangents = create_shader(tangents_vert, tangents_geom, tangents_frag);
-
         auto single_color_vert = assets::load_shader_file("single_color.vert");
         auto single_color_frag = assets::load_shader_file("single_color.frag");
         single_color_shader = create_shader(single_color_frag, single_color_vert);
@@ -211,15 +218,6 @@ namespace anton_engine::rendering {
     }
 
     void Renderer::build_framebuffers(int32_t width, int32_t height) {
-        Framebuffer::Construct_Info multisampled_framebuffer_info;
-        multisampled_framebuffer_info.color_buffers.resize(1);
-        multisampled_framebuffer_info.depth_buffer.enabled = true;
-        multisampled_framebuffer_info.width = width;
-        multisampled_framebuffer_info.height = height;
-        multisampled_framebuffer_info.multisampled = true;
-        multisampled_framebuffer_info.samples = 4;
-        framebuffer_multisampled = new Framebuffer(multisampled_framebuffer_info);
-
         Framebuffer::Construct_Info framebuffer_info;
         framebuffer_info.width = width;
         framebuffer_info.height = height;
@@ -242,7 +240,6 @@ namespace anton_engine::rendering {
     }
 
     void Renderer::delete_framebuffers() {
-        delete framebuffer_multisampled;
         delete framebuffer;
         //delete light_depth_buffer;
         delete postprocess_back_buffer;
@@ -269,38 +266,6 @@ namespace anton_engine::rendering {
 
     void Renderer::swap_postprocess_buffers() {
         anton_stl::swap(postprocess_front_buffer, postprocess_back_buffer);
-    }
-
-    void Renderer::render_shadow_map(Matrix4 const& view, Matrix4 const& projection) {
-        Resource_Manager<Shader>& shader_manager = get_shader_manager();
-        ECS& ecs = get_ecs();
-
-        for (Shader& shader: shader_manager) {
-            shader.use();
-            shader.set_vec3("camera.position", Vector3());
-            shader.set_matrix4("projection", projection);
-            shader.set_matrix4("view", view);
-        }
-
-        auto static_meshes = ecs.access<Transform, Static_Mesh_Component>();
-        for (Entity const entity: static_meshes) {
-            auto [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
-            Shader& shader = shader_manager.get(static_mesh.shader_handle);
-            shader.use();
-            Matrix4 model(transform.to_matrix());
-            shader.set_matrix4("model", model);
-            render_object(static_mesh, shader);
-        }
-
-        auto lines = ecs.access<Transform, Line_Component>();
-        for (Entity const entity: lines) {
-            auto [transform, line] = lines.get<Transform, Line_Component>(entity);
-            Shader& shader = shader_manager.get(line.shader_handle);
-            shader.use();
-            Matrix4 model(transform.to_matrix());
-            shader.set_matrix4("model", model);
-            render_object(line, shader);
-        }
     }
 
     void Renderer::render_scene(Transform const camera_transform, Matrix4 const view, Matrix4 const projection) {
@@ -338,31 +303,6 @@ namespace anton_engine::rendering {
             auto [transform, line] = lines.get<Transform, Line_Component>(entity);
             Shader& shader = shader_manager.get(line.shader_handle);
             shader.use();
-            Matrix4 model(transform.to_matrix());
-            shader.set_matrix4("model", model);
-            render_object(line, shader);
-        }
-    }
-
-    void Renderer::render_with_shader(Shader& shader, Transform const& camera_transform, Matrix4 const& view, Matrix4 const& projection) {
-        ECS& ecs = get_ecs();
-
-        shader.use();
-        shader.set_vec3("camera.position", camera_transform.local_position);
-        shader.set_matrix4("projection", projection);
-        shader.set_matrix4("view", view);
-
-        auto static_meshes = ecs.access<Transform, Static_Mesh_Component>();
-        for (Entity const entity: static_meshes) {
-            auto [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
-            Matrix4 model(transform.to_matrix());
-            shader.set_matrix4("model", model);
-            render_object(static_mesh, shader);
-        }
-
-        auto lines = ecs.access<Transform, Line_Component>();
-        for (Entity const entity: lines) {
-            auto [transform, line] = lines.get<Transform, Line_Component>(entity);
             Matrix4 model(transform.to_matrix());
             shader.set_matrix4("model", model);
             render_object(line, shader);
