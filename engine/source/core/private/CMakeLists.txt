@@ -18,7 +18,6 @@ endif()
 set(SOURCE_FILES ${SOURCE_FILES} ${PLATFORM_SOURCES}
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/allocator.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string_iterators.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string_view.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/vector.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/serialization/archives/binary.cpp"

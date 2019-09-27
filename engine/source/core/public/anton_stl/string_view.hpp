@@ -4,7 +4,13 @@
 #include <anton_stl/config.hpp>
 #include <anton_stl/detail/string_iterators.hpp>
 #include <anton_stl/iterators.hpp>
+#include <anton_stl/string_utils.hpp>
+#include <anton_stl/utility.hpp>
 #include <build_config.hpp>
+#include <hashing/murmurhash2.hpp>
+
+#include <cstdint>
+#include <functional> // std::hash
 
 namespace anton_engine::anton_stl {
     class String_View {
@@ -21,27 +27,28 @@ namespace anton_engine::anton_stl {
         /* [[nodiscard]] */ constexpr String_View(String_View const&) = default;
         /* [[nodiscard]] */ constexpr String_View(value_type const*, size_type);
         /* [[nodiscard]] */ constexpr String_View(value_type const*);
-        String_View& operator=(String_View const&) = default;
+        constexpr String_View& operator=(String_View const&) = default;
 
-        [[nodiscard]] UTF8_Const_Bytes bytes() const;
-        [[nodiscard]] UTF8_Const_Bytes const_bytes() const;
-        [[nodiscard]] UTF8_Chars chars() const;
+        // TODO: proxies are non-constexpr
+        [[nodiscard]] /* constexpr */ UTF8_Const_Bytes bytes() const;
+        [[nodiscard]] /* constexpr */ UTF8_Const_Bytes const_bytes() const;
+        [[nodiscard]] /* constexpr */ UTF8_Chars chars() const;
 
-        [[nodiscard]] byte_const_iterator bytes_begin() const;
-        [[nodiscard]] byte_const_iterator bytes_cbegin() const;
+        [[nodiscard]] constexpr byte_const_iterator bytes_begin() const;
+        [[nodiscard]] constexpr byte_const_iterator bytes_cbegin() const;
+        [[nodiscard]] constexpr byte_const_iterator bytes_end() const;
+        [[nodiscard]] constexpr byte_const_iterator bytes_cend() const;
 
-        [[nodiscard]] byte_const_iterator bytes_end() const;
-        [[nodiscard]] byte_const_iterator bytes_cend() const;
-
-        // Always const
-        [[nodiscard]] char_iterator chars_begin() const;
-        // Always const
-        [[nodiscard]] char_iterator chars_end() const;
+        // TODO: iterators are non-constexpr
+        [[nodiscard]] /* constexpr */ char_iterator chars_begin() const;
+        [[nodiscard]] /* constexpr */ char_iterator chars_end() const;
 
         // Size of the string in bytes
         [[nodiscard]] constexpr size_type size_bytes() const;
 
         [[nodiscard]] constexpr value_type const* data() const;
+
+        friend constexpr void swap(String_View&, String_View&);
 
     private:
         value_type const* _begin;
@@ -49,42 +56,100 @@ namespace anton_engine::anton_stl {
     };
 
     // Compares bytes
-    [[nodiscard]] bool operator==(String_View const&, String_View const&);
+    [[nodiscard]] constexpr bool operator==(String_View const& lhs, String_View const& rhs) {
+        if (lhs.size_bytes() != rhs.size_bytes()) {
+            return false;
+        }
+
+        return compare_equal(lhs.data(), rhs.data());
+    }
 
     // Compares bytes
-    [[nodiscard]] inline bool operator!=(String_View const& lhs, String_View const& rhs) {
+    [[nodiscard]] constexpr bool operator!=(String_View const& lhs, String_View const& rhs) {
         return !(lhs == rhs);
     }
 
-    inline constexpr String_View::String_View(): _begin(nullptr), _end(nullptr) {}
+} // namespace anton_engine::anton_stl
 
-    inline constexpr String_View::String_View(value_type const* s, size_type n): _begin(s), _end(s + n) {
-        // clang-format off
-        #if ANTON_STRING_VIEW_VERIFY_ENCODING
-                // TODO: Implement
-        #endif
-        // clang-format on
+namespace std {
+    template <>
+    struct hash<anton_engine::anton_stl::String_View> {
+        uint64_t operator()(anton_engine::anton_stl::String_View const view) const {
+            // Seeded with a randomly picked prime number. No idea how that affects the performance or collision frequency.
+            // TODO: Do my research on seeding the hash function.
+            return anton_engine::murmurhash2(view.bytes_begin(), view.size_bytes(), 547391837);
+        }
+    };
+} // namespace std
+
+namespace anton_engine::anton_stl {
+
+    constexpr String_View::String_View(): _begin(nullptr), _end(nullptr) {}
+
+    constexpr String_View::String_View(value_type const* s, size_type n): _begin(s), _end(s + n) {
+        if constexpr (ANTON_STRING_VIEW_VERIFY_ENCODING) {
+            // TODO: Implement
+        }
     }
 
-    inline constexpr String_View::String_View(value_type const* s): _begin(s), _end(s) {
+    constexpr String_View::String_View(value_type const* s): _begin(s), _end(s) {
         if (_begin != nullptr) {
             while (*_end)
                 ++_end;
         }
 
-        // clang-format off
-        #if ANTON_STRING_VIEW_VERIFY_ENCODING
+        if constexpr (ANTON_STRING_VIEW_VERIFY_ENCODING) {
             // TODO: Implement
-        #endif
-        // clang-format on
+        }
     }
 
-    inline constexpr auto String_View::size_bytes() const -> size_type {
+    inline /* constexpr */ auto String_View::bytes() const -> UTF8_Const_Bytes {
+        return {_begin, _end};
+    }
+
+    inline /* constexpr */ auto String_View::const_bytes() const -> UTF8_Const_Bytes {
+        return {_begin, _end};
+    }
+
+    inline /* constexpr */ auto String_View::chars() const -> UTF8_Chars {
+        return {_begin, _end};
+    }
+
+    constexpr auto String_View::bytes_begin() const -> byte_const_iterator {
+        return _begin;
+    }
+
+    constexpr auto String_View::bytes_cbegin() const -> byte_const_iterator {
+        return _begin;
+    }
+
+    constexpr auto String_View::bytes_end() const -> byte_const_iterator {
+        return _end;
+    }
+
+    constexpr auto String_View::bytes_cend() const -> byte_const_iterator {
+        return _end;
+    }
+
+    inline /* constexpr */ auto String_View::chars_begin() const -> char_iterator {
+        return _begin;
+    }
+
+    inline /* constexpr */ auto String_View::chars_end() const -> char_iterator {
+        return _end;
+    }
+
+    constexpr auto String_View::size_bytes() const -> size_type {
         return _end - _begin;
     }
 
-    inline constexpr auto String_View::data() const -> value_type const* {
+    constexpr auto String_View::data() const -> value_type const* {
         return _begin;
+    }
+
+    constexpr void swap(String_View& sv1, String_View& sv2) {
+        anton_stl::swap(sv1._begin, sv2._begin);
+        anton_stl::swap(sv1._end, sv2._end);
     }
 } // namespace anton_engine::anton_stl
 
