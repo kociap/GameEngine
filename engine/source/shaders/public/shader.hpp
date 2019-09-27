@@ -1,6 +1,7 @@
 #ifndef SHADERS_SHADER_HPP_INCLUDE
 #define SHADERS_SHADER_HPP_INCLUDE
 
+#include <anton_stl/string_view.hpp>
 #include <anton_stl/type_traits.hpp>
 #include <string>
 #include <unordered_map>
@@ -25,19 +26,12 @@ namespace anton_engine {
         void use();
         void detach(Shader_File const&);
 
-        // TODO: String_View
-        void set_int(std::string const&, int);
-        void set_int(char const*, int);
-        void set_float(std::string const&, float);
-        void set_float(char const*, float);
-        void set_vec3(std::string const&, Vector3);
-        void set_vec3(char const*, Vector3);
-        void set_vec3(std::string const&, Color);
-        void set_vec3(char const*, Color);
-        void set_vec4(std::string const&, Color);
-        void set_vec4(char const*, Color);
-        void set_matrix4(std::string const&, Matrix4 const&);
-        void set_matrix4(char const*, Matrix4 const&);
+        void set_int(anton_stl::String_View, int);
+        void set_float(anton_stl::String_View, float);
+        void set_vec3(anton_stl::String_View, Vector3);
+        void set_vec3(anton_stl::String_View, Color);
+        void set_vec4(anton_stl::String_View, Color);
+        void set_matrix4(anton_stl::String_View, Matrix4 const&);
 
         uint32_t get_shader_native_handle() const {
             return program;
@@ -47,6 +41,7 @@ namespace anton_engine {
         friend void delete_shader(Shader&);
 
     private:
+        // TODO: String_View
         std::unordered_map<std::string, int32_t> uniform_cache;
         uint32_t program = 0;
     };

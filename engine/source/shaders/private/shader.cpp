@@ -1,13 +1,10 @@
 #include <shader.hpp>
 
-#include <diagnostic_macros.hpp>
-ANTON_DISABLE_WARNINGS()
 #include <glad.hpp>
-ANTON_RESTORE_WARNINGS()
 
+#include <anton_stl/utility.hpp>
 #include <anton_stl/vector.hpp>
 #include <color.hpp>
-#include <debug_macros.hpp> // CHECK_GL_ERRORS
 #include <math/matrix4.hpp>
 #include <math/vector3.hpp>
 #include <opengl.hpp>
@@ -28,12 +25,12 @@ namespace anton_engine {
     }
 
     Shader::Shader(Shader&& other) noexcept: uniform_cache(anton_stl::move(other.uniform_cache)) {
-        std::swap(other.program, program);
+        anton_stl::swap(other.program, program);
     }
 
     Shader& Shader::operator=(Shader&& shader) noexcept {
-        std::swap(shader.program, program);
-        uniform_cache = std::move(shader.uniform_cache);
+        anton_stl::swap(shader.program, program);
+        uniform_cache = anton_stl::move(shader.uniform_cache);
         return *this;
     }
 
@@ -45,7 +42,6 @@ namespace anton_engine {
 
     void Shader::attach(Shader_File const& shader) {
         glAttachShader(program, shader.shader);
-        CHECK_GL_ERRORS();
     }
 
     static void build_shader_uniform_cache(uint32_t program, std::unordered_map<std::string, int32_t>& uniform_cache) {
@@ -58,14 +54,13 @@ namespace anton_engine {
             int32_t name_length;
             glGetActiveUniformName(program, static_cast<uint32_t>(uniform_index), uniform_max_name_length, &name_length, &name[0]);
             int32_t location = glGetUniformLocation(program, &name[0]);
-            std::string name_str = std::string(&name[0], name_length);
-            uniform_cache.emplace(std::move(name_str), location);
+            anton_stl::String_View name_str = anton_stl::String_View(&name[0], name_length);
+            uniform_cache.emplace(std::string(name_str.data()), location);
         }
     }
 
     void Shader::link() {
         glLinkProgram(program);
-        CHECK_GL_ERRORS();
         GLint link_status;
         glGetProgramiv(program, GL_LINK_STATUS, &link_status);
         if (link_status == GL_FALSE) {
@@ -76,95 +71,69 @@ namespace anton_engine {
             std::string log_string(log.begin(), log.end());
             throw Program_Linking_Failed(std::move(log_string));
         }
-        CHECK_GL_ERRORS();
 
         build_shader_uniform_cache(program, uniform_cache);
     }
 
     void Shader::use() {
         glUseProgram(program);
-        CHECK_GL_ERRORS();
     }
 
     void Shader::detach(Shader_File const& shader) {
         glDetachShader(program, shader.shader);
-        CHECK_GL_ERRORS();
     }
 
-    void Shader::set_int(std::string const& name, int a) {
-        auto iter = uniform_cache.find(name);
+    void Shader::set_int(anton_stl::String_View name, int a) {
+        std::string n(name.data());
+        auto iter = uniform_cache.find(n);
         if (iter != uniform_cache.end()) {
             glUniform1i(iter->second, a);
-            CHECK_GL_ERRORS();
         }
     }
 
-    void Shader::set_int(char const* name, int a) {
-        set_int(std::string(name), a);
-    }
-
-    void Shader::set_float(std::string const& name, float a) {
-        auto iter = uniform_cache.find(name);
+    void Shader::set_float(anton_stl::String_View name, float a) {
+        std::string n(name.data());
+        auto iter = uniform_cache.find(n);
         if (iter != uniform_cache.end()) {
             glUniform1f(iter->second, a);
-            CHECK_GL_ERRORS();
         }
     }
 
-    void Shader::set_float(char const* name, float a) {
-        set_float(std::string(name), a);
-    }
-
-    void Shader::set_vec3(std::string const& name, Vector3 vec) {
-        auto iter = uniform_cache.find(name);
+    void Shader::set_vec3(anton_stl::String_View name, Vector3 vec) {
+        std::string n(name.data());
+        auto iter = uniform_cache.find(n);
         if (iter != uniform_cache.end()) {
             glUniform3fv(iter->second, 1, &vec.x);
-            CHECK_GL_ERRORS();
         }
     }
 
-    void Shader::set_vec3(char const* name, Vector3 vec) {
-        set_vec3(std::string(name), vec);
-    }
-
-    void Shader::set_vec3(std::string const& name, Color c) {
-        auto iter = uniform_cache.find(name);
+    void Shader::set_vec3(anton_stl::String_View name, Color c) {
+        std::string n(name.data());
+        auto iter = uniform_cache.find(n);
         if (iter != uniform_cache.end()) {
             glUniform3fv(iter->second, 1, &c.r);
-            CHECK_GL_ERRORS();
         }
     }
 
-    void Shader::set_vec3(char const* name, Color c) {
-        set_vec3(std::string(name), c);
-    }
-
-    void Shader::set_vec4(std::string const& name, Color c) {
-        auto iter = uniform_cache.find(name);
+    void Shader::set_vec4(anton_stl::String_View name, Color c) {
+        std::string n(name.data());
+        auto iter = uniform_cache.find(n);
         if (iter != uniform_cache.end()) {
             glUniform4fv(iter->second, 1, &c.r);
-            CHECK_GL_ERRORS();
         }
     }
 
-    void Shader::set_vec4(char const* name, Color c) {
-        set_vec4(std::string(name), c);
-    }
-
-    void Shader::set_matrix4(std::string const& name, Matrix4 const& mat) {
-        auto iter = uniform_cache.find(name);
+    void Shader::set_matrix4(anton_stl::String_View name, Matrix4 const& mat) {
+        std::string n(name.data());
+        auto iter = uniform_cache.find(n);
         if (iter != uniform_cache.end()) {
             glUniformMatrix4fv(iter->second, 1, GL_FALSE, mat.get_raw());
-            CHECK_GL_ERRORS();
         }
-    }
-
-    void Shader::set_matrix4(char const* name, Matrix4 const& mat) {
-        set_matrix4(std::string(name), mat);
     }
 
     void swap(Shader& s1, Shader& s2) {
-        std::swap(s1.program, s2.program);
+        anton_stl::swap(s1.program, s2.program);
+        anton_stl::swap(s1.uniform_cache, s2.uniform_cache);
     }
 
     void delete_shader(Shader& shader) {
