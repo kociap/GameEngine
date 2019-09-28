@@ -77,20 +77,6 @@ namespace anton_engine::gizmo {
         vertices[15] = offset + Vector3{-half_size, half_size, half_size};
     }
 
-    static void compute_dial_vert_normal_and_factor(Vector3 const vert_prev, Vector3 const vert_curr, Vector3 const vert_next, Vector3* const normal_out,
-                                                    float* const factor_out) {
-        // normal = (vert[i] - vert[i - 2]) + (vert[i + 2] - vert[i])
-        Vector3 const normal = math::normalize(vert_next - vert_prev);
-        normal_out[0] = normal;
-        normal_out[1] = normal;
-
-        Vector3 const line_segment = math::normalize(vert_curr - vert_prev);
-        Vector3 const tangent = Vector3{-normal.y, normal.x, 0};
-        float const factor = 1 / math::dot(line_segment, tangent);
-        factor_out[0] = factor;
-        factor_out[1] = factor;
-    }
-
     static void generate_dial_geometry(Dial_Vertex_Data* const dial) {
         float const angle = math::constants<float>::pi / dial_vertex_count;
         for (int32_t i = 0; i <= 2 * dial_vertex_count; i += 2) {

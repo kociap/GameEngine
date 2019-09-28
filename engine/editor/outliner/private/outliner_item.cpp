@@ -103,7 +103,7 @@ namespace anton_engine {
         }
     }
 
-    void Outliner_Item::resizeEvent(QResizeEvent* event) {
+    void Outliner_Item::resizeEvent(QResizeEvent*) {
         label->setGeometry(0, 0, width(), height());
     }
 
