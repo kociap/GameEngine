@@ -81,7 +81,7 @@ namespace anton_engine {
         std::filesystem::path serialization_out_path = utils::concat_paths(paths::project_directory(), "ecs.bin");
         std::ofstream file(serialization_out_path, std::ios::binary | std::ios::trunc);
         serialization::Binary_Output_Archive out_archive(file);
-        serialization::serialize(out_archive, Engine::get_ecs());
+        serialize(out_archive, Engine::get_ecs());
 #endif
         delete editor_window;
         editor_window = nullptr;
@@ -191,7 +191,7 @@ namespace anton_engine {
         std::filesystem::path serialization_in_path = utils::concat_paths(paths::project_directory(), "ecs.bin");
         std::ifstream file(serialization_in_path, std::ios::binary);
         serialization::Binary_Input_Archive in_archive(file);
-        serialization::deserialize(in_archive, *ecs);
+        deserialize(in_archive, *ecs);
 #else
         auto instantiate_box = [default_shader_handle, box_handle, material_handle](Vector3 position, float rotation = 0) {
             Entity box = ecs->create();

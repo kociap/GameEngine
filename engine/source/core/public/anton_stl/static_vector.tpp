@@ -280,17 +280,17 @@ namespace anton_engine::anton_stl {
     }
 } // namespace anton_engine::anton_stl
 
-namespace anton_engine::serialization {
+namespace anton_engine {
     template <typename T, anton_stl::ssize_t Capacity>
-    inline void serialize(Binary_Output_Archive& out, anton_stl::Static_Vector<T, Capacity> const& vec) {
+    inline void serialize(serialization::Binary_Output_Archive& out, anton_stl::Static_Vector<T, Capacity> const& vec) {
         out.write(vec.size());
         for (T const& elem: vec) {
-            serialization::serialize(out, elem);
+            serialize(out, elem);
         }
     }
 
     template <typename T, anton_stl::ssize_t Capacity>
-    inline void deserialize(Binary_Input_Archive& in, anton_stl::Static_Vector<T, Capacity>& vec) {
+    inline void deserialize(serialization::Binary_Input_Archive& in, anton_stl::Static_Vector<T, Capacity>& vec) {
         typename anton_stl::Static_Vector<T, Capacity>::size_type size;
         in.read(vec._size);
         vec.clear();
@@ -298,7 +298,7 @@ namespace anton_engine::serialization {
             vec.resize(size);
             try {
                 for (T& elem: vec) {
-                    serialization::deserialize(in, elem);
+                    deserialize(in, elem);
                 }
             } catch (...) {
                 // TODO move stream backward
@@ -311,7 +311,7 @@ namespace anton_engine::serialization {
                 for (; n > 0; --n) {
                     Stack_Allocate<T> elem;
                     vec.push_back(std::move(elem.reference()));
-                    serialization::deserialize(in, vec.back());
+                    deserialize(in, vec.back());
                 }
                 vec._size = size;
             } catch (...) {
@@ -321,4 +321,4 @@ namespace anton_engine::serialization {
             }
         }
     }
-} // namespace anton_engine::serialization
+} // namespace anton_engine

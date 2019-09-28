@@ -355,14 +355,14 @@ namespace anton_engine::anton_stl {
     }
 } // namespace anton_engine::anton_stl
 
-namespace anton_engine::serialization {
-    void serialize(Binary_Output_Archive& out, anton_stl::String const& str) {
+namespace anton_engine {
+    void serialize(serialization::Binary_Output_Archive& out, anton_stl::String const& str) {
         out.write(str.capacity());
         out.write(str.size_bytes());
         out.write_binary(str.data(), str.size_bytes());
     }
 
-    void deserialize(Binary_Input_Archive& in, anton_stl::String& str) {
+    void deserialize(serialization::Binary_Input_Archive& in, anton_stl::String& str) {
         anton_stl::String::size_type capacity, size;
         in.read(capacity);
         in.read(size);
@@ -371,4 +371,4 @@ namespace anton_engine::serialization {
         str.force_size(size);
         in.read_binary(str.data(), size);
     }
-} // namespace anton_engine::serialization
+} // namespace anton_engine

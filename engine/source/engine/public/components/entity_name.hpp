@@ -12,10 +12,8 @@ namespace anton_engine {
         anton_stl::String name;
     };
 
-    namespace serialization {
-        void serialize(Binary_Output_Archive&, Entity_Name const&);
-        void deserialize(Binary_Input_Archive&, Entity_Name&);
-    } // namespace serialization
+    void serialize(serialization::Binary_Output_Archive&, Entity_Name const&);
+    void deserialize(serialization::Binary_Input_Archive&, Entity_Name&);
 } // namespace anton_engine
 
 #endif // !ENGINE_COMPONENTS_ENTITY_NAME_HPP_INCLUDE

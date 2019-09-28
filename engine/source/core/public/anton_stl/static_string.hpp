@@ -73,12 +73,12 @@ namespace anton_engine::anton_stl {
     using Static_String = Basic_Static_String<char, Capacity>;
 } // namespace anton_engine::anton_stl
 
-namespace anton_engine::serialization {
+namespace anton_engine {
     template <typename T, anton_size_t Capacity>
     void serialize(Binary_Output_Archive&, anton_stl::Basic_Static_String<T, Capacity> const&);
     template <typename T, anton_size_t Capacity>
     void deserialize(Binary_Input_Archive&, anton_stl::Basic_Static_String<T, Capacity>&);
-} // namespace anton_engine::serialization
+} // namespace anton_engine
 
 #include <anton_stl/static_string.tpp>
 

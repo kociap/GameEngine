@@ -1,26 +1,11 @@
 #include <ecs/component_container.hpp>
 
 namespace anton_engine {
-    void Component_Container_Base::serialize(serialization::Binary_Output_Archive& archive, Component_Container_Base const* container) {
-        serialization::serialize(archive, container->entities);
-    }
-
-    void Component_Container_Base::deserialize(serialization::Binary_Input_Archive& archive, Component_Container_Base*& container) {
-        serialization::deserialize(archive, container->entities);
-        for (int64_t i = 0; i < container->entities.size(); i += 1) {
-            auto index = container->indirect_index(container->entities[i]);
-            container->ensure(index);
-            container->indirect[index] = i;
-        }
-    }
-
-    Component_Container_Base::~Component_Container_Base() {}
-
-    Component_Container_Base::pointer Component_Container_Base::data() {
+    Entity* Component_Container_Base::data() {
         return entities.data();
     }
 
-    Component_Container_Base::const_pointer Component_Container_Base::data() const {
+    Entity const* Component_Container_Base::data() const {
         return entities.data();
     }
 

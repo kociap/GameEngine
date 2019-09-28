@@ -467,22 +467,22 @@ namespace anton_engine::anton_stl {
             _capacity = new_capacity;
         }
     }
-} // namespace anton_engine::anton_stl
+}
 
-namespace anton_engine::serialization {
+namespace anton_engine {
     template <typename T, typename Allocator>
-    inline void serialize(Binary_Output_Archive& out, anton_stl::Vector<T, Allocator> const& vec) {
+    inline void serialize(serialization::Binary_Output_Archive& out, anton_stl::Vector<T, Allocator> const& vec) {
         using size_type = typename anton_stl::Vector<T, Allocator>::size_type;
         size_type capacity = vec.capacity(), size = vec.size();
         out.write(capacity);
         out.write(size);
         for (T const& elem: vec) {
-            serialization::serialize(out, elem);
+            serialize(out, elem);
         }
     }
 
     template <typename T, typename Allocator>
-    inline void deserialize(Binary_Input_Archive& in, anton_stl::Vector<T, Allocator>& vec) {
+    inline void deserialize(serialization::Binary_Input_Archive& in, anton_stl::Vector<T, Allocator>& vec) {
         using size_type = typename anton_stl::Vector<T, Allocator>::size_type;
         size_type capacity, size;
         in.read(capacity);
@@ -493,11 +493,11 @@ namespace anton_engine::serialization {
             vec.resize(size);
             try {
                 for (T& elem: vec) {
-                    serialization::deserialize(in, elem);
+                    deserialize(in, elem);
                 }
             } catch (...) {
                 // TODO move stream backward to maintain weak guarantee
-                anton_stl::destruct_n(vec.get_ptr(), size);
+                anton_stl::destruct_n(vec.data(), size);
                 throw;
             }
         } else {
@@ -506,14 +506,14 @@ namespace anton_engine::serialization {
                 for (; n > 0; --n) {
                     Stack_Allocate<T> elem;
                     vec.push_back(std::move(elem.reference()));
-                    serialization::deserialize(in, vec.back());
+                    deserialize(in, vec.back());
                 }
                 vec._size = size;
             } catch (...) {
                 // TODO move stream backward to maintain weak guarantee
-                anton_stl::destruct_n(vec.get_ptr(), size - n);
+                anton_stl::destruct_n(vec.data(), size - n);
                 throw;
             }
         }
     }
-} // namespace anton_engine::serialization
+} // namespace anton_engine::anton_stl

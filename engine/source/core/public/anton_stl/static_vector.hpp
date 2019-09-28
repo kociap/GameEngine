@@ -96,17 +96,17 @@ namespace anton_engine::anton_stl {
         void attempt_move(T* from, T* to);
         void check_size();
 
-        friend void serialization::deserialize(serialization::Binary_Input_Archive&, anton_stl::Static_Vector<T, Capacity>&);
+        friend void deserialize(serialization::Binary_Input_Archive&, anton_stl::Static_Vector<T, Capacity>&);
         friend void swap(Static_Vector<T, Capacity>&, Static_Vector<T, Capacity>&);
     };
 } // namespace anton_engine::anton_stl
 
-namespace anton_engine::serialization {
+namespace anton_engine {
     template <typename T, uint64_t Capacity>
-    void serialize(Binary_Output_Archive&, anton_stl::Static_Vector<T, Capacity> const&);
+    void serialize(serialization::Binary_Output_Archive&, anton_stl::Static_Vector<T, Capacity> const&);
     template <typename T, uint64_t Capacity>
-    void deserialize(Binary_Input_Archive&, anton_stl::Static_Vector<T, Capacity>&);
-} // namespace anton_engine::serialization
+    void deserialize(serialization::Binary_Input_Archive&, anton_stl::Static_Vector<T, Capacity>&);
+} // namespace anton_engine
 
 #include <anton_stl/static_vector.tpp>
 

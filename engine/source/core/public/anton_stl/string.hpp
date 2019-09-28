@@ -160,12 +160,14 @@ namespace anton_engine::anton_stl {
 
 } // namespace anton_engine::anton_stl
 
-namespace anton_engine::serialization {
-    class Binary_Output_Archive;
-    class Binary_Input_Archive;
+namespace anton_engine {
+    namespace serialization {
+        class Binary_Output_Archive;
+        class Binary_Input_Archive;
+    } // namespace serialization
 
-    void serialize(Binary_Output_Archive&, anton_stl::String const&);
-    void deserialize(Binary_Input_Archive&, anton_stl::String&);
-} // namespace anton_engine::serialization
+    void serialize(serialization::Binary_Output_Archive&, anton_stl::String const&);
+    void deserialize(serialization::Binary_Input_Archive&, anton_stl::String&);
+} // namespace anton_engine
 
 #endif // !CORE_ANTON_STL_STRING_HPP_INCLUDE

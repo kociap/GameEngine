@@ -136,20 +136,20 @@ namespace anton_engine::anton_stl {
     }
 } // namespace anton_engine::anton_stl
 
-namespace anton_engine::serialization {
+namespace anton_engine {
     template <typename T, anton_stl::ssize_t Capacity>
-    inline void serialize(Binary_Output_Archive& out, anton_stl::Basic_Static_String<T, Capacity> const& str) {
+    inline void serialize(serialization::Binary_Output_Archive& out, anton_stl::Basic_Static_String<T, Capacity> const& str) {
         out.write(str.size());
         auto sizeof_T = static_cast<typename anton_stl::Basic_Static_String<T, Capacity>::size_type>(sizeof(T));
         out.write_binary(str.data(), str.size() * sizeof_T);
     }
 
     template <typename T, anton_stl::ssize_t Capacity>
-    inline void deserialize(Binary_Input_Archive& in, anton_stl::Basic_Static_String<T, Capacity>& str) {
+    inline void deserialize(serialization::Binary_Input_Archive& in, anton_stl::Basic_Static_String<T, Capacity>& str) {
         typename anton_stl::Basic_Static_String<T, Capacity>::size_type size;
         in.read(size);
         str.force_size(size);
         auto sizeof_T = static_cast<typename anton_stl::Basic_Static_String<T, Capacity>::size_type>(sizeof(T));
         in.read_binary(str.data(), str.size() * sizeof_T);
     }
-} // namespace anton_engine::serialization
+} // namespace anton_engine

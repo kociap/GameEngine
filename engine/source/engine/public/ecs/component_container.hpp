@@ -12,28 +12,26 @@ namespace anton_engine {
     class Component_Container_Base {
     public:
         using size_type = anton_stl::Vector<Entity>::size_type;
-        using pointer = anton_stl::Vector<Entity>::pointer;
-        using const_pointer = anton_stl::Vector<Entity>::const_pointer;
         using iterator = anton_stl::Vector<Entity>::iterator;
         using const_iterator = anton_stl::Vector<Entity>::const_iterator;
 
     protected:
         constexpr static size_type npos = static_cast<size_type>(-1);
 
-        static void serialize(serialization::Binary_Output_Archive&, Component_Container_Base const*);
-        static void deserialize(serialization::Binary_Input_Archive&, Component_Container_Base*&);
-
     public:
-        virtual ~Component_Container_Base();
+        virtual ~Component_Container_Base() = default;
 
-        [[nodiscard]] pointer data();
-        [[nodiscard]] const_pointer data() const;
+        [[nodiscard]] Entity* data();
+        [[nodiscard]] Entity const* data() const;
 
         [[nodiscard]] iterator begin();
         [[nodiscard]] iterator end();
 
         [[nodiscard]] bool has(Entity entity);
         [[nodiscard]] size_type size() const;
+
+        friend void serialize(serialization::Binary_Output_Archive&, Component_Container_Base const&);
+        friend void deserialize(serialization::Binary_Input_Archive&, Component_Container_Base&);
 
     protected:
         void add_entity(Entity entity);
@@ -61,7 +59,7 @@ namespace anton_engine {
         static void serialize(serialization::Binary_Output_Archive& archive, Component_Container_Base const*);
         static void deserialize(serialization::Binary_Input_Archive& archive, Component_Container_Base*&);
 
-        virtual ~Component_Container() {}
+        virtual ~Component_Container() = default;
 
         [[nodiscard]] Component const* raw() const {
             if constexpr (anton_stl::is_empty<Component>) {
@@ -72,7 +70,11 @@ namespace anton_engine {
         }
 
         [[nodiscard]] Component* raw() {
-            return const_cast<Component*>(const_cast<Component_Container const&>(*this).raw());
+            if constexpr (anton_stl::is_empty<Component>) {
+                return &components;
+            } else {
+                return components.data();
+            }
         }
 
         [[nodiscard]] iterator begin() {
@@ -123,8 +125,23 @@ namespace anton_engine {
         }
 
     private:
-        std::conditional_t<anton_stl::is_empty<Component>, Component, anton_stl::Vector<Component>> components;
+        anton_stl::conditional<anton_stl::is_empty<Component>, Component, anton_stl::Vector<Component>> components;
     };
+} // namespace anton_engine
+
+namespace anton_engine {
+    inline void serialize(serialization::Binary_Output_Archive& archive, Component_Container_Base const& container) {
+        serialize(archive, container.entities);
+    }
+
+    inline void deserialize(serialization::Binary_Input_Archive& archive, Component_Container_Base& container) {
+        deserialize(archive, container.entities);
+        for (int64_t i = 0; i < container.entities.size(); i += 1) {
+            auto index = container.indirect_index(container.entities[i]);
+            container.ensure(index);
+            container.indirect[index] = i;
+        }
+    }
 } // namespace anton_engine
 
 #include <ecs/component_container.tpp>

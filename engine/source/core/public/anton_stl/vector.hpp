@@ -113,17 +113,16 @@ namespace anton_engine::anton_stl {
         T* allocate(size_type);
         void deallocate(void*, size_type);
         void ensure_capacity(size_type requested_capacity);
-
-        friend void serialization::deserialize(serialization::Binary_Input_Archive&, Vector<T, Allocator>&);
     };
+
 } // namespace anton_engine::anton_stl
 
-namespace anton_engine::serialization {
+namespace anton_engine {
     template <typename T, typename Allocator>
-    void serialize(Binary_Output_Archive&, anton_stl::Vector<T, Allocator> const&);
+    void serialize(serialization::Binary_Output_Archive&, anton_stl::Vector<T, Allocator> const&);
     template <typename T, typename Allocator>
-    void deserialize(Binary_Input_Archive&, anton_stl::Vector<T, Allocator>&);
-} // namespace anton_engine::serialization
+    void deserialize(serialization::Binary_Input_Archive&, anton_stl::Vector<T, Allocator>&);
+} // namespace anton_engine
 
 #include <anton_stl/vector.tpp>
 

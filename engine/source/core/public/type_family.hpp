@@ -26,9 +26,7 @@ namespace anton_engine {
         template <typename... Ts>
         static std::string_view get_types() {
             // TODO use only types instead of the entire signature
-#if defined(__clang__)
-            std::string_view signature = __PRETTY_FUNCTION__;
-#elif defined(__GNUC__)
+#if defined(__clang__) || defined(__GNUC__)
             std::string_view signature = __PRETTY_FUNCTION__;
 #elif defined(_MSC_VER)
             // return_type calling_convention func_name<template_parameters>(arguments)
