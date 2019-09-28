@@ -2,6 +2,7 @@
 
 #include <anton_stl/vector.hpp>
 #include <assets.hpp>
+#include <builtin_shaders.hpp>
 #include <components/camera.hpp>
 #include <components/static_mesh_component.hpp>
 #include <components/transform.hpp>
@@ -29,7 +30,6 @@
 #include <resource_manager.hpp>
 #include <shader_file.hpp>
 #include <viewport_camera.hpp>
-#include <builtin_shaders.hpp>
 
 ANTON_DISABLE_WARNINGS();
 #include <QCloseEvent>
@@ -148,7 +148,7 @@ namespace anton_engine {
 
         ECS& ecs = Editor::get_ecs();
         Resource_Manager<Mesh>& mesh_manager = Editor::get_mesh_manager();
-        Component_Access access = ecs.access<Static_Mesh_Component, Transform>();
+        Component_View access = ecs.view<Static_Mesh_Component, Transform>();
         Entity selected = null_entity;
         Raycast_Hit closest_hit;
         closest_hit.distance = math::constants<float>::infinity;
@@ -398,7 +398,7 @@ namespace anton_engine {
         Framebuffer::bind(*framebuffer, Framebuffer::Bind_Mode::draw);
         Framebuffer::blit(*renderer->framebuffer, *framebuffer, opengl::Buffer_Mask::depth_buffer_bit);
 
-		Shader& uniform_color_shader = get_builtin_shader(Builtin_Shader::uniform_color_3d);
+        Shader& uniform_color_shader = get_builtin_shader(Builtin_Shader::uniform_color_3d);
         uniform_color_shader.use();
         uniform_color_shader.set_vec4("color", outline_color);
 

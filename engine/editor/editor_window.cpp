@@ -132,7 +132,7 @@ namespace anton_engine {
             }
         }
 
-        auto viewport_camera_view = Editor::get_ecs().access<Viewport_Camera, Camera, Transform>();
+        auto viewport_camera_view = Editor::get_ecs().view<Viewport_Camera, Camera, Transform>();
         for (Entity const entity: viewport_camera_view) {
             auto [viewport_camera, camera, transform] = viewport_camera_view.get<Viewport_Camera, Camera, Transform>(entity);
             auto viewport = viewports[viewport_camera.viewport_index];
@@ -155,7 +155,7 @@ namespace anton_engine {
 
         rendering::update_dynamic_lights();
 
-        auto viewport_camera_view = Editor::get_ecs().access<Viewport_Camera, Camera, Transform>();
+        auto viewport_camera_view = Editor::get_ecs().view<Viewport_Camera, Camera, Transform>();
         for (Entity const entity: viewport_camera_view) {
             auto [viewport_camera, camera, transform] = viewport_camera_view.get<Viewport_Camera, Camera, Transform>(entity);
             auto viewport = viewports[viewport_camera.viewport_index];

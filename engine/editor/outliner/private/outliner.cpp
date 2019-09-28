@@ -15,7 +15,7 @@ ANTON_RESTORE_WARNINGS();
 namespace anton_engine {
     static Entity find_entity_with_name(anton_stl::String_View name) {
         ECS& ecs = Editor::get_ecs();
-        auto entities_with_names = ecs.access<Entity_Name>();
+        auto entities_with_names = ecs.view<Entity_Name>();
         for (Entity const entity: entities_with_names) {
             Entity_Name& entity_name = entities_with_names.get(entity);
             if (name == entity_name.name) {

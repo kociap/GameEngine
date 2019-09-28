@@ -12,7 +12,7 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/components/spot_light_component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/static_mesh_component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/transform.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/ecs/component_access.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ecs/component_view.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/component_container.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/component_serialization.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/ecs.hpp"

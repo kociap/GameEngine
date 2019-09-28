@@ -1,5 +1,5 @@
-#ifndef ENGINE_ECS_COMPONENT_ACCESS_HPP_INCLUDE
-#define ENGINE_ECS_COMPONENT_ACCESS_HPP_INCLUDE
+#ifndef ENGINE_ECS_COMPONENT_VIEW_HPP_INCLUDE
+#define ENGINE_ECS_COMPONENT_VIEW_HPP_INCLUDE
 
 #include <ecs/component_container.hpp>
 
@@ -9,18 +9,18 @@
 
 namespace anton_engine {
     template <typename... Components>
-    class Component_Access {
+    class Component_View {
         static_assert(sizeof...(Components) > 0, "Why would you do this?");
 
         friend class ECS;
 
-        Component_Access(Component_Container<Components>*... c): containers(c...) {}
+        Component_View(Component_Container<Components>*... c): containers(c...) {}
 
     public:
         using size_type = Component_Container_Base::size_type;
 
         class iterator {
-            friend class Component_Access;
+            friend class Component_View;
 
             using underlying_iterator_t = typename Component_Container_Base::iterator;
 
@@ -118,13 +118,13 @@ namespace anton_engine {
         std::tuple<Component_Container<Components>*...> containers;
     };
 
-    // Specialization of Component_Access for single component type.
+    // Specialization of Component_View  for single component type.
     // Avoids unnecessary checks, which results in performance boost.
     template <typename Component>
-    class Component_Access<Component> {
+    class Component_View<Component> {
         friend class ECS;
 
-        Component_Access(Component_Container<Component>* c): container(c) {}
+        Component_View(Component_Container<Component>* c): container(c) {}
 
     public:
         using size_type = Component_Container_Base::size_type;
@@ -166,4 +166,4 @@ namespace anton_engine {
     };
 } // namespace anton_engine
 
-#endif // !ENGINE_ECS_COMPONENT_ACCESS_HPP_INCLUDE
+#endif // !ENGINE_ECS_COMPONENT_VIEW_HPP_INCLUDE

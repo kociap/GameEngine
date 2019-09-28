@@ -196,19 +196,19 @@ namespace anton_engine {
         time_core::update_time();
         input_manager->process_events();
 
-        auto camera_mov_view = ecs->access<Camera_Movement, Camera, Transform>();
+        auto camera_mov_view = ecs->view<Camera_Movement, Camera, Transform>();
         for (Entity const entity: camera_mov_view) {
             auto [camera_mov, camera, transform] = camera_mov_view.get<Camera_Movement, Camera, Transform>(entity);
             Camera_Movement::update(camera_mov, camera, transform);
         }
 
-        auto dbg_hotkeys = ecs->access<Debug_Hotkeys>();
+        auto dbg_hotkeys = ecs->view<Debug_Hotkeys>();
         for (Entity const entity: dbg_hotkeys) {
             Debug_Hotkeys::update(dbg_hotkeys.get(entity));
         }
 
         // TODO make this rendering code great again (not that it ever was great, but still)
-        auto rendering = ecs->access<Camera, Transform>();
+        auto rendering = ecs->view<Camera, Transform>();
         for (Entity const entity: rendering) {
             auto [camera, transform] = rendering.get<Camera, Transform>(entity);
             if (camera.active) {

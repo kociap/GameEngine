@@ -3,8 +3,8 @@
 
 #include <anton_stl/algorithm.hpp>
 #include <anton_stl/vector.hpp>
-#include <ecs/component_access.hpp>
 #include <ecs/component_container.hpp>
+#include <ecs/component_view.hpp>
 #include <ecs/entity.hpp>
 #include <engine.hpp>
 #include <integer_sequence_generator.hpp>
@@ -53,7 +53,7 @@ namespace anton_engine {
         bool has_component(Entity);
 
         template <typename... Ts>
-        Component_Access<Ts...> access();
+        Component_View<Ts...> view();
 
         anton_stl::Vector<Entity> const& get_entities() const;
 
@@ -155,8 +155,8 @@ namespace anton_engine {
     }
 
     template <typename... Ts>
-    inline Component_Access<Ts...> ECS::access() {
-        return Component_Access<Ts...>(ensure_container<Ts>()...);
+    inline Component_View<Ts...> ECS::view() {
+        return Component_View<Ts...>(ensure_container<Ts>()...);
     }
 
     inline anton_stl::Vector<Entity> const& ECS::get_entities() const {

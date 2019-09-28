@@ -99,7 +99,7 @@ namespace anton_engine {
         editor_window->update();
         editor_window->render();
 
-        //auto dbg_hotkeys = Editor::get_ecs().access<Debug_Hotkeys>();
+        //auto dbg_hotkeys = Editor::get_ecs().view<Debug_Hotkeys>();
         //for (Entity const entity: dbg_hotkeys) {
         //    Debug_Hotkeys::update(dbg_hotkeys.get(entity));
         //}
