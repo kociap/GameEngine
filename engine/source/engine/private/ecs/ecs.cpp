@@ -24,17 +24,17 @@ namespace anton_engine {
     Entity ECS::create() {
         // TODO: More clever entity creation (generations and reusing ids)
 #if !ANTON_WITH_EDITOR
-        return entities.emplace_back(id_generator.next());
+        return _entities.emplace_back(id_generator.next());
 #else
-        Entity entity = entities.emplace_back(id_generator.next());
+        Entity entity = _entities.emplace_back(id_generator.next());
         Editor_Window& editor = Editor::get_window();
         editor.outliner->add_entity(entity);
         return entity;
 #endif
     }
 
-    void ECS::serialize_component_container(Type_Family::family_t identifier, serialization::Binary_Output_Archive& archive,
-                                            Component_Container_Base const* container) const {
+    static void serialize_component_container(Type_Family::family_t identifier, serialization::Binary_Output_Archive& archive,
+                                              Component_Container_Base const* container) {
         ANTON_ASSERT(get_component_serialization_funcs != nullptr, "Function get_component_serialization_funcs has not been loaded");
         auto& serialization_funcs = get_component_serialization_funcs();
         auto iter = anton_stl::find_if(serialization_funcs.begin(), serialization_funcs.end(),
@@ -43,8 +43,8 @@ namespace anton_engine {
         iter->serialize(archive, container);
     }
 
-    void ECS::deserialize_component_container(Type_Family::family_t identifier, serialization::Binary_Input_Archive& archive,
-                                              Component_Container_Base*& container) {
+    static void deserialize_component_container(Type_Family::family_t identifier, serialization::Binary_Input_Archive& archive,
+                                                Component_Container_Base*& container) {
         ANTON_ASSERT(get_component_serialization_funcs != nullptr, "Function get_component_serialization_funcs has not been loaded");
         auto& serialization_funcs = get_component_serialization_funcs();
         auto iter = anton_stl::find_if(serialization_funcs.begin(), serialization_funcs.end(),
@@ -54,22 +54,22 @@ namespace anton_engine {
     }
 
     void serialize(serialization::Binary_Output_Archive& archive, ECS const& ecs) {
-        serialize(archive, ecs.entities);
+        serialize(archive, ecs._entities);
         archive.write(ecs.containers.size());
         for (auto const& data: ecs.containers) {
             archive.write(data.family);
-            ecs.serialize_component_container(data.family, archive, data.container);
+            serialize_component_container(data.family, archive, data.container);
         }
     }
 
     void deserialize(serialization::Binary_Input_Archive& archive, ECS& ecs) {
-        deserialize(archive, ecs.entities);
+        deserialize(archive, ecs._entities);
         int64_t containers_count;
         archive.read(containers_count);
         ecs.containers.resize(containers_count);
         for (auto& data: ecs.containers) {
             archive.read(data.family);
-            ecs.deserialize_component_container(data.family, archive, data.container);
+            deserialize_component_container(data.family, archive, data.container);
         }
     }
 } // namespace anton_engine

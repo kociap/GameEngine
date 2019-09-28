@@ -19,11 +19,13 @@ namespace anton_engine {
         ECS() = default;
         ~ECS();
 
+        // Returns: Array of entities that have Component associated with them
         template <typename Component>
-        [[nodiscard]] Component const* data() const;
+        [[nodiscard]] Entity const* entities() const;
 
+        // Returns: Array of components of type Component
         template <typename Component>
-        [[nodiscard]] Component const* raw() const;
+        [[nodiscard]] Component const* components() const;
 
         // Create entity without any attached components
         Entity create();
@@ -69,8 +71,6 @@ namespace anton_engine {
         Component_Container<T> const* find_container() const;
         template <typename T>
         Component_Container<T>* find_container();
-        void serialize_component_container(Type_Family::family_t identifier, serialization::Binary_Output_Archive&, Component_Container_Base const*) const;
-        void deserialize_component_container(Type_Family::family_t identifier, serialization::Binary_Input_Archive&, Component_Container_Base*&);
 
     private:
         using family_type = Type_Family::family_t;
@@ -81,7 +81,7 @@ namespace anton_engine {
             Type_Family::family_t family;
         };
 
-        anton_stl::Vector<Entity> entities;
+        anton_stl::Vector<Entity> _entities;
         anton_stl::Vector<Entity> entities_to_remove;
         anton_stl::Vector<Components_Container_Data> containers;
         Integer_Sequence_Generator id_generator;
@@ -90,15 +90,15 @@ namespace anton_engine {
 
 namespace anton_engine {
     template <typename Component>
-    [[nodiscard]] inline Component const* ECS::data() const {
+    [[nodiscard]] inline Entity const* ECS::entities() const {
         auto const* c = find_container<Component>();
-        return c ? c->data() : nullptr;
+        return c ? c->entities() : nullptr;
     }
 
     template <typename Component>
-    [[nodiscard]] inline Component const* ECS::raw() const {
+    [[nodiscard]] inline Component const* ECS::components() const {
         auto const* c = find_container<Component>();
-        return c ? c->raw() : nullptr;
+        return c ? c->components() : nullptr;
     }
 
     template <typename... Components>
@@ -160,7 +160,7 @@ namespace anton_engine {
     }
 
     inline anton_stl::Vector<Entity> const& ECS::get_entities() const {
-        return entities;
+        return _entities;
     }
 
     inline anton_stl::Vector<Entity> const& ECS::get_entities_to_remove() const {
@@ -177,8 +177,8 @@ namespace anton_engine {
         }
 
         for (Entity const entity: entities_to_remove) {
-            auto iter = anton_stl::find(entities.begin(), entities.end(), entity);
-            entities.erase_unsorted(iter);
+            auto iter = anton_stl::find(_entities.begin(), _entities.end(), entity);
+            _entities.erase_unsorted(iter);
         }
 
         entities_to_remove.clear();

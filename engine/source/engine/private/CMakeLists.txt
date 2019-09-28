@@ -10,7 +10,6 @@ set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/components/camera.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/entity_name.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/transform.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/ecs/component_container.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/component_serialization.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/ecs.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input_core.cpp"
