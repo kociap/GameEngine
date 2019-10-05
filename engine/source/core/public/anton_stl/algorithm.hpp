@@ -4,6 +4,16 @@
 #include <stdexcept>
 
 namespace anton_engine::anton_stl {
+    // iota
+    // Fill range [first, last[ with consecutive values starting at value.
+    //
+    template <typename Forward_Iterator, typename T>
+    void iota(Forward_Iterator first, Forward_Iterator last, T value) {
+        for (; first != last; ++first, ++value) {
+            *first = value;
+        }
+    }
+
     // at
     // Performs bounds checking and accesses an element at index in container.
     //
