@@ -15,7 +15,7 @@ namespace anton_engine {
     Handle<T> Resource_Manager<T>::add(T&& resource) {
         static Integer_Sequence_Generator id_generator;
         resources.emplace_back(std::forward<T>(resource));
-        id_type resource_id = id_generator.next();
+        uint64_t resource_id = id_generator.next();
         identifiers.push_back(resource_id);
         return {resource_id};
     }

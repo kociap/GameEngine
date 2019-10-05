@@ -48,7 +48,6 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_assert.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/class_macros.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/config.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/debug_macros.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/diagnostic_macros.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/handle.hpp"

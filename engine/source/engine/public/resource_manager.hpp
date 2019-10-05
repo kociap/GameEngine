@@ -2,7 +2,6 @@
 #define ENGINE_RESOURCE_MANAGER_HPP_INCLUDE
 
 #include <anton_stl/vector.hpp>
-#include <config.hpp>
 #include <handle.hpp>
 
 namespace anton_engine {
@@ -20,7 +19,7 @@ namespace anton_engine {
 
     private:
         anton_stl::Vector<T> resources;
-        anton_stl::Vector<id_type> identifiers;
+        anton_stl::Vector<uint64_t> identifiers;
     };
 } // namespace anton_engine
 

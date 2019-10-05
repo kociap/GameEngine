@@ -1,14 +1,12 @@
 #ifndef CORE_TYPE_FAMILY_HPP_INCLUDE
 #define CORE_TYPE_FAMILY_HPP_INCLUDE
 
-#include <config.hpp>
 #include <string_view>
-#include <type_traits>
 
 namespace anton_engine {
     class Type_Family {
     public:
-        using family_t = id_type;
+        using family_t = uint64_t;
 
         template <typename... Ts>
         static family_t family_id() {
