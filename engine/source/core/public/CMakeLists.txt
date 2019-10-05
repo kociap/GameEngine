@@ -5,9 +5,14 @@ set(TEMPLATE_IMPLEMENTATION_FILES
 )
 
 set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/function_traits_macros.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/memory_common.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/string_iterators.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/traits_base.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/traits_common.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/traits_function.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/traits_properties.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/traits_transformations.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/traits_utility.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/detail/utility_common.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/algorithm.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/allocator.hpp"
