@@ -41,7 +41,7 @@
         <Expand>
             <ArrayItems>
                 <Size>_size</Size>
-                <ValuePointer>storage</ValuePointer>
+                <ValuePointer>_data</ValuePointer>
             </ArrayItems>
         </Expand>
     </Type>
