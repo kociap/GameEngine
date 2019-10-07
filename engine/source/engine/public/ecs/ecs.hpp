@@ -2,6 +2,7 @@
 #define ENGINE_ENTITY_COMPONENT_SYSTEM_HPP_INCLUDE
 
 #include <anton_stl/algorithm.hpp>
+#include <anton_stl/type_traits.hpp>
 #include <anton_stl/vector.hpp>
 #include <ecs/component_container.hpp>
 #include <ecs/component_view.hpp>
@@ -34,29 +35,29 @@ namespace anton_engine {
         // Components... must be default constructible.
         template <typename... Components>
         auto create();
-
         void destroy(Entity);
-
         template <typename T, typename... Ctor_Args>
         T& add_component(Entity, Ctor_Args&&... args);
-
         template <typename T>
         void remove_component(Entity);
-
         template <typename... Ts>
         decltype(auto) get_component(Entity);
-
         template <typename... Ts>
         decltype(auto) try_get_component(Entity);
-
         template <typename... Ts>
-        bool has_component(Entity);
+        [[nodiscard]] bool has_component(Entity);
+
+        template <typename Component, typename Sort, typename Predicate>
+        void sort(Sort, Predicate);
 
         template <typename... Ts>
         Component_View<Ts...> view();
 
-        anton_stl::Vector<Entity> const& get_entities() const;
+        // Ts... are the components to copy
+        template <typename... Ts>
+        ECS snapshot() const;
 
+        anton_stl::Vector<Entity> const& get_entities() const;
         anton_stl::Vector<Entity> const& get_entities_to_remove() const;
 
         void remove_requested_entities();
@@ -65,26 +66,33 @@ namespace anton_engine {
         friend void deserialize(serialization::Binary_Input_Archive&, ECS&);
 
     private:
-        template <typename T>
-        Component_Container<T>* ensure_container();
-        template <typename T>
-        Component_Container<T> const* find_container() const;
-        template <typename T>
-        Component_Container<T>* find_container();
-
-    private:
         using family_type = Type_Family::family_t;
 
         struct Components_Container_Data {
+            Type_Family::family_t family;
             Component_Container_Base* container = nullptr;
             void (*remove)(Component_Container_Base&, Entity);
-            Type_Family::family_t family;
+            Component_Container_Base* (*make_snapshot)(Component_Container_Base const&);
         };
 
         anton_stl::Vector<Entity> _entities;
         anton_stl::Vector<Entity> entities_to_remove;
         anton_stl::Vector<Components_Container_Data> containers;
         Integer_Sequence_Generator id_generator;
+
+        template <typename... Container_Data>
+        ECS(anton_stl::Vector<Entity> const&, anton_stl::Vector<Entity> const&, Integer_Sequence_Generator, Container_Data...);
+
+        template <typename T>
+        Component_Container<T>* ensure_container();
+        template <typename T>
+        Component_Container<T>* find_container();
+        template <typename T>
+        Component_Container<T> const* find_container() const;
+        template <typename T>
+        Components_Container_Data* find_container_data();
+        template <typename T>
+        Components_Container_Data const* find_container_data() const;
     };
 } // namespace anton_engine
 
@@ -154,9 +162,23 @@ namespace anton_engine {
         return (... && (std::get<Component_Container<Ts>*>(containers) ? std::get<Component_Container<Ts>*>(containers)->has(entity) : false));
     }
 
+    template <typename Component, typename Sort, typename Predicate>
+    inline void ECS::sort(Sort sort, Predicate predicate) {
+        Component_Container<Component>* const container = find_container<Component>();
+        if (container) {
+            container->sort(sort, predicate);
+        }
+    }
+
     template <typename... Ts>
     inline Component_View<Ts...> ECS::view() {
         return Component_View<Ts...>(ensure_container<Ts>()...);
+    }
+
+    template <typename... Ts>
+    inline ECS ECS::snapshot() const {
+        ANTON_VERIFY((... && (find_container_data<Ts>() != nullptr)), "Cannot create a snapshot of component that has not been added.");
+        return ECS(_entities, entities_to_remove, id_generator, *find_container_data<Ts>()...);
     }
 
     inline anton_stl::Vector<Entity> const& ECS::get_entities() const {
@@ -184,6 +206,14 @@ namespace anton_engine {
         entities_to_remove.clear();
     }
 
+    template <typename... Container_Data>
+    inline ECS::ECS(anton_stl::Vector<Entity> const& e, anton_stl::Vector<Entity> const& er, Integer_Sequence_Generator g, Container_Data... data)
+        : _entities(e), entities_to_remove(er), containers(anton_stl::reserve, sizeof...(Container_Data)), id_generator(g) {
+        static_assert((... && anton_stl::is_same<Container_Data, Components_Container_Data>),
+                      "Template argument Container_Data is not Components_Container_Data.");
+        (..., containers.emplace_back(data.family, data.make_snapshot(*data.container), data.remove, data.make_snapshot));
+    }
+
     template <typename T>
     inline Component_Container<T>* ECS::ensure_container() {
         auto component_family = Type_Family::family_id<T>();
@@ -202,6 +232,10 @@ namespace anton_engine {
         }
         data.family = component_family;
         data.remove = [](Component_Container_Base& container, Entity const entity) { static_cast<Component_Container<T>&>(container).remove(entity); };
+        data.make_snapshot = [](Component_Container_Base const& container) -> Component_Container_Base* {
+            Component_Container<T> const& c = static_cast<Component_Container<T> const&>(container);
+            return new Component_Container<T>(c);
+        };
         return static_cast<Component_Container<T>*>(data.container);
     }
 
@@ -222,6 +256,28 @@ namespace anton_engine {
         for (auto& data: containers) {
             if (data.family == component_family) {
                 return static_cast<Component_Container<T>*>(data.container);
+            }
+        }
+        return nullptr;
+    }
+
+    template <typename T>
+    inline ECS::Components_Container_Data* ECS::find_container_data() {
+        auto type = Type_Family::family_id<T>();
+        for (auto& data: containers) {
+            if (data.family == type) {
+                return &data;
+            }
+        }
+        return nullptr;
+    }
+
+    template <typename T>
+    inline ECS::Components_Container_Data const* ECS::find_container_data() const {
+        auto type = Type_Family::family_id<T>();
+        for (auto& data: containers) {
+            if (data.family == type) {
+                return &data;
             }
         }
         return nullptr;

@@ -38,13 +38,34 @@ namespace anton_engine {
                 return (++begin != end && !has_all_components(*begin)) ? ++(*this) : *this;
             }
 
-            // clang-format off
-        // Return underlying_iterator_t to call operator-> recursively
-        underlying_iterator_t operator->() { return begin; }
-        reference operator*() { return *begin; }
-        friend bool operator==(iterator const& a, iterator const& b) { return a.begin == b.begin; }
-        friend bool operator!=(iterator const& a, iterator const& b) { return a.begin != b.begin; }
-            // clang-format on
+            iterator& operator+=(int64_t rhs) {
+                ANTON_VERIFY(rhs >= 0, "Forward iterator may not be moved backwards.");
+                for (; rhs > 0; --rhs) {
+                    ++(*this);
+                }
+            }
+
+            // Return underlying_iterator_t to call operator-> recursively
+            underlying_iterator_t operator->() {
+                return begin;
+            }
+
+            reference operator*() {
+                return *begin;
+            }
+
+            [[nodiscard]] friend iterator operator+(iterator lhs, int64_t const rhs) {
+                lhs += rhs;
+                return lhs;
+            }
+
+            [[nodiscard]] friend bool operator==(iterator const& a, iterator const& b) {
+                return a.begin == b.begin;
+            }
+
+            [[nodiscard]] friend bool operator!=(iterator const& a, iterator const& b) {
+                return a.begin != b.begin;
+            }
 
         private:
             bool has_all_components(Entity entity) {
@@ -107,11 +128,8 @@ namespace anton_engine {
 
         // TODO add const support
         Component_Container_Base* find_smallest_container() {
-            // clang-format off
-        return std::min({static_cast<Component_Container_Base*>(std::get<Component_Container<Components>*>(containers))...}, [](auto* a, auto* b) { 
-            return a->size() < b->size(); 
-        });
-            // clang-format on
+            return std::min({static_cast<Component_Container_Base*>(std::get<Component_Container<Components>*>(containers))...},
+                            [](auto* a, auto* b) { return a->size() < b->size(); });
         }
 
     private:

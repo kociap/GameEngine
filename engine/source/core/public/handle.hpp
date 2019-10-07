@@ -11,13 +11,33 @@ namespace anton_engine {
     };
 
     template <typename T>
-    bool operator==(Handle<T> const& a, Handle<T> const& b) {
-        return a.value == b.value;
+    [[nodiscard]] constexpr bool operator==(Handle<T> lhs, Handle<T> rhs) {
+        return lhs.value == rhs.value;
     }
 
     template <typename T>
-    bool operator!=(Handle<T> const& a, Handle<T> const& b) {
-        return a.value != b.value;
+    [[nodiscard]] constexpr bool operator!=(Handle<T> lhs, Handle<T> rhs) {
+        return lhs.value != rhs.value;
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr bool operator<(Handle<T> lhs, Handle<T> rhs) {
+        return lhs.value < rhs.value;
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr bool operator>(Handle<T> lhs, Handle<T> rhs) {
+        return lhs.value > rhs.value;
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr bool operator<=(Handle<T> lhs, Handle<T> rhs) {
+        return lhs.value <= rhs.value;
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr bool operator>=(Handle<T> lhs, Handle<T> rhs) {
+        return lhs.value >= rhs.value;
     }
 } // namespace anton_engine
 

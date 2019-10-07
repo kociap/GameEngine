@@ -1,5 +1,4 @@
 set(TEMPLATE_IMPLEMENTATION_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/ecs/component_container.tpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/resource_manager.tpp"
 )
 
