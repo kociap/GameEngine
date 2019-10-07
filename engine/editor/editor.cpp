@@ -1,6 +1,5 @@
 #include <editor.hpp>
 
-#include <asset_importing.hpp>
 #include <build_config.hpp>
 #include <camera_movement.hpp>
 #include <components/camera.hpp>
@@ -18,6 +17,7 @@
 #include <mesh/mesh.hpp>
 #include <outliner.hpp>
 #include <paths.hpp>
+#include <renderer.hpp>
 #include <resource_manager.hpp>
 #include <shader.hpp>
 #include <time.hpp>
@@ -27,6 +27,12 @@
 #include <viewport_camera.hpp>
 
 #include <editor_qapplication.hpp>
+
+// TODO: Remove
+#include <logging.hpp>
+#include <serialization/archives/binary.hpp>
+#include <serialization/serialization.hpp>
+#include <time.hpp>
 
 ANTON_DISABLE_WARNINGS();
 #include <QCoreApplication>
@@ -73,9 +79,6 @@ namespace anton_engine {
         Editor::load_world();
     }
 
-#include <serialization/archives/binary.hpp>
-#include <serialization/serialization.hpp>
-
     void Editor::terminate() {
 #if SERIALIZE_ON_QUIT
         std::filesystem::path serialization_out_path = utils::concat_paths(paths::project_directory(), "ecs.bin");
@@ -92,6 +95,9 @@ namespace anton_engine {
     void Editor::loop() {
         qapplication->processEvents();
         time_core::update_time();
+        if (timingf::get_delta_time() > 0.017f) {
+            log_message(Log_Message_Severity::info, anton_stl::to_string(timingf::get_delta_time()));
+        }
         // TODO separate inputs for each viewport
         input_manager->process_events();
 
@@ -142,6 +148,7 @@ namespace anton_engine {
     }
 } // namespace anton_engine
 
+#include <asset_importing.hpp>
 #include <assets.hpp>
 #include <components/directional_light_component.hpp>
 #include <components/point_light_component.hpp>
@@ -154,9 +161,9 @@ namespace anton_engine {
     void Editor::load_world() {
         // #define RENDER_CUBES
 
-        /*assets::load_shader_file_and_attach(default_shader, "normals.vert");
-        assets::load_shader_file_and_attach(default_shader, "normals.geom");
-        assets::load_shader_file_and_attach(default_shader, "normals.frag");*/
+        // asset_importing::import("C:/Users/An0num0us/Documents/GameEngine/assets_main/barrel_texture.png");
+        // asset_importing::import("C:/Users/An0num0us/Documents/GameEngine/assets_main/barrel_normal_map.png");
+
 #ifdef RENDER_CUBES
         auto basic_frag = assets::load_shader_file("basicfrag.2.frag");
 #else
@@ -180,9 +187,15 @@ namespace anton_engine {
         anton_stl::Vector<Mesh> meshes = assets::load_model("barrel.obj");
         auto& container = meshes[0];
         Material barrel_mat;
-        barrel_mat.diffuse_texture.handle = assets::load_texture("barrel_texture", 0);
-        barrel_mat.normal_map.handle = assets::load_texture("barrel_normal_map", 0);
-        Handle<Material> material_handle = material_manager->add(std::move(barrel_mat));
+        {
+            anton_stl::Vector<uint8_t> pixels;
+            Texture_Format const format = assets::load_texture_no_mipmaps("barrel_texture", 0, pixels);
+            Texture handle;
+            void* pix_data = pixels.data();
+            rendering::load_textures_generate_mipmaps(format, 1, &pix_data, &handle);
+            barrel_mat.diffuse_texture = handle;
+        }
+        Handle<Material> const material_handle = material_manager->add(std::move(barrel_mat));
 #endif
         Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
         Handle<Mesh> quad_mesh = mesh_manager->add(Plane());

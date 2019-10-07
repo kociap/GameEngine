@@ -44,8 +44,7 @@ namespace anton_engine {
         surface->create();
 
         context->makeCurrent(surface);
-        opengl::load_functions();
-        opengl::load_constants();
+        opengl::load();
         rendering::setup_rendering();
         load_builtin_shaders();
         gizmo::init();

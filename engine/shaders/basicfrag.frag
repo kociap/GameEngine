@@ -5,17 +5,26 @@ in Frag_Data {
     vec3 fragment_position;
     vec3 normal;
     vec2 tex_coords;
+    flat uint draw_id;
 } fs_in;
 
-struct Material {
-    sampler2D texture_diffuse;
-    sampler2D texture_specular;
-    sampler2D normal_map;
-    float shininess;
-    bool normal_map_attached;
+struct Texture {
+    uint index;
+    float layer;
 };
 
-uniform Material material;
+struct Material {
+    Texture diffuse;
+    Texture specular;
+    Texture normal_map;
+    float shininess;
+};
+
+layout(std140, binding = 2) readonly buffer Materials {
+    Material materials[];
+};
+
+layout(binding = 0) uniform sampler2DArray array_textures[16];
 
 layout(location = 0) out vec3 gbuf_position;
 layout(location = 1) out vec3 gbuf_normal;
@@ -26,9 +35,10 @@ vec3 color_to_normal(vec3 c);
 
 void main() {
     // vec3 surface_normal = material.normal_map_attached ? get_surface_normal(material.normal_map, fs_in.tex_coords) : fs_in.normal;
+    Material material = materials[fs_in.draw_id];
     vec3 surface_normal = fs_in.normal;
-    vec4 tex_color = texture(material.texture_diffuse, fs_in.tex_coords);
-    vec4 specular_tex_color = texture(material.texture_specular, fs_in.tex_coords);
+    vec4 tex_color = texture(array_textures[material.diffuse.index], vec3(fs_in.tex_coords, material.diffuse.layer));
+    vec4 specular_tex_color = texture(array_textures[material.specular.index], vec3(fs_in.tex_coords, material.specular.layer));
 
     gbuf_position = fs_in.fragment_position;
     gbuf_normal = surface_normal;

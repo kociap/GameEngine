@@ -81,9 +81,15 @@ namespace anton_engine {
         anton_stl::Vector<Mesh> meshes = assets::load_model("barrel.obj");
         auto& container = meshes[0];
         Material barrel_mat;
-        barrel_mat.diffuse_texture.handle = assets::load_texture("barrel_texture", 0);
-        barrel_mat.normal_map.handle = assets::load_texture("barrel_normal_map", 0);
-        Handle<Material> material_handle = material_manager->add(std::move(barrel_mat));
+        {
+            anton_stl::Vector<uint8_t> pixels;
+            Texture_Format const format = assets::load_texture_no_mipmaps("barrel_texture", 0, pixels);
+            Texture handle;
+            void* pix_data = pixels.data();
+            rendering::load_textures_generate_mipmaps(format, 1, &pix_data, &handle);
+            barrel_mat.diffuse_texture = handle;
+        }
+        Handle<Material> const material_handle = material_manager->add(std::move(barrel_mat));
 #endif
         Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
         Handle<Mesh> quad_mesh = mesh_manager->add(Plane());

@@ -50,6 +50,9 @@ namespace anton_engine {
     }
 
     Shader_File::~Shader_File() {
-        opengl::delete_shader(shader);
+		if (shader != 0) {
+            glDeleteShader(shader);
+            CHECK_GL_ERRORS();
+		}
     }
 } // namespace anton_engine

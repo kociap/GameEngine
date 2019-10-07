@@ -3,7 +3,6 @@
 #include <glad.hpp>
 
 #include <anton_stl/vector.hpp>
-#include <assets_internal.hpp>
 #include <build_config.hpp>
 #include <debug_macros.hpp> // CHECK_GL_ERRORS
 #include <importers/obj.hpp>
@@ -15,6 +14,7 @@
 #include <paths.hpp>
 #include <postprocess.hpp>
 #include <shader.hpp>
+#include <texture_format.hpp>
 #include <utils/filesystem.hpp>
 
 #include <fstream>
@@ -82,75 +82,32 @@ namespace anton_engine::assets {
         return (static_cast<int64_t>(read_int32_le(stream)) | static_cast<int64_t>(read_int32_le(stream)) << 32);
     }
 
-    struct Texture {
-        uint32_t width;
-        uint32_t height;
-        opengl::Format format;
-        opengl::Sized_Internal_Format internal_format;
-        opengl::Type type;
-        opengl::Texture_Filter filter;
-        uint64_t swizzle_mask;
-        anton_stl::Vector<uint8_t> pixels;
-    };
-
     // TODO extract writing and reading to one tu to keep them in sync
-    static Texture load_texture_from_file(std::filesystem::path const& file_path, uint64_t const texture_id) {
+    Texture_Format load_texture_no_mipmaps(std::string const& filename, uint64_t const texture_id, anton_stl::Vector<uint8_t>& pixels) {
+#if !GE_BUILD_SHIPPING
+        std::filesystem::path const texture_path = utils::concat_paths(paths::assets_directory(), filename + ".getex");
         // TODO texture loading
-        std::ifstream file(file_path, std::ios::binary);
+        std::ifstream file(texture_path, std::ios::binary);
         while (!file.eof()) {
             [[maybe_unused]] int64_t const texture_data_size = read_int64_le(file);
             uint64_t const tex_id = read_uint64_le(file);
             if (tex_id == texture_id) {
-                Texture texture;
-                texture.width = read_uint32_le(file);
-                texture.height = read_uint32_le(file);
-                texture.format = static_cast<opengl::Format>(read_int32_le(file));
-                texture.internal_format = static_cast<opengl::Sized_Internal_Format>(read_int32_le(file));
-                texture.type = static_cast<opengl::Type>(read_int32_le(file));
-                texture.filter = static_cast<opengl::Texture_Filter>(read_int32_le(file));
-                texture.swizzle_mask = read_uint64_le(file);
+                Texture_Format format;
+                file.read(reinterpret_cast<char*>(&format), sizeof(Texture_Format));
                 int64_t texture_size_bytes = read_int64_le(file);
-                texture.pixels.resize(texture_size_bytes);
-                file.read(reinterpret_cast<char*>(texture.pixels.data()), texture_size_bytes);
-                return texture;
+                pixels.resize(texture_size_bytes);
+                file.read(reinterpret_cast<char*>(pixels.data()), texture_size_bytes);
+                return format;
             } else {
-                // TODO shipping build texture loading
                 // Since there's only one texture per file right now, we do not have to skip past it, but instead throw an exception
-                throw std::runtime_error("Texture not found in the file " + file_path.generic_string());
+                throw std::runtime_error("Texture not found in the file " + texture_path.generic_string());
             }
         }
         throw std::runtime_error("Invalid texture file");
-    }
-
-    static bool should_use_linear_magnififcation_filter(opengl::Texture_Filter const filter) {
-        return filter == opengl::Texture_Filter::linear || filter == opengl::Texture_Filter::linear_mipmap_nearest ||
-               filter == opengl::Texture_Filter::linear_mipmap_linear;
-    }
-
-    uint32_t load_texture(std::string const& filename, uint64_t const texture_id) {
-#if !GE_BUILD_SHIPPING
-        std::filesystem::path const texture_path = utils::concat_paths(paths::assets_directory(), filename + ".getex");
-        Texture const texture = load_texture_from_file(texture_path, texture_id);
 #else
+#    error "No implementation of load_texture_no_mipmaps for shipping build."
 // TODO shipping build texture loading
 #endif
-        uint32_t texture_gl_handle;
-        opengl::gen_textures(1, &texture_gl_handle);
-        opengl::bind_texture(opengl::Texture_Type::texture_2D, texture_gl_handle);
-        opengl::tex_image_2D(GL_TEXTURE_2D, 0, texture.internal_format, texture.width, texture.height, texture.format, texture.type, texture.pixels.data());
-        uint32_t const mag_filter = should_use_linear_magnififcation_filter(texture.filter) ? GL_LINEAR : GL_NEAREST;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, utils::enum_to_value(texture.filter));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
-        CHECK_GL_ERRORS();
-        if (texture.swizzle_mask != no_swizzle) {
-            int32_t const swizzle_mask[] = {static_cast<int32_t>(texture.swizzle_mask) & 0xFFFF, static_cast<int32_t>(texture.swizzle_mask >> 16) & 0xFFFF,
-                                            static_cast<int32_t>(texture.swizzle_mask >> 32) & 0xFFFF,
-                                            static_cast<int32_t>(texture.swizzle_mask >> 48) & 0xFFFF};
-            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle_mask);
-        }
-        CHECK_GL_ERRORS();
-        opengl::generate_mipmap(GL_TEXTURE_2D); // TODO generate offline
-        return texture_gl_handle;
     }
 
     static void compute_tangents(Vertex& vert1, Vertex& vert2, Vertex& vert3) {

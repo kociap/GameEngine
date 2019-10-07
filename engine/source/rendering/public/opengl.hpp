@@ -190,8 +190,10 @@ namespace anton_engine::opengl {
     // OpenGL 4.5 Core Profile standard required constants
 
     // Minimum number of framebuffer color attachments
-    constexpr uint32_t min_color_attachments = 8;
+    constexpr int32_t min_color_attachments = 8;
+    constexpr int32_t min_textures_per_stage = 16;
 
+    [[nodiscard]] int32_t get_max_texture_image_units();
     [[nodiscard]] int32_t get_max_combined_texture_units();
     [[nodiscard]] int32_t get_max_renderbuffer_size();
     [[nodiscard]] int32_t get_max_color_attachments();
@@ -243,8 +245,10 @@ namespace anton_engine::opengl {
     // Both width and height may not be negative
     void viewport(int32_t x, int32_t y, int32_t width, int32_t height);
 
+    void load();
     void load_functions();
     void load_constants();
+    void install_debug_callback();
 } // namespace anton_engine::opengl
 
 namespace anton_engine {

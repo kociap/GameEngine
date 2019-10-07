@@ -4,9 +4,11 @@
 #include <cstdint>
 
 namespace anton_engine {
-    class Texture {
+    // std140 requires a member structure be aligned to a multiple of vec4's alignment (16 in our case).
+    class alignas(16) Texture {
     public:
-        uint32_t handle = 0;
+        uint32_t index = 0;
+        float layer = 0;
     };
 
     class Material {
@@ -14,7 +16,7 @@ namespace anton_engine {
         Texture diffuse_texture;
         Texture specular_texture;
         Texture normal_map;
-        float shininess = 32.0f;
+        float shininess = 32.0f; // TODO: Remove
     };
 } // namespace anton_engine
 

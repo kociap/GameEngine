@@ -20,17 +20,14 @@ struct Directional_Light {
 };
 
 // Move to SSBO (somehow and someday)
-layout(std140, binding = 0) uniform Lights_Data {
+layout(std140, binding = 0) uniform Lighting_Data {
+    vec4 ambient_color;
+    float ambient_strength;
+    float todo_remove_shininess;
     int point_lights_count;
     int directional_lights_count;
     Point_Light[16] point_lights;
     Directional_Light[16] directional_lights;
-};
-
-layout(std140, binding = 1) uniform Environment_Data {
-    vec4 ambient_color;
-    float ambient_strength;
-    float todo_remove_shininess;
 };
 
 struct Camera {

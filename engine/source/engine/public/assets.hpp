@@ -3,6 +3,7 @@
 
 #include <anton_stl/vector.hpp>
 #include <shader_file.hpp>
+#include <texture_format.hpp>
 
 #include <filesystem>
 #include <string>
@@ -18,8 +19,8 @@ namespace anton_engine {
 
         Shader_File load_shader_file(std::filesystem::path const& path);
 
-        // Loads texture and returns a OpenGL handle
-        uint32_t load_texture(std::string const& filename, uint64_t texture_id);
+        // Loads texture pixels
+        Texture_Format load_texture_no_mipmaps(std::string const& filename, uint64_t texture_id, anton_stl::Vector<uint8_t>& pixels);
 
         anton_stl::Vector<Mesh> load_model(std::filesystem::path const& filename);
     } // namespace assets

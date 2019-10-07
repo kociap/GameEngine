@@ -2,6 +2,7 @@
 #include <renderer_internal.hpp>
 
 #include <anton_stl/utility.hpp>
+#include <anton_stl/vector.hpp>
 #include <assets.hpp>
 #include <build_config.hpp>
 #include <builtin_shaders.hpp>
@@ -26,6 +27,9 @@
 #include <opengl.hpp>
 #include <resource_manager.hpp>
 #include <shader.hpp>
+#include <utils/enum.hpp>
+
+#include <algorithm> // std::sort
 
 namespace anton_engine {
     static Resource_Manager<Mesh>& get_mesh_manager() {
@@ -81,31 +85,80 @@ namespace anton_engine::rendering {
         float specular_strength;
     };
 
-    struct Lights_Data {
+    struct Lighting_Data {
+        alignas(16) Color ambient_color;
+        float ambient_strentgh;
+        float shininess; // TODO: Remove. Has basically no meaning since it should be per material and should be a different property.
         int point_lights_count;
         int directional_light_count;
         Point_Light_Data point_lights[16];
         Directional_Light_Data directional_lights[16];
     };
 
-    struct Environment_Data {
-        alignas(16) Color ambient_color;
-        float ambient_strentgh;
-        float shininess; // TODO: Remove. Has basically no meaning since it should be per material and should be a different property.
-    };
+    // Buffer binding indices
+    constexpr uint32_t lighting_data_binding = 0;
+    constexpr uint32_t draw_matrix_data = 1;
+    constexpr uint32_t draw_material_data_binding = 2;
 
-    // Dynamic lights data. Bound to binding 0.
-    static uint32_t lights_data_ubo = 0;
+    // Dynamic lights and environment data. Bound to binding 0 and 1 respectively.
+    static uint32_t lighting_data_ubo = 0;
+
     // Persistently mapped vertex buffer for rendering geometry.
     static uint32_t vertex_buffer = 0;
     constexpr int64_t vertex_buffer_vertex_count = 1048576;
     constexpr int64_t vertex_buffer_size = vertex_buffer_vertex_count * sizeof(Vertex);
+    constexpr int64_t draw_id_count = 65536;
+    constexpr int64_t draw_id_buffer_size = draw_id_count * sizeof(uint32_t);
     static void* mapped_vertex_buffer = nullptr;
+    static void* mapped_draw_id_buffer = nullptr;
+
+    // Persistently mapped SSBO with matrix data.
+    static uint32_t ssbo = 0;
+    constexpr int64_t matrix_ssbo_size = draw_id_count * sizeof(Matrix4);
+    constexpr int64_t material_ssbo_size = draw_id_count * sizeof(Material);
+    constexpr int64_t ssbo_size = matrix_ssbo_size + material_ssbo_size;
+    static void* mapped_matrix_ssbo = nullptr;
+    static void* mapped_material_ssbo = nullptr;
+
+    // Persistently mapped element buffer for rendering geometry.
+    static uint32_t element_buffer = 0;
+    constexpr int64_t element_buffer_size = 1048576;
+    static void* mapped_element_buffer = nullptr;
+
+    struct Array_Texture {
+        uint32_t handle;
+        Texture_Format format;
+    };
+
+    [[nodiscard]] static bool operator==(Texture_Format lhs, Texture_Format rhs) {
+        bool const swizzle_equal = lhs.swizzle_mask[0] == rhs.swizzle_mask[0] && lhs.swizzle_mask[1] == rhs.swizzle_mask[1] &&
+                                   lhs.swizzle_mask[2] == rhs.swizzle_mask[2] && lhs.swizzle_mask[3] == rhs.swizzle_mask[3];
+        return lhs.width == rhs.width && lhs.height == rhs.height && lhs.mip_levels == rhs.mip_levels &&
+               lhs.sized_internal_format == rhs.sized_internal_format && swizzle_equal && lhs.pixel_type == rhs.pixel_type &&
+               lhs.pixel_format == rhs.pixel_format;
+    }
+
+    [[nodiscard]] static bool operator!=(Texture_Format lhs, Texture_Format rhs) {
+        return !(lhs == rhs);
+    }
+
+    struct Array_Texture_Storage {
+        anton_stl::Vector<uint32_t> free_list;
+        int32_t size = 0;
+    };
+
+    static anton_stl::Vector<Array_Texture> textures(64, Array_Texture{});
+    static anton_stl::Vector<Array_Texture_Storage> textures_storage(64, Array_Texture_Storage());
+
+    // Draw command buffers.
+    static anton_stl::Vector<Draw_Arrays_Command> draw_arrays_commands;
+    static anton_stl::Vector<Draw_Elements_Command> draw_elements_commands;
+
     // Standard vao used for rendering meshes with position, normals, texture coords, tangent and bitangent.
     // Uses binding index 0.
     static uint32_t mesh_vao = 0;
 
-    static uint64_t align_size(uint64_t const size, uint64_t const alignment) {
+    constexpr uint64_t align_size(uint64_t const size, uint64_t const alignment) {
         uint64_t const misalignment = size & (alignment - 1);
         return size + (misalignment != 0 ? alignment - misalignment : 0);
     }
@@ -137,36 +190,68 @@ namespace anton_engine::rendering {
         glEnableVertexAttribArray(4);
         glVertexAttribFormat(4, 2, GL_FLOAT, false, offsetof(Vertex, uv_coordinates));
         glVertexAttribBinding(4, 0);
+        glVertexAttribFormat(5, 1, GL_UNSIGNED_INT, false, 0);
+        glVertexAttribBinding(5, 1);
+        glVertexBindingDivisor(5, 1);
 
+        constexpr uint32_t buffer_flags = GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT;
+
+        // TODO: Synchronisation to prevent buffer races
         glGenBuffers(1, &vertex_buffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
         // Huge buffer
-        glBufferStorage(GL_ARRAY_BUFFER, vertex_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT);
-        mapped_vertex_buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vertex_buffer_size, GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT);
+        glBufferStorage(GL_ARRAY_BUFFER, vertex_buffer_size + draw_id_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
+        glBindVertexBuffer(0, vertex_buffer, 0, sizeof(Vertex));
+        glBindVertexBuffer(1, vertex_buffer, vertex_buffer_size, sizeof(uint32_t));
+        CHECK_GL_ERRORS();
+        mapped_vertex_buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vertex_buffer_size, buffer_flags);
+        mapped_draw_id_buffer = reinterpret_cast<char*>(mapped_vertex_buffer) + vertex_buffer_size;
 
-        glGenBuffers(1, &lights_data_ubo);
-        glBindBuffer(GL_UNIFORM_BUFFER, lights_data_ubo);
+        glGenBuffers(1, &ssbo);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+        glBufferStorage(GL_SHADER_STORAGE_BUFFER, ssbo_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
+        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, draw_matrix_data, ssbo, 0, matrix_ssbo_size);
+        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, draw_material_data_binding, ssbo, matrix_ssbo_size, material_ssbo_size);
+        CHECK_GL_ERRORS();
+        mapped_matrix_ssbo = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ssbo_size, buffer_flags);
+        mapped_material_ssbo = reinterpret_cast<char*>(mapped_matrix_ssbo) + matrix_ssbo_size;
+        CHECK_GL_ERRORS();
 
-        uint64_t const uniform_required_alignment = opengl::get_uniform_buffer_offset_alignment();
-        uint64_t const environment_data_offset = align_size(sizeof(Lights_Data), uniform_required_alignment);
-        glBufferStorage(GL_UNIFORM_BUFFER, environment_data_offset + sizeof(Environment_Data), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glBindBufferRange(GL_UNIFORM_BUFFER, 0, lights_data_ubo, 0, sizeof(Lights_Data));
-        CHECK_GL_ERRORS();
-        int size;
-        glGetBufferParameteriv(GL_UNIFORM_BUFFER, GL_BUFFER_SIZE, &size);
-        // TODO: We load hardcoded environment properties at startup, but they should be modifiable.
-        Environment_Data environment_data = {{1.0f, 1.0f, 1.0f}, 0.02f, 32.0f};
-        glBufferSubData(GL_UNIFORM_BUFFER, environment_data_offset, sizeof(Environment_Data), &environment_data);
-        CHECK_GL_ERRORS();
-        glBindBufferRange(GL_UNIFORM_BUFFER, 1, lights_data_ubo, environment_data_offset, sizeof(Environment_Data));
-        CHECK_GL_ERRORS();
+        glGenBuffers(2, &element_buffer);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
+        // Another huge buffer
+        glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, element_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
+        mapped_element_buffer = glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, element_buffer_size, buffer_flags);
+
+        // Uniforms
+
+        glGenBuffers(1, &lighting_data_ubo);
+        glBindBuffer(GL_UNIFORM_BUFFER, lighting_data_ubo);
+        glBufferStorage(GL_UNIFORM_BUFFER, sizeof(Lighting_Data), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glBindBufferRange(GL_UNIFORM_BUFFER, lighting_data_binding, lighting_data_ubo, 0, sizeof(Lighting_Data));
+
+        // Default Textures
+
+        // Empty (0, 0, 0, 1) 1x1 texture bound to unit 0 layer 0
+        // Default normal map (0.5, 0.5, 1.0, 1.0) 1x1  bound to unit 0 layer 1
+        {
+            Texture_Format const default_format = {
+                1, 1, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, GL_NEAREST_MIPMAP_NEAREST, 1, {GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA}};
+            uint8_t const pixels[] = {0, 0, 0, 127, 127, 255};
+            void const* const pixels_loc[2] = {pixels, pixels + 3};
+            Texture handles[2];
+            // TODO: Something's wrong with loading to gpu since the textures don't appear in renderdoc
+            load_textures_generate_mipmaps(default_format, 2, pixels_loc, handles);
+            bind_texture(0, handles[0]);
+        }
     }
 
     void update_dynamic_lights() {
         ECS& ecs = get_ecs();
-        Lights_Data lights_data = {};
+        // TODO: We load hardcoded environment properties at startup, but they should be modifiable.
+        Lighting_Data lights_data = {{1.0f, 1.0f, 1.0f}, 0.02f, 32.0f, 0, 0, {}, {}};
         {
-            auto directional_lights = ecs.access<Directional_Light_Component>();
+            auto directional_lights = ecs.view<Directional_Light_Component>();
             lights_data.directional_light_count = directional_lights.size();
             int32_t i = 0;
             for (Entity const entity: directional_lights) {
@@ -176,7 +261,7 @@ namespace anton_engine::rendering {
             }
         }
         // {
-        //     auto spot_lights = ecs.access<Transform, Spot_Light_Component>();
+        //     auto spot_lights = ecs.view<Transform, Spot_Light_Component>();
         //     int32_t i = 0;
         //     for (Entity const entity: spot_lights) {
         //         auto [transform, light] = spot_lights.get<Transform, Spot_Light_Component>(entity);
@@ -186,21 +271,165 @@ namespace anton_engine::rendering {
         //     }
         // }
         {
-            auto point_lights = ecs.access<Transform, Point_Light_Component>();
+            auto point_lights = ecs.view<Transform, Point_Light_Component>();
             lights_data.point_lights_count = point_lights.size();
             int32_t i = 0;
             for (Entity const entity: point_lights) {
                 auto [transform, light] = point_lights.get<Transform, Point_Light_Component>(entity);
+                // TODO: Global attentuation instead of per light. Most likely hardcoded in the shaders
                 lights_data.point_lights[i] = {transform.local_position, light.color, light.intensity, 1.0f, 0.09f, 0.032f, 0.8f, 1.0f};
                 ++i;
             }
         }
 
-        glNamedBufferSubData(lights_data_ubo, 0, sizeof(Lights_Data), &lights_data);
+        glNamedBufferSubData(lighting_data_ubo, 0, sizeof(Lighting_Data), &lights_data);
     }
 
     void bind_mesh_vao() {
         glBindVertexArray(mesh_vao);
+    }
+
+    Mapped_Buffer get_vertex_buffer() {
+        return {mapped_vertex_buffer, vertex_buffer_size};
+    }
+
+    Mapped_Buffer get_draw_id_buffer() {
+        return {mapped_draw_id_buffer, draw_id_buffer_size};
+    }
+
+    Mapped_Buffer get_matrix_buffer() {
+        return {mapped_matrix_ssbo, ssbo_size};
+    }
+
+    Mapped_Buffer get_material_buffer() {
+        return {mapped_material_ssbo, material_ssbo_size};
+    }
+
+    Mapped_Buffer get_element_buffer() {
+        return {mapped_element_buffer, element_buffer_size};
+    }
+
+    [[nodiscard]] static int32_t find_texture_with_format(Texture_Format const format) {
+        for (int32_t i = 0; i < textures.size(); ++i) {
+            if (textures[i].format == format) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    [[nodiscard]] static int32_t find_unused_texture() {
+        for (int32_t i = 0; i < textures.size(); ++i) {
+            if (textures[i].handle == 0) {
+                return i;
+            }
+        }
+
+        int32_t unused = textures.size();
+        textures.resize(textures.size() * 2);
+        return unused;
+    }
+
+    [[nodiscard]] static bool should_use_linear_magnififcation_filter(GLenum const min_filter) {
+        return min_filter == GL_LINEAR || min_filter == GL_LINEAR_MIPMAP_NEAREST || min_filter == GL_LINEAR_MIPMAP_LINEAR;
+    }
+
+    // Handle <gl texture handle (u32), layer (u32)>
+    void load_textures_generate_mipmaps(Texture_Format const format, int32_t const texture_count, void const* const* const pixels, Texture* const handles) {
+        int32_t texture_index = find_texture_with_format(format);
+        if (texture_index == -1) {
+            int32_t unused_texture = find_unused_texture();
+            textures[unused_texture].format = format;
+            glGenTextures(1, &textures[unused_texture].handle);
+            glBindTexture(GL_TEXTURE_2D_ARRAY, textures[unused_texture].handle);
+            glTexStorage3D(GL_TEXTURE_2D_ARRAY, format.mip_levels, format.sized_internal_format, format.width, format.height, texture_count);
+            // uint32_t const mag_filter = should_use_linear_magnififcation_filter(texture.filter) ? GL_LINEAR : GL_NEAREST;
+            // TODO: Currently all textures are trilinearily filtered by default.
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, format.swizzle_mask);
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            for (int32_t i = 0; i < texture_count; ++i) {
+                textures_storage[unused_texture].free_list.push_back(i);
+            }
+            texture_index = unused_texture;
+        } else {
+            if (textures_storage[texture_index].free_list.size() >= texture_count) {
+                glBindTexture(GL_TEXTURE_2D_ARRAY, textures[texture_index].handle);
+            } else {
+                uint32_t new_texture;
+                glGenTextures(1, &new_texture);
+                glBindTexture(GL_TEXTURE_2D_ARRAY, new_texture);
+                Array_Texture_Storage& texture_storage = textures_storage[texture_index];
+                int32_t const new_size = texture_storage.size + texture_count - texture_storage.free_list.size();
+                glTexStorage3D(GL_TEXTURE_2D_ARRAY, format.mip_levels, format.sized_internal_format, format.width, format.height, new_size);
+                for (int32_t i = 0; i < format.mip_levels; ++i) {
+                    glCopyImageSubData(textures[texture_index].handle, GL_TEXTURE_2D_ARRAY, i, 0, 0, 0, new_texture, GL_TEXTURE_2D_ARRAY, i, 0, 0, 0,
+                                       format.width, format.height, texture_storage.size);
+                }
+                glDeleteTextures(1, &textures[texture_index].handle);
+                textures[texture_index].handle = new_texture;
+                int32_t const old_size = texture_storage.size;
+                texture_storage.size = new_size;
+                for (int32_t i = old_size; i < new_size; ++i) {
+                    texture_storage.free_list.push_back(i);
+                }
+            }
+        }
+
+        Array_Texture_Storage& texture_storage = textures_storage[texture_index];
+        for (int32_t i = 0; i < texture_count; ++i) {
+            int32_t const unused_texture = texture_storage.free_list[i];
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, unused_texture, format.width, format.height, 1, format.pixel_format, format.pixel_type, pixels[i]);
+            handles[i].index = texture_index;
+            handles[i].layer = unused_texture;
+        }
+        texture_storage.free_list.erase(texture_storage.free_list.begin(), texture_storage.free_list.begin() + texture_count);
+        glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+        CHECK_GL_ERRORS();
+    }
+
+    static void bind_default_textures() {
+        bind_texture(0, Texture{0, 0});
+    }
+
+    void bind_texture(uint32_t const unit, Texture const handle) {
+        glBindTextureUnit(unit, textures[handle.index].handle);
+    }
+
+    // void unload_texture(uint64_t const handle) {
+    //     uint32_t const texture_index = handle >> 32;
+    //     uint32_t const level = handle & 0xFFFFFFFF;
+    //     ANTON_ASSERT(texture_index < textures.size(), "Invalid texture index.");
+    //     ANTON_ASSERT(level < textures[texture_index].size(), "Invalid texture level.");
+    //     textures[texture_index].free_list.append(level);
+    // }
+
+    // void unload_textures(int32_t handle_count, uint64_t const* handles) {
+    //     ANTON_ASSERT(handle_count >= 0, "Handle count may not be less than 0.");
+    //     for (int32_t i = 0; i < handle_count; ++i) {}
+    // }
+
+    void add_draw_command(Draw_Arrays_Command const command) {
+        draw_arrays_commands.push_back(command);
+    }
+
+    void add_draw_command(Draw_Elements_Command const command) {
+        draw_elements_commands.push_back(command);
+    }
+
+    void commit_draw() {
+        if (draw_arrays_commands.size() > 0) {
+            glMultiDrawArraysIndirect(GL_TRIANGLES, draw_arrays_commands.data(), draw_arrays_commands.size(), 0);
+            draw_arrays_commands.clear();
+        }
+
+        if (draw_elements_commands.size() > 0) {
+            glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, draw_elements_commands.data(), draw_elements_commands.size(), 0);
+            draw_elements_commands.clear();
+        }
     }
 
     Renderer::Renderer(int32_t width, int32_t height): outline_mix_shader(false) {
@@ -277,41 +506,51 @@ namespace anton_engine::rendering {
     void Renderer::render_scene(Transform const camera_transform, Matrix4 const view, Matrix4 const projection) {
         Resource_Manager<Shader>& shader_manager = get_shader_manager();
         ECS& ecs = get_ecs();
-        //int32_t max_texture_count = opengl::get_max_combined_texture_units();
+        ECS snapshot = ecs.snapshot<Transform, Static_Mesh_Component>();
 
-        //opengl::active_texture(max_texture_count - 1);
-        //opengl::bind_texture(opengl::Texture_Type::texture_2D, light_depth_buffer->get_depth_texture());
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        //Vector4 border_color(1, 1, 1, 1);
-        //glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &border_color.x);
-        for (Shader& shader: shader_manager) {
-            shader.use();
-            shader.set_vec3("camera.position", camera_transform.local_position);
-            shader.set_matrix4("projection", projection);
-            shader.set_matrix4("view", view);
-            //shader.set_matrix4("light_space_transform", light_space_transform);
-            //shader.set_int("shadow_map", max_texture_count - 1);
-        }
+        snapshot.sort<Static_Mesh_Component>(
+            [](auto begin, auto end, auto predicate) { std::sort(begin, end, predicate); },
+            [](Static_Mesh_Component const lhs, Static_Mesh_Component const rhs) -> bool {
+                return lhs.shader_handle < rhs.shader_handle || (lhs.shader_handle == rhs.shader_handle && lhs.material_handle < rhs.material_handle) ||
+                       (lhs.shader_handle == rhs.shader_handle && lhs.material_handle == rhs.material_handle && lhs.mesh_handle < rhs.mesh_handle);
+            });
 
-        auto static_meshes = ecs.access<Transform, Static_Mesh_Component>();
+        // snapshot.respect<Static_Mesh_Component, Transform>();
+
+        // auto objects = ecs.view<Static_Mesh_Component, Transform>();
+        // Handle<Shader> last_shader = objects.get<Static_Mesh_Component>(*objects.begin()).shader_handle;
+        // Handle<Material> last_material = objects.get<Static_Mesh_Component>(*objects.begin()).material_handle;
+        // for (auto iter = objects.begin(), end = objects.end(); iter != end;) {
+        //     auto [transform, static_mesh] = objects.get<Transform, Static_Mesh_Component>(*iter);
+        //     if (static_mesh.shader_handle != last_shader ||) {
+        //         commit_draw();
+        //     }
+        // }
+
+        Mapped_Buffer draw_id_buffer = get_draw_id_buffer();
+        reinterpret_cast<uint32_t*>(draw_id_buffer.data)[0] = 0;
+        Mapped_Buffer material_buffer = get_material_buffer();
+
+        auto static_meshes = ecs.view<Transform, Static_Mesh_Component>();
         for (Entity const entity: static_meshes) {
             auto [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
             Shader& shader = shader_manager.get(static_mesh.shader_handle);
             shader.use();
             Matrix4 model(transform.to_matrix());
             shader.set_matrix4("model", model);
-            render_object(static_mesh, shader);
-        }
-
-        auto lines = ecs.access<Transform, Line_Component>();
-        for (Entity const entity: lines) {
-            auto [transform, line] = lines.get<Transform, Line_Component>(entity);
-            Shader& shader = shader_manager.get(line.shader_handle);
-            shader.use();
-            Matrix4 model(transform.to_matrix());
-            shader.set_matrix4("model", model);
-            render_object(line, shader);
+            shader.set_vec3("camera.position", camera_transform.local_position);
+            shader.set_matrix4("projection", projection);
+            shader.set_matrix4("view", view);
+            auto& material_manager = get_material_manager();
+            Material material = material_manager.get(static_mesh.material_handle);
+            bind_texture(1, material.diffuse_texture);
+            bind_default_textures();
+            uint64_t j = sizeof(Material);
+            *reinterpret_cast<Material*>(material_buffer.data) = Material{{1, material.diffuse_texture.layer}, {0, 0}, {0, 1}, 32.0f};
+            // bind_material_properties(material, shader);
+            Resource_Manager<Mesh>& mesh_manager = get_mesh_manager();
+            Mesh& mesh = mesh_manager.get(static_mesh.mesh_handle);
+            render_mesh(mesh);
         }
     }
 
@@ -359,19 +598,19 @@ namespace anton_engine::rendering {
         render_mesh(scene_quad);
     }
 
-    void bind_material_properties(Material mat, Shader& shader) {
-        shader.set_float("material.shininess", mat.shininess);
-        opengl::active_texture(0);
-        opengl::bind_texture(opengl::Texture_Type::texture_2D, mat.diffuse_texture.handle);
-        shader.set_int("material.texture_diffuse", 0);
-        opengl::active_texture(1);
-        opengl::bind_texture(opengl::Texture_Type::texture_2D, mat.specular_texture.handle);
-        shader.set_int("material.texture_specular", 1);
-        opengl::active_texture(2);
-        opengl::bind_texture(opengl::Texture_Type::texture_2D, mat.normal_map.handle);
-        shader.set_int("material.normal_map", 2);
-        shader.set_int("material.normal_map_attached", mat.normal_map.handle != 0);
-    }
+    // void bind_material_properties(Material mat, Shader& shader) {
+    //     shader.set_float("material.shininess", mat.shininess);
+    //     opengl::active_texture(0);
+    //     opengl::bind_texture(opengl::Texture_Type::texture_2D, mat.diffuse_texture.handle);
+    //     shader.set_int("material.texture_diffuse", 0);
+    //     opengl::active_texture(1);
+    //     opengl::bind_texture(opengl::Texture_Type::texture_2D, mat.specular_texture.handle);
+    //     shader.set_int("material.texture_specular", 1);
+    //     opengl::active_texture(2);
+    //     opengl::bind_texture(opengl::Texture_Type::texture_2D, mat.normal_map.handle);
+    //     shader.set_int("material.normal_map", 2);
+    //     shader.set_int("material.normal_map_attached", mat.normal_map.handle != 0);
+    // }
 
     void render_mesh(Mesh const& mesh) {
         glBindVertexBuffer(0, mesh.get_vbo(), 0, sizeof(Vertex));
@@ -385,7 +624,7 @@ namespace anton_engine::rendering {
     void render_object(Static_Mesh_Component const& component, Shader& shader) {
         auto& material_manager = get_material_manager();
         Material material = material_manager.get(component.material_handle);
-        bind_material_properties(material, shader);
+        // bind_material_properties(material, shader);
         Resource_Manager<Mesh>& mesh_manager = get_mesh_manager();
         Mesh& mesh = mesh_manager.get(component.mesh_handle);
         render_mesh(mesh);
@@ -394,7 +633,7 @@ namespace anton_engine::rendering {
     void render_object(Line_Component const& component, Shader& shader) {
         auto& material_manager = get_material_manager();
         Material material = material_manager.get(component.material_handle);
-        bind_material_properties(material, shader);
+        // bind_material_properties(material, shader);
         Resource_Manager<Mesh>& mesh_manager = get_mesh_manager();
         Mesh& mesh = mesh_manager.get(component.mesh_handle);
         render_mesh(mesh);

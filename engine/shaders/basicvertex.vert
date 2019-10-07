@@ -5,6 +5,7 @@ layout(location = 1) in vec3 in_normal;
 layout(location = 2) in vec3 in_tangent;
 layout(location = 3) in vec3 in_bitangent;
 layout(location = 4) in vec2 tex_coordinates;
+layout(location = 5) in uint draw_id;
 
 uniform mat4 projection;
 uniform mat4 view;
@@ -15,6 +16,7 @@ out Frag_Data {
     vec3 fragment_position;
     vec3 normal;
     vec2 tex_coords;
+    uint draw_id;
 } vs_out;
 
 void main() {
@@ -28,4 +30,5 @@ void main() {
     vs_out.normal = normal;
     vs_out.tex_coords = tex_coordinates;
     vs_out.tbn = mat3(tangent, bitangent, normal);
+    vs_out.draw_id = draw_id;
 }
