@@ -1,39 +1,15 @@
 #include <framebuffer.hpp>
 
 #include <anton_assert.hpp>
+#include <anton_stl/utility.hpp>
 #include <debug_macros.hpp> // CHECK_GL_ERRORS
 #include <glad.hpp>
 #include <opengl.hpp>
+
 #include <stdexcept>
-#include <string>
-#include <utility>
-#include <vector>
-
-// GL_INVALID_OPERATION is generated if type is one of GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV, GL_UNSIGNED_SHORT_5_6_5,
-//     GL_UNSIGNED_SHORT_5_6_5_REV, or GL_UNSIGNED_INT_10F_11F_11F_REV, and format is not GL_RGB.
-// GL_INVALID_OPERATION is generated if type is one of GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, GL_UNSIGNED_SHORT_5_5_5_1,
-//     GL_UNSIGNED_SHORT_1_5_5_5_REV, GL_UNSIGNED_INT_8_8_8_8, GL_UNSIGNED_INT_8_8_8_8_REV, GL_UNSIGNED_INT_10_10_10_2, GL_UNSIGNED_INT_2_10_10_10_REV,
-//     or GL_UNSIGNED_INT_5_9_9_9_REV, and format is neither GL_RGBA nor GL_BGRA.
-
-// GL_INVALID_OPERATION is generated if target is not GL_TEXTURE_2D, GL_PROXY_TEXTURE_2D, GL_TEXTURE_RECTANGLE, or GL_PROXY_TEXTURE_RECTANGLE,
-//     and internalformat is GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, or GL_DEPTH_COMPONENT32F.
-
-// [DONE] GL_INVALID_OPERATION is generated if internalformat is GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24,
-//     or GL_DEPTH_COMPONENT32F, and format is not GL_DEPTH_COMPONENT.
-// [DONE] GL_INVALID_OPERATION is generated if format is GL_DEPTH_COMPONENT and internalformat is not GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16,
-//     GL_DEPTH_COMPONENT24, or GL_DEPTH_COMPONENT32F.
+#include <string> // std::to_string
 
 namespace anton_engine {
-    static opengl::Format get_compatible_format(Framebuffer::Internal_Format internal_format) {
-        using Format = Framebuffer::Internal_Format;
-        if (internal_format == Format::depth_component16 || internal_format == Format::depth_component24 || internal_format == Format::depth_component32f ||
-            internal_format == Format::depth_component32) {
-            return opengl::Format::depth_component;
-        } else {
-            return opengl::Format::rgb;
-        }
-    }
-
     void Framebuffer::bind(Framebuffer& fb, Bind_Mode const bm) {
         if (bm == Bind_Mode::read_draw) {
             glBindFramebuffer(GL_FRAMEBUFFER, fb.framebuffer);
@@ -77,34 +53,25 @@ namespace anton_engine {
 
         // Generate color buffer
         if (active_color_buffers > 0) {
-            opengl::gen_textures(active_color_buffers, &color_buffers[0]);
             if (info.multisampled) {
+                glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, active_color_buffers, color_buffers.data());
                 for (int32_t i = 0; i < active_color_buffers; ++i) {
-                    uint32_t color_buffer_handle = color_buffers[i];
-                    auto internal_format = info.color_buffers[i].internal_format;
-                    opengl::bind_texture(opengl::Texture_Type::texture_2D_multisample, color_buffer_handle);
-                    opengl::tex_image_2D_multisample(GL_TEXTURE_2D_MULTISAMPLE, info.samples, internal_format, info.width, info.height);
+                    GLenum const internal_format = utils::enum_to_value(info.color_buffers[i].internal_format);
+                    glTextureStorage2DMultisample(color_buffers[i], info.samples, internal_format, info.width, info.height, GL_TRUE);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                    opengl::bind_texture(opengl::Texture_Type::texture_2D_multisample, 0);
-                    glFramebufferTexture2D(GL_FRAMEBUFFER, static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i), GL_TEXTURE_2D_MULTISAMPLE, color_buffer_handle, 0);
-                    CHECK_GL_ERRORS();
+                    glFramebufferTexture2D(GL_FRAMEBUFFER, static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i), GL_TEXTURE_2D_MULTISAMPLE, color_buffers[i], 0);
                 }
             } else {
+                glCreateTextures(GL_TEXTURE_2D, active_color_buffers, color_buffers.data());
                 for (uint32_t i = 0; i < info.color_buffers.size(); ++i) {
-                    uint32_t color_buffer_handle = color_buffers[i];
-                    auto internal_format = info.color_buffers[i].internal_format;
-                    auto compatible_format = get_compatible_format(internal_format);
-                    opengl::bind_texture(opengl::Texture_Type::texture_2D, color_buffer_handle);
-                    opengl::tex_image_2D(GL_TEXTURE_2D, 0, internal_format, info.width, info.height, compatible_format, opengl::Type::signed_float, nullptr);
+                    GLenum const internal_format = utils::enum_to_value(info.color_buffers[i].internal_format);
+                    glTextureStorage2D(color_buffers[i], 1, internal_format, info.width, info.height);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                    CHECK_GL_ERRORS();
-                    opengl::bind_texture(opengl::Texture_Type::texture_2D, 0);
-                    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, color_buffer_handle, 0);
-                    CHECK_GL_ERRORS();
+                    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, color_buffers[i], 0);
                 }
             }
 
@@ -113,7 +80,6 @@ namespace anton_engine {
                 active_color_attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
             }
             glDrawBuffers(active_color_buffers, &active_color_attachments[0]);
-
         } else {
             glDrawBuffer(GL_NONE);
             glReadBuffer(GL_NONE);
@@ -137,20 +103,17 @@ namespace anton_engine {
             } else {
                 opengl::gen_textures(1, &depth_buffer);
                 if (info.multisampled) {
-                    opengl::bind_texture(opengl::Texture_Type::texture_2D_multisample, depth_buffer);
-                    opengl::tex_image_2D_multisample(GL_TEXTURE_2D_MULTISAMPLE, info.samples, depth_info.internal_format, info.width, info.height);
-                    opengl::bind_texture(opengl::Texture_Type::texture_2D_multisample, 0);
+                    glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &depth_buffer);
+                    GLenum const internal_format = utils::enum_to_value(depth_info.internal_format);
+                    glTextureStorage2DMultisample(depth_buffer, info.samples, internal_format, info.width, info.height, GL_TRUE);
                     opengl::framebuffer_texture_2D(GL_FRAMEBUFFER, depth_buffer_attachment, GL_TEXTURE_2D_MULTISAMPLE, depth_buffer, 0);
                 } else {
-                    opengl::bind_texture(opengl::Texture_Type::texture_2D, depth_buffer);
-                    opengl::tex_image_2D(GL_TEXTURE_2D, 0, depth_info.internal_format, info.width, info.height, opengl::Format::depth_component,
-                                         opengl::Type::signed_float, nullptr);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                    CHECK_GL_ERRORS();
-                    opengl::bind_texture(opengl::Texture_Type::texture_2D, 0);
+                    GLenum const internal_format = utils::enum_to_value(depth_info.internal_format);
+                    glTextureStorage2D(depth_buffer, 1, internal_format, info.width, info.height);
+                    glTextureParameteri(depth_buffer, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                    glTextureParameteri(depth_buffer, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                    glTextureParameteri(depth_buffer, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                    glTextureParameteri(depth_buffer, GL_TEXTURE_WRAP_T, GL_REPEAT);
                     opengl::framebuffer_texture_2D(GL_FRAMEBUFFER, depth_buffer_attachment, GL_TEXTURE_2D, depth_buffer, 0);
                 }
             }
@@ -169,27 +132,27 @@ namespace anton_engine {
             //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, stencil_buffer);
         }
 
-        // Check framebuffer errors
-        GLenum framebuffer_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-        if (framebuffer_status == GL_FRAMEBUFFER_UNDEFINED) {
-            throw std::runtime_error("Framebuffer undefined");
-        } else if (framebuffer_status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
-            throw std::runtime_error("Framebuffer incomplete attachment");
-        } else if (framebuffer_status == GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
-            throw std::runtime_error("Framebuffer incomplete, missing attachment");
-        } else if (framebuffer_status == GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER) {
-            throw std::runtime_error("Framebuffer incomplete, missing draw buffer");
-        } else if (framebuffer_status == GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER) {
-            throw std::runtime_error("Framebuffer incomplete, read buffer without color attachment");
-        } else if (framebuffer_status == GL_FRAMEBUFFER_UNSUPPORTED) {
-            throw std::runtime_error(
-                "Framebuffer unsupported: combination of internal formats of the attached images violates an implementation-dependent set of restrictions");
-        } else if (framebuffer_status == GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) {
-            throw std::runtime_error("Framebuffer incomplete multisample");
-        } else if (framebuffer_status == GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS) {
-            throw std::runtime_error("Framebuffer incomplete layer targets");
-        } else if (framebuffer_status == 0) {
-            CHECK_GL_ERRORS();
+        GLenum const le_fremebuffere_statouse = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        switch (le_fremebuffere_statouse) {
+            case GL_FRAMEBUFFER_UNDEFINED:
+                throw std::runtime_error("Framebuffer undefined");
+            case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                throw std::runtime_error("Framebuffer incomplete attachment");
+            case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                throw std::runtime_error("Framebuffer incomplete, missing attachment");
+            case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+                throw std::runtime_error("Framebuffer incomplete, missing draw buffer");
+            case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+                throw std::runtime_error("Framebuffer incomplete, read buffer without color attachment");
+            case GL_FRAMEBUFFER_UNSUPPORTED:
+                throw std::runtime_error(
+                    "Framebuffer unsupported: combination of internal formats of the attached images violates an implementation-dependent set of restrictions");
+            case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+                throw std::runtime_error("Framebuffer incomplete multisample");
+            case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+                throw std::runtime_error("Framebuffer incomplete layer targets");
+            case 0:
+                CHECK_GL_ERRORS();
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -220,16 +183,16 @@ namespace anton_engine {
 
     Framebuffer::Framebuffer(Framebuffer&& fbo) noexcept {
         info = fbo.info;
-        std::swap(framebuffer, fbo.framebuffer);
-        std::swap(depth_buffer, fbo.depth_buffer);
-        std::swap(stencil_buffer, fbo.stencil_buffer);
+        anton_stl::swap(framebuffer, fbo.framebuffer);
+        anton_stl::swap(depth_buffer, fbo.depth_buffer);
+        anton_stl::swap(stencil_buffer, fbo.stencil_buffer);
     }
 
     Framebuffer& Framebuffer::operator=(Framebuffer&& fbo) noexcept {
         info = fbo.info;
-        std::swap(framebuffer, fbo.framebuffer);
-        std::swap(depth_buffer, fbo.depth_buffer);
-        std::swap(stencil_buffer, fbo.stencil_buffer);
+        anton_stl::swap(framebuffer, fbo.framebuffer);
+        anton_stl::swap(depth_buffer, fbo.depth_buffer);
+        anton_stl::swap(stencil_buffer, fbo.stencil_buffer);
         return *this;
     }
 
