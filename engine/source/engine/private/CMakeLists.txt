@@ -5,11 +5,7 @@ if(WIN32) # TODO other platforms
 endif()
 
 set(SOURCE_FILES 
-    ${SOURCE_FILES}
-    ${PLATFORM_SOURCES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/components/camera.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/components/entity_name.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/components/transform.cpp"
+    ${SOURCE_FILES} ${PLATFORM_SOURCES}
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/component_serialization.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/ecs.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input_core.cpp"
