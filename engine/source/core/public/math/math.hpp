@@ -1,7 +1,9 @@
 #ifndef CORE_MATH_MATH_HPP_INCLUDE
 #define CORE_MATH_MATH_HPP_INCLUDE
 
+#include <anton_int.hpp>
 #include <cmath>
+#include <intrinsics.hpp>
 #include <limits>
 
 // Safety measures
@@ -44,7 +46,7 @@ namespace anton_engine::math {
         return 1 / sqrt(a);
     }
 
-    inline float sign(float a) {
+    constexpr float sign(float a) {
         return static_cast<float>((a > 0.0f) - (a < 0.0f));
     }
 
@@ -70,13 +72,136 @@ namespace anton_engine::math {
     }
 
     template <typename T>
-    T max(T a, T b) {
+    constexpr T max(T a, T b) {
         return a > b ? a : b;
     }
 
     template <typename T>
-    T min(T a, T b) {
+    constexpr T min(T a, T b) {
         return a < b ? a : b;
     }
+
+    // popcount
+    // Counts the number of set bits in v.
+    //
+    constexpr u32 popcount(u32 v) {
+        v = (v & 0x55555555) + ((v >> 1) & 0x55555555);
+        v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
+        v = (v & 0x0F0F0F0F) + ((v >> 4) & 0x0F0F0F0F);
+        return v * 0x01010101 >> 24;
+    }
+
+    constexpr u64 popcount(u64 v) {
+        v = (v & 0x5555555555555555) + ((v >> 1) & 0x5555555555555555);
+        v = (v & 0x3333333333333333) + ((v >> 2) & 0x3333333333333333);
+        v = (v & 0x0F0F0F0F0F0F0F0F) + ((v >> 4) & 0x0F0F0F0F0F0F0F0F);
+        return v * 0x0101010101010101 >> 56;
+    }
+
+    // clz
+    // Counts leading zeros.
+    //
+    constexpr u32 clz(u32 v) {
+        v |= (v >> 1);
+        v |= (v >> 2);
+        v |= (v >> 4);
+        v |= (v >> 8);
+        v |= (v >> 16);
+        return 32 - popcount(v);
+    }
+
+    constexpr u64 clz(u64 v) {
+        v |= (v >> 1);
+        v |= (v >> 2);
+        v |= (v >> 4);
+        v |= (v >> 8);
+        v |= (v >> 16);
+        v |= (v >> 32);
+        return 64 - popcount(v);
+    }
+
+    // ilog2
+    // Computes the floor of logarithm base 2 of v.
+    // Returns 0 for ilog2(0).
+    //
+    constexpr u32 ilog2(u32 const v) {
+        return 32 - clz(v);
+    }
+
+    constexpr u64 ilog2(u64 const v) {
+        return 64 - clz(v);
+    }
+
+    // ilog10
+    // Computes the floor of logarithm base 10 of v.
+    // Returns 0 for ilog10(0).
+    //
+    constexpr u64 ilog10(u64 const v) {
+        constexpr u64 powers_of_10[] = {1ULL,
+                                        10ULL,
+                                        100ULL,
+                                        1000ULL,
+                                        10000ULL,
+                                        100000ULL,
+                                        1000000ULL,
+                                        10000000ULL,
+                                        100000000ULL,
+                                        1000000000ULL,
+                                        10000000000ULL,
+                                        100000000000ULL,
+                                        1000000000000ULL,
+                                        10000000000000ULL,
+                                        100000000000000ULL,
+                                        1000000000000000ULL,
+                                        10000000000000000ULL,
+                                        100000000000000000ULL,
+                                        1000000000000000000ULL,
+                                        10000000000000000000ULL};
+        u64 const temp = (ilog2(v) + 1) * 1233 >> 12;
+        return temp - (v < powers_of_10[temp]);
+    }
+
+    // u64 ilog10(u64 const v) {
+    //     if (v < 10)
+    //         return 1;
+    //     if (v < 100)
+    //         return 2;
+    //     if (v < 1000)
+    //         return 3;
+    //     if (v < 10000)
+    //         return 4;
+    //     if (v < 100000)
+    //         return 5;
+    //     if (v < 1000000)
+    //         return 6;
+    //     if (v < 10000000)
+    //         return 7;
+    //     if (v < 100000000)
+    //         return 8;
+    //     if (v < 1000000000)
+    //         return 9;
+    //     if (v < 10000000000)
+    //         return 10;
+    //     if (v < 100000000000)
+    //         return 11;
+    //     if (v < 1000000000000)
+    //         return 12;
+    //     if (v < 10000000000000)
+    //         return 13;
+    //     if (v < 100000000000000)
+    //         return 14;
+    //     if (v < 1000000000000000)
+    //         return 15;
+    //     if (v < 10000000000000000)
+    //         return 16;
+    //     if (v < 100000000000000000)
+    //         return 17;
+    //     if (v < 1000000000000000000)
+    //         return 18;
+    //     if (v < 10000000000000000000)
+    //         return 19;
+    //     return 20;
+    // }
+
 } // namespace anton_engine::math
 #endif // !CORE_MATH_MATH_HPP_INCLUDE

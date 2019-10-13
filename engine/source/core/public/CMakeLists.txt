@@ -46,6 +46,7 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/utils/filesystem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/utils/simple_xml_parser.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_assert.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_int.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/class_macros.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/debug_macros.hpp"
