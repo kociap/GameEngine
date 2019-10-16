@@ -9,7 +9,10 @@ layout(location = 5) in uint draw_id;
 
 uniform mat4 projection;
 uniform mat4 view;
-uniform mat4 model;
+
+layout (std140, binding = 1) readonly buffer Matrices {
+    mat4 model_matrices[];
+};
 
 out Frag_Data {
     mat3 tbn;
@@ -20,10 +23,11 @@ out Frag_Data {
 } vs_out;
 
 void main() {
-    mat3 model_reduced = mat3(model);
-    vec3 normal = normalize(transpose(inverse(model_reduced)) * in_normal);
-    vec3 tangent = normalize(model_reduced * in_tangent);
-    vec3 bitangent = normalize(model_reduced * in_bitangent);
+    const mat4 model = model_matrices[draw_id];
+    const mat3 model_reduced = mat3(model);
+    const vec3 normal = normalize(transpose(inverse(model_reduced)) * in_normal);
+    const vec3 tangent = normalize(model_reduced * in_tangent);
+    const vec3 bitangent = normalize(model_reduced * in_bitangent);
 
     gl_Position = projection * view * model * vec4(pos, 1.0);
     vs_out.fragment_position = vec3(model * vec4(pos, 1.0));

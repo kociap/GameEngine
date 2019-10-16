@@ -1,13 +1,13 @@
 #ifndef ENGINE_COMPONENTS_MATERIAL_HPP_INCLUDE
 #define ENGINE_COMPONENTS_MATERIAL_HPP_INCLUDE
 
-#include <cstdint>
+#include <anton_int.hpp>
 
 namespace anton_engine {
     // std140 requires a member structure be aligned to a multiple of vec4's alignment (16 in our case).
     class alignas(16) Texture {
     public:
-        uint32_t index = 0;
+        u32 index = 0;
         float layer = 0;
     };
 

@@ -101,9 +101,9 @@ namespace anton_engine::opengl {
         anton_stl::String stringified_message =
             anton_stl::String(stringify_severity(severity)) + " " + stringify_source(source) + " (" + stringify_type(type) + "): " + message;
         log_message(Log_Message_Severity::warning, stringified_message);
-		if (severity == GL_DEBUG_SEVERITY_HIGH || severity == GL_DEBUG_SEVERITY_MEDIUM) {
+        if (severity == GL_DEBUG_SEVERITY_HIGH || severity == GL_DEBUG_SEVERITY_MEDIUM) {
             DebugBreak();
-		}
+        }
     }
 
     void install_debug_callback() {

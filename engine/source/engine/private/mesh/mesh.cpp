@@ -53,9 +53,9 @@ namespace anton_engine {
         glGenBuffers(1, &vbo);
         glGenBuffers(1, &ebo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * static_cast<anton_stl::ssize_t>(sizeof(Vertex)), &vertices[0], GL_STATIC_DRAW);
+        glBufferStorage(GL_ARRAY_BUFFER, vertices.size() * static_cast<anton_stl::ssize_t>(sizeof(Vertex)), vertices.data(), 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         // Multiply by 4 because each index is 4 bytes
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * 4, &indices[0], GL_STATIC_DRAW);
+        glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, indices.size() * 4, indices.data(), 0);
     }
 } // namespace anton_engine

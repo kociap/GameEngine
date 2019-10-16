@@ -1,6 +1,8 @@
 #include <renderer.hpp>
 #include <renderer_internal.hpp>
 
+#include <anton_int.hpp>
+#include <anton_stl/algorithm.hpp>
 #include <anton_stl/utility.hpp>
 #include <anton_stl/vector.hpp>
 #include <assets.hpp>
@@ -20,6 +22,7 @@
 #include <framebuffer.hpp>
 #include <glad.hpp>
 #include <handle.hpp>
+#include <intrinsics.hpp>
 #include <math/matrix4.hpp>
 #include <math/transform.hpp>
 #include <mesh/mesh.hpp>
@@ -96,33 +99,41 @@ namespace anton_engine::rendering {
     };
 
     // Buffer binding indices
-    constexpr uint32_t lighting_data_binding = 0;
-    constexpr uint32_t draw_matrix_data = 1;
-    constexpr uint32_t draw_material_data_binding = 2;
+    constexpr u32 lighting_data_binding = 0;
+    constexpr u32 draw_matrix_data = 1;
+    constexpr u32 draw_material_data_binding = 2;
 
     // Dynamic lights and environment data. Bound to binding 0 and 1 respectively.
-    static uint32_t lighting_data_ubo = 0;
+    static u32 lighting_data_ubo = 0;
 
     // Persistently mapped vertex buffer for rendering geometry.
-    static uint32_t vertex_buffer = 0;
-    constexpr int64_t vertex_buffer_vertex_count = 1048576;
-    constexpr int64_t vertex_buffer_size = vertex_buffer_vertex_count * sizeof(Vertex);
-    constexpr int64_t draw_id_count = 65536;
-    constexpr int64_t draw_id_buffer_size = draw_id_count * sizeof(uint32_t);
+    static u32 vertex_buffer = 0;
+    constexpr i64 vertex_buffer_vertex_count = 1048576;
+    constexpr i64 vertex_buffer_size = vertex_buffer_vertex_count * sizeof(Vertex);
+    constexpr i64 draw_id_count = 65536;
+    constexpr i64 draw_id_buffer_size = draw_id_count * sizeof(u32);
     static void* mapped_vertex_buffer = nullptr;
+    // By default filled with numbers 0 - draw_id_count.
     static void* mapped_draw_id_buffer = nullptr;
 
+    constexpr i64 draw_elements_cmd_buffer_size = draw_id_count * sizeof(Draw_Elements_Command);
+    constexpr i64 draw_arrays_cmd_buffer_size = draw_id_count * sizeof(Draw_Arrays_Command);
+    constexpr i64 draw_cmd_buffer_size = draw_elements_cmd_buffer_size + draw_arrays_cmd_buffer_size;
+    static u32 draw_cmd_buffer = 0;
+    static void* mapped_draw_elements_cmd_buffer = nullptr;
+    static void* mapped_draw_arrays_cmd_buffer = nullptr;
+
     // Persistently mapped SSBO with matrix data.
-    static uint32_t ssbo = 0;
-    constexpr int64_t matrix_ssbo_size = draw_id_count * sizeof(Matrix4);
-    constexpr int64_t material_ssbo_size = draw_id_count * sizeof(Material);
-    constexpr int64_t ssbo_size = matrix_ssbo_size + material_ssbo_size;
+    static u32 ssbo = 0;
+    constexpr i64 matrix_ssbo_size = draw_id_count * sizeof(Matrix4);
+    constexpr i64 material_ssbo_size = draw_id_count * sizeof(Material);
+    constexpr i64 ssbo_size = matrix_ssbo_size + material_ssbo_size;
     static void* mapped_matrix_ssbo = nullptr;
     static void* mapped_material_ssbo = nullptr;
 
     // Persistently mapped element buffer for rendering geometry.
-    static uint32_t element_buffer = 0;
-    constexpr int64_t element_buffer_size = 1048576;
+    static u32 element_buffer = 0;
+    constexpr i64 element_buffer_size = 1048576;
     static void* mapped_element_buffer = nullptr;
 
     struct Array_Texture {
@@ -190,11 +201,12 @@ namespace anton_engine::rendering {
         glEnableVertexAttribArray(4);
         glVertexAttribFormat(4, 2, GL_FLOAT, false, offsetof(Vertex, uv_coordinates));
         glVertexAttribBinding(4, 0);
-        glVertexAttribFormat(5, 1, GL_UNSIGNED_INT, false, 0);
+        glEnableVertexAttribArray(5);
+        glVertexAttribIFormat(5, 1, GL_UNSIGNED_INT, 0);
         glVertexAttribBinding(5, 1);
-        glVertexBindingDivisor(5, 1);
+        glVertexBindingDivisor(1, 1);
 
-        constexpr uint32_t buffer_flags = GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT;
+        constexpr u32 buffer_flags = GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT;
 
         // TODO: Synchronisation to prevent buffer races
         glGenBuffers(1, &vertex_buffer);
@@ -202,10 +214,10 @@ namespace anton_engine::rendering {
         // Huge buffer
         glBufferStorage(GL_ARRAY_BUFFER, vertex_buffer_size + draw_id_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
         glBindVertexBuffer(0, vertex_buffer, 0, sizeof(Vertex));
-        glBindVertexBuffer(1, vertex_buffer, vertex_buffer_size, sizeof(uint32_t));
-        CHECK_GL_ERRORS();
+        glBindVertexBuffer(1, vertex_buffer, vertex_buffer_size, sizeof(u32));
         mapped_vertex_buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vertex_buffer_size, buffer_flags);
         mapped_draw_id_buffer = reinterpret_cast<char*>(mapped_vertex_buffer) + vertex_buffer_size;
+        anton_stl::iota(reinterpret_cast<u32*>(mapped_draw_id_buffer), reinterpret_cast<u32*>(mapped_draw_id_buffer) + draw_id_count, 0);
 
         glGenBuffers(1, &ssbo);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
@@ -222,6 +234,13 @@ namespace anton_engine::rendering {
         // Another huge buffer
         glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, element_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
         mapped_element_buffer = glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, element_buffer_size, buffer_flags);
+
+        // Indirect Draw CMD buffer
+        glGenBuffers(1, &draw_cmd_buffer);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, draw_cmd_buffer);
+        glBufferStorage(GL_DRAW_INDIRECT_BUFFER, draw_cmd_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
+        mapped_draw_elements_cmd_buffer = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, draw_cmd_buffer_size, buffer_flags);
+        mapped_draw_arrays_cmd_buffer = reinterpret_cast<char*>(mapped_draw_elements_cmd_buffer) + draw_elements_cmd_buffer_size;
 
         // Uniforms
 
@@ -289,24 +308,24 @@ namespace anton_engine::rendering {
         glBindVertexArray(mesh_vao);
     }
 
-    Mapped_Buffer get_vertex_buffer() {
+    Vertex_Buffer get_vertex_buffer() {
         return {mapped_vertex_buffer, vertex_buffer_size};
     }
 
-    Mapped_Buffer get_draw_id_buffer() {
-        return {mapped_draw_id_buffer, draw_id_buffer_size};
+    Draw_ID_Buffer get_draw_id_buffer() {
+        return {reinterpret_cast<u32*>(mapped_draw_id_buffer), draw_id_buffer_size};
     }
 
-    Mapped_Buffer get_matrix_buffer() {
-        return {mapped_matrix_ssbo, ssbo_size};
+    Matrix_Buffer get_matrix_buffer() {
+        return {reinterpret_cast<Matrix4*>(mapped_matrix_ssbo), ssbo_size};
     }
 
-    Mapped_Buffer get_material_buffer() {
-        return {mapped_material_ssbo, material_ssbo_size};
+    Material_Buffer get_material_buffer() {
+        return {reinterpret_cast<Material*>(mapped_material_ssbo), material_ssbo_size};
     }
 
-    Mapped_Buffer get_element_buffer() {
-        return {mapped_element_buffer, element_buffer_size};
+    Element_Buffer get_element_buffer() {
+        return {reinterpret_cast<u32*>(mapped_element_buffer), element_buffer_size};
     }
 
     [[nodiscard]] static int32_t find_texture_with_format(Texture_Format const format) {
@@ -421,14 +440,16 @@ namespace anton_engine::rendering {
     }
 
     void commit_draw() {
-        if (draw_arrays_commands.size() > 0) {
-            glMultiDrawArraysIndirect(GL_TRIANGLES, draw_arrays_commands.data(), draw_arrays_commands.size(), 0);
-            draw_arrays_commands.clear();
+        if (draw_elements_commands.size() > 0) {
+            memcpy(mapped_draw_elements_cmd_buffer, draw_elements_commands.data(), draw_elements_commands.size() * sizeof(Draw_Elements_Command));
+            glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, draw_elements_commands.size(), sizeof(Draw_Elements_Command));
+            draw_elements_commands.clear();
         }
 
-        if (draw_elements_commands.size() > 0) {
-            glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, draw_elements_commands.data(), draw_elements_commands.size(), 0);
-            draw_elements_commands.clear();
+        if (draw_arrays_commands.size() > 0) {
+            memcpy(mapped_draw_arrays_cmd_buffer, draw_arrays_commands.data(), draw_arrays_commands.size() * sizeof(Draw_Arrays_Command));
+            glMultiDrawArraysIndirect(GL_TRIANGLES, (void*)draw_elements_cmd_buffer_size, draw_arrays_commands.size(), sizeof(Draw_Arrays_Command));
+            draw_arrays_commands.clear();
         }
     }
 
@@ -504,10 +525,8 @@ namespace anton_engine::rendering {
     }
 
     void Renderer::render_scene(Transform const camera_transform, Matrix4 const view, Matrix4 const projection) {
-        Resource_Manager<Shader>& shader_manager = get_shader_manager();
         ECS& ecs = get_ecs();
         ECS snapshot = ecs.snapshot<Transform, Static_Mesh_Component>();
-
         snapshot.sort<Static_Mesh_Component>(
             [](auto begin, auto end, auto predicate) { std::sort(begin, end, predicate); },
             [](Static_Mesh_Component const lhs, Static_Mesh_Component const rhs) -> bool {
@@ -516,42 +535,154 @@ namespace anton_engine::rendering {
             });
 
         // snapshot.respect<Static_Mesh_Component, Transform>();
-
-        // auto objects = ecs.view<Static_Mesh_Component, Transform>();
-        // Handle<Shader> last_shader = objects.get<Static_Mesh_Component>(*objects.begin()).shader_handle;
-        // Handle<Material> last_material = objects.get<Static_Mesh_Component>(*objects.begin()).material_handle;
-        // for (auto iter = objects.begin(), end = objects.end(); iter != end;) {
-        //     auto [transform, static_mesh] = objects.get<Transform, Static_Mesh_Component>(*iter);
-        //     if (static_mesh.shader_handle != last_shader ||) {
-        //         commit_draw();
-        //     }
-        // }
-
-        Mapped_Buffer draw_id_buffer = get_draw_id_buffer();
-        reinterpret_cast<uint32_t*>(draw_id_buffer.data)[0] = 0;
+        bind_default_textures();
+        bind_mesh_vao();
+        glBindVertexBuffer(0, vertex_buffer, 0, sizeof(Vertex));
+        glBindVertexBuffer(1, vertex_buffer, vertex_buffer_size, sizeof(u32));
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
+        auto objects = ecs.view<Static_Mesh_Component, Transform>();
+        Static_Mesh_Component last_mesh = {};
+        Resource_Manager<Shader>& shader_manager = get_shader_manager();
+        Resource_Manager<Material>& material_manager = get_material_manager();
+        Resource_Manager<Mesh>& mesh_manager = get_mesh_manager();
         Mapped_Buffer material_buffer = get_material_buffer();
+        Mapped_Buffer vertex_buffer = get_vertex_buffer();
+        Mapped_Buffer element_buffer = get_element_buffer();
+        Mapped_Buffer matrix_buffer = get_matrix_buffer();
 
-        auto static_meshes = ecs.view<Transform, Static_Mesh_Component>();
-        for (Entity const entity: static_meshes) {
-            auto [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
-            Shader& shader = shader_manager.get(static_mesh.shader_handle);
-            shader.use();
-            Matrix4 model(transform.to_matrix());
-            shader.set_matrix4("model", model);
-            shader.set_vec3("camera.position", camera_transform.local_position);
-            shader.set_matrix4("projection", projection);
-            shader.set_matrix4("view", view);
-            auto& material_manager = get_material_manager();
-            Material material = material_manager.get(static_mesh.material_handle);
-            bind_texture(1, material.diffuse_texture);
-            bind_default_textures();
-            uint64_t j = sizeof(Material);
-            *reinterpret_cast<Material*>(material_buffer.data) = Material{{1, material.diffuse_texture.layer}, {0, 0}, {0, 1}, 32.0f};
-            // bind_material_properties(material, shader);
-            Resource_Manager<Mesh>& mesh_manager = get_mesh_manager();
-            Mesh& mesh = mesh_manager.get(static_mesh.mesh_handle);
-            render_mesh(mesh);
+        struct Bound_Texture {
+            u32 index = 0;
+            i64 draw = -1;
+        };
+
+        auto find_slot_and_bind_texture = [](Bound_Texture bound_textures[16], Texture const texture, i64 const current_draw) -> u32 {
+            for (i32 i = 1; i < 16; ++i) {
+                if (bound_textures[i].index == texture.index) {
+                    return i;
+                }
+            }
+
+            i32 max_draw_index = 0;
+            i64 max_draw = -1;
+            for (i32 i = 1; i < 16; ++i) {
+                if (bound_textures[i].draw == -1) {
+                    bind_texture(i, texture);
+                    bound_textures[i] = Bound_Texture{texture.index, current_draw};
+                    return i;
+                } else if (bound_textures[i].draw > max_draw) {
+                    max_draw_index = i;
+                    max_draw = bound_textures[i].draw;
+                }
+            }
+
+            bind_texture(max_draw_index, texture);
+            bound_textures[max_draw_index] = Bound_Texture{texture.index, current_draw};
+            return max_draw_index;
+        };
+
+        Bound_Texture bound_textures[16] = {};
+        i64 vertices_written = 0;
+        i64 indices_written = 0;
+        Vertex* vertex_head_ptr = reinterpret_cast<Vertex*>(vertex_buffer.data);
+        u32* index_head_ptr = element_buffer.data;
+        Material* material_head_ptr = material_buffer.data;
+        Matrix4* matrix_head_ptr = matrix_buffer.data;
+        i64 current_draw = 0;
+        Draw_Elements_Command cmd = {};
+        // Fairly dumb rendering loop.
+        for (auto iter = objects.begin(), end = objects.end(); iter != end; ++iter) {
+            auto const [transform, static_mesh] = objects.get<Transform, Static_Mesh_Component>(*iter);
+            if (static_mesh.shader_handle != last_mesh.shader_handle || static_mesh.mesh_handle != last_mesh.mesh_handle ||
+                static_mesh.material_handle != last_mesh.material_handle) {
+                if (ANTON_LIKELY(current_draw != 0)) {
+                    add_draw_command(cmd);
+                }
+                cmd.base_instance = current_draw;
+                cmd.instance_count = 1;
+            } else {
+                cmd.instance_count += 1;
+            }
+
+            if (static_mesh.shader_handle != last_mesh.shader_handle) {
+                if (ANTON_LIKELY(current_draw != 0)) {
+                    commit_draw();
+                }
+                Shader& shader = shader_manager.get(static_mesh.shader_handle);
+                shader.use();
+                shader.set_vec3("camera.position", camera_transform.local_position);
+                shader.set_matrix4("projection", projection);
+                shader.set_matrix4("view", view);
+            }
+
+            if (static_mesh.mesh_handle != last_mesh.mesh_handle) {
+                Mesh const& mesh = mesh_manager.get(static_mesh.mesh_handle);
+                i64 const vertex_data_size = mesh.vertices.size();
+                memcpy(vertex_head_ptr, mesh.vertices.data(), vertex_data_size * sizeof(Vertex));
+                vertex_head_ptr += vertex_data_size;
+                cmd.base_vertex = vertices_written;
+                vertices_written += vertex_data_size;
+                i64 const indices_data_size = mesh.indices.size();
+                memcpy(index_head_ptr, mesh.indices.data(), indices_data_size * sizeof(u32));
+                index_head_ptr += indices_data_size;
+                cmd.count = mesh.indices.size();
+                cmd.first_index = indices_written;
+                indices_written += indices_data_size;
+            }
+
+            {
+                // TODO: Does pointless calls to find_slot_and_bind_texture even though
+                //       it doesn't actually rebind textures each iteration.
+                //
+                // Skip first texture slot since it should always have the default textures bound
+                Material const mat = material_manager.get(static_mesh.material_handle);
+                Material shader_mat = mat;
+                shader_mat.diffuse_texture.index = find_slot_and_bind_texture(bound_textures, mat.diffuse_texture, current_draw);
+                shader_mat.specular_texture.index = find_slot_and_bind_texture(bound_textures, mat.specular_texture, current_draw);
+                shader_mat.normal_map.index = find_slot_and_bind_texture(bound_textures, mat.normal_map, current_draw);
+                // memcpy(material_head_ptr, &shader_mat, sizeof(Material));
+                *material_head_ptr = shader_mat;
+                material_head_ptr += 1;
+            }
+
+            {
+                Matrix4 const model = to_matrix(transform);
+                // memcpy(matrix_head_ptr, &model, sizeof(Matrix4));
+                *matrix_head_ptr = model;
+                matrix_head_ptr += 1;
+            }
+
+            last_mesh = static_mesh;
+            current_draw += 1;
         }
+
+        // Since there's no state change at the end of the loop we have to
+        // add the last draw command and kick rendering off manually.
+        add_draw_command(cmd);
+        commit_draw();
+
+        // Material_Buffer material_buffer = get_material_buffer();
+        // Resource_Manager<Shader>& shader_manager = get_shader_manager();
+
+        // auto static_meshes = ecs.view<Transform, Static_Mesh_Component>();
+        // for (Entity const entity: static_meshes) {
+        //     auto [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
+        //     Shader& shader = shader_manager.get(static_mesh.shader_handle);
+        //     shader.use();
+        //     Matrix4 model(transform.to_matrix());
+        //     shader.set_matrix4("model", model);
+        //     shader.set_vec3("camera.position", camera_transform.local_position);
+        //     shader.set_matrix4("projection", projection);
+        //     shader.set_matrix4("view", view);
+        //     auto& material_manager = get_material_manager();
+        //     Material material = material_manager.get(static_mesh.material_handle);
+        //     bind_texture(1, material.diffuse_texture);
+        //     bind_default_textures();
+        //     *material_buffer.data = Material{{1, material.diffuse_texture.layer}, {0, 0}, {0, 1}, 32.0f};
+        //     // bind_material_properties(material, shader);
+        //     Resource_Manager<Mesh>& mesh_manager = get_mesh_manager();
+        //     Mesh& mesh = mesh_manager.get(static_mesh.mesh_handle);
+        //     render_mesh(mesh);
+        // }
     }
 
     uint32_t Renderer::render_frame_as_texture(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform, int32_t const viewport_width,
