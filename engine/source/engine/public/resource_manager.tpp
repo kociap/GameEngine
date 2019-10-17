@@ -32,6 +32,17 @@ namespace anton_engine {
     }
 
     template <typename T>
+    T const& Resource_Manager<T>::get(Handle<T> handle) const {
+        for (typename anton_stl::Vector<T>::size_type i = 0; i < identifiers.size(); ++i) {
+            if (identifiers[i] == handle.value) {
+                return resources[i];
+            }
+        }
+
+        throw std::invalid_argument("");
+    }
+
+    template <typename T>
     void Resource_Manager<T>::remove(Handle<T> handle) {
         for (typename anton_stl::Vector<T>::size_type i = 0; i < identifiers.size(); ++i) {
             if (identifiers[i] == handle.value) {

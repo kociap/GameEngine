@@ -15,6 +15,7 @@ namespace anton_engine {
 
         Handle<T> add(T&&);
         T& get(Handle<T>);
+        T const& get(Handle<T>) const;
         void remove(Handle<T>);
 
     private:

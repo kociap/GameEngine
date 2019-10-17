@@ -18,6 +18,8 @@ namespace anton_engine {
     class ECS {
     public:
         ECS() = default;
+        ECS(ECS const&);
+        ECS(ECS&&);
         ~ECS();
 
         // Returns: Array of entities that have Component associated with them
@@ -97,6 +99,17 @@ namespace anton_engine {
 } // namespace anton_engine
 
 namespace anton_engine {
+    inline ECS::ECS(ECS const& other)
+        : _entities(other._entities), entities_to_remove(other.entities_to_remove), containers(other.containers), id_generator(other.id_generator) {
+        for (Components_Container_Data& data: containers) {
+            data.container = data.make_snapshot(*data.container);
+        }
+    }
+
+    inline ECS::ECS(ECS&& other)
+        : _entities(anton_stl::move(other._entities)), entities_to_remove(anton_stl::move(other.entities_to_remove)),
+          containers(anton_stl::move(other.containers)), id_generator(other.id_generator) {}
+
     template <typename Component>
     [[nodiscard]] inline Entity const* ECS::entities() const {
         auto const* c = find_container<Component>();
