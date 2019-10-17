@@ -14,7 +14,7 @@
 #include <input/input.hpp>
 #include <input/input_core.hpp>
 #include <material.hpp>
-#include <mesh/mesh.hpp>
+#include <mesh.hpp>
 #include <outliner.hpp>
 #include <paths.hpp>
 #include <renderer.hpp>
@@ -96,7 +96,7 @@ namespace anton_engine {
         qapplication->processEvents();
         time_core::update_time();
         if (timingf::get_delta_time() > 0.017f) {
-            log_message(Log_Message_Severity::info, anton_stl::to_string(timingf::get_delta_time()));
+            //log_message(Log_Message_Severity::info, anton_stl::to_string(timingf::get_delta_time()));
         }
         // TODO separate inputs for each viewport
         input_manager->process_events();
@@ -153,7 +153,6 @@ namespace anton_engine {
 #include <components/directional_light_component.hpp>
 #include <components/point_light_component.hpp>
 #include <components/static_mesh_component.hpp>
-#include <mesh/plane.hpp>
 
 #include <serialization/archives/binary.hpp>
 #include <serialization/serialization.hpp>
@@ -198,7 +197,7 @@ namespace anton_engine {
         Handle<Material> const material_handle = material_manager->add(std::move(barrel_mat));
 #endif
         Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
-        Handle<Mesh> quad_mesh = mesh_manager->add(Plane());
+        Handle<Mesh> quad_mesh = mesh_manager->add(generate_plane());
 
 #if DESERIALIZE
         std::filesystem::path serialization_in_path = utils::concat_paths(paths::project_directory(), "ecs.bin");

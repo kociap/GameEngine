@@ -9,6 +9,7 @@
 #include <math/matrix4.hpp>
 #include <shader.hpp>
 #include <texture_format.hpp>
+#include <ecs/ecs.hpp>
 
 namespace anton_engine {
     class Camera;
@@ -99,6 +100,9 @@ namespace anton_engine::rendering {
     void add_draw_command(Draw_Arrays_Command);
     void add_draw_command(Draw_Elements_Command);
     void commit_draw();
+
+    // objects - snapshot of ecs containing Static_Mesh_Components and Transforms
+    void render_scene(ECS objects, Transform camera_transform, Matrix4 view, Matrix4 projection);
 
     // Render a quad taking up the whole viewport
     // Intended for rendering textures to the screen or applying postprocessing effects

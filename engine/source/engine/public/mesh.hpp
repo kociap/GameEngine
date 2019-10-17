@@ -45,6 +45,9 @@ namespace anton_engine {
         uint32_t vbo = 0;
         uint32_t ebo = 0;
     };
+
+    Mesh generate_plane();
+    Mesh generate_cube();
 } // namespace anton_engine
 
 #endif // !ENGINE_MESH_HPP_INCLUDE

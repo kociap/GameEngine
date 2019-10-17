@@ -25,8 +25,7 @@
 #include <intrinsics.hpp>
 #include <math/matrix4.hpp>
 #include <math/transform.hpp>
-#include <mesh/mesh.hpp>
-#include <mesh/plane.hpp>
+#include <mesh.hpp>
 #include <opengl.hpp>
 #include <resource_manager.hpp>
 #include <shader.hpp>
@@ -453,80 +452,7 @@ namespace anton_engine::rendering {
         }
     }
 
-    Renderer::Renderer(int32_t width, int32_t height): outline_mix_shader(false) {
-        build_framebuffers(width, height);
-
-        // TODO move to postprocessing
-        auto postprocess_vert = assets::load_shader_file("postprocessing/postprocess_vertex.vert");
-        auto gamma_correction = assets::load_shader_file("postprocessing/gamma_correction.frag");
-        gamma_correction_shader = create_shader(postprocess_vert, gamma_correction);
-        gamma_correction_shader.use();
-        gamma_correction_shader.set_int("scene_texture", 0);
-
-        auto outline_mix_file = assets::load_shader_file("editor/outline_mix.frag");
-        outline_mix_shader = create_shader(outline_mix_file, postprocess_vert);
-        outline_mix_shader.use();
-        outline_mix_shader.set_int("scene_texture", 0);
-        outline_mix_shader.set_int("outline_texture", 1);
-
-        auto quad_vert = assets::load_shader_file("quad.vert");
-        auto quad_frag = assets::load_shader_file("quad.frag");
-        passthrough_quad_shader = create_shader(quad_vert, quad_frag);
-        passthrough_quad_shader.use();
-        passthrough_quad_shader.set_int("scene_texture", 0);
-
-        set_gamma_value(2.2f);
-    }
-
-    Renderer::~Renderer() {
-        delete_framebuffers();
-    }
-
-    void Renderer::build_framebuffers(int32_t width, int32_t height) {
-        Framebuffer::Construct_Info framebuffer_info;
-        framebuffer_info.width = width;
-        framebuffer_info.height = height;
-        framebuffer_info.depth_buffer.enabled = true;
-        framebuffer_info.color_buffers.resize(3);
-        // Position
-        framebuffer_info.color_buffers[0].internal_format = Framebuffer::Internal_Format::rgb32f;
-        // Normal
-        framebuffer_info.color_buffers[1].internal_format = Framebuffer::Internal_Format::rgb32f;
-        // albedo-specular
-        framebuffer_info.color_buffers[2].internal_format = Framebuffer::Internal_Format::rgba8;
-        framebuffer = new Framebuffer(framebuffer_info);
-
-        Framebuffer::Construct_Info postprocess_construct_info;
-        postprocess_construct_info.color_buffers.resize(1);
-        postprocess_construct_info.width = width;
-        postprocess_construct_info.height = height;
-        postprocess_back_buffer = new Framebuffer(postprocess_construct_info);
-        postprocess_front_buffer = new Framebuffer(postprocess_construct_info);
-    }
-
-    void Renderer::delete_framebuffers() {
-        delete framebuffer;
-        delete postprocess_back_buffer;
-        delete postprocess_front_buffer;
-    }
-
-    void Renderer::resize(int32_t width, int32_t height) {
-        delete_framebuffers();
-        build_framebuffers(width, height);
-    }
-
-    void Renderer::set_gamma_value(float gamma) {
-        gamma_correction_shader.use();
-        gamma_correction_shader.set_float("gamma", 1 / gamma);
-    }
-
-    void Renderer::swap_postprocess_buffers() {
-        anton_stl::swap(postprocess_front_buffer, postprocess_back_buffer);
-    }
-
-    void Renderer::render_scene(Transform const camera_transform, Matrix4 const view, Matrix4 const projection) {
-        ECS& ecs = get_ecs();
-        ECS snapshot = ecs.snapshot<Transform, Static_Mesh_Component>();
+    void render_scene(ECS snapshot, Transform const camera_transform, Matrix4 const view, Matrix4 const projection) {
         snapshot.sort<Static_Mesh_Component>(
             [](auto begin, auto end, auto predicate) { std::sort(begin, end, predicate); },
             [](Static_Mesh_Component const lhs, Static_Mesh_Component const rhs) -> bool {
@@ -540,7 +466,7 @@ namespace anton_engine::rendering {
         glBindVertexBuffer(0, vertex_buffer, 0, sizeof(Vertex));
         glBindVertexBuffer(1, vertex_buffer, vertex_buffer_size, sizeof(u32));
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
-        auto objects = ecs.view<Static_Mesh_Component, Transform>();
+        auto objects = snapshot.view<Static_Mesh_Component, Transform>();
         Static_Mesh_Component last_mesh = {};
         Resource_Manager<Shader>& shader_manager = get_shader_manager();
         Resource_Manager<Material>& material_manager = get_material_manager();
@@ -659,30 +585,84 @@ namespace anton_engine::rendering {
         // add the last draw command and kick rendering off manually.
         add_draw_command(cmd);
         commit_draw();
+    }
 
-        // Material_Buffer material_buffer = get_material_buffer();
-        // Resource_Manager<Shader>& shader_manager = get_shader_manager();
+    Renderer::Renderer(int32_t width, int32_t height): outline_mix_shader(false) {
+        build_framebuffers(width, height);
 
-        // auto static_meshes = ecs.view<Transform, Static_Mesh_Component>();
-        // for (Entity const entity: static_meshes) {
-        //     auto [transform, static_mesh] = static_meshes.get<Transform, Static_Mesh_Component>(entity);
-        //     Shader& shader = shader_manager.get(static_mesh.shader_handle);
-        //     shader.use();
-        //     Matrix4 model(transform.to_matrix());
-        //     shader.set_matrix4("model", model);
-        //     shader.set_vec3("camera.position", camera_transform.local_position);
-        //     shader.set_matrix4("projection", projection);
-        //     shader.set_matrix4("view", view);
-        //     auto& material_manager = get_material_manager();
-        //     Material material = material_manager.get(static_mesh.material_handle);
-        //     bind_texture(1, material.diffuse_texture);
-        //     bind_default_textures();
-        //     *material_buffer.data = Material{{1, material.diffuse_texture.layer}, {0, 0}, {0, 1}, 32.0f};
-        //     // bind_material_properties(material, shader);
-        //     Resource_Manager<Mesh>& mesh_manager = get_mesh_manager();
-        //     Mesh& mesh = mesh_manager.get(static_mesh.mesh_handle);
-        //     render_mesh(mesh);
-        // }
+        // TODO move to postprocessing
+        auto postprocess_vert = assets::load_shader_file("postprocessing/postprocess_vertex.vert");
+        auto gamma_correction = assets::load_shader_file("postprocessing/gamma_correction.frag");
+        gamma_correction_shader = create_shader(postprocess_vert, gamma_correction);
+        gamma_correction_shader.use();
+        gamma_correction_shader.set_int("scene_texture", 0);
+
+        auto outline_mix_file = assets::load_shader_file("editor/outline_mix.frag");
+        outline_mix_shader = create_shader(outline_mix_file, postprocess_vert);
+        outline_mix_shader.use();
+        outline_mix_shader.set_int("scene_texture", 0);
+        outline_mix_shader.set_int("outline_texture", 1);
+
+        auto quad_vert = assets::load_shader_file("quad.vert");
+        auto quad_frag = assets::load_shader_file("quad.frag");
+        passthrough_quad_shader = create_shader(quad_vert, quad_frag);
+        passthrough_quad_shader.use();
+        passthrough_quad_shader.set_int("scene_texture", 0);
+
+        set_gamma_value(2.2f);
+    }
+
+    Renderer::~Renderer() {
+        delete_framebuffers();
+    }
+
+    void Renderer::build_framebuffers(int32_t width, int32_t height) {
+        Framebuffer::Construct_Info framebuffer_info;
+        framebuffer_info.width = width;
+        framebuffer_info.height = height;
+        framebuffer_info.depth_buffer.enabled = true;
+        framebuffer_info.color_buffers.resize(3);
+        // Position
+        framebuffer_info.color_buffers[0].internal_format = Framebuffer::Internal_Format::rgb32f;
+        // Normal
+        framebuffer_info.color_buffers[1].internal_format = Framebuffer::Internal_Format::rgb32f;
+        // albedo-specular
+        framebuffer_info.color_buffers[2].internal_format = Framebuffer::Internal_Format::rgba8;
+        framebuffer = new Framebuffer(framebuffer_info);
+
+        Framebuffer::Construct_Info postprocess_construct_info;
+        postprocess_construct_info.color_buffers.resize(1);
+        postprocess_construct_info.width = width;
+        postprocess_construct_info.height = height;
+        postprocess_back_buffer = new Framebuffer(postprocess_construct_info);
+        postprocess_front_buffer = new Framebuffer(postprocess_construct_info);
+    }
+
+    void Renderer::delete_framebuffers() {
+        delete framebuffer;
+        delete postprocess_back_buffer;
+        delete postprocess_front_buffer;
+    }
+
+    void Renderer::resize(int32_t width, int32_t height) {
+        delete_framebuffers();
+        build_framebuffers(width, height);
+    }
+
+    void Renderer::set_gamma_value(float gamma) {
+        gamma_correction_shader.use();
+        gamma_correction_shader.set_float("gamma", 1 / gamma);
+    }
+
+    void Renderer::swap_postprocess_buffers() {
+        anton_stl::swap(postprocess_front_buffer, postprocess_back_buffer);
+    }
+
+    void Renderer::render_scene(Transform const camera_transform, Matrix4 const view, Matrix4 const projection) {
+        ECS& ecs = get_ecs();
+        ECS snapshot = ecs.snapshot<Transform, Static_Mesh_Component>();
+        // cull_frustum();
+        ::anton_engine::rendering::render_scene(snapshot, camera_transform, view, projection);
     }
 
     uint32_t Renderer::render_frame_as_texture(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform, int32_t const viewport_width,
@@ -725,7 +705,7 @@ namespace anton_engine::rendering {
     }
 
     void render_texture_quad() {
-        static Plane scene_quad;
+        static Mesh scene_quad = generate_plane();
         render_mesh(scene_quad);
     }
 

@@ -9,7 +9,7 @@
 #include <importers/png.hpp>
 #include <importers/tga.hpp>
 #include <math/vector3.hpp>
-#include <mesh/mesh.hpp>
+#include <mesh.hpp>
 #include <opengl.hpp>
 #include <paths.hpp>
 #include <postprocess.hpp>

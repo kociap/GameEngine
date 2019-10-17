@@ -4,7 +4,7 @@
 #include <math/matrix3.hpp>
 #include <math/matrix4.hpp>
 #include <math/transform.hpp>
-#include <mesh/mesh.hpp>
+#include <mesh.hpp>
 
 namespace anton_engine {
     std::optional<Raycast_Hit> intersect_ray_triangle(Ray ray, Vector3 a, Vector3 b, Vector3 c) {

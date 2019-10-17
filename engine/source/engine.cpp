@@ -4,7 +4,7 @@
 #include <ecs/ecs.hpp>
 #include <ecs/entity.hpp>
 #include <input/input_core.hpp>
-#include <mesh/mesh.hpp>
+#include <mesh.hpp>
 #include <renderer.hpp>
 #include <resource_manager.hpp>
 #include <shader.hpp>
@@ -19,8 +19,6 @@
 #include <components/transform.hpp>
 #include <debug_hotkeys.hpp>
 #include <math/math.hpp>
-#include <mesh/cube.hpp>
-#include <mesh/plane.hpp>
 #include <paths.hpp>
 #include <scripts/camera_movement.hpp>
 
@@ -92,7 +90,7 @@ namespace anton_engine {
         Handle<Material> const material_handle = material_manager->add(std::move(barrel_mat));
 #endif
         Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
-        Handle<Mesh> quad_mesh = mesh_manager->add(Plane());
+        Handle<Mesh> quad_mesh = mesh_manager->add(generate_plane());
 
 #if DESERIALIZE
         std::filesystem::path serialization_in_path = utils::concat_paths(paths::project_directory(), "ecs.bin");

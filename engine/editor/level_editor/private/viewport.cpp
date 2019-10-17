@@ -22,7 +22,7 @@
 #include <logging.hpp>
 #include <math/transform.hpp>
 #include <math/vector2.hpp>
-#include <mesh/mesh.hpp>
+#include <mesh.hpp>
 #include <obb.hpp>
 #include <qt_key.hpp>
 #include <renderer.hpp>
