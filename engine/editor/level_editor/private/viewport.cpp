@@ -26,7 +26,6 @@
 #include <obb.hpp>
 #include <qt_key.hpp>
 #include <renderer.hpp>
-#include <renderer_internal.hpp>
 #include <resource_manager.hpp>
 #include <shader_file.hpp>
 #include <viewport_camera.hpp>
@@ -151,7 +150,7 @@ namespace anton_engine {
         Component_View access = ecs.view<Static_Mesh_Component, Transform>();
         Entity selected = null_entity;
         Raycast_Hit closest_hit;
-        closest_hit.distance = math::constants<float>::infinity;
+        closest_hit.distance = math::constants::infinity;
         for (Entity const entity: access) {
             auto const& [c, transform] = access.get<Static_Mesh_Component, Transform>(entity);
             Mesh const& mesh = mesh_manager.get(c.mesh_handle);
@@ -264,7 +263,7 @@ namespace anton_engine {
                 Input::Key_State const lmb_state = Input::get_key_state(Key::left_mouse_button);
                 if (lmb_state.up_down_transitioned) {
                     if (lmb_state.down) {
-                        float distance = math::constants<float>::infinity;
+                        float distance = math::constants::infinity;
                         if (auto hit = intersect_ray_obb(ray, obb[0]); hit && hit->distance < distance) {
                             distance = hit->distance;
                             gizmo_grabbed = true;
@@ -333,7 +332,7 @@ namespace anton_engine {
                 Input::Key_State const lmb_state = Input::get_key_state(Key::left_mouse_button);
                 if (lmb_state.up_down_transitioned) {
                     if (lmb_state.down) {
-                        float distance = math::constants<float>::infinity;
+                        float distance = math::constants::infinity;
                         if (auto hit = intersect_ray_obb(ray, obb[0]); hit && hit->distance < distance) {
                             distance = hit->distance;
                             gizmo_grabbed = true;
@@ -402,22 +401,22 @@ namespace anton_engine {
         uniform_color_shader.use();
         uniform_color_shader.set_vec4("color", outline_color);
 
-        ECS& ecs = Editor::get_ecs();
-        Resource_Manager<Mesh>& mesh_manager = Editor::get_mesh_manager();
         Framebuffer::bind(*framebuffer);
         opengl::clear_color(0.0f, 0.0f, 0.0f, 0.0f);
         opengl::clear(opengl::Buffer_Mask::color_buffer_bit);
-        for (Entity const entity: selected_entities) {
-            // TODO: Not all selected entities have mesh component.
-            // Should we enforce some sort of mesh component in editor mode?
-            auto const [transform, static_mesh] = ecs.try_get_component<Transform, Static_Mesh_Component>(entity);
-            if (transform && static_mesh) {
-                Mesh const& mesh = mesh_manager.get(static_mesh->mesh_handle);
-                Matrix4 const mvp_mat = transform->to_matrix() * view * projection;
-                uniform_color_shader.set_matrix4("mvp_mat", mvp_mat);
-                rendering::render_mesh(mesh);
-            }
-        }
+        // Resource_Manager<Mesh>& mesh_manager = Editor::get_mesh_manager();
+        // ECS& ecs = Editor::get_ecs();
+        // for (Entity const entity: selected_entities) {
+        //     // TODO: Not all selected entities have mesh component.
+        //     // Should we enforce some sort of mesh component in editor mode?
+        //     auto const [transform, static_mesh] = ecs.try_get_component<Transform, Static_Mesh_Component>(entity);
+        //     if (transform && static_mesh) {
+        //         Mesh const& mesh = mesh_manager.get(static_mesh->mesh_handle);
+        //         Matrix4 const mvp_mat = transform->to_matrix() * view * projection;
+        //         uniform_color_shader.set_matrix4("mvp_mat", mvp_mat);
+        //         rendering::render_mesh(mesh);
+        //     }
+        // }
 
         opengl::active_texture(0);
         opengl::bind_texture(opengl::Texture_Type::texture_2D, scene_texture);

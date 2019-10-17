@@ -1,5 +1,4 @@
 #include <renderer.hpp>
-#include <renderer_internal.hpp>
 
 #include <anton_int.hpp>
 #include <anton_stl/algorithm.hpp>
@@ -704,49 +703,19 @@ namespace anton_engine::rendering {
         render_texture_quad();
     }
 
+    // TODO: Temporary solution for rendering the texture quad
+
+    static u32 gen_texture_quad_buffers(Mesh const mesh) {
+        u32 vbo;
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferStorage(GL_ARRAY_BUFFER, 6 * sizeof(Vertex), mesh.vertices.data(), 0);
+        return vbo;
+    }
+
     void render_texture_quad() {
-        static Mesh scene_quad = generate_plane();
-        render_mesh(scene_quad);
-    }
-
-    // void bind_material_properties(Material mat, Shader& shader) {
-    //     shader.set_float("material.shininess", mat.shininess);
-    //     opengl::active_texture(0);
-    //     opengl::bind_texture(opengl::Texture_Type::texture_2D, mat.diffuse_texture.handle);
-    //     shader.set_int("material.texture_diffuse", 0);
-    //     opengl::active_texture(1);
-    //     opengl::bind_texture(opengl::Texture_Type::texture_2D, mat.specular_texture.handle);
-    //     shader.set_int("material.texture_specular", 1);
-    //     opengl::active_texture(2);
-    //     opengl::bind_texture(opengl::Texture_Type::texture_2D, mat.normal_map.handle);
-    //     shader.set_int("material.normal_map", 2);
-    //     shader.set_int("material.normal_map_attached", mat.normal_map.handle != 0);
-    // }
-
-    void render_mesh(Mesh const& mesh) {
-        glBindVertexBuffer(0, mesh.get_vbo(), 0, sizeof(Vertex));
-        CHECK_GL_ERRORS();
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.get_ebo());
-        CHECK_GL_ERRORS();
-        int32_t indices_count = static_cast<int32_t>(mesh.indices.size());
-        opengl::draw_elements(GL_TRIANGLES, indices_count);
-    }
-
-    void render_object(Static_Mesh_Component const& component, Shader& shader) {
-        auto& material_manager = get_material_manager();
-        Material material = material_manager.get(component.material_handle);
-        // bind_material_properties(material, shader);
-        Resource_Manager<Mesh>& mesh_manager = get_mesh_manager();
-        Mesh& mesh = mesh_manager.get(component.mesh_handle);
-        render_mesh(mesh);
-    }
-
-    void render_object(Line_Component const& component, Shader& shader) {
-        auto& material_manager = get_material_manager();
-        Material material = material_manager.get(component.material_handle);
-        // bind_material_properties(material, shader);
-        Resource_Manager<Mesh>& mesh_manager = get_mesh_manager();
-        Mesh& mesh = mesh_manager.get(component.mesh_handle);
-        render_mesh(mesh);
+        u32 const static vbo = gen_texture_quad_buffers(generate_plane());
+        glBindVertexBuffer(0, vbo, 0, sizeof(Vertex));
+        glDrawArrays(GL_TRIANGLES, 0, 6);
     }
 } // namespace anton_engine::rendering

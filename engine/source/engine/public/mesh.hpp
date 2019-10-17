@@ -1,11 +1,11 @@
 #ifndef ENGINE_MESH_HPP_INCLUDE
 #define ENGINE_MESH_HPP_INCLUDE
 
+#include <anton_int.hpp>
+#include <anton_stl/type_traits.hpp>
 #include <anton_stl/vector.hpp>
-#include <material.hpp>
 #include <math/vector2.hpp>
 #include <math/vector3.hpp>
-#include <string>
 
 namespace anton_engine {
     struct Vertex {
@@ -16,34 +16,18 @@ namespace anton_engine {
         Vector2 uv_coordinates;
 
         Vertex() = default;
-        Vertex(Vector3 pos, Vector3 normal, Vector3 tangent, Vector3 bitangent, Vector2 uv);
+        Vertex(Vector3 const pos, Vector3 const normal, Vector3 const tangent, Vector3 const bitangent, Vector2 const uv)
+            : position(anton_stl::move(pos)), normal(anton_stl::move(normal)), tangent(anton_stl::move(tangent)), bitangent(anton_stl::move(bitangent)),
+              uv_coordinates(anton_stl::move(uv)) {}
     };
 
     class Mesh {
     public:
-        Mesh();
-        Mesh(anton_stl::Vector<Vertex> const& vertices, anton_stl::Vector<uint32_t> const& indices);
-        Mesh(anton_stl::Vector<Vertex>&& vertices, anton_stl::Vector<uint32_t>&& indices);
-        Mesh(Mesh&&) noexcept;
-        Mesh& operator=(Mesh&&) noexcept;
-        ~Mesh();
+        Mesh(anton_stl::Vector<Vertex> const& vertices, anton_stl::Vector<u32> const& indices): vertices(vertices), indices(indices) {}
+        Mesh(anton_stl::Vector<Vertex>&& vertices, anton_stl::Vector<u32>&& indices): vertices(std::move(vertices)), indices(std::move(indices)) {}
 
-        Mesh(Mesh const&) = delete;
-        Mesh& operator=(Mesh const&) = delete;
-
-        uint32_t get_vbo() const;
-        uint32_t get_ebo() const;
-
-    private:
-        void prepare_mesh();
-
-    public:
         anton_stl::Vector<Vertex> vertices;
-        anton_stl::Vector<uint32_t> indices;
-
-    private:
-        uint32_t vbo = 0;
-        uint32_t ebo = 0;
+        anton_stl::Vector<u32> indices;
     };
 
     Mesh generate_plane();
