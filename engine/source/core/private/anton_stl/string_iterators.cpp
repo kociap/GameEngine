@@ -2,15 +2,15 @@
 #include <anton_stl/detail/string_iterators.hpp>
 
 namespace anton_engine::anton_stl {
-    constexpr uint8_t continuation_byte_signature_mask = 0b11000000;
-    constexpr uint8_t continuation_byte_signature = 0b10000000;
-    constexpr uint8_t continuation_byte_value_mask = 0b00111111;
+    constexpr u8 continuation_byte_signature_mask = 0b11000000;
+    constexpr u8 continuation_byte_signature = 0b10000000;
+    constexpr u8 continuation_byte_value_mask = 0b00111111;
 
-    constexpr uint8_t leading_byte_mask = 0b11111000;
-    constexpr uint8_t leading_byte_ascii = 0b01111111;
-    constexpr uint8_t leading_byte_2byte = 0b11011111;
-    constexpr uint8_t leading_byte_3byte = 0b11101111;
-    constexpr uint8_t leading_byte_4byte = 0b11110111;
+    constexpr u8 leading_byte_mask = 0b11111000;
+    constexpr u8 leading_byte_ascii = 0b01111111;
+    constexpr u8 leading_byte_2byte = 0b11011111;
+    constexpr u8 leading_byte_3byte = 0b11101111;
+    constexpr u8 leading_byte_4byte = 0b11110111;
 
     UTF8_Char_Iterator::UTF8_Char_Iterator(char const* p): data(p) {}
 
@@ -59,7 +59,7 @@ namespace anton_engine::anton_stl {
     }
 
     UTF8_Char_Iterator::value_type UTF8_Char_Iterator::operator*() const {
-        uint8_t leading_masked = *data & leading_byte_mask;
+        u8 leading_masked = *data & leading_byte_mask;
         ANTON_VERIFY((leading_masked & leading_byte_ascii) == leading_masked || (leading_masked & leading_byte_2byte) == leading_masked ||
                          (leading_masked & leading_byte_3byte) == leading_masked || (leading_masked & leading_byte_4byte) == leading_masked,
                      "Invalid leading UTF-8 byte");

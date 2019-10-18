@@ -1,18 +1,17 @@
 #ifndef CORE_ANTON_STL_CONFIG_HPP_INCLUDE
 #define CORE_ANTON_STL_CONFIG_HPP_INCLUDE
 
-// #include <cstddef>
-#include <cstdint>
+#include <anton_int.hpp>
 
 #ifndef ANTON_NOEXCEPT
-#    define ANTON_NOEXCEPT noexcept
+#    define ANTON_NOEXCEPT
 #endif
 
 namespace anton_engine::anton_stl {
-    using size_t = uint64_t;
-    using ptrdiff_t = int64_t;
+    using size_t = u64;
+    using ptrdiff_t = i64;
     // signed counterpart of anton_stl::size_t
-    using ssize_t = int64_t;
+    using ssize_t = i64;
 
     // Reserve_Tag
     // Allows us to create constructors that allocate certain capacity, but do not initialize/resize
