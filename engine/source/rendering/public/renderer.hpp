@@ -5,11 +5,11 @@
 #include <components/camera.hpp>
 #include <components/transform.hpp>
 #include <cstdint>
+#include <ecs/ecs.hpp>
 #include <material.hpp>
 #include <math/matrix4.hpp>
 #include <shader.hpp>
 #include <texture_format.hpp>
-#include <ecs/ecs.hpp>
 
 namespace anton_engine {
     class Camera;
@@ -31,7 +31,6 @@ namespace anton_engine::rendering {
         void resize(int32_t width, int32_t height);
         void render_frame(Matrix4 view_mat, Matrix4 proj_mat, Transform camera_transform, int32_t viewport_width, int32_t viewport_height);
         uint32_t render_frame_as_texture(Matrix4 view_mat, Matrix4 proj_mat, Transform camera_transform, int32_t viewport_width, int32_t viewport_height);
-        void set_gamma_value(float);
         void swap_postprocess_buffers();
 
     private:
@@ -44,13 +43,6 @@ namespace anton_engine::rendering {
         Framebuffer* framebuffer;
         Framebuffer* postprocess_front_buffer;
         Framebuffer* postprocess_back_buffer;
-
-        Shader default_shader;
-        // Postprocessing shaders
-        // TODO move to postprocessing
-        Shader gamma_correction_shader;
-        Shader passthrough_quad_shader;
-        Shader outline_mix_shader;
     };
 
     struct Draw_Arrays_Command {

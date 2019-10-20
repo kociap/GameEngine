@@ -3,7 +3,7 @@
 in vec2 tex_coords;
 out vec4 frag_color;
 
-uniform sampler2D scene_texture;
+layout(binging = 0) uniform sampler2D scene_texture;
 uniform float gamma;
 
 void main() {

@@ -29,6 +29,7 @@
 #include <resource_manager.hpp>
 #include <shader_file.hpp>
 #include <viewport_camera.hpp>
+#include <builtin_editor_shaders.hpp>
 
 ANTON_DISABLE_WARNINGS();
 #include <QCloseEvent>
@@ -422,7 +423,8 @@ namespace anton_engine {
         opengl::bind_texture(opengl::Texture_Type::texture_2D, scene_texture);
         opengl::active_texture(1);
         opengl::bind_texture(opengl::Texture_Type::texture_2D, framebuffer->get_color_texture(0));
-        renderer->outline_mix_shader.use();
+        Shader& outline_mix_shader = get_builtin_shader(Builtin_Editor_Shader::outline_mix);
+        outline_mix_shader.use();
         Framebuffer::bind(*renderer->postprocess_back_buffer);
         rendering::render_texture_quad();
         renderer->swap_postprocess_buffers();
@@ -499,7 +501,9 @@ namespace anton_engine {
         opengl::bind_framebuffer(GL_FRAMEBUFFER, context->defaultFramebufferObject());
         opengl::active_texture(0);
         opengl::bind_texture(opengl::Texture_Type::texture_2D, texture);
-        renderer->gamma_correction_shader.use();
+        Shader& gamma_correction_shader = get_builtin_shader(Builtin_Shader::gamma_correction);
+        gamma_correction_shader.use();
+        gamma_correction_shader.set_float("gamma", 1 / 2.2f);
         rendering::bind_mesh_vao();
         rendering::render_texture_quad();
         context->swapBuffers(windowHandle());

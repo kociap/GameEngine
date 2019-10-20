@@ -3,8 +3,8 @@
 in vec2 tex_coords;
 in vec2 screen_size_rcp;
 
-uniform sampler2D scene_texture;
-uniform sampler2D outline_texture;
+layout(binding = 0) uniform sampler2D scene_texture;
+layout(binding = 1) uniform sampler2D outline_texture;
 
 out vec4 frag_color;
 

@@ -586,29 +586,8 @@ namespace anton_engine::rendering {
         commit_draw();
     }
 
-    Renderer::Renderer(int32_t width, int32_t height): outline_mix_shader(false) {
+    Renderer::Renderer(int32_t width, int32_t height) {
         build_framebuffers(width, height);
-
-        // TODO move to postprocessing
-        auto postprocess_vert = assets::load_shader_file("postprocessing/postprocess_vertex.vert");
-        auto gamma_correction = assets::load_shader_file("postprocessing/gamma_correction.frag");
-        gamma_correction_shader = create_shader(postprocess_vert, gamma_correction);
-        gamma_correction_shader.use();
-        gamma_correction_shader.set_int("scene_texture", 0);
-
-        auto outline_mix_file = assets::load_shader_file("editor/outline_mix.frag");
-        outline_mix_shader = create_shader(outline_mix_file, postprocess_vert);
-        outline_mix_shader.use();
-        outline_mix_shader.set_int("scene_texture", 0);
-        outline_mix_shader.set_int("outline_texture", 1);
-
-        auto quad_vert = assets::load_shader_file("quad.vert");
-        auto quad_frag = assets::load_shader_file("quad.frag");
-        passthrough_quad_shader = create_shader(quad_vert, quad_frag);
-        passthrough_quad_shader.use();
-        passthrough_quad_shader.set_int("scene_texture", 0);
-
-        set_gamma_value(2.2f);
     }
 
     Renderer::~Renderer() {
@@ -646,11 +625,6 @@ namespace anton_engine::rendering {
     void Renderer::resize(int32_t width, int32_t height) {
         delete_framebuffers();
         build_framebuffers(width, height);
-    }
-
-    void Renderer::set_gamma_value(float gamma) {
-        gamma_correction_shader.use();
-        gamma_correction_shader.set_float("gamma", 1 / gamma);
     }
 
     void Renderer::swap_postprocess_buffers() {
@@ -699,7 +673,9 @@ namespace anton_engine::rendering {
         Framebuffer::bind_default();
         opengl::active_texture(0);
         opengl::bind_texture(opengl::Texture_Type::texture_2D, frame_texture);
+        Shader& gamma_correction_shader = get_builtin_shader(Builtin_Shader::gamma_correction);
         gamma_correction_shader.use();
+        gamma_correction_shader.set_float("gamma", 1 / 2.2f);
         render_texture_quad();
     }
 

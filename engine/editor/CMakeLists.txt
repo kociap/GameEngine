@@ -26,6 +26,8 @@ add_subdirectory(outliner/public)
 add_subdirectory(outliner/private)
 add_subdirectory(log_viewer/public)
 add_subdirectory(log_viewer/private)
+add_subdirectory(rendering/public)
+add_subdirectory(rendering/private)
 
 set(SOURCE_FILES_ROOT
     ${SOURCE_FILES_ROOT}
