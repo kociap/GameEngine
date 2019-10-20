@@ -31,8 +31,8 @@ namespace anton_engine {
         Vector4 ray_dir = Vector4(ray.direction, 0) * rotation;
         Vector4 ray_origin = Vector4(ray.origin, 1) * obb_space;
         // AABB slab test
-        float tmin = -math::constants<float>::infinity;
-        float tmax = math::constants<float>::infinity;
+        float tmin = -math::constants::infinity;
+        float tmax = math::constants::infinity;
         for (int i = 0; i < 3; ++i) {
             float tx1 = (obb.halfwidths[i] - ray_origin[i]) / ray_dir[i];
             float tx2 = (-obb.halfwidths[i] - ray_origin[i]) / ray_dir[i];
@@ -49,8 +49,8 @@ namespace anton_engine {
         Vector4 ray_dir = Vector4(ray.direction, 0) * rotation;
         Vector4 ray_origin = Vector4(ray.origin, 1) * obb_space;
         // AABB slab test
-        float tmin = -math::constants<float>::infinity;
-        float tmax = math::constants<float>::infinity;
+        float tmin = -math::constants::infinity;
+        float tmax = math::constants::infinity;
         for (int i = 0; i < 3; ++i) {
             float tx1 = (obb.halfwidths[i] - ray_origin[i]) / ray_dir[i];
             float tx2 = (-obb.halfwidths[i] - ray_origin[i]) / ray_dir[i];
@@ -82,7 +82,7 @@ namespace anton_engine {
     std::optional<Raycast_Hit> intersect_ray_mesh(Ray ray, Mesh const& mesh, Matrix4 model_transform) {
         bool hit_flag = false;
         Raycast_Hit closest_hit;
-        closest_hit.distance = math::constants<float>::infinity;
+        closest_hit.distance = math::constants::infinity;
         auto& verts = mesh.vertices;
         // TODO size_t if I ever define it
         for (int64_t i = 0; i < mesh.indices.size(); i += 3) {
@@ -104,7 +104,7 @@ namespace anton_engine {
 
     std::optional<Linecast_Hit> intersect_line_plane(Line line, Vector3 normal, float distance) {
         float angle_cos = math::dot(line.direction, normal);
-        if (math::abs(angle_cos) > math::constants<float>::epsilon) {
+        if (math::abs(angle_cos) > math::constants::epsilon) {
             float coeff = (distance - math::dot(line.origin, normal)) / angle_cos;
             Linecast_Hit out;
             out.distance = coeff;

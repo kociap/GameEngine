@@ -78,7 +78,7 @@ namespace anton_engine::gizmo {
     }
 
     static void generate_dial_geometry(Dial_Vertex_Data* const dial) {
-        float const angle = math::constants<float>::pi / dial_vertex_count;
+        float const angle = math::constants::pi / dial_vertex_count;
         for (int32_t i = 0; i <= 2 * dial_vertex_count; i += 2) {
             Vector3 const pos = {math::cos(angle * i), math::sin(angle * i), 0};
             dial->vertices[i] = pos;

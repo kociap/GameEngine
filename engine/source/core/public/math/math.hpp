@@ -11,35 +11,34 @@
 #undef min
 
 namespace anton_engine::math {
-    template <typename T>
-    struct constants;
-
-    template <>
-    struct constants<float> {
-        constexpr static float pi = 3.14159265f;
-        constexpr static float deg_to_rad = pi / 180.0f;
-        constexpr static float rad_to_deg = 180.0f / pi;
+    namespace constants {
+        constexpr float pi = 3.14159265f;
+        constexpr float deg_to_rad = pi / 180.0f;
+        constexpr float rad_to_deg = 180.0f / pi;
+        // Largest representable value
+        constexpr float max = 3.402823466e+38F;
+        // Largest negative representable value
+        constexpr float min = -3.402823466e+38F;
         // Smallest number such that 1.0 + epsilon != 1.0
-        constexpr static float epsilon = std::numeric_limits<float>::epsilon();
-        constexpr static float infinity = std::numeric_limits<float>::infinity();
-    };
+        constexpr float epsilon = std::numeric_limits<float>::epsilon();
+        constexpr float infinity = std::numeric_limits<float>::infinity();
+    } // namespace constants
 
-    template <>
-    struct constants<double> {
-        constexpr static double pi = 3.141592653589793;
-        constexpr static double deg_to_rad = pi / 180.0;
-        constexpr static double rad_to_deg = 180.0 / pi;
+    namespace constantsd {
+        constexpr double pi = 3.141592653589793;
+        constexpr double deg_to_rad = pi / 180.0;
+        constexpr double rad_to_deg = 180.0 / pi;
         // Smallest number such that 1.0 + epsilon != 1.0
-        constexpr static double epsilon = std::numeric_limits<double>::epsilon();
-        constexpr static double infinity = std::numeric_limits<double>::infinity();
-    };
+        constexpr double epsilon = std::numeric_limits<double>::epsilon();
+        constexpr double infinity = std::numeric_limits<double>::infinity();
+    } // namespace constantsd
 
     constexpr float radians(float degrees) {
-        return degrees * constants<float>::deg_to_rad;
+        return degrees * constants::deg_to_rad;
     }
 
     constexpr float degrees(float radians) {
-        return radians * constants<float>::rad_to_deg;
+        return radians * constants::rad_to_deg;
     }
 
     inline float inv_sqrt(float a) {
