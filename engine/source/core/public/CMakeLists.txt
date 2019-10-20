@@ -20,6 +20,7 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/iterators.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/memory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/pair.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/slice.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/static_string.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/static_vector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string_utils.hpp"
