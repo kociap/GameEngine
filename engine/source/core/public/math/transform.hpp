@@ -19,7 +19,7 @@ namespace anton_engine::math::transform {
     Matrix4 perspective(float fov, float aspect_ratio, float near, float far);
     Matrix4 look_at(Vector3 position, Vector3 target, Vector3 up);
 
-    Vector3 get_translation(Matrix4 const&);
+    Vector3 get_translation(Matrix4);
 } // namespace anton_engine::math::transform
 
 namespace anton_engine::math::transform {
@@ -91,8 +91,8 @@ namespace anton_engine::math::transform {
                 {-math::dot(right, position), -math::dot(up, position), math::dot(forward, position), 1}};
     }
 
-    inline Vector3 get_translation(Matrix4 const& mat) {
-        return {mat(3, 0), mat(3, 1), mat(3, 2)};
+    inline Vector3 get_translation(Matrix4 mat) {
+        return {mat[3][0], mat[3][1], mat[3][2]};
     }
 } // namespace anton_engine::math::transform
 

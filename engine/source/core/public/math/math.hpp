@@ -12,7 +12,9 @@
 
 namespace anton_engine::math {
     namespace constants {
-        constexpr float pi = 3.14159265f;
+        constexpr float pi = 3.1415926f;
+        constexpr float half_pi = 1.5707964f;
+        constexpr float two_pi = 6.2831853f;
         constexpr float deg_to_rad = pi / 180.0f;
         constexpr float rad_to_deg = 180.0f / pi;
         // Largest representable value
