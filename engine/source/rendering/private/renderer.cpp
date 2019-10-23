@@ -177,10 +177,10 @@ namespace anton_engine::rendering {
     // }
 
     void setup_rendering() {
-        CHECK_GL_ERRORS();
         glDisable(GL_FRAMEBUFFER_SRGB);
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glGenVertexArrays(1, &mesh_vao);
         glBindVertexArray(mesh_vao);
@@ -644,7 +644,7 @@ namespace anton_engine::rendering {
         opengl::viewport(0, 0, viewport_width, viewport_height);
         Framebuffer::bind(*framebuffer);
         // glClearColor(0.11f, 0.11f, 0.11f, 1.0f);
-        opengl::clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+        opengl::clear_color(0.07f, 0.07f, 0.07f, 1.0f);
         // opengl::clear_color(1.0f, 1.0f, 1.0f, 1.0f);
         opengl::clear(opengl::Buffer_Mask::color_buffer_bit | opengl::Buffer_Mask::depth_buffer_bit);
         opengl::bind_vertex_array(mesh_vao);
@@ -662,7 +662,7 @@ namespace anton_engine::rendering {
         deferred_shading.use();
         deferred_shading.set_vec3("camera.position", camera_transform.local_position);
         render_texture_quad();
-
+        glEnable(GL_DEPTH_TEST);
         swap_postprocess_buffers();
         return postprocess_front_buffer->get_color_texture(0);
     }

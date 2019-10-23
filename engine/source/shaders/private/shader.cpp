@@ -83,7 +83,7 @@ namespace anton_engine {
         glDetachShader(program, shader.shader);
     }
 
-    void Shader::set_int(anton_stl::String_View name, int a) {
+    void Shader::set_int(anton_stl::String_View const name, i32 const a) {
         std::string n(name.data());
         auto iter = uniform_cache.find(n);
         if (iter != uniform_cache.end()) {
@@ -91,7 +91,15 @@ namespace anton_engine {
         }
     }
 
-    void Shader::set_float(anton_stl::String_View name, float a) {
+    void Shader::set_uint(anton_stl::String_View const name, u32 const a) {
+        std::string n(name.data());
+        auto iter = uniform_cache.find(n);
+        if (iter != uniform_cache.end()) {
+            glUniform1ui(iter->second, a);
+        }
+    }
+
+    void Shader::set_float(anton_stl::String_View const name, float const a) {
         std::string n(name.data());
         auto iter = uniform_cache.find(n);
         if (iter != uniform_cache.end()) {
@@ -99,7 +107,15 @@ namespace anton_engine {
         }
     }
 
-    void Shader::set_vec3(anton_stl::String_View name, Vector3 vec) {
+    void Shader::set_vec2(anton_stl::String_View const name, Vector2 const vec) {
+        std::string n(name.data());
+        auto iter = uniform_cache.find(n);
+        if (iter != uniform_cache.end()) {
+            glUniform2fv(iter->second, 1, &vec.x);
+        }
+    }
+
+    void Shader::set_vec3(anton_stl::String_View const name, Vector3 const vec) {
         std::string n(name.data());
         auto iter = uniform_cache.find(n);
         if (iter != uniform_cache.end()) {
@@ -107,7 +123,7 @@ namespace anton_engine {
         }
     }
 
-    void Shader::set_vec3(anton_stl::String_View name, Color c) {
+    void Shader::set_vec3(anton_stl::String_View const name, Color const c) {
         std::string n(name.data());
         auto iter = uniform_cache.find(n);
         if (iter != uniform_cache.end()) {
@@ -115,7 +131,7 @@ namespace anton_engine {
         }
     }
 
-    void Shader::set_vec4(anton_stl::String_View name, Color c) {
+    void Shader::set_vec4(anton_stl::String_View const name, Color const c) {
         std::string n(name.data());
         auto iter = uniform_cache.find(n);
         if (iter != uniform_cache.end()) {
@@ -123,7 +139,7 @@ namespace anton_engine {
         }
     }
 
-    void Shader::set_matrix4(anton_stl::String_View name, Matrix4 const& mat) {
+    void Shader::set_matrix4(anton_stl::String_View const name, Matrix4 const& mat) {
         std::string n(name.data());
         auto iter = uniform_cache.find(n);
         if (iter != uniform_cache.end()) {

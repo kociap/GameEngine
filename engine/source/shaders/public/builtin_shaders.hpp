@@ -15,6 +15,8 @@ namespace anton_engine {
     // TODO: Should be private (most likely)
     void load_builtin_shaders();
     void unload_builtin_shaders();
+    // TODO: Dev build only(?)
+    void reload_builtin_shaders();
 
     Shader& get_builtin_shader(Builtin_Shader);
 } // namespace anton_engine

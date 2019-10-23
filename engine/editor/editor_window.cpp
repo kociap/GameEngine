@@ -120,6 +120,10 @@ namespace anton_engine {
     }
 
     void Editor_Window::update() {
+        if (auto const state = Input::get_key_state(Key::y); state.down && state.up_down_transitioned) {
+            reload_builtin_shaders();
+        }
+
         outliner->update();
 
         auto const state = Input::get_key_state(Key::u);
@@ -161,7 +165,7 @@ namespace anton_engine {
             if (viewport) {
                 Matrix4 const view_mat = get_camera_view_matrix(transform);
                 Matrix4 const projection_mat = get_camera_projection_matrix(camera, viewport->width(), viewport->height());
-                viewport->render(view_mat, projection_mat, transform, shared_state.selected_entities);
+                viewport->render(view_mat, projection_mat, camera, transform, shared_state.selected_entities);
             }
         }
     }

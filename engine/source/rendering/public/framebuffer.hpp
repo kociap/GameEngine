@@ -1,9 +1,8 @@
 #ifndef ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
 #define ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
 
+#include <anton_int.hpp>
 #include <anton_stl/static_vector.hpp>
-#include <array>
-#include <cstdint>
 #include <math/vector2.hpp>
 #include <opengl.hpp>
 
@@ -52,9 +51,9 @@ namespace anton_engine {
             anton_stl::Static_Vector<Color_Buffer_Info, max_color_attachments> color_buffers;
             Depth_Buffer_Info depth_buffer;
             Stencil_Buffer_Info stencil_buffer;
-            int32_t width = 0;
-            int32_t height = 0;
-            int32_t samples = 0;
+            i32 width = 0;
+            i32 height = 0;
+            i32 samples = 0;
             bool multisampled = false;
         };
 
@@ -71,22 +70,31 @@ namespace anton_engine {
         Framebuffer(Framebuffer const&) = delete;
         Framebuffer& operator=(Framebuffer const&) = delete;
 
-        void resize(int32_t width, int32_t height);
+        void resize(i32 width, i32 height);
         Vector2 size() const;
-        uint32_t get_color_texture(int32_t index) const;
-        uint32_t get_depth_texture() const;
+        u32 get_color_texture(i32 index) const;
+        u32 get_depth_texture() const;
+
+        u32 get_framebuffer_gl_handle() const;
+        Construct_Info get_construct_info() const;
 
     private:
         void create_framebuffer();
         void delete_framebuffer();
 
         Construct_Info info;
-        anton_stl::Static_Vector<uint32_t, max_color_attachments> color_buffers;
-        int32_t active_color_buffers = 0;
-        uint32_t framebuffer = 0;
-        uint32_t depth_buffer = 0;
-        uint32_t stencil_buffer = 0;
+        anton_stl::Static_Vector<u32, max_color_attachments> color_buffers;
+        i32 active_color_buffers = 0;
+        u32 framebuffer = 0;
+        u32 depth_buffer = 0;
+        u32 stencil_buffer = 0;
     };
+
+    void bind_framebuffer(Framebuffer const&, Framebuffer::Bind_Mode = Framebuffer::Bind_Mode::read_draw);
+    void bind_framebuffer(Framebuffer const*, Framebuffer::Bind_Mode = Framebuffer::Bind_Mode::read_draw);
+    void blit_framebuffer(Framebuffer& dest, Framebuffer const& source, opengl::Buffer_Mask);
+    void blit_framebuffer(Framebuffer* dest, Framebuffer const* source, opengl::Buffer_Mask);
+
 } // namespace anton_engine
 
 #endif // !ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE

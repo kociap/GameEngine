@@ -1,8 +1,11 @@
 #ifndef SHADERS_SHADER_HPP_INCLUDE
 #define SHADERS_SHADER_HPP_INCLUDE
 
+#include <anton_int.hpp>
 #include <anton_stl/string_view.hpp>
 #include <anton_stl/type_traits.hpp>
+#include <math/vector2.hpp>
+#include <math/vector3.hpp>
 #include <string>
 #include <unordered_map>
 
@@ -26,8 +29,10 @@ namespace anton_engine {
         void use();
         void detach(Shader_File const&);
 
-        void set_int(anton_stl::String_View, int);
+        void set_int(anton_stl::String_View, i32);
+        void set_uint(anton_stl::String_View, u32);
         void set_float(anton_stl::String_View, float);
+        void set_vec2(anton_stl::String_View, Vector2);
         void set_vec3(anton_stl::String_View, Vector3);
         void set_vec3(anton_stl::String_View, Color);
         void set_vec4(anton_stl::String_View, Color);

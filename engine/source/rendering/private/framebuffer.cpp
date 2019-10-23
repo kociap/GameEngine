@@ -18,7 +18,6 @@ namespace anton_engine {
         } else {
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb.framebuffer);
         }
-        CHECK_GL_ERRORS();
     }
 
     void Framebuffer::bind_default(Bind_Mode const bm) {
@@ -29,7 +28,10 @@ namespace anton_engine {
         } else {
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         }
-        CHECK_GL_ERRORS();
+    }
+
+    void Framebuffer::blit(Framebuffer& from, Framebuffer& to, opengl::Buffer_Mask const mask) {
+        opengl::blit_framebuffer(0, 0, from.info.width, from.info.height, 0, 0, to.info.width, to.info.height, mask, GL_NEAREST);
     }
 
     void Framebuffer::create_framebuffer() {
@@ -46,7 +48,7 @@ namespace anton_engine {
         glGenFramebuffers(1, &framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-        active_color_buffers = static_cast<int32_t>(info.color_buffers.size());
+        active_color_buffers = static_cast<i32>(info.color_buffers.size());
         color_buffers.resize(active_color_buffers);
 
         // TODO add support for renderbuffer color attachments
@@ -55,7 +57,7 @@ namespace anton_engine {
         if (active_color_buffers > 0) {
             if (info.multisampled) {
                 glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, active_color_buffers, color_buffers.data());
-                for (int32_t i = 0; i < active_color_buffers; ++i) {
+                for (i32 i = 0; i < active_color_buffers; ++i) {
                     GLenum const internal_format = utils::enum_to_value(info.color_buffers[i].internal_format);
                     glTextureStorage2DMultisample(color_buffers[i], info.samples, internal_format, info.width, info.height, GL_TRUE);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -64,7 +66,7 @@ namespace anton_engine {
                 }
             } else {
                 glCreateTextures(GL_TEXTURE_2D, active_color_buffers, color_buffers.data());
-                for (uint32_t i = 0; i < info.color_buffers.size(); ++i) {
+                for (u32 i = 0; i < info.color_buffers.size(); ++i) {
                     GLenum const internal_format = utils::enum_to_value(info.color_buffers[i].internal_format);
                     glTextureStorage2D(color_buffers[i], 1, internal_format, info.width, info.height);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -75,8 +77,8 @@ namespace anton_engine {
                 }
             }
 
-            anton_stl::Static_Vector<uint32_t, max_color_attachments> active_color_attachments;
-            for (uint32_t i = 0; i < color_buffers.size(); ++i) {
+            anton_stl::Static_Vector<u32, max_color_attachments> active_color_attachments;
+            for (u32 i = 0; i < color_buffers.size(); ++i) {
                 active_color_attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
             }
             glDrawBuffers(active_color_buffers, &active_color_attachments[0]);
@@ -200,7 +202,7 @@ namespace anton_engine {
         delete_framebuffer();
     }
 
-    void Framebuffer::resize(int32_t const width, int32_t const height) {
+    void Framebuffer::resize(i32 const width, i32 const height) {
         delete_framebuffer();
         info.width = width;
         info.height = height;
@@ -211,7 +213,7 @@ namespace anton_engine {
         return {static_cast<float>(info.width), static_cast<float>(info.height)};
     }
 
-    uint32_t Framebuffer::get_color_texture(int32_t const index) const {
+    u32 Framebuffer::get_color_texture(i32 const index) const {
         if (info.multisampled) {
             throw std::runtime_error("Framebuffer is multisampled. Unable to get texture");
         }
@@ -223,7 +225,7 @@ namespace anton_engine {
         return color_buffers[index];
     }
 
-    uint32_t Framebuffer::get_depth_texture() const {
+    u32 Framebuffer::get_depth_texture() const {
         if (info.multisampled) {
             throw std::runtime_error("Framebuffer is multisampled. Unable to get texture");
         }
@@ -235,7 +237,51 @@ namespace anton_engine {
         return depth_buffer;
     }
 
-    void Framebuffer::blit(Framebuffer& from, Framebuffer& to, opengl::Buffer_Mask const mask) {
-        opengl::blit_framebuffer(0, 0, from.info.width, from.info.height, 0, 0, to.info.width, to.info.height, mask, GL_NEAREST);
+    u32 Framebuffer::get_framebuffer_gl_handle() const {
+        return framebuffer;
+    }
+
+    Framebuffer::Construct_Info Framebuffer::get_construct_info() const {
+        return info;
+    }
+
+    void bind_framebuffer(Framebuffer const& framebuffer, Framebuffer::Bind_Mode const bind_mode) {
+        switch (bind_mode) {
+            case Framebuffer::Bind_Mode::read_draw:
+                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.get_framebuffer_gl_handle());
+                break;
+            case Framebuffer::Bind_Mode::read:
+                glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.get_framebuffer_gl_handle());
+                break;
+            case Framebuffer::Bind_Mode::draw:
+                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer.get_framebuffer_gl_handle());
+                break;
+        }
+    }
+
+    void bind_framebuffer(Framebuffer const* framebuffer, Framebuffer::Bind_Mode const bind_mode) {
+        switch (bind_mode) {
+            case Framebuffer::Bind_Mode::read_draw:
+                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->get_framebuffer_gl_handle());
+                break;
+            case Framebuffer::Bind_Mode::read:
+                glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->get_framebuffer_gl_handle());
+                break;
+            case Framebuffer::Bind_Mode::draw:
+                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer->get_framebuffer_gl_handle());
+                break;
+        }
+    }
+
+    void blit_framebuffer(Framebuffer& dest, Framebuffer const& source, opengl::Buffer_Mask const mask) {
+        Framebuffer::Construct_Info const source_info = source.get_construct_info();
+        Framebuffer::Construct_Info const dest_info = dest.get_construct_info();
+        opengl::blit_framebuffer(0, 0, source_info.width, source_info.height, 0, 0, dest_info.width, dest_info.height, mask, GL_NEAREST);
+    }
+
+    void blit_framebuffer(Framebuffer* dest, Framebuffer const* source, opengl::Buffer_Mask const mask) {
+        Framebuffer::Construct_Info const source_info = source->get_construct_info();
+        Framebuffer::Construct_Info const dest_info = dest->get_construct_info();
+        opengl::blit_framebuffer(0, 0, source_info.width, source_info.height, 0, 0, dest_info.width, dest_info.height, mask, GL_NEAREST);
     }
 } // namespace anton_engine

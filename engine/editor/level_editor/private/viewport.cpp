@@ -2,6 +2,7 @@
 
 #include <anton_stl/vector.hpp>
 #include <assets.hpp>
+#include <builtin_editor_shaders.hpp>
 #include <builtin_shaders.hpp>
 #include <components/camera.hpp>
 #include <components/static_mesh_component.hpp>
@@ -29,7 +30,6 @@
 #include <resource_manager.hpp>
 #include <shader_file.hpp>
 #include <viewport_camera.hpp>
-#include <builtin_editor_shaders.hpp>
 
 ANTON_DISABLE_WARNINGS();
 #include <QCloseEvent>
@@ -228,9 +228,6 @@ namespace anton_engine {
         Color axis_blue = {15.f / 255.f, 77.f / 255.f, 186.f / 255.f};
         Color axis_green = {0, 220.0f / 255.0f, 0};
         Color axis_red = {179.f / 255.f, 20.f / 255.f, 5.f / 255.f};
-        // Main world axes
-        gizmo::draw_line({-10.0f, 0.0f, 0.0f}, {10.0f, 0.0f, 0.0f}, axis_red);
-        gizmo::draw_line({0.0f, 0.0f, -10.0f}, {0.0f, 0.0f, 10.0f}, axis_blue);
 
         if (selected_entities.size() > 0) {
             ECS& ecs = Editor::get_ecs();
@@ -390,21 +387,17 @@ namespace anton_engine {
         }
     }
 
+    // Renders outline data to framebuffer
     // Leaves the rendered scene with outlines in renderer's front postprocess framebuffer's 1st color attachment
-    static void draw_outlines(rendering::Renderer* renderer, Framebuffer* framebuffer, uint32_t const scene_texture,
-                              anton_stl::Vector<Entity> const& selected_entities, Matrix4 const view, Matrix4 const projection, Color const outline_color) {
-        // copy depth buffer
-        Framebuffer::bind(*renderer->framebuffer, Framebuffer::Bind_Mode::read);
-        Framebuffer::bind(*framebuffer, Framebuffer::Bind_Mode::draw);
-        Framebuffer::blit(*renderer->framebuffer, *framebuffer, opengl::Buffer_Mask::depth_buffer_bit);
-
+    static void draw_outlines(rendering::Renderer& renderer, Framebuffer& framebuffer, anton_stl::Vector<Entity> const& selected_entities, Matrix4 const view,
+                              Matrix4 const projection, Color const outline_color) {
         Shader& uniform_color_shader = get_builtin_shader(Builtin_Shader::uniform_color_3d);
         uniform_color_shader.use();
         uniform_color_shader.set_vec4("color", outline_color);
 
-        Framebuffer::bind(*framebuffer);
         opengl::clear_color(0.0f, 0.0f, 0.0f, 0.0f);
-        opengl::clear(opengl::Buffer_Mask::color_buffer_bit);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
         // Resource_Manager<Mesh>& mesh_manager = Editor::get_mesh_manager();
         // ECS& ecs = Editor::get_ecs();
         // for (Entity const entity: selected_entities) {
@@ -419,15 +412,13 @@ namespace anton_engine {
         //     }
         // }
 
-        opengl::active_texture(0);
-        opengl::bind_texture(opengl::Texture_Type::texture_2D, scene_texture);
-        opengl::active_texture(1);
-        opengl::bind_texture(opengl::Texture_Type::texture_2D, framebuffer->get_color_texture(0));
+        glBindTextureUnit(0, renderer.postprocess_front_buffer->get_color_texture(0));
+        glBindTextureUnit(1, framebuffer.get_color_texture(0));
         Shader& outline_mix_shader = get_builtin_shader(Builtin_Editor_Shader::outline_mix);
         outline_mix_shader.use();
-        Framebuffer::bind(*renderer->postprocess_back_buffer);
+        bind_framebuffer(renderer.postprocess_back_buffer);
         rendering::render_texture_quad();
-        renderer->swap_postprocess_buffers();
+        renderer.swap_postprocess_buffers();
     }
 
     static void draw_translate_handle(Color const color, Matrix4 const world_transform, Matrix4 const view, Matrix4 const projection, Vector3 const camera_pos,
@@ -484,7 +475,40 @@ namespace anton_engine {
         return framebuffer->get_color_texture(0);
     }
 
-    void Viewport::render(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform,
+    static void draw_grid(Matrix4 const view_proj_mat, Vector3 const camera_pos, Camera const camera, Vector2 const viewport_size) {
+        // TODO: Hardcoded colors
+        Color const axis_blue = {15.f / 255.f, 77.f / 255.f, 186.f / 255.f};
+        // Color const axis_green = {0, 220.0f / 255.0f, 0};
+        // Color const axis_green = {0.1416f, 0.26953f, 0.02417f};
+        Color const axis_green = {0.545f, 0.863f, 0.0f};
+        Color const axis_red = {179.f / 255.f, 20.f / 255.f, 5.f / 255.f};
+        u32 constexpr grid_axis_x = 1 << 0;
+        u32 constexpr grid_axis_y = 1 << 1;
+        u32 constexpr grid_axis_z = 1 << 2;
+        u32 constexpr grid_enabled = 1 << 5;
+        u32 const grid_flags = grid_enabled | grid_axis_x | grid_axis_z;
+        Shader& grid_shader = get_builtin_shader(Builtin_Editor_Shader::grid);
+        grid_shader.use();
+        Matrix4 const model_mat = math::transform::rotate_x(math::constants::half_pi) * math::transform::scale(camera.far_plane) *
+                                  math::transform::translate({camera_pos.x, 0.0f, camera_pos.z});
+        grid_shader.set_matrix4("model_mat", model_mat);
+        grid_shader.set_matrix4("vp_mat", view_proj_mat);
+        grid_shader.set_vec3("camera_pos", camera_pos);
+        grid_shader.set_vec2("rcp_res", {1.0f / viewport_size.x, 1.0f / viewport_size.y});
+        grid_shader.set_uint("grid_flags", grid_flags);
+        grid_shader.set_vec4("axis_x_color", axis_red);
+        grid_shader.set_vec4("axis_z_color", axis_blue);
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_BLEND);
+        // TODO: That's probably the worst thing I've ever written.
+        //       Find a way to render adhoc geometry.
+        rendering::bind_mesh_vao();
+        rendering::render_texture_quad();
+        glDisable(GL_BLEND);
+        glEnable(GL_CULL_FACE);
+    }
+
+    void Viewport::render(Matrix4 const view_mat, Matrix4 const proj_mat, Camera const camera, Transform const camera_transform,
                           anton_stl::Vector<Entity> const& selected_entities) {
         // TODO: Repeatedly calling makeCurrent kills performance!!
         // if (!context->makeCurrent(windowHandle())) {
@@ -492,11 +516,26 @@ namespace anton_engine {
         //     return;
         // }
 
+        // TODO: Mist instead of sudden clip
+
         // TODO fix this shitcode
-        uint32_t texture = renderer->render_frame_as_texture(view_mat, proj_mat, camera_transform, width(), height());
-        draw_outlines(renderer, framebuffer, texture, selected_entities, view_mat, proj_mat, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f});
+        renderer->render_frame_as_texture(view_mat, proj_mat, camera_transform, width(), height());
+
+        // Copy depth and color attachment buffers
+        bind_framebuffer(renderer->framebuffer, Framebuffer::Bind_Mode::read);
+        bind_framebuffer(framebuffer, Framebuffer::Bind_Mode::draw);
+        blit_framebuffer(framebuffer, renderer->framebuffer, opengl::Buffer_Mask::depth_buffer_bit);
+        bind_framebuffer(renderer->postprocess_front_buffer, Framebuffer::Bind_Mode::read);
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+        blit_framebuffer(framebuffer, renderer->postprocess_front_buffer, opengl::Buffer_Mask::color_buffer_bit);
+        bind_framebuffer(framebuffer);
         // TODO change camera position from local to global
-        texture = draw_gizmo(renderer, framebuffer, camera_transform.local_position, view_mat, proj_mat, selected_entities);
+        draw_grid(view_mat * proj_mat, camera_transform.local_position, camera, framebuffer->size());
+        bind_framebuffer(renderer->postprocess_front_buffer, Framebuffer::Bind_Mode::draw);
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+        blit_framebuffer(renderer->postprocess_front_buffer, framebuffer, opengl::Buffer_Mask::color_buffer_bit);
+
+        u32 texture = draw_gizmo(renderer, framebuffer, camera_transform.local_position, view_mat, proj_mat, selected_entities);
         glDisable(GL_DEPTH_TEST);
         opengl::bind_framebuffer(GL_FRAMEBUFFER, context->defaultFramebufferObject());
         opengl::active_texture(0);

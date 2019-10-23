@@ -6,6 +6,7 @@
 namespace anton_engine {
     enum class Builtin_Editor_Shader {
         outline_mix = 0,
+        grid = 1,
     };
 
     Shader& get_builtin_shader(Builtin_Editor_Shader);
