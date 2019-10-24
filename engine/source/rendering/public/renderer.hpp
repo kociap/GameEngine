@@ -29,7 +29,6 @@ namespace anton_engine::rendering {
         ~Renderer();
 
         void resize(int32_t width, int32_t height);
-        void render_frame(Matrix4 view_mat, Matrix4 proj_mat, Transform camera_transform, int32_t viewport_width, int32_t viewport_height);
         uint32_t render_frame_as_texture(Matrix4 view_mat, Matrix4 proj_mat, Transform camera_transform, int32_t viewport_width, int32_t viewport_height);
         void swap_postprocess_buffers();
 

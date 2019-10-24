@@ -444,10 +444,10 @@ namespace anton_engine {
     static uint32_t draw_gizmo(rendering::Renderer* renderer, Framebuffer* framebuffer, Vector3 const camera_pos, Matrix4 const view, Matrix4 const projection,
                                anton_stl::Vector<Entity> const& selected_entities) {
         glEnable(GL_DEPTH_TEST);
-        Framebuffer::bind(*renderer->postprocess_front_buffer, Framebuffer::Bind_Mode::read);
-        Framebuffer::bind(*framebuffer, Framebuffer::Bind_Mode::draw);
-        Framebuffer::blit(*renderer->postprocess_front_buffer, *framebuffer, opengl::Buffer_Mask::color_buffer_bit);
-        Framebuffer::bind(*framebuffer);
+        bind_framebuffer(renderer->postprocess_front_buffer, Framebuffer::read);
+        bind_framebuffer(framebuffer, Framebuffer::draw);
+        blit_framebuffer(renderer->postprocess_front_buffer, framebuffer, opengl::color_buffer_bit);
+        bind_framebuffer(framebuffer);
         // TODO: That's terrible
         if (selected_entities.size() > 0) {
             ECS& ecs = Editor::get_ecs();
@@ -504,18 +504,18 @@ namespace anton_engine {
         renderer->render_frame_as_texture(view_mat, proj_mat, camera_transform, width(), height());
 
         // Copy depth and color attachment buffers
-        bind_framebuffer(renderer->framebuffer, Framebuffer::Bind_Mode::read);
-        bind_framebuffer(framebuffer, Framebuffer::Bind_Mode::draw);
-        blit_framebuffer(framebuffer, renderer->framebuffer, opengl::Buffer_Mask::depth_buffer_bit);
-        bind_framebuffer(renderer->postprocess_front_buffer, Framebuffer::Bind_Mode::read);
+        bind_framebuffer(renderer->framebuffer, Framebuffer::read);
+        bind_framebuffer(framebuffer, Framebuffer::draw);
+        blit_framebuffer(framebuffer, renderer->framebuffer, opengl::depth_buffer_bit);
+        bind_framebuffer(renderer->postprocess_front_buffer, Framebuffer::read);
         glReadBuffer(GL_COLOR_ATTACHMENT0);
-        blit_framebuffer(framebuffer, renderer->postprocess_front_buffer, opengl::Buffer_Mask::color_buffer_bit);
+        blit_framebuffer(framebuffer, renderer->postprocess_front_buffer, opengl::color_buffer_bit);
         bind_framebuffer(framebuffer);
         // TODO change camera position from local to global
         draw_grid(view_mat * proj_mat, camera_transform.local_position, camera, framebuffer->size());
-        bind_framebuffer(renderer->postprocess_front_buffer, Framebuffer::Bind_Mode::draw);
+        bind_framebuffer(renderer->postprocess_front_buffer, Framebuffer::draw);
         glReadBuffer(GL_COLOR_ATTACHMENT0);
-        blit_framebuffer(renderer->postprocess_front_buffer, framebuffer, opengl::Buffer_Mask::color_buffer_bit);
+        blit_framebuffer(renderer->postprocess_front_buffer, framebuffer, opengl::color_buffer_bit);
 
         u32 texture = draw_gizmo(renderer, framebuffer, camera_transform.local_position, view_mat, proj_mat, selected_entities);
         glDisable(GL_DEPTH_TEST);

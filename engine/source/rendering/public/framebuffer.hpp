@@ -6,6 +6,8 @@
 #include <math/vector2.hpp>
 #include <opengl.hpp>
 
+#include <opengl_enums_defs.hpp>
+
 namespace anton_engine {
     class Framebuffer {
     public:
@@ -13,17 +15,15 @@ namespace anton_engine {
 
         using Internal_Format = opengl::Sized_Internal_Format;
 
-        enum class Draw_Mode {
-            static_draw,
-            streamed_draw,
-            dynamic_draw,
+        enum class Bind_Mode {
+            read = GL_READ_FRAMEBUFFER,
+            draw = GL_DRAW_FRAMEBUFFER,
+            read_draw = GL_FRAMEBUFFER,
         };
 
-        enum class Bind_Mode {
-            read,
-            draw,
-            read_draw,
-        };
+        static constexpr Bind_Mode read = Bind_Mode::read;
+        static constexpr Bind_Mode draw = Bind_Mode::draw;
+        static constexpr Bind_Mode read_draw = Bind_Mode::read_draw;
 
         enum class Buffer_Type {
             renderbuffer,
@@ -57,10 +57,6 @@ namespace anton_engine {
             bool multisampled = false;
         };
 
-        static void bind(Framebuffer&, Bind_Mode = Bind_Mode::read_draw);
-        static void bind_default(Bind_Mode = Bind_Mode::read_draw);
-        static void blit(Framebuffer& from, Framebuffer& to, opengl::Buffer_Mask);
-
         Framebuffer(Construct_Info const&);
         Framebuffer(Framebuffer&&) noexcept;
         Framebuffer& operator=(Framebuffer&&) noexcept;
@@ -90,11 +86,13 @@ namespace anton_engine {
         u32 stencil_buffer = 0;
     };
 
-    void bind_framebuffer(Framebuffer const&, Framebuffer::Bind_Mode = Framebuffer::Bind_Mode::read_draw);
-    void bind_framebuffer(Framebuffer const*, Framebuffer::Bind_Mode = Framebuffer::Bind_Mode::read_draw);
+    void bind_framebuffer(Framebuffer const&, Framebuffer::Bind_Mode = Framebuffer::read_draw);
+    void bind_framebuffer(Framebuffer const*, Framebuffer::Bind_Mode = Framebuffer::read_draw);
     void blit_framebuffer(Framebuffer& dest, Framebuffer const& source, opengl::Buffer_Mask);
     void blit_framebuffer(Framebuffer* dest, Framebuffer const* source, opengl::Buffer_Mask);
 
 } // namespace anton_engine
+
+#include <opengl_enums_undefs.hpp>
 
 #endif // !ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE

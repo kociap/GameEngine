@@ -7,18 +7,6 @@
 #include <utils/enum.hpp>
 
 namespace anton_engine::opengl {
-    // Uses unsigned normalized type.
-    // Size of the obtained texture is driver dependent.
-    enum class Base_Internal_Format : u32 {
-        depth_component = GL_DEPTH_COMPONENT,
-        depth_stencil = GL_DEPTH_STENCIL,
-        stencil_index = GL_STENCIL_INDEX,
-        red = GL_RED,
-        rg = GL_RG,
-        rgb = GL_RGB,
-        rgba = GL_RGBA,
-    };
-
     enum class Sized_Internal_Format : u32 {
         // unsigned normalized
         r8 = GL_R8,
@@ -139,6 +127,10 @@ namespace anton_engine::opengl {
         stencil_buffer_bit = GL_STENCIL_BUFFER_BIT,
     };
 
+    constexpr Buffer_Mask color_buffer_bit = Buffer_Mask::color_buffer_bit;
+    constexpr Buffer_Mask depth_buffer_bit = Buffer_Mask::depth_buffer_bit;
+    constexpr Buffer_Mask stencil_buffer_bit = Buffer_Mask::stencil_buffer_bit;
+
     enum class Shader_Type : u32 {
         vertex_shader = GL_VERTEX_SHADER,
         fragment_shader = GL_FRAGMENT_SHADER,
@@ -146,29 +138,6 @@ namespace anton_engine::opengl {
         tessellation_evaluation_shader = GL_TESS_EVALUATION_SHADER,
         tessellation_control_shader = GL_TESS_CONTROL_SHADER,
         compute_shader = GL_COMPUTE_SHADER,
-    };
-
-    enum class Texture_Type : u32 {
-        texture_1D = GL_TEXTURE_1D,
-        texture_2D = GL_TEXTURE_2D,
-        texture_3D = GL_TEXTURE_3D,
-        texture_1D_array = GL_TEXTURE_1D_ARRAY,
-        texture_2D_array = GL_TEXTURE_2D_ARRAY,
-        texture_rectangle = GL_TEXTURE_RECTANGLE,
-        texture_cube_map = GL_TEXTURE_CUBE_MAP,
-        texture_cube_map_array = GL_TEXTURE_CUBE_MAP_ARRAY,
-        texture_buffer = GL_TEXTURE_BUFFER,
-        texture_2D_multisample = GL_TEXTURE_2D_MULTISAMPLE,
-        texture_2D_multisample_array = GL_TEXTURE_2D_MULTISAMPLE_ARRAY,
-    };
-
-    enum class Texture_Filter : u32 {
-        nearest = GL_NEAREST,
-        linear = GL_LINEAR,
-        nearest_mipmap_nearest = GL_NEAREST_MIPMAP_NEAREST,
-        nearest_mipmap_linear = GL_NEAREST_MIPMAP_LINEAR,
-        linear_mipmap_nearest = GL_LINEAR_MIPMAP_NEAREST,
-        linear_mipmap_linear = GL_LINEAR_MIPMAP_LINEAR,
     };
 
     // OpenGL 4.5 Core Profile standard required constants
@@ -184,7 +153,6 @@ namespace anton_engine::opengl {
     [[nodiscard]] i32 get_max_draw_buffers();
     [[nodiscard]] i32 get_uniform_buffer_offset_alignment();
 
-    void blit_framebuffer(i32 src_x0, i32 src_y0, i32 src_x1, i32 src_y1, i32 dst_x0, i32 dst_y0, i32 dst_x1, i32 dst_y1, Buffer_Mask, u32 filter);
     u32 create_shader(Shader_Type);
     void framebuffer_renderbuffer(u32 target, Attachment, u32 renderbuffer);
     void framebuffer_texture_2D(u32 target, Attachment, u32 tex_target, u32 texture, i32 level);
@@ -196,6 +164,9 @@ namespace anton_engine::opengl {
     void load_functions();
     void load_constants();
     void install_debug_callback();
+
+    // Notes:
+    // - Base internal format uses unsigned normalized type. Size of the obtained texture is driver dependent.
 } // namespace anton_engine::opengl
 
 namespace anton_engine {

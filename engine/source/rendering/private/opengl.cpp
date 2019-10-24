@@ -137,11 +137,6 @@ namespace anton_engine::opengl {
         return uniform_buffer_offset_alignment;
     }
 
-    void blit_framebuffer(i32 s_x0, i32 s_y0, i32 s_x1, i32 s_y1, i32 d_x0, i32 d_y0, i32 d_x1, i32 d_y1, Buffer_Mask mask, u32 filter) {
-        glBlitFramebuffer(s_x0, s_y0, s_x1, s_y1, d_x0, d_y0, d_x1, d_y1, utils::enum_to_value(mask), filter);
-        CHECK_GL_ERRORS();
-    }
-
     u32 create_shader(Shader_Type type) {
         // glCreateShader may generate GL_INVALID_ENUM, but since Shader_Type is an enum we
         //    will always have correct values (hopefully)

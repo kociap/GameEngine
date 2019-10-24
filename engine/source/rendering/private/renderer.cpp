@@ -642,7 +642,7 @@ namespace anton_engine::rendering {
                                                int32_t const viewport_height) {
         glEnable(GL_DEPTH_TEST);
         glViewport(0, 0, viewport_width, viewport_height);
-        Framebuffer::bind(*framebuffer);
+        bind_framebuffer(framebuffer);
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         bind_mesh_vao();
@@ -651,7 +651,7 @@ namespace anton_engine::rendering {
         // Postprocessing
 
         glDisable(GL_DEPTH_TEST);
-        Framebuffer::bind(*postprocess_back_buffer);
+        bind_framebuffer(postprocess_back_buffer);
         glBindTextureUnit(0, framebuffer->get_color_texture(0));
         glBindTextureUnit(1, framebuffer->get_color_texture(1));
         glBindTextureUnit(2, framebuffer->get_color_texture(2));
@@ -663,17 +663,6 @@ namespace anton_engine::rendering {
         glEnable(GL_DEPTH_TEST);
         swap_postprocess_buffers();
         return postprocess_front_buffer->get_color_texture(0);
-    }
-
-    void Renderer::render_frame(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform, int32_t const viewport_width,
-                                int32_t const viewport_height) {
-        uint32_t frame_texture = render_frame_as_texture(view_mat, proj_mat, camera_transform, viewport_width, viewport_height);
-        Framebuffer::bind_default();
-        glBindTextureUnit(0, frame_texture);
-        Shader& gamma_correction_shader = get_builtin_shader(Builtin_Shader::gamma_correction);
-        gamma_correction_shader.use();
-        gamma_correction_shader.set_float("gamma", 1 / 2.2f);
-        render_texture_quad();
     }
 
     // TODO: Temporary solution for rendering the texture quad

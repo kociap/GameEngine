@@ -1,16 +1,21 @@
 #include <engine.hpp>
 
+#include <anton_int.hpp>
 #include <assets.hpp>
 #include <ecs/ecs.hpp>
 #include <ecs/entity.hpp>
 #include <input/input_core.hpp>
 #include <mesh.hpp>
-#include <renderer.hpp>
 #include <resource_manager.hpp>
-#include <shader.hpp>
 #include <time/time_core.hpp>
 #include <utils/filesystem.hpp>
 #include <window.hpp>
+
+#include <builtin_shaders.hpp>
+#include <glad.hpp>
+#include <opengl.hpp>
+#include <renderer.hpp>
+#include <shader.hpp>
 
 #include <components/camera.hpp>
 #include <components/directional_light_component.hpp>
@@ -218,7 +223,14 @@ namespace anton_engine {
             if (camera.active) {
                 Matrix4 const view_mat = get_camera_view_matrix(transform);
                 Matrix4 const proj_mat = get_camera_projection_matrix(camera, main_window->width(), main_window->height());
-                renderer->render_frame(view_mat, proj_mat, transform, main_window->width(), main_window->height());
+                // TODO: Fix shitcode.
+                u32 const frame_texture = renderer->render_frame_as_texture(view_mat, proj_mat, transform, main_window->width(), main_window->height());
+                glBindFramebuffer(GL_FRAMEBUFFER, 0); // TODO: Assumes window's framebuffer is 0.
+                glBindTextureUnit(0, frame_texture);
+                Shader& gamma_correction_shader = get_builtin_shader(Builtin_Shader::gamma_correction);
+                gamma_correction_shader.use();
+                gamma_correction_shader.set_float("gamma", 1 / 2.2f);
+                rendering::render_texture_quad();
                 break;
             }
         }

@@ -24,7 +24,6 @@ ANTON_RESTORE_WARNINGS();
 namespace anton_engine {
     void framebuffer_size_callback(GLFWwindow* const, int const width, int const height) {
         Engine::get_window().resize(width, height);
-        Framebuffer::bind_default();
         glViewport(0, 0, width, height);
 #if !GE_WITH_EDITOR
         Engine::get_renderer().resize(width, height);
@@ -33,16 +32,16 @@ namespace anton_engine {
 
     void mouse_button_callback(GLFWwindow* const, int const button, int const action, int const /* mods */) {
         // clang-format off
-    static std::unordered_map<int32_t, Key> mouse_button_map({
-        {GLFW_MOUSE_BUTTON_LEFT, Key::left_mouse_button},
-        {GLFW_MOUSE_BUTTON_RIGHT, Key::right_mouse_button},
-        {GLFW_MOUSE_BUTTON_MIDDLE, Key::middle_mouse_button},
-        {GLFW_MOUSE_BUTTON_4, Key::thumb_mouse_button_1},
-        {GLFW_MOUSE_BUTTON_5, Key::thumb_mouse_button_2},
-        {GLFW_MOUSE_BUTTON_6, Key::mouse_button_6},
-        {GLFW_MOUSE_BUTTON_7, Key::mouse_button_7},
-        {GLFW_MOUSE_BUTTON_8, Key::mouse_button_8}
-    });
+        static std::unordered_map<int32_t, Key> mouse_button_map({
+            {GLFW_MOUSE_BUTTON_LEFT, Key::left_mouse_button},
+            {GLFW_MOUSE_BUTTON_RIGHT, Key::right_mouse_button},
+            {GLFW_MOUSE_BUTTON_MIDDLE, Key::middle_mouse_button},
+            {GLFW_MOUSE_BUTTON_4, Key::thumb_mouse_button_1},
+            {GLFW_MOUSE_BUTTON_5, Key::thumb_mouse_button_2},
+            {GLFW_MOUSE_BUTTON_6, Key::mouse_button_6},
+            {GLFW_MOUSE_BUTTON_7, Key::mouse_button_7},
+            {GLFW_MOUSE_BUTTON_8, Key::mouse_button_8}
+        });
         // clang-format on
 
         Key key = mouse_button_map.at(button);

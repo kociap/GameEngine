@@ -8,8 +8,6 @@ set(SOURCE_FILES
 
 set(HEADER_FILES 
     ${HEADER_FILES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/opengl_enums_defs.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/opengl_enums_undefs.hpp"
     PARENT_SCOPE
 )
 

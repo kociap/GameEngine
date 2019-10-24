@@ -10,30 +10,6 @@
 #include <string> // std::to_string
 
 namespace anton_engine {
-    void Framebuffer::bind(Framebuffer& fb, Bind_Mode const bm) {
-        if (bm == Bind_Mode::read_draw) {
-            glBindFramebuffer(GL_FRAMEBUFFER, fb.framebuffer);
-        } else if (bm == Bind_Mode::read) {
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, fb.framebuffer);
-        } else {
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb.framebuffer);
-        }
-    }
-
-    void Framebuffer::bind_default(Bind_Mode const bm) {
-        if (bm == Bind_Mode::read_draw) {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        } else if (bm == Bind_Mode::read) {
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-        } else {
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        }
-    }
-
-    void Framebuffer::blit(Framebuffer& from, Framebuffer& to, opengl::Buffer_Mask const mask) {
-        opengl::blit_framebuffer(0, 0, from.info.width, from.info.height, 0, 0, to.info.width, to.info.height, mask, GL_NEAREST);
-    }
-
     void Framebuffer::create_framebuffer() {
         if (info.width > opengl::get_max_renderbuffer_size() || info.height > opengl::get_max_renderbuffer_size()) {
             throw std::invalid_argument("Too big buffer size");
@@ -124,13 +100,9 @@ namespace anton_engine {
         // TODO implement
         if (info.stencil_buffer.enabled) {
             //glGenRenderbuffers(1, &stencil_buffer);
-            //CHECK_GL_ERRORS();
             //glBindRenderbuffer(GL_RENDERBUFFER, stencil_buffer);
-            //CHECK_GL_ERRORS();
             //glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
-            //CHECK_GL_ERRORS();
             //glBindRenderbuffer(GL_RENDERBUFFER, 0);
-            CHECK_GL_ERRORS();
             //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, stencil_buffer);
         }
 
@@ -246,42 +218,22 @@ namespace anton_engine {
     }
 
     void bind_framebuffer(Framebuffer const& framebuffer, Framebuffer::Bind_Mode const bind_mode) {
-        switch (bind_mode) {
-            case Framebuffer::Bind_Mode::read_draw:
-                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.get_framebuffer_gl_handle());
-                break;
-            case Framebuffer::Bind_Mode::read:
-                glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.get_framebuffer_gl_handle());
-                break;
-            case Framebuffer::Bind_Mode::draw:
-                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer.get_framebuffer_gl_handle());
-                break;
-        }
+        glBindFramebuffer(utils::enum_to_value(bind_mode), framebuffer.get_framebuffer_gl_handle());
     }
 
     void bind_framebuffer(Framebuffer const* framebuffer, Framebuffer::Bind_Mode const bind_mode) {
-        switch (bind_mode) {
-            case Framebuffer::Bind_Mode::read_draw:
-                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->get_framebuffer_gl_handle());
-                break;
-            case Framebuffer::Bind_Mode::read:
-                glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->get_framebuffer_gl_handle());
-                break;
-            case Framebuffer::Bind_Mode::draw:
-                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer->get_framebuffer_gl_handle());
-                break;
-        }
+        glBindFramebuffer(utils::enum_to_value(bind_mode), framebuffer->get_framebuffer_gl_handle());
     }
 
     void blit_framebuffer(Framebuffer& dest, Framebuffer const& source, opengl::Buffer_Mask const mask) {
         Framebuffer::Construct_Info const source_info = source.get_construct_info();
         Framebuffer::Construct_Info const dest_info = dest.get_construct_info();
-        opengl::blit_framebuffer(0, 0, source_info.width, source_info.height, 0, 0, dest_info.width, dest_info.height, mask, GL_NEAREST);
+        glBlitFramebuffer(0, 0, source_info.width, source_info.height, 0, 0, dest_info.width, dest_info.height, utils::enum_to_value(mask), GL_NEAREST);
     }
 
     void blit_framebuffer(Framebuffer* dest, Framebuffer const* source, opengl::Buffer_Mask const mask) {
         Framebuffer::Construct_Info const source_info = source->get_construct_info();
         Framebuffer::Construct_Info const dest_info = dest->get_construct_info();
-        opengl::blit_framebuffer(0, 0, source_info.width, source_info.height, 0, 0, dest_info.width, dest_info.height, mask, GL_NEAREST);
+        glBlitFramebuffer(0, 0, source_info.width, source_info.height, 0, 0, dest_info.width, dest_info.height, utils::enum_to_value(mask), GL_NEAREST);
     }
 } // namespace anton_engine
