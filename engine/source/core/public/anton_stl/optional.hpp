@@ -56,7 +56,7 @@ namespace anton_engine::anton_stl {
         [[nodiscard]] T&& value() &&;
         [[nodiscard]] T const&& value() const&&;
 
-        friend swap(Optional&, Optional&) noexcept;
+        friend void swap(Optional&, Optional&) noexcept;
 
     private:
         Aligned_Buffer<sizeof(T), alignof(T)> _data;
