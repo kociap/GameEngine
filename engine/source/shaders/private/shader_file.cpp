@@ -28,11 +28,11 @@ namespace anton_engine {
 
     static void set_shader_source(uint32_t shader, anton_stl::String_View source) {
         char const* src = source.data();
-        opengl::shader_source(shader, 1, &src, nullptr);
+        glShaderSource(shader, 1, &src, nullptr);
     }
 
     Shader_File::Shader_File(anton_stl::String_View n, opengl::Shader_Type type, anton_stl::String_View source): type(type), shader(0) {
-        shader = opengl::create_shader(type);
+        shader = glCreateShader(utils::enum_to_value(type));
         if (shader == 0) {
             throw Shader_Not_Created("");
         }
@@ -50,9 +50,9 @@ namespace anton_engine {
     }
 
     Shader_File::~Shader_File() {
-		if (shader != 0) {
+        if (shader != 0) {
             glDeleteShader(shader);
             CHECK_GL_ERRORS();
-		}
+        }
     }
 } // namespace anton_engine

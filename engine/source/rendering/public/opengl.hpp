@@ -153,13 +153,6 @@ namespace anton_engine::opengl {
     [[nodiscard]] i32 get_max_draw_buffers();
     [[nodiscard]] i32 get_uniform_buffer_offset_alignment();
 
-    u32 create_shader(Shader_Type);
-    void framebuffer_renderbuffer(u32 target, Attachment, u32 renderbuffer);
-    void framebuffer_texture_2D(u32 target, Attachment, u32 tex_target, u32 texture, i32 level);
-    void renderbuffer_storage(u32 target, Sized_Internal_Format, i32 width, i32 height);
-    void renderbuffer_storage_multisample(u32 target, i32 samples, Sized_Internal_Format, i32 width, i32 height);
-    void shader_source(u32 shader, i32 count, char const** strings, i32 const* lengths);
-
     void load();
     void load_functions();
     void load_constants();

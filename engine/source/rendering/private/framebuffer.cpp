@@ -64,35 +64,35 @@ namespace anton_engine {
         }
 
         Depth_Buffer_Info depth_info = info.depth_buffer;
-        bool uses_depth_stencil =
-            depth_info.internal_format == Internal_Format::depth24_stencil8 || depth_info.internal_format == Internal_Format::depth32f_stencil8;
-        opengl::Attachment depth_buffer_attachment = uses_depth_stencil ? opengl::Attachment::depth_stencil_attachment : opengl::Attachment::depth_attachment;
         if (depth_info.enabled) {
+            bool const uses_depth_stencil =
+                depth_info.internal_format == Internal_Format::depth24_stencil8 || depth_info.internal_format == Internal_Format::depth32f_stencil8;
+            GLenum const depth_buffer_attachment = uses_depth_stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
             if (depth_info.buffer_type == Buffer_Type::renderbuffer) {
                 glGenRenderbuffers(1, &depth_buffer);
                 glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
+                GLenum const internal_format = utils::enum_to_value(depth_info.internal_format);
                 if (info.multisampled) {
-                    opengl::renderbuffer_storage_multisample(GL_RENDERBUFFER, info.samples, depth_info.internal_format, info.width, info.height);
+                    glRenderbufferStorageMultisample(GL_RENDERBUFFER, info.samples, internal_format, info.width, info.height);
                 } else {
-                    opengl::renderbuffer_storage(GL_RENDERBUFFER, depth_info.internal_format, info.width, info.height);
+                    glRenderbufferStorage(GL_RENDERBUFFER, internal_format, info.width, info.height);
                 }
 
-                opengl::framebuffer_renderbuffer(GL_FRAMEBUFFER, depth_buffer_attachment, depth_buffer);
+                glFramebufferRenderbuffer(GL_FRAMEBUFFER, depth_buffer_attachment, GL_RENDERBUFFER, depth_buffer);
             } else {
-                glGenTextures(1, &depth_buffer);
+                GLenum const internal_format = utils::enum_to_value(depth_info.internal_format);
                 if (info.multisampled) {
                     glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &depth_buffer);
-                    GLenum const internal_format = utils::enum_to_value(depth_info.internal_format);
                     glTextureStorage2DMultisample(depth_buffer, info.samples, internal_format, info.width, info.height, GL_TRUE);
-                    opengl::framebuffer_texture_2D(GL_FRAMEBUFFER, depth_buffer_attachment, GL_TEXTURE_2D_MULTISAMPLE, depth_buffer, 0);
+                    glFramebufferTexture2D(GL_FRAMEBUFFER, depth_buffer_attachment, GL_TEXTURE_2D_MULTISAMPLE, depth_buffer, 0);
                 } else {
-                    GLenum const internal_format = utils::enum_to_value(depth_info.internal_format);
+                    glCreateTextures(GL_TEXTURE_2D, 1, &depth_buffer);
                     glTextureStorage2D(depth_buffer, 1, internal_format, info.width, info.height);
                     glTextureParameteri(depth_buffer, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                     glTextureParameteri(depth_buffer, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                     glTextureParameteri(depth_buffer, GL_TEXTURE_WRAP_S, GL_REPEAT);
                     glTextureParameteri(depth_buffer, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                    opengl::framebuffer_texture_2D(GL_FRAMEBUFFER, depth_buffer_attachment, GL_TEXTURE_2D, depth_buffer, 0);
+                    glFramebufferTexture2D(GL_FRAMEBUFFER, depth_buffer_attachment, GL_TEXTURE_2D, depth_buffer, 0);
                 }
             }
         }

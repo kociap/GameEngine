@@ -136,41 +136,4 @@ namespace anton_engine::opengl {
     i32 get_uniform_buffer_offset_alignment() {
         return uniform_buffer_offset_alignment;
     }
-
-    u32 create_shader(Shader_Type type) {
-        // glCreateShader may generate GL_INVALID_ENUM, but since Shader_Type is an enum we
-        //    will always have correct values (hopefully)
-        return glCreateShader(utils::enum_to_value(type));
-    }
-
-    void framebuffer_renderbuffer(u32 target, Attachment attachment, u32 renderbuffer) {
-        u32 gl_attachment = utils::enum_to_value(attachment);
-        glFramebufferRenderbuffer(target, gl_attachment, GL_RENDERBUFFER, renderbuffer);
-        CHECK_GL_ERRORS();
-    }
-
-    void framebuffer_texture_2D(u32 target, Attachment attachment, u32 tex_target, u32 texture, i32 level) {
-        u32 gl_attachment = utils::enum_to_value(attachment);
-        glFramebufferTexture2D(target, gl_attachment, tex_target, texture, level);
-        CHECK_GL_ERRORS();
-    }
-
-    void renderbuffer_storage(u32 target, Sized_Internal_Format internal_format, i32 width, i32 height) {
-        ANTON_ASSERT(width >= 0 && height >= 0, "Renderbuffer's storage width and height may not be less than 0.");
-        glRenderbufferStorage(target, utils::enum_to_value(internal_format), width, height);
-        CHECK_GL_ERRORS();
-    }
-
-    void renderbuffer_storage_multisample(u32 target, i32 samples, Sized_Internal_Format internal_format, i32 width, i32 height) {
-        ANTON_ASSERT(width >= 0 && height >= 0, "width and height may not be less than 0.");
-        ANTON_ASSERT(samples >= 0, "Multisampled renderbuffer's samples may not be less than 0.");
-        glRenderbufferStorageMultisample(target, samples, utils::enum_to_value(internal_format), width, height);
-        CHECK_GL_ERRORS();
-    }
-
-    void shader_source(u32 shader, i32 count, char const** strings, i32 const* lengths) {
-        ANTON_ASSERT(count >= 0, "The number of shader sources may not be negative.");
-        glShaderSource(shader, count, strings, lengths);
-        CHECK_GL_ERRORS();
-    }
 } // namespace anton_engine::opengl
