@@ -10,7 +10,6 @@
 #include <ecs/ecs.hpp>
 #include <editor_window.hpp>
 #include <engine.hpp>
-#include <gizmo_internal.hpp>
 #include <input/input.hpp>
 #include <input/input_core.hpp>
 #include <material.hpp>
@@ -101,7 +100,6 @@ namespace anton_engine {
         // TODO separate inputs for each viewport
         input_manager->process_events();
 
-        gizmo::update();
         editor_window->update();
         editor_window->render();
 
@@ -196,8 +194,14 @@ namespace anton_engine {
         }
         Handle<Material> const material_handle = material_manager->add(std::move(barrel_mat));
 #endif
+
+        anton_stl::Vector<Mesh> boxes_meshes = assets::load_model("boxes1.obj");
+
         Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
         Handle<Mesh> quad_mesh = mesh_manager->add(generate_plane());
+        Handle<Mesh> boxes1_mesh = mesh_manager->add(anton_stl::move(boxes_meshes[0]));
+        Handle<Mesh> boxes2_mesh = mesh_manager->add(anton_stl::move(boxes_meshes[1]));
+        Handle<Mesh> boxes3_mesh = mesh_manager->add(anton_stl::move(boxes_meshes[2]));
 
 #if DESERIALIZE
         std::filesystem::path serialization_in_path = utils::concat_paths(paths::project_directory(), "ecs.bin");
@@ -205,6 +209,18 @@ namespace anton_engine {
         serialization::Binary_Input_Archive in_archive(file);
         deserialize(in_archive, *ecs);
 #else
+        auto instantiate_entity = [default_shader_handle, material_handle](Handle<Mesh> mesh_handle, Vector3 position, float rotation = 0) {
+            Entity box = ecs->create();
+            ecs->add_component<Entity_Name>(box, u8"Box");
+            Transform& box_t = ecs->add_component<Transform>(box);
+            Static_Mesh_Component& box_sm = ecs->add_component<Static_Mesh_Component>(box);
+            box_sm.mesh_handle = mesh_handle;
+            box_sm.shader_handle = default_shader_handle;
+            box_sm.material_handle = material_handle;
+            box_t.translate(position);
+            box_t.rotate(Vector3::forward, math::radians(rotation));
+        };
+
         auto instantiate_box = [default_shader_handle, box_handle, material_handle](Vector3 position, float rotation = 0) {
             Entity box = ecs->create();
             ecs->add_component<Entity_Name>(box, u8"Box");
@@ -217,10 +233,14 @@ namespace anton_engine {
             box_t.rotate(Vector3::forward, math::radians(rotation));
         };
 
-        instantiate_box({0, 0, -1});
-        instantiate_box({-5, 7, 2}, 55.0f);
-        instantiate_box({-3, -1, 4});
-        instantiate_box({0, -1, 4});
+        instantiate_entity(box_handle, {0, 0, -1});
+        instantiate_entity(box_handle, {-5, 7, 2}, 55.0f);
+        instantiate_entity(box_handle, {-3, -1, 4});
+        instantiate_entity(box_handle, {0, -1, 4});
+
+        instantiate_entity(boxes1_mesh, {1, 2, -2});
+        instantiate_entity(boxes2_mesh, {-1, 2, 0});
+        instantiate_entity(boxes3_mesh, {1, 2, 0});
 
         Entity quad = ecs->create();
         Static_Mesh_Component& quad_sm = ecs->add_component<Static_Mesh_Component>(quad);

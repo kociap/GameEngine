@@ -3,7 +3,6 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/gizmo/arrow_3d.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/gizmo/dial_3d.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/gizmo/gizmo.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/gizmo.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/viewport_camera.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/viewport.hpp"
     PARENT_SCOPE

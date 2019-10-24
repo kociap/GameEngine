@@ -641,13 +641,11 @@ namespace anton_engine::rendering {
     uint32_t Renderer::render_frame_as_texture(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform, int32_t const viewport_width,
                                                int32_t const viewport_height) {
         glEnable(GL_DEPTH_TEST);
-        opengl::viewport(0, 0, viewport_width, viewport_height);
+        glViewport(0, 0, viewport_width, viewport_height);
         Framebuffer::bind(*framebuffer);
-        // glClearColor(0.11f, 0.11f, 0.11f, 1.0f);
-        opengl::clear_color(0.07f, 0.07f, 0.07f, 1.0f);
-        // opengl::clear_color(1.0f, 1.0f, 1.0f, 1.0f);
-        opengl::clear(opengl::Buffer_Mask::color_buffer_bit | opengl::Buffer_Mask::depth_buffer_bit);
-        opengl::bind_vertex_array(mesh_vao);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        bind_mesh_vao();
         render_scene(camera_transform, view_mat, proj_mat);
 
         // Postprocessing

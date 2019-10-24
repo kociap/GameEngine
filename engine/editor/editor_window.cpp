@@ -5,7 +5,6 @@
 #include <components/camera.hpp>
 #include <components/transform.hpp>
 #include <ecs/ecs.hpp>
-#include <gizmo_internal.hpp>
 #include <input/input.hpp>
 #include <logging.hpp>
 #include <opengl.hpp>
@@ -47,7 +46,6 @@ namespace anton_engine {
         opengl::load();
         rendering::setup_rendering();
         load_builtin_shaders();
-        gizmo::init();
 
         input_filter = new User_Input_Filter(0, 0);
         installEventFilter(input_filter);
@@ -68,7 +66,6 @@ namespace anton_engine {
             delete ptr;
         }
 
-        gizmo::terminate();
         unload_builtin_shaders();
         delete context;
         delete surface;

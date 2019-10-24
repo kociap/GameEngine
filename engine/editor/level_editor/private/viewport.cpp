@@ -11,10 +11,8 @@
 #include <editor.hpp>
 #include <editor_events.hpp>
 #include <framebuffer.hpp>
-#include <gizmo.hpp>
 #include <gizmo/arrow_3d.hpp>
 #include <gizmo/dial_3d.hpp>
-#include <gizmo_internal.hpp>
 #include <glad.hpp>
 #include <input/input.hpp>
 #include <input/input_core.hpp>
@@ -165,25 +163,25 @@ namespace anton_engine {
         return selected;
     }
 
-    static void draw_wireframe_cuboid(Vector3 pos, Vector3 x, Vector3 y, Vector3 z) {
-        gizmo::draw_line(pos - x + y - z, pos - x - y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
-        gizmo::draw_line(pos + x + y - z, pos + x - y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    // static void draw_wireframe_cuboid(Vector3 pos, Vector3 x, Vector3 y, Vector3 z) {
+    //     gizmo::draw_line(pos - x + y - z, pos - x - y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    //     gizmo::draw_line(pos + x + y - z, pos + x - y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
 
-        gizmo::draw_line(pos + x + y - z, pos - x + y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
-        gizmo::draw_line(pos + x - y - z, pos - x - y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    //     gizmo::draw_line(pos + x + y - z, pos - x + y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    //     gizmo::draw_line(pos + x - y - z, pos - x - y - z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
 
-        gizmo::draw_line(pos - x + y + z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
-        gizmo::draw_line(pos + x + y + z, pos + x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    //     gizmo::draw_line(pos - x + y + z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    //     gizmo::draw_line(pos + x + y + z, pos + x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
 
-        gizmo::draw_line(pos + x + y + z, pos - x + y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
-        gizmo::draw_line(pos + x - y + z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    //     gizmo::draw_line(pos + x + y + z, pos - x + y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    //     gizmo::draw_line(pos + x - y + z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
 
-        gizmo::draw_line(pos - x + y - z, pos - x + y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
-        gizmo::draw_line(pos + x + y - z, pos + x + y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    //     gizmo::draw_line(pos - x + y - z, pos - x + y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    //     gizmo::draw_line(pos + x + y - z, pos + x + y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
 
-        gizmo::draw_line(pos - x - y - z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
-        gizmo::draw_line(pos + x - y - z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
-    }
+    //     gizmo::draw_line(pos - x - y - z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    //     gizmo::draw_line(pos + x - y - z, pos - x - y + z, {241.0f / 255.0f, 88.0f / 255.0f, 0.0f}, 1.0f, 0.0f, false);
+    // }
 
     void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const projection_mat, Matrix4 const inv_view_mat, Matrix4 const inv_projection_mat,
                                    Transform const camera_transform, anton_stl::Vector<Entity>& selected_entities) {
@@ -297,12 +295,12 @@ namespace anton_engine {
                     }
                 }
 
-                draw_wireframe_cuboid(obb[0].center - transform.local_position + transform_ref.local_position, obb[0].local_x * obb[0].halfwidths.x,
-                                      obb[0].local_y * obb[0].halfwidths.y, obb[0].local_z * obb[0].halfwidths.z);
-                draw_wireframe_cuboid(obb[1].center - transform.local_position + transform_ref.local_position, obb[1].local_x * obb[1].halfwidths.x,
-                                      obb[1].local_y * obb[1].halfwidths.y, obb[1].local_z * obb[1].halfwidths.z);
-                draw_wireframe_cuboid(obb[2].center - transform.local_position + transform_ref.local_position, obb[2].local_x * obb[2].halfwidths.x,
-                                      obb[2].local_y * obb[2].halfwidths.y, obb[2].local_z * obb[2].halfwidths.z);
+                // draw_wireframe_cuboid(obb[0].center - transform.local_position + transform_ref.local_position, obb[0].local_x * obb[0].halfwidths.x,
+                //                       obb[0].local_y * obb[0].halfwidths.y, obb[0].local_z * obb[0].halfwidths.z);
+                // draw_wireframe_cuboid(obb[1].center - transform.local_position + transform_ref.local_position, obb[1].local_x * obb[1].halfwidths.x,
+                //                       obb[1].local_y * obb[1].halfwidths.y, obb[1].local_z * obb[1].halfwidths.z);
+                // draw_wireframe_cuboid(obb[2].center - transform.local_position + transform_ref.local_position, obb[2].local_x * obb[2].halfwidths.x,
+                //                       obb[2].local_y * obb[2].halfwidths.y, obb[2].local_z * obb[2].halfwidths.z);
             } else if (gizmo_transform_space == 1) {
                 // rotation
             } else {
@@ -363,26 +361,12 @@ namespace anton_engine {
                     }
                 }
 
-                // Global space handles
-                // blue handle
-                Vector3 line_end = transform_ref.local_position + handle_scale * Vector3::forward;
-                gizmo::draw_line(transform_ref.local_position, line_end, axis_blue, 1.0f, 0.0f, false);
-                gizmo::draw_cube(line_end, Vector3::forward, Vector3::right, Vector3::up, cube_size, axis_blue, 0.0f, false);
-                // red handle
-                line_end = transform_ref.local_position + handle_scale * Vector3::right;
-                gizmo::draw_line(transform_ref.local_position, line_end, axis_red, 1.0f, 0.0f, false);
-                gizmo::draw_cube(line_end, Vector3::forward, Vector3::right, Vector3::up, cube_size, axis_red, 0.0f, false);
-                // green handle
-                line_end = transform_ref.local_position + handle_scale * Vector3::up;
-                gizmo::draw_line(transform_ref.local_position, line_end, axis_green, 1.0f, 0.0f, false);
-                gizmo::draw_cube(line_end, Vector3::forward, Vector3::right, Vector3::up, cube_size, axis_green, 0.0f, false);
-
-                draw_wireframe_cuboid(obb[0].center - transform.local_position + transform_ref.local_position, obb[0].local_x * obb[0].halfwidths.x,
-                                      obb[0].local_y * obb[0].halfwidths.y, obb[0].local_z * obb[0].halfwidths.z);
-                draw_wireframe_cuboid(obb[1].center - transform.local_position + transform_ref.local_position, obb[1].local_x * obb[1].halfwidths.x,
-                                      obb[1].local_y * obb[1].halfwidths.y, obb[1].local_z * obb[1].halfwidths.z);
-                draw_wireframe_cuboid(obb[2].center - transform.local_position + transform_ref.local_position, obb[2].local_x * obb[2].halfwidths.x,
-                                      obb[2].local_y * obb[2].halfwidths.y, obb[2].local_z * obb[2].halfwidths.z);
+                // draw_wireframe_cuboid(obb[0].center - transform.local_position + transform_ref.local_position, obb[0].local_x * obb[0].halfwidths.x,
+                //                       obb[0].local_y * obb[0].halfwidths.y, obb[0].local_z * obb[0].halfwidths.z);
+                // draw_wireframe_cuboid(obb[1].center - transform.local_position + transform_ref.local_position, obb[1].local_x * obb[1].halfwidths.x,
+                //                       obb[1].local_y * obb[1].halfwidths.y, obb[1].local_z * obb[1].halfwidths.z);
+                // draw_wireframe_cuboid(obb[2].center - transform.local_position + transform_ref.local_position, obb[2].local_x * obb[2].halfwidths.x,
+                //                       obb[2].local_y * obb[2].halfwidths.y, obb[2].local_z * obb[2].halfwidths.z);
             }
         }
     }
@@ -395,7 +379,6 @@ namespace anton_engine {
         uniform_color_shader.use();
         uniform_color_shader.set_vec4("color", outline_color);
 
-        opengl::clear_color(0.0f, 0.0f, 0.0f, 0.0f);
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         // Resource_Manager<Mesh>& mesh_manager = Editor::get_mesh_manager();
@@ -465,7 +448,6 @@ namespace anton_engine {
         Framebuffer::bind(*framebuffer, Framebuffer::Bind_Mode::draw);
         Framebuffer::blit(*renderer->postprocess_front_buffer, *framebuffer, opengl::Buffer_Mask::color_buffer_bit);
         Framebuffer::bind(*framebuffer);
-        gizmo::draw(camera_pos, view, projection);
         // TODO: That's terrible
         if (selected_entities.size() > 0) {
             ECS& ecs = Editor::get_ecs();
@@ -537,9 +519,10 @@ namespace anton_engine {
 
         u32 texture = draw_gizmo(renderer, framebuffer, camera_transform.local_position, view_mat, proj_mat, selected_entities);
         glDisable(GL_DEPTH_TEST);
-        opengl::bind_framebuffer(GL_FRAMEBUFFER, context->defaultFramebufferObject());
-        opengl::active_texture(0);
-        opengl::bind_texture(opengl::Texture_Type::texture_2D, texture);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, context->defaultFramebufferObject());
+        glDisable(GL_FRAMEBUFFER_SRGB);
+        glBindTextureUnit(0, texture);
         Shader& gamma_correction_shader = get_builtin_shader(Builtin_Shader::gamma_correction);
         gamma_correction_shader.use();
         gamma_correction_shader.set_float("gamma", 1 / 2.2f);
