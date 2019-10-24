@@ -1,15 +1,15 @@
 #ifndef RENDERER_OPENGL_HPP_INCLUDE
 #define RENDERER_OPENGL_HPP_INCLUDE
 
+#include <anton_int.hpp>
 #include <color.hpp>
-#include <cstdint>
 #include <opengl_enums_defs.hpp>
 #include <utils/enum.hpp>
 
 namespace anton_engine::opengl {
     // Uses unsigned normalized type.
     // Size of the obtained texture is driver dependent.
-    enum class Base_Internal_Format : uint32_t {
+    enum class Base_Internal_Format : u32 {
         depth_component = GL_DEPTH_COMPONENT,
         depth_stencil = GL_DEPTH_STENCIL,
         stencil_index = GL_STENCIL_INDEX,
@@ -19,7 +19,7 @@ namespace anton_engine::opengl {
         rgba = GL_RGBA,
     };
 
-    enum class Sized_Internal_Format : uint32_t {
+    enum class Sized_Internal_Format : u32 {
         // unsigned normalized
         r8 = GL_R8,
         r16 = GL_R16,
@@ -89,11 +89,11 @@ namespace anton_engine::opengl {
         stencil_index16 = GL_STENCIL_INDEX16, // Not required
     };
 
-    enum class Compressed_Internal_Format : uint32_t {
+    enum class Compressed_Internal_Format : u32 {
         // TODO compressed
     };
 
-    enum class Format : uint32_t {
+    enum class Format : u32 {
         stencil_index = GL_STENCIL_INDEX,
         depth_component = GL_DEPTH_COMPONENT,
         depth_stencil = GL_DEPTH_STENCIL,
@@ -115,7 +115,7 @@ namespace anton_engine::opengl {
         bgra_integer = GL_BGRA_INTEGER,
     };
 
-    enum class Type : uint32_t {
+    enum class Type : u32 {
         unsigned_byte = GL_UNSIGNED_BYTE,
         signed_byte = GL_BYTE,
         unsigned_short = GL_UNSIGNED_SHORT,
@@ -126,36 +126,20 @@ namespace anton_engine::opengl {
         signed_float = GL_FLOAT,
     };
 
-    enum class Attachment : uint32_t {
+    enum class Attachment : u32 {
         color_attachment_0 = GL_COLOR_ATTACHMENT0,
         depth_attachment = GL_DEPTH_ATTACHMENT,
         depth_stencil_attachment = GL_DEPTH_STENCIL_ATTACHMENT,
         stencil_attachment = GL_STENCIL_ATTACHMENT,
     };
 
-    enum class Buffer_Mask : uint32_t {
+    enum class Buffer_Mask : u32 {
         color_buffer_bit = GL_COLOR_BUFFER_BIT,
         depth_buffer_bit = GL_DEPTH_BUFFER_BIT,
         stencil_buffer_bit = GL_STENCIL_BUFFER_BIT,
     };
 
-    enum class Buffer_Type : uint32_t {
-        array_buffer = GL_ARRAY_BUFFER,
-        atomic_counter_buffer = GL_ATOMIC_COUNTER_BUFFER,
-        copy_read_buffer = GL_COPY_READ_BUFFER,
-        copy_write_buffer = GL_COPY_WRITE_BUFFER,
-        dispatch_indirect_buffer = GL_DISPATCH_INDIRECT_BUFFER,
-        element_array_buffer = GL_ELEMENT_ARRAY_BUFFER,
-        pixel_pack_buffer = GL_PIXEL_PACK_BUFFER,
-        pixel_unpack_buffer = GL_PIXEL_UNPACK_BUFFER,
-        query_buffer = GL_QUERY_BUFFER,
-        shader_storage_buffer = GL_SHADER_STORAGE_BUFFER,
-        texture_buffer = GL_TEXTURE_BUFFER,
-        transform_feedback_buffer = GL_TRANSFORM_FEEDBACK_BUFFER,
-        uniform_buffer = GL_UNIFORM_BUFFER,
-    };
-
-    enum class Shader_Type : uint32_t {
+    enum class Shader_Type : u32 {
         vertex_shader = GL_VERTEX_SHADER,
         fragment_shader = GL_FRAGMENT_SHADER,
         geometry_shader = GL_GEOMETRY_SHADER,
@@ -164,7 +148,7 @@ namespace anton_engine::opengl {
         compute_shader = GL_COMPUTE_SHADER,
     };
 
-    enum class Texture_Type : uint32_t {
+    enum class Texture_Type : u32 {
         texture_1D = GL_TEXTURE_1D,
         texture_2D = GL_TEXTURE_2D,
         texture_3D = GL_TEXTURE_3D,
@@ -178,7 +162,7 @@ namespace anton_engine::opengl {
         texture_2D_multisample_array = GL_TEXTURE_2D_MULTISAMPLE_ARRAY,
     };
 
-    enum class Texture_Filter : uint32_t {
+    enum class Texture_Filter : u32 {
         nearest = GL_NEAREST,
         linear = GL_LINEAR,
         nearest_mipmap_nearest = GL_NEAREST_MIPMAP_NEAREST,
@@ -190,60 +174,23 @@ namespace anton_engine::opengl {
     // OpenGL 4.5 Core Profile standard required constants
 
     // Minimum number of framebuffer color attachments
-    constexpr int32_t min_color_attachments = 8;
-    constexpr int32_t min_textures_per_stage = 16;
+    constexpr i32 min_color_attachments = 8;
+    constexpr i32 min_textures_per_stage = 16;
 
-    [[nodiscard]] int32_t get_max_texture_image_units();
-    [[nodiscard]] int32_t get_max_combined_texture_units();
-    [[nodiscard]] int32_t get_max_renderbuffer_size();
-    [[nodiscard]] int32_t get_max_color_attachments();
-    [[nodiscard]] int32_t get_max_draw_buffers();
-    [[nodiscard]] int32_t get_uniform_buffer_offset_alignment();
+    [[nodiscard]] i32 get_max_texture_image_units();
+    [[nodiscard]] i32 get_max_combined_texture_units();
+    [[nodiscard]] i32 get_max_renderbuffer_size();
+    [[nodiscard]] i32 get_max_color_attachments();
+    [[nodiscard]] i32 get_max_draw_buffers();
+    [[nodiscard]] i32 get_uniform_buffer_offset_alignment();
 
-    void active_texture(uint32_t index);
-    void bind_buffer(Buffer_Type, uint32_t handle);
-    void bind_framebuffer(uint32_t target, uint32_t buffer);
-    void bind_renderbuffer(uint32_t handle);
-    void bind_texture(Texture_Type texture, uint32_t handle);
-    void bind_vertex_array(uint32_t handle);
-    void blit_framebuffer(int32_t src_x0, int32_t src_y0, int32_t src_x1, int32_t src_y1, int32_t dst_x0, int32_t dst_y0, int32_t dst_x1, int32_t dst_y1,
-                          Buffer_Mask, uint32_t filter);
-    // Size in bytes
-    void buffer_data(Buffer_Type target, int64_t size, void* data, uint32_t usage);
-    void clear(Buffer_Mask buffers);
-    void clear_color(Color);
-    void clear_color(float red, float green, float blue, float alpha);
-    uint32_t create_shader(Shader_Type);
-    void delete_program(uint32_t program);
-    void delete_shader(uint32_t shader);
-    void draw_arrays(uint32_t mode, int32_t first, int32_t count);
-    // offset specifies the offset from the beginning of the enabled index array
-    void draw_elements(uint32_t mode, int32_t count, int64_t offset = 0);
-    // offset specifies the offset from the beginning of the enabled index array
-    void draw_elements_instanced(uint32_t mode, int32_t indices_count, int64_t offset, int32_t instances);
-    void enable_vertex_array_attribute(uint32_t index);
-    void framebuffer_renderbuffer(uint32_t target, Attachment, uint32_t renderbuffer);
-    void framebuffer_texture_2D(uint32_t target, Attachment, uint32_t tex_target, uint32_t texture, int32_t level);
-    void generate_mipmap(uint32_t target);
-    // n is the number of buffer objects to be generated. May not be negative.
-    void gen_buffers(int32_t n, uint32_t* buffers);
-    void gen_textures(int32_t count, uint32_t* textures);
-    void gen_renderbuffers(int32_t count, uint32_t* renderbuffers);
-    void gen_vertex_arrays(int32_t count, uint32_t* vertex_arrays);
-    // -1 may mean a uniform removed by optimizations
-    int32_t get_uniform_location(uint32_t program, char const* name);
-    void renderbuffer_storage(uint32_t target, Sized_Internal_Format, int32_t width, int32_t height);
-    void renderbuffer_storage_multisample(uint32_t target, int32_t samples, Sized_Internal_Format, int32_t width, int32_t height);
-    void shader_source(uint32_t shader, int32_t count, char const** strings, int32_t const* lengths);
-    void tex_image_2D(uint32_t target, int32_t level, Base_Internal_Format, int32_t width, int32_t height, Format pixels_format, Type pixels_type,
-                      void const* pixels);
-    void tex_image_2D(uint32_t target, int32_t level, Sized_Internal_Format, int32_t width, int32_t height, Format pixels_format, Type pixels_type,
-                      void const* pixels);
-    void tex_image_2D_multisample(uint32_t target, int32_t samples, Sized_Internal_Format, int32_t width, int32_t height, bool fixed_sample_locations = true);
-    void vertex_array_attribute(uint32_t index, int32_t size, uint32_t type, int32_t stride, int64_t offset, bool normalized = false);
-    // Lower left corner of the viewport, its width and height
-    // Both width and height may not be negative
-    void viewport(int32_t x, int32_t y, int32_t width, int32_t height);
+    void blit_framebuffer(i32 src_x0, i32 src_y0, i32 src_x1, i32 src_y1, i32 dst_x0, i32 dst_y0, i32 dst_x1, i32 dst_y1, Buffer_Mask, u32 filter);
+    u32 create_shader(Shader_Type);
+    void framebuffer_renderbuffer(u32 target, Attachment, u32 renderbuffer);
+    void framebuffer_texture_2D(u32 target, Attachment, u32 tex_target, u32 texture, i32 level);
+    void renderbuffer_storage(u32 target, Sized_Internal_Format, i32 width, i32 height);
+    void renderbuffer_storage_multisample(u32 target, i32 samples, Sized_Internal_Format, i32 width, i32 height);
+    void shader_source(u32 shader, i32 count, char const** strings, i32 const* lengths);
 
     void load();
     void load_functions();

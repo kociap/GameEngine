@@ -93,8 +93,8 @@ namespace anton_engine {
         opengl::Attachment depth_buffer_attachment = uses_depth_stencil ? opengl::Attachment::depth_stencil_attachment : opengl::Attachment::depth_attachment;
         if (depth_info.enabled) {
             if (depth_info.buffer_type == Buffer_Type::renderbuffer) {
-                opengl::gen_renderbuffers(1, &depth_buffer);
-                opengl::bind_renderbuffer(depth_buffer);
+                glGenRenderbuffers(1, &depth_buffer);
+                glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
                 if (info.multisampled) {
                     opengl::renderbuffer_storage_multisample(GL_RENDERBUFFER, info.samples, depth_info.internal_format, info.width, info.height);
                 } else {
@@ -103,7 +103,7 @@ namespace anton_engine {
 
                 opengl::framebuffer_renderbuffer(GL_FRAMEBUFFER, depth_buffer_attachment, depth_buffer);
             } else {
-                opengl::gen_textures(1, &depth_buffer);
+                glGenTextures(1, &depth_buffer);
                 if (info.multisampled) {
                     glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &depth_buffer);
                     GLenum const internal_format = utils::enum_to_value(depth_info.internal_format);

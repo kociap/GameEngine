@@ -669,8 +669,7 @@ namespace anton_engine::rendering {
                                 int32_t const viewport_height) {
         uint32_t frame_texture = render_frame_as_texture(view_mat, proj_mat, camera_transform, viewport_width, viewport_height);
         Framebuffer::bind_default();
-        opengl::active_texture(0);
-        opengl::bind_texture(opengl::Texture_Type::texture_2D, frame_texture);
+        glBindTextureUnit(0, frame_texture);
         Shader& gamma_correction_shader = get_builtin_shader(Builtin_Shader::gamma_correction);
         gamma_correction_shader.use();
         gamma_correction_shader.set_float("gamma", 1 / 2.2f);

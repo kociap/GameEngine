@@ -36,7 +36,7 @@ namespace anton_engine {
 
     Shader::~Shader() {
         if (program != 0) {
-            opengl::delete_program(program);
+            glDeleteProgram(program);
         }
     }
 
@@ -153,7 +153,9 @@ namespace anton_engine {
     }
 
     void delete_shader(Shader& shader) {
-        opengl::delete_program(shader.program);
-        shader.program = 0;
+        if (shader.program != 0) {
+            glDeleteProgram(shader.program);
+            shader.program = 0;
+        }
     }
 } // namespace anton_engine

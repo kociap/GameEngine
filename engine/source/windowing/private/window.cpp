@@ -3,6 +3,7 @@
 #include <anton_assert.hpp>
 #include <build_config.hpp>
 #include <diagnostic_macros.hpp>
+#include <glad.hpp>
 #include <opengl.hpp>
 #include <stdexcept>
 
@@ -38,7 +39,7 @@ namespace anton_engine {
         opengl::load_functions();
         opengl::load_constants();
 
-        opengl::viewport(0, 0, window_width, window_height);
+        glViewport(0, 0, window_width, window_height);
         glfwSetCursorPosCallback(window_handle, mouse_position_callback);
         glfwSetFramebufferSizeCallback(window_handle, framebuffer_size_callback);
         glfwSetMouseButtonCallback(window_handle, mouse_button_callback);
