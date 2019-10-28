@@ -8,6 +8,7 @@ namespace anton_engine {
         uniform_color_3d = 0,
         uniform_color_line_3d,
         deferred_shading,
+        skybox,
         gamma_correction,
         passthrough,
     };

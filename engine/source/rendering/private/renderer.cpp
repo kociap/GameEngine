@@ -31,6 +31,7 @@
 #include <utils/enum.hpp>
 
 #include <algorithm> // std::sort
+#include <unordered_map>
 
 namespace anton_engine {
     static Resource_Manager<Mesh>& get_mesh_manager() {
@@ -96,6 +97,13 @@ namespace anton_engine::rendering {
         Directional_Light_Data directional_lights[16];
     };
 
+    template <typename T>
+    struct Buffer {
+        T* buffer;
+        T* head;
+        i64 size;
+    };
+
     // Buffer binding indices
     constexpr u32 lighting_data_binding = 0;
     constexpr u32 draw_matrix_data = 1;
@@ -106,11 +114,12 @@ namespace anton_engine::rendering {
 
     // Persistently mapped vertex buffer for rendering geometry.
     static u32 vertex_buffer = 0;
-    constexpr i64 vertex_buffer_vertex_count = 1048576;
+    constexpr i64 vertex_buffer_vertex_count = 1048576 * 2;
     constexpr i64 vertex_buffer_size = vertex_buffer_vertex_count * sizeof(Vertex);
     constexpr i64 draw_id_count = 65536;
     constexpr i64 draw_id_buffer_size = draw_id_count * sizeof(u32);
     static void* mapped_vertex_buffer = nullptr;
+    static Buffer<Vertex> persistent_vertex_buffer;
     // By default filled with numbers 0 - draw_id_count.
     static void* mapped_draw_id_buffer = nullptr;
 
@@ -120,6 +129,7 @@ namespace anton_engine::rendering {
     static u32 draw_cmd_buffer = 0;
     static void* mapped_draw_elements_cmd_buffer = nullptr;
     static void* mapped_draw_arrays_cmd_buffer = nullptr;
+    static Buffer<Draw_Elements_Command> draw_elements_cmd_buffer;
 
     // Persistently mapped SSBO with matrix data.
     static u32 ssbo = 0;
@@ -131,8 +141,10 @@ namespace anton_engine::rendering {
 
     // Persistently mapped element buffer for rendering geometry.
     static u32 element_buffer = 0;
-    constexpr i64 element_buffer_size = 1048576;
+    constexpr i64 element_buffer_index_count = 1048576 * 2;
+    constexpr i64 element_buffer_size = element_buffer_index_count * sizeof(u32);
     static void* mapped_element_buffer = nullptr;
+    static Buffer<u32> persistent_element_buffer;
 
     struct Array_Texture {
         uint32_t handle;
@@ -162,6 +174,13 @@ namespace anton_engine::rendering {
     // Draw command buffers.
     static anton_stl::Vector<Draw_Arrays_Command> draw_arrays_commands;
     static anton_stl::Vector<Draw_Elements_Command> draw_elements_commands;
+
+    static std::unordered_map<u64, Draw_Elements_Command> persistent_draw_commands_map;
+
+    static u64 get_persistent_geometry_next_handle() {
+        static u64 handle = 0;
+        return ++handle;
+    }
 
     // Standard vao used for rendering meshes with position, normals, texture coords, tangent and bitangent.
     // Uses binding index 0.
@@ -207,13 +226,17 @@ namespace anton_engine::rendering {
         constexpr u32 buffer_flags = GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT;
 
         // TODO: Synchronisation to prevent buffer races
+        // TODO: One huge buffer for (almost) everything (I guess)
         glGenBuffers(1, &vertex_buffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-        // Huge buffer
         glBufferStorage(GL_ARRAY_BUFFER, vertex_buffer_size + draw_id_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
         glBindVertexBuffer(0, vertex_buffer, 0, sizeof(Vertex));
         glBindVertexBuffer(1, vertex_buffer, vertex_buffer_size, sizeof(u32));
-        mapped_vertex_buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vertex_buffer_size, buffer_flags);
+        mapped_vertex_buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vertex_buffer_size + draw_id_buffer_size, buffer_flags);
+        {
+            Vertex* const mapped_buffer = reinterpret_cast<Vertex*>(mapped_vertex_buffer) + vertex_buffer_vertex_count / 2;
+            persistent_vertex_buffer = Buffer<Vertex>{mapped_buffer, mapped_buffer, vertex_buffer_vertex_count / 2};
+        }
         mapped_draw_id_buffer = reinterpret_cast<char*>(mapped_vertex_buffer) + vertex_buffer_size;
         anton_stl::iota(reinterpret_cast<u32*>(mapped_draw_id_buffer), reinterpret_cast<u32*>(mapped_draw_id_buffer) + draw_id_count, 0);
 
@@ -222,22 +245,28 @@ namespace anton_engine::rendering {
         glBufferStorage(GL_SHADER_STORAGE_BUFFER, ssbo_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
         glBindBufferRange(GL_SHADER_STORAGE_BUFFER, draw_matrix_data, ssbo, 0, matrix_ssbo_size);
         glBindBufferRange(GL_SHADER_STORAGE_BUFFER, draw_material_data_binding, ssbo, matrix_ssbo_size, material_ssbo_size);
-        CHECK_GL_ERRORS();
         mapped_matrix_ssbo = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ssbo_size, buffer_flags);
         mapped_material_ssbo = reinterpret_cast<char*>(mapped_matrix_ssbo) + matrix_ssbo_size;
-        CHECK_GL_ERRORS();
 
         glGenBuffers(2, &element_buffer);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
         // Another huge buffer
         glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, element_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
         mapped_element_buffer = glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, element_buffer_size, buffer_flags);
+        {
+            u32* const mapped_buffer = reinterpret_cast<u32*>(mapped_element_buffer) + element_buffer_index_count / 2;
+            persistent_element_buffer = {mapped_buffer, mapped_buffer, element_buffer_index_count / 2};
+        }
 
         // Indirect Draw CMD buffer
         glGenBuffers(1, &draw_cmd_buffer);
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, draw_cmd_buffer);
         glBufferStorage(GL_DRAW_INDIRECT_BUFFER, draw_cmd_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
         mapped_draw_elements_cmd_buffer = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, draw_cmd_buffer_size, buffer_flags);
+        {
+            Draw_Elements_Command* const mapped_buffer = reinterpret_cast<Draw_Elements_Command*>(mapped_draw_elements_cmd_buffer);
+            draw_elements_cmd_buffer = {mapped_buffer, mapped_buffer, draw_elements_cmd_buffer_size / sizeof(Draw_Elements_Command)};
+        }
         mapped_draw_arrays_cmd_buffer = reinterpret_cast<char*>(mapped_draw_elements_cmd_buffer) + draw_elements_cmd_buffer_size;
 
         // Uniforms
@@ -304,6 +333,11 @@ namespace anton_engine::rendering {
 
     void bind_mesh_vao() {
         glBindVertexArray(mesh_vao);
+    }
+
+    void bind_vertex_buffers() {
+        glBindVertexBuffer(0, vertex_buffer, 0, sizeof(Vertex));
+        glBindVertexBuffer(1, vertex_buffer, vertex_buffer_size, sizeof(u32));
     }
 
     Vertex_Buffer get_vertex_buffer() {
@@ -405,7 +439,26 @@ namespace anton_engine::rendering {
         }
         texture_storage.free_list.erase(texture_storage.free_list.begin(), texture_storage.free_list.begin() + texture_count);
         glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
-        CHECK_GL_ERRORS();
+    }
+
+    u64 write_persistent_geometry(anton_stl::Slice<Vertex const> const vertices, anton_stl::Slice<u32 const> const indices) {
+        // TODO: Checks, safety, fencing, anything? Right now I'm pretty sure I'll not overwrite,
+        //       but we'll need all of that in the future.
+        i64 const index_offset = persistent_element_buffer.head - persistent_element_buffer.buffer;
+        i64 const vertex_offset = persistent_vertex_buffer.head - persistent_vertex_buffer.buffer;
+        if (index_offset + indices.size() > persistent_element_buffer.size || vertex_offset + vertices.size() > persistent_vertex_buffer.size) {
+            throw std::runtime_error("Out of memory");
+        }
+
+        memcpy(persistent_vertex_buffer.head, vertices.data(), vertices.size() * sizeof(Vertex));
+        persistent_vertex_buffer.head += vertices.size();
+        memcpy(persistent_element_buffer.head, indices.data(), indices.size() * sizeof(u32));
+        persistent_element_buffer.head += indices.size();
+        Draw_Elements_Command cmd = {static_cast<u32>(indices.size()), 0, (u32)(element_buffer_index_count / 2 + index_offset),
+                                     (u32)(vertex_buffer_vertex_count / 2 + vertex_offset), 0};
+        u64 const handle = get_persistent_geometry_next_handle();
+        persistent_draw_commands_map.emplace(handle, cmd);
+        return handle;
     }
 
     static void bind_default_textures() {
@@ -437,10 +490,24 @@ namespace anton_engine::rendering {
         draw_elements_commands.push_back(command);
     }
 
+    void add_draw_command(Draw_Persistent_Geometry_Command const cmd) {
+        Draw_Elements_Command draw_cmd = persistent_draw_commands_map.at(cmd.handle);
+        draw_cmd.base_instance = cmd.base_instance;
+        draw_cmd.instance_count = cmd.instance_count;
+        add_draw_command(draw_cmd);
+    }
+
     void commit_draw() {
         if (draw_elements_commands.size() > 0) {
-            memcpy(mapped_draw_elements_cmd_buffer, draw_elements_commands.data(), draw_elements_commands.size() * sizeof(Draw_Elements_Command));
-            glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, draw_elements_commands.size(), sizeof(Draw_Elements_Command));
+            if (draw_elements_cmd_buffer.head - draw_elements_cmd_buffer.buffer + draw_elements_commands.size() > draw_elements_cmd_buffer.size) {
+                // Wrap around
+                draw_elements_cmd_buffer.head = draw_elements_cmd_buffer.buffer;
+            }
+
+            memcpy(draw_elements_cmd_buffer.head, draw_elements_commands.data(), draw_elements_commands.size() * sizeof(Draw_Elements_Command));
+            i64 const offset = (draw_elements_cmd_buffer.head - draw_elements_cmd_buffer.buffer) * sizeof(Draw_Elements_Command);
+            glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)offset, draw_elements_commands.size(), sizeof(Draw_Elements_Command));
+            draw_elements_cmd_buffer.head += draw_elements_commands.size();
             draw_elements_commands.clear();
         }
 
@@ -514,6 +581,7 @@ namespace anton_engine::rendering {
         Matrix4* matrix_head_ptr = matrix_buffer.data;
         i64 current_draw = 0;
         Draw_Elements_Command cmd = {};
+        // TODO: wrap around, write_geometry functions, etc.
         // Fairly dumb rendering loop.
         for (auto iter = objects.begin(), end = objects.end(); iter != end; ++iter) {
             auto const [transform, static_mesh] = objects.get<Transform, Static_Mesh_Component>(*iter);

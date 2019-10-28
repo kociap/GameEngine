@@ -47,11 +47,17 @@ vec3 compute_point_lighting(Point_Light light, vec3 surface_position, vec3 surfa
 vec3 compute_directional_lighting(Directional_Light light, vec3 surface_normal, vec3 view_vec, vec3 albedo_color, float specular_factor);
 
 void main() {
-    vec3 surface_position = texture(gbuffer_position, tex_coords).rgb;
-    vec3 surface_normal = texture(gbuffer_normal, tex_coords).rgb;
     vec4 albedo_spec = texture(gbuffer_albedo_spec, tex_coords);
+    if(albedo_spec == vec4(0.0)) {
+        // Light doesn't bounce off pure black surfaces, so we can exit early.
+        frag_color = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+
     vec3 albedo = albedo_spec.rgb;
     float specular = albedo_spec.a;
+    vec3 surface_position = texture(gbuffer_position, tex_coords).rgb;
+    vec3 surface_normal = texture(gbuffer_normal, tex_coords).rgb;
     vec3 view_vec = normalize(camera.position - surface_position);
     vec3 ambient = albedo * vec3(ambient_color) * ambient_strength;
 

@@ -2,12 +2,14 @@
 #define ENGINE_RENDERER_RENDERER_HPP_INCLUDE
 
 #include <anton_int.hpp>
+#include <anton_stl/slice.hpp>
 #include <components/camera.hpp>
 #include <components/transform.hpp>
 #include <cstdint>
 #include <ecs/ecs.hpp>
 #include <material.hpp>
 #include <math/matrix4.hpp>
+#include <mesh.hpp>
 #include <shader.hpp>
 #include <texture_format.hpp>
 
@@ -59,6 +61,12 @@ namespace anton_engine::rendering {
         u32 base_instance;
     };
 
+    struct Draw_Persistent_Geometry_Command {
+        u32 handle;
+        u32 instance_count;
+        u32 base_instance;
+    };
+
     template <typename T>
     struct Mapped_Buffer {
         T* data;
@@ -74,11 +82,15 @@ namespace anton_engine::rendering {
     void setup_rendering();
     void update_dynamic_lights();
     void bind_mesh_vao();
+    void bind_vertex_buffers();
     [[nodiscard]] Vertex_Buffer get_vertex_buffer();
     [[nodiscard]] Draw_ID_Buffer get_draw_id_buffer();
     [[nodiscard]] Matrix_Buffer get_matrix_buffer();
     [[nodiscard]] Material_Buffer get_material_buffer();
     [[nodiscard]] Element_Buffer get_element_buffer();
+
+    // Returns: Handle to the persistent geometry.
+    u64 write_persistent_geometry(anton_stl::Slice<Vertex const>, anton_stl::Slice<u32 const>);
 
     // Loads base texture and generates mipmaps (since we don't have pregenerated mipmaps yet).
     // pixels is a pointer to an array of pointers to the pixel data.
@@ -90,6 +102,7 @@ namespace anton_engine::rendering {
     // void unload_textures(int32_t handle_count, uint64_t const* handles);
     void add_draw_command(Draw_Arrays_Command);
     void add_draw_command(Draw_Elements_Command);
+    void add_draw_command(Draw_Persistent_Geometry_Command);
     void commit_draw();
 
     // objects - snapshot of ecs containing Static_Mesh_Components and Transforms

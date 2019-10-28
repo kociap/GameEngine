@@ -16,6 +16,7 @@ namespace anton_engine::opengl {
     static i32 max_draw_buffers = 0;
     static i32 uniform_buffer_offset_alignment = 0;
     static i32 max_fragment_shader_texture_units = 0;
+    static i32 min_map_buffer_alignment = 0;
 
     void load() {
         load_functions();
@@ -36,6 +37,7 @@ namespace anton_engine::opengl {
         glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &max_color_attachments);
         glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
         glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uniform_buffer_offset_alignment);
+        glGetIntegerv(GL_MIN_MAP_BUFFER_ALIGNMENT, &min_map_buffer_alignment);
     }
 
     static void debug_callback(GLenum const source, GLenum const type, GLuint, GLenum const severity, GLsizei, GLchar const* const message, void const*) {
@@ -135,5 +137,9 @@ namespace anton_engine::opengl {
 
     i32 get_uniform_buffer_offset_alignment() {
         return uniform_buffer_offset_alignment;
+    }
+
+    i32 get_min_map_buffer_alignment() {
+        return min_map_buffer_alignment;
     }
 } // namespace anton_engine::opengl

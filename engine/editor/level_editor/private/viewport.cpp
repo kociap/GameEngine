@@ -457,6 +457,45 @@ namespace anton_engine {
         return framebuffer->get_color_texture(0);
     }
 
+    static u64 get_cube_handle() {
+        Mesh cube = generate_cube();
+        return rendering::write_persistent_geometry(cube.vertices, cube.indices);
+    }
+
+    static u32 load_cube_map() {
+        u32 texture;
+        glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &texture);
+        glTextureStorage2D(texture, 1, GL_RGB8, 1, 1);
+        unsigned char const pixel[] = {10, 10, 10};
+        glTextureSubImage3D(texture, 0, 0, 0, 0, 1, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+        glTextureSubImage3D(texture, 0, 0, 0, 1, 1, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+        glTextureSubImage3D(texture, 0, 0, 0, 2, 1, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+        glTextureSubImage3D(texture, 0, 0, 0, 3, 1, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+        glTextureSubImage3D(texture, 0, 0, 0, 4, 1, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+        glTextureSubImage3D(texture, 0, 0, 0, 5, 1, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+        return texture;
+    }
+
+    static void draw_skybox(Matrix4 view_mat, Matrix4 const proj_mat) {
+        // TODO: Temporary
+        static u64 const cube_handle = get_cube_handle();
+        static u32 const cube_map_texture = load_cube_map();
+
+        Shader& skybox_shader = get_builtin_shader(Builtin_Shader::skybox);
+        skybox_shader.use();
+        view_mat[3][0] = 0.0f;
+        view_mat[3][1] = 0.0f;
+        view_mat[3][2] = 0.0f;
+        skybox_shader.set_matrix4("vp_mat", view_mat * proj_mat);
+        glBindTextureUnit(0, cube_map_texture);
+        rendering::add_draw_command(rendering::Draw_Persistent_Geometry_Command{(u32)cube_handle, 1, 0});
+        glDisable(GL_CULL_FACE);
+        glDepthFunc(GL_LEQUAL);
+        rendering::commit_draw();
+        glDepthFunc(GL_LESS);
+        glEnable(GL_CULL_FACE);
+    }
+
     static void draw_grid(Matrix4 const view_proj_mat, Vector3 const camera_pos, Camera const camera, Vector2 const viewport_size) {
         // TODO: Hardcoded colors
         Color const axis_blue = {15.f / 255.f, 77.f / 255.f, 186.f / 255.f};
@@ -512,6 +551,8 @@ namespace anton_engine {
         blit_framebuffer(framebuffer, renderer->postprocess_front_buffer, opengl::color_buffer_bit);
         bind_framebuffer(framebuffer);
         // TODO change camera position from local to global
+        rendering::bind_vertex_buffers();
+        draw_skybox(view_mat, proj_mat);
         draw_grid(view_mat * proj_mat, camera_transform.local_position, camera, framebuffer->size());
         bind_framebuffer(renderer->postprocess_front_buffer, Framebuffer::draw);
         glReadBuffer(GL_COLOR_ATTACHMENT0);

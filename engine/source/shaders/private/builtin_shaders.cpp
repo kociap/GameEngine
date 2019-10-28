@@ -32,6 +32,10 @@ namespace anton_engine {
         auto deferred_frag = assets::load_shader_file("deferred_shading.frag");
         builtin_shaders.push_back(create_shader(deferred_frag, postprocess_vert));
 
+        auto skybox_vert = assets::load_shader_file("skybox.vert");
+        auto skybox_frag = assets::load_shader_file("skybox.frag");
+        builtin_shaders.push_back(create_shader(skybox_vert, skybox_frag));
+
         auto gamma_correction = assets::load_shader_file("postprocessing/gamma_correction.frag");
         builtin_shaders.push_back(create_shader(postprocess_vert, gamma_correction));
 
@@ -85,9 +89,18 @@ namespace anton_engine {
         }
 
         try {
+            auto skybox_vert = assets::load_shader_file("skybox.vert");
+            auto skybox_frag = assets::load_shader_file("skybox.frag");
+            builtin_shaders[3] = create_shader(skybox_vert, skybox_frag);
+        } catch (std::runtime_error const& error) {
+            anton_stl::String error_message = anton_stl::String(error.what()) + u8"\nContinuing without reloading skybox shader\n-";
+            ANTON_LOG_ERROR(error_message);
+        }
+
+        try {
             auto postprocess_vert = assets::load_shader_file("postprocessing/postprocess_vertex.vert");
             auto gamma_correction = assets::load_shader_file("postprocessing/gamma_correction.frag");
-            builtin_shaders[3] = create_shader(postprocess_vert, gamma_correction);
+            builtin_shaders[4] = create_shader(postprocess_vert, gamma_correction);
         } catch (std::runtime_error const& error) {
             anton_stl::String error_message = anton_stl::String(error.what()) + u8"\nContinuing without reloading postprocessing/gamma_correction shader\n-";
             ANTON_LOG_ERROR(error_message);
@@ -96,7 +109,7 @@ namespace anton_engine {
         try {
             auto quad_vert = assets::load_shader_file("quad.vert");
             auto quad_frag = assets::load_shader_file("quad.frag");
-            builtin_shaders[4] = create_shader(quad_vert, quad_frag);
+            builtin_shaders[5] = create_shader(quad_vert, quad_frag);
         } catch (std::runtime_error const& error) {
             anton_stl::String error_message = anton_stl::String(error.what()) + u8"\nContinuing without reloading quad shader\n-";
             ANTON_LOG_ERROR(error_message);

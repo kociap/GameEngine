@@ -2,7 +2,7 @@
 
 in vec3 texture_coordinates;
 
-uniform samplerCube skybox;
+layout(binding = 0) uniform samplerCube skybox;
 
 out vec4 frag_color;
 

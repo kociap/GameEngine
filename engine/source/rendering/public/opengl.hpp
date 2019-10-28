@@ -152,6 +152,7 @@ namespace anton_engine::opengl {
     [[nodiscard]] i32 get_max_color_attachments();
     [[nodiscard]] i32 get_max_draw_buffers();
     [[nodiscard]] i32 get_uniform_buffer_offset_alignment();
+    [[nodiscard]] i32 get_min_map_buffer_alignment();
 
     void load();
     void load_functions();
