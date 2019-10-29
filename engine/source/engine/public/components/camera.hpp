@@ -36,7 +36,8 @@ namespace anton_engine {
     }
 
     inline Matrix4 get_camera_view_matrix(Transform& transform) {
-        return math::transform::look_at(transform.local_position, transform.local_position + get_camera_front(transform), get_camera_top(transform));
+        Matrix4 const camera_matrix = to_matrix(transform);
+        return math::inverse(camera_matrix);
     }
 
     inline Matrix4 get_camera_projection_matrix(Camera& camera, int32_t viewport_width, int32_t viewport_height) {
