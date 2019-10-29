@@ -531,7 +531,7 @@ namespace anton_engine {
         // TODO: Mist instead of sudden clip
 
         // TODO fix this shitcode
-        renderer->render_frame_as_texture(view_mat, proj_mat, camera_transform, width(), height());
+        renderer->render_frame(view_mat, proj_mat, camera_transform, Vector2(width(), height()));
 
         // Copy depth and color attachment buffers
         bind_framebuffer(renderer->framebuffer, Framebuffer::read);

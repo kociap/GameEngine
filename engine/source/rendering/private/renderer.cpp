@@ -698,10 +698,9 @@ namespace anton_engine::rendering {
         anton_stl::swap(postprocess_front_buffer, postprocess_back_buffer);
     }
 
-    uint32_t Renderer::render_frame_as_texture(Matrix4 const view_mat, Matrix4 const projection_mat, Transform const camera_transform,
-                                               int32_t const viewport_width, int32_t const viewport_height) {
+    void Renderer::render_frame(Matrix4 const view_mat, Matrix4 const projection_mat, Transform const camera_transform, Vector2 const viewport_size) {
         glEnable(GL_DEPTH_TEST);
-        glViewport(0, 0, viewport_width, viewport_height);
+        glViewport(0, 0, viewport_size.x, viewport_size.y);
         bind_framebuffer(framebuffer);
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -721,13 +720,12 @@ namespace anton_engine::rendering {
         Shader& deferred_shading = get_builtin_shader(Builtin_Shader::deferred_shading);
         deferred_shading.use();
         deferred_shading.set_vec3("camera.position", camera_transform.local_position);
-        deferred_shading.set_vec2("viewport_size", Vector2(viewport_width, viewport_height));
+        deferred_shading.set_vec2("viewport_size", viewport_size);
         deferred_shading.set_matrix4("inv_view_mat", to_matrix(camera_transform));
         deferred_shading.set_matrix4("inv_proj_mat", math::inverse(projection_mat));
         render_texture_quad();
         glEnable(GL_DEPTH_TEST);
         swap_postprocess_buffers();
-        return postprocess_front_buffer->get_color_texture(0);
     }
 
     // TODO: Temporary solution for rendering the texture quad

@@ -16,6 +16,7 @@
 #include <opengl.hpp>
 #include <renderer.hpp>
 #include <shader.hpp>
+#include <framebuffer.hpp>
 
 #include <components/camera.hpp>
 #include <components/directional_light_component.hpp>
@@ -224,9 +225,9 @@ namespace anton_engine {
                 Matrix4 const view_mat = get_camera_view_matrix(transform);
                 Matrix4 const proj_mat = get_camera_projection_matrix(camera, main_window->width(), main_window->height());
                 // TODO: Fix shitcode.
-                u32 const frame_texture = renderer->render_frame_as_texture(view_mat, proj_mat, transform, main_window->width(), main_window->height());
+                renderer->render_frame(view_mat, proj_mat, transform, Vector2(main_window->width(), main_window->height()));
                 glBindFramebuffer(GL_FRAMEBUFFER, 0); // TODO: Assumes window's framebuffer is 0.
-                glBindTextureUnit(0, frame_texture);
+                glBindTextureUnit(0, renderer->postprocess_front_buffer->get_color_texture(0));
                 Shader& gamma_correction_shader = get_builtin_shader(Builtin_Shader::gamma_correction);
                 gamma_correction_shader.use();
                 gamma_correction_shader.set_float("gamma", 1 / 2.2f);
