@@ -35,8 +35,6 @@ namespace anton_engine::rendering {
         void swap_postprocess_buffers();
 
     private:
-        void render_scene(Transform camera_transform, Matrix4 view_transform, Matrix4 projection_transform);
-
         void build_framebuffers(int32_t width, int32_t height);
         void delete_framebuffers();
 

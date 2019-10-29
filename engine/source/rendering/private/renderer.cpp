@@ -699,22 +699,17 @@ namespace anton_engine::rendering {
         anton_stl::swap(postprocess_front_buffer, postprocess_back_buffer);
     }
 
-    void Renderer::render_scene(Transform const camera_transform, Matrix4 const view, Matrix4 const projection) {
-        ECS& ecs = get_ecs();
-        ECS snapshot = ecs.snapshot<Transform, Static_Mesh_Component>();
-        // cull_frustum();
-        ::anton_engine::rendering::render_scene(snapshot, camera_transform, view, projection);
-    }
-
-    uint32_t Renderer::render_frame_as_texture(Matrix4 const view_mat, Matrix4 const proj_mat, Transform const camera_transform, int32_t const viewport_width,
-                                               int32_t const viewport_height) {
+    uint32_t Renderer::render_frame_as_texture(Matrix4 const view_mat, Matrix4 const projection_mat, Transform const camera_transform,
+                                               int32_t const viewport_width, int32_t const viewport_height) {
         glEnable(GL_DEPTH_TEST);
         glViewport(0, 0, viewport_width, viewport_height);
         bind_framebuffer(framebuffer);
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         bind_mesh_vao();
-        render_scene(camera_transform, view_mat, proj_mat);
+        ECS& ecs = get_ecs();
+        ECS snapshot = ecs.snapshot<Transform, Static_Mesh_Component>();
+        render_scene(snapshot, camera_transform, view_mat, projection_mat);
 
         // Postprocessing
 
