@@ -5,6 +5,7 @@
 #include <components/camera.hpp>
 #include <components/transform.hpp>
 #include <ecs/ecs.hpp>
+#include <editor_preferences.hpp>
 #include <input/input.hpp>
 #include <logging.hpp>
 #include <opengl.hpp>
@@ -46,6 +47,7 @@ namespace anton_engine {
         opengl::load();
         rendering::setup_rendering();
         load_builtin_shaders();
+        load_default_editor_preferences();
 
         input_filter = new User_Input_Filter(0, 0);
         installEventFilter(input_filter);

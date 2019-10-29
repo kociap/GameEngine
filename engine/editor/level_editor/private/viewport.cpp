@@ -10,6 +10,7 @@
 #include <ecs/ecs.hpp>
 #include <editor.hpp>
 #include <editor_events.hpp>
+#include <editor_preferences.hpp>
 #include <framebuffer.hpp>
 #include <gizmo/arrow_3d.hpp>
 #include <gizmo/dial_3d.hpp>
@@ -497,17 +498,6 @@ namespace anton_engine {
     }
 
     static void draw_grid(Matrix4 const view_proj_mat, Vector3 const camera_pos, Camera const camera, Vector2 const viewport_size) {
-        // TODO: Hardcoded colors
-        Color const axis_blue = {15.f / 255.f, 77.f / 255.f, 186.f / 255.f};
-        // Color const axis_green = {0, 220.0f / 255.0f, 0};
-        // Color const axis_green = {0.1416f, 0.26953f, 0.02417f};
-        Color const axis_green = {0.545f, 0.863f, 0.0f};
-        Color const axis_red = {179.f / 255.f, 20.f / 255.f, 5.f / 255.f};
-        u32 constexpr grid_axis_x = 1 << 0;
-        u32 constexpr grid_axis_y = 1 << 1;
-        u32 constexpr grid_axis_z = 1 << 2;
-        u32 constexpr grid_enabled = 1 << 5;
-        u32 const grid_flags = grid_enabled | grid_axis_x | grid_axis_z;
         Shader& grid_shader = get_builtin_shader(Builtin_Editor_Shader::grid);
         grid_shader.use();
         Matrix4 const model_mat = math::transform::rotate_x(math::constants::half_pi) * math::transform::scale(camera.far_plane) *
@@ -516,9 +506,10 @@ namespace anton_engine {
         grid_shader.set_matrix4("vp_mat", view_proj_mat);
         grid_shader.set_vec3("camera_pos", camera_pos);
         grid_shader.set_vec2("rcp_res", {1.0f / viewport_size.x, 1.0f / viewport_size.y});
-        grid_shader.set_uint("grid_flags", grid_flags);
-        grid_shader.set_vec4("axis_x_color", axis_red);
-        grid_shader.set_vec4("axis_z_color", axis_blue);
+        Grid_Settings grid = get_editor_preferences().grid_settings;
+        grid_shader.set_uint("grid_flags", grid.grid_flags);
+        grid_shader.set_vec4("axis_x_color", grid.axis_x_color);
+        grid_shader.set_vec4("axis_z_color", grid.axis_z_color);
         glDisable(GL_CULL_FACE);
         glEnable(GL_BLEND);
         // TODO: That's probably the worst thing I've ever written.
