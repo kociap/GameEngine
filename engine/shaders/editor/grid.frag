@@ -72,12 +72,12 @@ void main() {
     // Axes
 
     if((grid_flags & GRID_AXIS_X) != 0) {
-        float alpha = 1.0 - smoothstep(0.0, 1.0, abs(plane_coord.x) / grid_fwidth.x);
+        float alpha = 1.0 - smoothstep(0.0, 1.0, abs(plane_coord.y) / grid_fwidth.y);
         frag_color = axis_x_color * alpha + frag_color * (1.0 - alpha);
     }
 
     if((grid_flags & GRID_AXIS_Z) != 0) {
-        float alpha = 1.0 - smoothstep(0.0, 1.0, abs(plane_coord.y) / grid_fwidth.y);
+        float alpha = 1.0 - smoothstep(0.0, 1.0, abs(plane_coord.x) / grid_fwidth.x);
         frag_color = axis_z_color * alpha + frag_color * (1.0 - alpha);
     }
 
