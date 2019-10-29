@@ -667,13 +667,12 @@ namespace anton_engine::rendering {
         framebuffer_info.width = width;
         framebuffer_info.height = height;
         framebuffer_info.depth_buffer.enabled = true;
-        framebuffer_info.color_buffers.resize(3);
-        // Position
-        framebuffer_info.color_buffers[0].internal_format = Framebuffer::Internal_Format::rgb32f;
+        framebuffer_info.depth_buffer.buffer_type = Framebuffer::Buffer_Type::texture;
+        framebuffer_info.color_buffers.resize(2);
         // Normal
-        framebuffer_info.color_buffers[1].internal_format = Framebuffer::Internal_Format::rgb32f;
+        framebuffer_info.color_buffers[0].internal_format = Framebuffer::Internal_Format::rgb32f;
         // albedo-specular
-        framebuffer_info.color_buffers[2].internal_format = Framebuffer::Internal_Format::rgba8;
+        framebuffer_info.color_buffers[1].internal_format = Framebuffer::Internal_Format::rgba8;
         framebuffer = new Framebuffer(framebuffer_info);
 
         Framebuffer::Construct_Info postprocess_construct_info;
@@ -715,13 +714,16 @@ namespace anton_engine::rendering {
 
         glDisable(GL_DEPTH_TEST);
         bind_framebuffer(postprocess_back_buffer);
-        glBindTextureUnit(0, framebuffer->get_color_texture(0));
-        glBindTextureUnit(1, framebuffer->get_color_texture(1));
-        glBindTextureUnit(2, framebuffer->get_color_texture(2));
+        glBindTextureUnit(0, framebuffer->get_depth_texture());
+        glBindTextureUnit(1, framebuffer->get_color_texture(0));
+        glBindTextureUnit(2, framebuffer->get_color_texture(1));
 
         Shader& deferred_shading = get_builtin_shader(Builtin_Shader::deferred_shading);
         deferred_shading.use();
         deferred_shading.set_vec3("camera.position", camera_transform.local_position);
+        deferred_shading.set_vec2("viewport_size", Vector2(viewport_width, viewport_height));
+        deferred_shading.set_matrix4("inv_view_mat", to_matrix(camera_transform));
+        deferred_shading.set_matrix4("inv_proj_mat", math::inverse(projection_mat));
         render_texture_quad();
         glEnable(GL_DEPTH_TEST);
         swap_postprocess_buffers();

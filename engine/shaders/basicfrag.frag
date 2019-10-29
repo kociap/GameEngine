@@ -2,7 +2,6 @@
 
 in Frag_Data {
     mat3 tbn;
-    vec3 fragment_position;
     vec3 normal;
     vec2 tex_coords;
     flat uint draw_id;
@@ -26,9 +25,8 @@ layout(std140, binding = 2) readonly buffer Materials {
 
 layout(binding = 0) uniform sampler2DArray array_textures[16];
 
-layout(location = 0) out vec3 gbuf_position;
-layout(location = 1) out vec3 gbuf_normal;
-layout(location = 2) out vec4 gbuf_albedo_spec;
+layout(location = 0) out vec3 gbuf_normal;
+layout(location = 1) out vec4 gbuf_albedo_spec;
 
 vec3 get_surface_normal(sampler2D normal_map, vec2 tex_pos);
 vec3 color_to_normal(vec3 c);
@@ -40,7 +38,6 @@ void main() {
     vec4 tex_color = texture(array_textures[material.diffuse.index], vec3(fs_in.tex_coords, material.diffuse.layer));
     vec4 specular_tex_color = texture(array_textures[material.specular.index], vec3(fs_in.tex_coords, material.specular.layer));
 
-    gbuf_position = fs_in.fragment_position;
     gbuf_normal = surface_normal;
     gbuf_albedo_spec = vec4(tex_color.rgb, specular_tex_color.r);
 }

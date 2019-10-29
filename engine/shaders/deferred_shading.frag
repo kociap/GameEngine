@@ -35,13 +35,25 @@ struct Camera {
 };
 
 uniform Camera camera;
+uniform mat4 inv_view_mat;
+uniform mat4 inv_proj_mat;
+uniform vec2 viewport_size;
 
-layout(binding = 0) uniform sampler2D gbuffer_position;
+layout(binding = 0) uniform sampler2D gbuffer_depth;
 layout(binding = 1) uniform sampler2D gbuffer_normal;
 layout(binding = 2) uniform sampler2D gbuffer_albedo_spec;
 
 in vec2 tex_coords;
 out vec4 frag_color;
+
+vec3 unproject_point(vec3 coords) {
+    vec4 normalized = vec4(coords * 2.0 - 1.0, 1.0);
+    vec4 homogenized = inv_proj_mat * normalized;
+    if(homogenized.w != 0.0) {
+        homogenized /= homogenized.w;
+    }
+    return (inv_view_mat * homogenized).xyz;
+}
 
 vec3 compute_point_lighting(Point_Light light, vec3 surface_position, vec3 surface_normal, vec3 view_vec, vec3 albedo_color, float specular_factor);
 vec3 compute_directional_lighting(Directional_Light light, vec3 surface_normal, vec3 view_vec, vec3 albedo_color, float specular_factor);
@@ -56,8 +68,10 @@ void main() {
 
     vec3 albedo = albedo_spec.rgb;
     float specular = albedo_spec.a;
-    vec3 surface_position = texture(gbuffer_position, tex_coords).rgb;
+    vec3 point_ndc = vec3(tex_coords, texture(gbuffer_depth, tex_coords).r);
+    vec3 surface_position = unproject_point(point_ndc);
     vec3 surface_normal = texture(gbuffer_normal, tex_coords).rgb;
+    
     vec3 view_vec = normalize(camera.position - surface_position);
     vec3 ambient = albedo * vec3(ambient_color) * ambient_strength;
 

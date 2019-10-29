@@ -16,7 +16,6 @@ layout (std140, binding = 1) readonly buffer Matrices {
 
 out Frag_Data {
     mat3 tbn;
-    vec3 fragment_position;
     vec3 normal;
     vec2 tex_coords;
     uint draw_id;
@@ -30,7 +29,6 @@ void main() {
     const vec3 bitangent = normalize(model_reduced * in_bitangent);
 
     gl_Position = projection * view * model * vec4(pos, 1.0);
-    vs_out.fragment_position = vec3(model * vec4(pos, 1.0));
     vs_out.normal = normal;
     vs_out.tex_coords = tex_coordinates;
     vs_out.tbn = mat3(tangent, bitangent, normal);
