@@ -35,7 +35,7 @@
 
 namespace anton_engine {
     static Resource_Manager<Mesh>& get_mesh_manager() {
-#if GE_WITH_EDITOR
+#if ANTON_WITH_EDITOR
         return Editor::get_mesh_manager();
 #else
         return Engine::get_mesh_manager();
@@ -43,7 +43,7 @@ namespace anton_engine {
     }
 
     static Resource_Manager<Shader>& get_shader_manager() {
-#if GE_WITH_EDITOR
+#if ANTON_WITH_EDITOR
         return Editor::get_shader_manager();
 #else
         return Engine::get_shader_manager();
@@ -51,7 +51,7 @@ namespace anton_engine {
     }
 
     static Resource_Manager<Material>& get_material_manager() {
-#if GE_WITH_EDITOR
+#if ANTON_WITH_EDITOR
         return Editor::get_material_manager();
 #else
         return Engine::get_material_manager();
@@ -59,7 +59,7 @@ namespace anton_engine {
     }
 
     static ECS& get_ecs() {
-#if GE_WITH_EDITOR
+#if ANTON_WITH_EDITOR
         return Editor::get_ecs();
 #else
         return Engine::get_ecs();

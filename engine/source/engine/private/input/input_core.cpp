@@ -14,7 +14,7 @@
 #include <unordered_map>
 
 #include <build_config.hpp>
-#if GE_WITH_EDITOR
+#if ANTON_WITH_EDITOR
 #    include <editor.hpp>
 #else
 #    include <engine.hpp>
@@ -22,7 +22,7 @@
 
 namespace anton_engine {
     Input::Manager& get_input_manager() {
-#if GE_WITH_EDITOR
+#if ANTON_WITH_EDITOR
         return Editor::get_input_manager();
 #else
         return Engine::get_input_manager();

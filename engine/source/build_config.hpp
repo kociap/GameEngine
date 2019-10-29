@@ -2,19 +2,13 @@
 #define BUILD_CONFIG_HPP_INCLUDE
 
 #ifdef NDEBUG
-#    define GE_DEBUG 0
 #    define ANTON_DEBUG 0
 #else
-#    define GE_DEBUG 1
 #    define ANTON_DEBUG 1
 #endif
 
 #ifndef ANTON_WITH_EDITOR
 #    define ANTON_WITH_EDITOR 1
-#endif
-
-#ifndef GE_WITH_EDITOR
-#    define GE_WITH_EDITOR 1
 #endif
 
 #ifndef GE_BUILD_SHIPPING_DEBUG

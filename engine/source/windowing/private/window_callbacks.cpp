@@ -25,7 +25,7 @@ namespace anton_engine {
     void framebuffer_size_callback(GLFWwindow* const, int const width, int const height) {
         Engine::get_window().resize(width, height);
         glViewport(0, 0, width, height);
-#if !GE_WITH_EDITOR
+#if !ANTON_WITH_EDITOR
         Engine::get_renderer().resize(width, height);
 #endif
     }

@@ -9,14 +9,14 @@
 namespace anton_engine {
 #if ANTON_WITH_EDITOR
 
-int editor_main();
+    int editor_main();
 #else
-int engine_main();
-#endif // !GE_WITH_EDITOR
-}
+    int engine_main();
+#endif // !ANTON_WITH_EDITOR
+} // namespace anton_engine
 
 int main(int argc, char** argv) {
-	using namespace anton_engine;
+    using namespace anton_engine;
     // Required arguments: path to executable and path to the project file
     // if (argc < 2) {
     //     throw std::runtime_error("Missing path to project file");
@@ -37,20 +37,19 @@ int main(int argc, char** argv) {
 
     // TODO Validate project file
 
-#if GE_DEBUG
+#if ANTON_DEBUG
     char const* game_module_name = "GameEngine_Gamed.dll";
 #else
     char const* game_module_name = "GameEngine_Game.dll";
-#endif
+#endif // ANTON_DEBUG
     Module game_module = load_module(game_module_name);
-    get_component_serialization_funcs =
-        get_function_from_module<get_component_serialization_funcs_t>(game_module, "get_component_serialization_functions");
+    get_component_serialization_funcs = get_function_from_module<get_component_serialization_funcs_t>(game_module, "get_component_serialization_functions");
 
-#if !GE_WITH_EDITOR
+#if !ANTON_WITH_EDITOR
     engine_main();
 #else
     editor_main();
-#endif // !GE_WITH_EDITOR
+#endif // !ANTON_WITH_EDITOR
 
     unload_module(game_module);
 
