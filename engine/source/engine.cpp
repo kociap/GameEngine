@@ -12,11 +12,11 @@
 #include <window.hpp>
 
 #include <builtin_shaders.hpp>
+#include <framebuffer.hpp>
 #include <glad.hpp>
 #include <opengl.hpp>
 #include <renderer.hpp>
 #include <shader.hpp>
-#include <framebuffer.hpp>
 
 #include <components/camera.hpp>
 #include <components/directional_light_component.hpp>
@@ -78,12 +78,11 @@ namespace anton_engine {
 
         // BS code to output anything on the screen
 #ifdef RENDER_CUBES
-        anton_stl::Vector<Mesh> meshes = assets::load_model("cube.obj");
+        // anton_stl::Vector<Mesh> meshes = assets::load_model("cube.obj");
         auto& container = meshes[0];
         Handle<Material> material_handle = material_manager->add(Material());
 #else
-        anton_stl::Vector<Mesh> meshes = assets::load_model("barrel.obj");
-        auto& container = meshes[0];
+        Mesh container = assets::load_mesh("barrel", 1);
         Material barrel_mat;
         {
             anton_stl::Vector<uint8_t> pixels;

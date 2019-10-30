@@ -1,5 +1,6 @@
 #include <asset_importing.hpp>
 
+#include <anton_stl/string.hpp>
 #include <anton_stl/vector.hpp>
 #include <importers/image.hpp>
 #include <importers/mesh.hpp>
@@ -89,7 +90,7 @@ namespace anton_engine::asset_importing {
         file.write(reinterpret_cast<char const*>(image.data.data()), image_bytes);
     }
 
-    void import(std::filesystem::path const& path) {
+    void import_image(std::filesystem::path const& path) {
         // TODO convert from gamma encoded/srgb space to linear
         // TODO include necessary info in the output file
         // TODO meta files
@@ -109,11 +110,83 @@ namespace anton_engine::asset_importing {
             return;
         }
 
-        // if (importers::test_obj(file)) {
-        //     anton_stl::Vector<importers::Mesh> meshes = importers::import_obj(file);
-        //     write_meshes();
-        // }
+        throw std::runtime_error("Unsupported file format");
+    }
+
+    static void compute_tangents(Vertex& vert1, Vertex& vert2, Vertex& vert3) {
+        Vector3 const delta_pos1 = vert2.position - vert1.position;
+        Vector3 const delta_pos2 = vert3.position - vert1.position;
+        Vector2 const delta_uv1 = vert2.uv_coordinates - vert1.uv_coordinates;
+        Vector2 const delta_uv2 = vert3.uv_coordinates - vert1.uv_coordinates;
+        float const determinant = delta_uv1.x * delta_uv2.y - delta_uv1.y * delta_uv2.x;
+        Vector3 const tangent = math::normalize((delta_uv2.y * delta_pos1 - delta_uv1.y * delta_pos2) / determinant);
+        Vector3 const bitangent = math::normalize((delta_uv1.x * delta_pos2 - delta_uv2.x * delta_pos1) / determinant);
+
+        vert1.tangent = vert2.tangent = vert3.tangent = tangent;
+        vert1.bitangent = vert2.bitangent = vert3.bitangent = bitangent;
+        //vert1.bitangent = vert2.bitangent = vert3.bitangent = Vector3::cross(vert1.normal, vert1.tangent);
+    }
+
+    static Mesh process_mesh(importers::Mesh const& imported_mesh) {
+        anton_stl::Vector<Vertex> vertices(imported_mesh.vertices.size());
+        anton_stl::Vector<u32> indices;
+        if (imported_mesh.texture_coordinates.size() != 0) {
+            for (isize i = 0; i < imported_mesh.vertices.size(); ++i) {
+                vertices[i].position = imported_mesh.vertices[i];
+                vertices[i].normal = imported_mesh.normals[i];
+                vertices[i].uv_coordinates = Vector2(imported_mesh.texture_coordinates[i]);
+            }
+        } else {
+            for (isize i = 0; i < imported_mesh.vertices.size(); ++i) {
+                vertices[i].position = imported_mesh.vertices[i];
+                vertices[i].normal = imported_mesh.normals[i];
+            }
+        }
+
+        for (importers::Face const& imported_face: imported_mesh.faces) {
+            for (u32 const index: imported_face.indices) {
+                indices.push_back(index);
+            }
+        }
+
+        for (isize i = 0; i < indices.size(); i += 3) {
+            compute_tangents(vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]);
+        }
+
+        return {std::move(vertices), std::move(indices)};
+    }
+
+    Imported_Meshes import_mesh(std::filesystem::path const& path) {
+        anton_stl::Vector<u8> const file = utils::read_file_binary(path);
+        std::string const extension = path.extension().generic_string();
+        if (importers::test_obj(extension.data(), file)) {
+            anton_stl::Vector<importers::Mesh> meshes = importers::import_obj(file);
+
+            Imported_Meshes imported_meshes;
+            imported_meshes.hierarchy.resize(meshes.size(), -1);
+            for (importers::Mesh const& mesh: meshes) {
+                imported_meshes.meshes.push_back(process_mesh(mesh));
+            }
+
+            return imported_meshes;
+        }
 
         throw std::runtime_error("Unsupported file format");
+    }
+
+    void save_meshes(anton_stl::String_View filename, anton_stl::Slice<u64 const> const guids, anton_stl::Slice<Mesh const> meshes) {
+        anton_stl::String file_name_with_ext(filename);
+        file_name_with_ext.append(u8".mesh");
+        std::filesystem::path path = utils::concat_paths(paths::assets_directory(), std::filesystem::path(file_name_with_ext.data()));
+        std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc);
+        for (isize i = 0; i < guids.size(); ++i) {
+            out.write(reinterpret_cast<char const*>(&guids[i]), sizeof(u64));
+            i64 const vertex_count = meshes[i].vertices.size();
+            out.write(reinterpret_cast<char const*>(&vertex_count), sizeof(i64));
+            out.write(reinterpret_cast<char const*>(meshes[i].vertices.data()), vertex_count * sizeof(Vertex));
+            i64 const index_count = meshes[i].indices.size();
+            out.write(reinterpret_cast<char const*>(&index_count), sizeof(i64));
+            out.write(reinterpret_cast<char const*>(meshes[i].indices.data()), index_count * sizeof(u32));
+        }
     }
 } // namespace anton_engine::asset_importing

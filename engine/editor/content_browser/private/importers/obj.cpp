@@ -3,6 +3,15 @@
 #include <cctype>
 
 namespace anton_engine::importers {
+    bool test_obj(anton_stl::String_View const file_extension, anton_stl::Slice<u8 const> const) {
+        if (file_extension == u8".obj") {
+            return true;
+        } else {
+            // TODO: Look for keywords in the file.
+            return false;
+        }
+    }
+
     using stream_iterator = anton_stl::Vector<uint8_t>::const_iterator;
 
     struct Face_Internal {

@@ -22,7 +22,7 @@ namespace anton_engine {
         // Loads texture pixels
         Texture_Format load_texture_no_mipmaps(std::string const& filename, uint64_t texture_id, anton_stl::Vector<uint8_t>& pixels);
 
-        anton_stl::Vector<Mesh> load_model(std::filesystem::path const& filename);
+        Mesh load_mesh(std::filesystem::path const& filename, u64 const guid);
     } // namespace assets
 } // namespace anton_engine
 

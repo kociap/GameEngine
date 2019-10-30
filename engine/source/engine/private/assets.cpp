@@ -2,6 +2,7 @@
 
 #include <glad.hpp>
 
+#include <anton_int.hpp>
 #include <anton_stl/vector.hpp>
 #include <build_config.hpp>
 #include <debug_macros.hpp> // CHECK_GL_ERRORS
@@ -110,64 +111,35 @@ namespace anton_engine::assets {
 #endif
     }
 
-    static void compute_tangents(Vertex& vert1, Vertex& vert2, Vertex& vert3) {
-        Vector3 const delta_pos1 = vert2.position - vert1.position;
-        Vector3 const delta_pos2 = vert3.position - vert1.position;
-        Vector2 const delta_uv1 = vert2.uv_coordinates - vert1.uv_coordinates;
-        Vector2 const delta_uv2 = vert3.uv_coordinates - vert1.uv_coordinates;
-        float const determinant = delta_uv1.x * delta_uv2.y - delta_uv1.y * delta_uv2.x;
-        Vector3 const tangent = math::normalize((delta_uv2.y * delta_pos1 - delta_uv1.y * delta_pos2) / determinant);
-        Vector3 const bitangent = math::normalize((delta_uv1.x * delta_pos2 - delta_uv2.x * delta_pos1) / determinant);
-
-        vert1.tangent = vert2.tangent = vert3.tangent = tangent;
-        vert1.bitangent = vert2.bitangent = vert3.bitangent = bitangent;
-        //vert1.bitangent = vert2.bitangent = vert3.bitangent = Vector3::cross(vert1.normal, vert1.tangent);
-    }
-
-    static Mesh process_mesh(importers::Mesh const& imported_mesh) {
-        anton_stl::Vector<Vertex> vertices(imported_mesh.vertices.size());
-        anton_stl::Vector<uint32_t> indices;
-        if (imported_mesh.texture_coordinates.size() != 0) {
-            for (anton_stl::ssize_t i = 0; i < imported_mesh.vertices.size(); ++i) {
-                vertices[i].position = imported_mesh.vertices[i];
-                vertices[i].normal = imported_mesh.normals[i];
-                vertices[i].uv_coordinates = Vector2(imported_mesh.texture_coordinates[i]);
-            }
-        } else {
-            for (anton_stl::ssize_t i = 0; i < imported_mesh.vertices.size(); ++i) {
-                vertices[i].position = imported_mesh.vertices[i];
-                vertices[i].normal = imported_mesh.normals[i];
+    Mesh load_mesh(std::filesystem::path const& filename, u64 const guid) {
+        // TODO: Shipping build. Files will be packed.
+        auto asset_path = utils::concat_paths(paths::assets_directory(), filename);
+        asset_path.replace_extension(".mesh");
+        std::ifstream file(asset_path, std::ios::in | std::ios::binary);
+        while (file) {
+            u64 extracted_guid;
+            file.read(reinterpret_cast<char*>(&extracted_guid), sizeof(u64));
+            if (extracted_guid != guid) {
+                i64 vertex_count;
+                file.read(reinterpret_cast<char*>(&vertex_count), sizeof(i64));
+                file.seekg(vertex_count * sizeof(Vertex), std::ios::cur);
+                i64 index_count;
+                file.read(reinterpret_cast<char*>(&index_count), sizeof(i64));
+                file.seekg(index_count * sizeof(u32), std::ios::cur);
+            } else {
+                i64 vertex_count;
+                file.read(reinterpret_cast<char*>(&vertex_count), sizeof(i64));
+                anton_stl::Vector<Vertex> vertices(vertex_count);
+                file.read(reinterpret_cast<char*>(vertices.data()), vertex_count * sizeof(Vertex));
+                i64 index_count;
+                file.read(reinterpret_cast<char*>(&index_count), sizeof(i64));
+                anton_stl::Vector<u32> indices(index_count);
+                file.read(reinterpret_cast<char*>(indices.data()), index_count * sizeof(u32));
+                return {anton_stl::move(vertices), anton_stl::move(indices)};
             }
         }
 
-        for (importers::Face const& imported_face: imported_mesh.faces) {
-            for (uint32_t index: imported_face.indices) { // TODO use vector's assign once I implement it correctly
-                indices.push_back(index);
-            }
-        }
-
-        for (anton_stl::ssize_t i = 0; i < indices.size(); i += 3) {
-            compute_tangents(vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]);
-        }
-
-        return {std::move(vertices), std::move(indices)};
-    }
-
-    anton_stl::Vector<Mesh> load_model(std::filesystem::path const& path) {
-        // TODO will not compile in shipping build
-        auto asset_path = utils::concat_paths(paths::assets_directory(), path);
-        auto extension = asset_path.extension();
-        anton_stl::Vector<Mesh> meshes;
-        if (extension == ".obj") { // TODO Don't load directly from obj. Use a proprietary format
-            auto file = utils::read_file_binary(asset_path);
-            auto imported_meshes = importers::import_obj(file);
-            for (auto& imported_mesh: imported_meshes) {
-                flip_texture_coordinates(imported_mesh.texture_coordinates);
-                meshes.push_back(process_mesh(imported_mesh));
-            }
-        } else {
-            throw std::runtime_error("Unsupported file format");
-        }
-        return meshes;
+        // TODO: Fix this very primitive error handling.
+        throw std::runtime_error("Mesh not found");
     }
 } // namespace anton_engine::assets

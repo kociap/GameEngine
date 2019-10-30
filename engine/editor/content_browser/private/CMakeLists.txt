@@ -4,6 +4,7 @@ set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/importers/obj.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/importers/png.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/importers/tga.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/asset_guid.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/asset_importing.cpp"
     PARENT_SCOPE
 )
@@ -16,7 +17,6 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/importers/obj.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/importers/png.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/importers/tga.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/postprocess.hpp"
     PARENT_SCOPE
 )
 

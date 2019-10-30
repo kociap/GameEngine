@@ -1,6 +1,8 @@
 set(HEADER_FILES 
     ${HEADER_FILES}
+    "${CMAKE_CURRENT_SOURCE_DIR}/asset_guid.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/asset_importing.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/postprocess.hpp"
     PARENT_SCOPE
 )
 

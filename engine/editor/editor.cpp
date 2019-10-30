@@ -146,11 +146,13 @@ namespace anton_engine {
     }
 } // namespace anton_engine
 
+#include <asset_guid.hpp>
 #include <asset_importing.hpp>
 #include <assets.hpp>
 #include <components/directional_light_component.hpp>
 #include <components/point_light_component.hpp>
 #include <components/static_mesh_component.hpp>
+#include <postprocess.hpp>
 
 #include <serialization/archives/binary.hpp>
 #include <serialization/serialization.hpp>
@@ -160,6 +162,23 @@ namespace anton_engine {
 
         // asset_importing::import("C:/Users/An0num0us/Documents/GameEngine/assets_main/barrel_texture.png");
         // asset_importing::import("C:/Users/An0num0us/Documents/GameEngine/assets_main/barrel_normal_map.png");
+
+        // {
+        //     asset_importing::Imported_Meshes imported_meshes = asset_importing::import_mesh("C:/Users/An0num0us/Documents/GameEngine_Game/assets/barrel.obj");
+        //     for (Mesh& mesh: imported_meshes.meshes) {
+        //         flip_texture_coordinates(mesh.vertices);
+        //     }
+        //     u64 const barrel_guids[] = {1};
+        //     asset_importing::save_meshes("barrel", barrel_guids, imported_meshes.meshes);
+        // }
+        // {
+        //     asset_importing::Imported_Meshes imported_meshes = asset_importing::import_mesh("C:/Users/An0num0us/Documents/GameEngine_Game/assets/boxes1.obj");
+        //     for (Mesh& mesh: imported_meshes.meshes) {
+        //         flip_texture_coordinates(mesh.vertices);
+        //     }
+        //     u64 const boxes_guids[] = {2, 3, 4};
+        //     asset_importing::save_meshes("boxes1", boxes_guids, imported_meshes.meshes);
+        // }
 
 #ifdef RENDER_CUBES
         auto basic_frag = assets::load_shader_file("basicfrag.2.frag");
@@ -177,12 +196,11 @@ namespace anton_engine {
 
         // BS code to output anything on the screen
 #ifdef RENDER_CUBES
-        anton_stl::Vector<Mesh> meshes = assets::load_model("cube.obj");
+        // anton_stl::Vector<Mesh> meshes = assets::load_model("cube.obj");
         auto& container = meshes[0];
         Handle<Material> material_handle = material_manager->add(Material());
 #else
-        anton_stl::Vector<Mesh> meshes = assets::load_model("barrel.obj");
-        auto& container = meshes[0];
+        Mesh container = assets::load_mesh("barrel", 1);
         Material barrel_mat;
         {
             anton_stl::Vector<uint8_t> pixels;
@@ -195,13 +213,15 @@ namespace anton_engine {
         Handle<Material> const material_handle = material_manager->add(std::move(barrel_mat));
 #endif
 
-        anton_stl::Vector<Mesh> boxes_meshes = assets::load_model("boxes1.obj");
+        Mesh boxes1_mesh_0 = assets::load_mesh("boxes1", 2);
+        Mesh boxes1_mesh_1 = assets::load_mesh("boxes1", 3);
+        Mesh boxes1_mesh_2 = assets::load_mesh("boxes1", 4);
 
         Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
         Handle<Mesh> quad_mesh = mesh_manager->add(generate_plane());
-        Handle<Mesh> boxes1_mesh = mesh_manager->add(anton_stl::move(boxes_meshes[0]));
-        Handle<Mesh> boxes2_mesh = mesh_manager->add(anton_stl::move(boxes_meshes[1]));
-        Handle<Mesh> boxes3_mesh = mesh_manager->add(anton_stl::move(boxes_meshes[2]));
+        Handle<Mesh> boxes1_mesh = mesh_manager->add(anton_stl::move(boxes1_mesh_0));
+        Handle<Mesh> boxes2_mesh = mesh_manager->add(anton_stl::move(boxes1_mesh_1));
+        Handle<Mesh> boxes3_mesh = mesh_manager->add(anton_stl::move(boxes1_mesh_2));
 
 #if DESERIALIZE
         std::filesystem::path serialization_in_path = utils::concat_paths(paths::project_directory(), "ecs.bin");
