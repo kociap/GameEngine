@@ -72,7 +72,7 @@ namespace anton_engine::anton_stl {
             return _data;
         }
 
-        Slice subslice(size_type first, size_type last) {
+        Slice subslice(size_type first, size_type last) const {
             return {_data + first, _data + last};
         }
 
