@@ -63,6 +63,16 @@ namespace anton_engine::anton_stl {
         anton_stl::copy(cstr, cstr + n, _data);
     }
 
+    String::String(String_View const sv): String(sv, allocator_type()) {}
+
+    String::String(String_View const sv, allocator_type const& allocator): _allocator(allocator) {
+        _size = sv.size_bytes();
+        _capacity = math::max(_capacity - 1, _size) + 1;
+        _data = reinterpret_cast<value_type*>(_allocator.allocate(_capacity, alignof(value_type)));
+        memset(_data + _size, 0, _capacity - _size);
+        anton_stl::copy(sv.bytes_begin(), sv.bytes_end(), _data);
+    }
+
     String::String(String const& other): String(other, allocator_type()) {}
 
     String::String(String const& other, allocator_type const& allocator): _allocator(allocator) {

@@ -48,6 +48,8 @@ namespace anton_engine::anton_stl {
         String(value_type const*, size_type);
         // Constructs String from null-terminated UTF-8 string
         String(value_type const*, size_type, allocator_type const&);
+        explicit String(String_View);
+        explicit String(String_View, allocator_type const&);
         // Does not copy the allocator
         String(String const&);
         String(String const&, allocator_type const&);

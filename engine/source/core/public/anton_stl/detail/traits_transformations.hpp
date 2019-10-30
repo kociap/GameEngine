@@ -76,6 +76,24 @@ namespace anton_engine::anton_stl {
     using remove_reference = typename Remove_Reference<T>::type;
 
     template <typename T>
+    struct Remove_Pointer {
+        using type = T;
+    };
+
+    template <typename T>
+    struct Remove_Pointer<T*> {
+        using type = T;
+    };
+
+    template <typename T>
+    struct Remove_Pointer<T* const> {
+        using type = T;
+    };
+
+    template <typename T>
+    using remove_pointer = typename Remove_Pointer<T>::type;
+
+    template <typename T>
     struct Remove_Const {
         using type = T;
     };
