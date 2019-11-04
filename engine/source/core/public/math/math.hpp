@@ -59,17 +59,8 @@ namespace anton_engine::math {
         return std::cosf(angle);
     }
 
-    inline float abs(float a) {
-        return std::abs(a);
-    }
-
-    inline float step_to_value(float current, float target, float change) {
-        float delta = target - current;
-        if (abs(delta) > change) {
-            return current + sign(delta) * change;
-        } else {
-            return target;
-        }
+    constexpr float abs(float a) {
+        return a < 0.0f ? -a : a;
     }
 
     template <typename T>
@@ -80,6 +71,46 @@ namespace anton_engine::math {
     template <typename T>
     constexpr T min(T a, T b) {
         return a < b ? a : b;
+    }
+
+    template <typename T>
+    constexpr T clamp(T x, T lower_limit, T upper_limit) {
+        if (x < lower_limit) {
+            return lower_limit;
+        }
+
+        if (x > upper_limit) {
+            return upper_limit;
+        }
+
+        return x;
+    }
+
+    constexpr float step_to_value(float current, float target, float change) {
+        float delta = target - current;
+        if (abs(delta) > change) {
+            return current + sign(delta) * change;
+        } else {
+            return target;
+        }
+    }
+
+    // smoothstep
+    //
+    constexpr float smoothstep(float edge0, float edge1, float x) {
+        x = clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+        return x * x * (3.0f - 2.0f * x);
+    }
+
+    // smootherstep
+    // Improved version of smoothstep that has zero 1st and 2nd order derivatives at egde0 and edge1.
+    //
+    // Returns 0 if x <= edge0, 1 if x >= edge1, otherwise computes 6x^5 - 15x^4 + 10x^3
+    // with x rescaled to range [0.0, 1.0].
+    //
+    constexpr float smootherstep(float edge0, float edge1, float x) {
+        x = clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+        return x * x * x * ((6.0f * x - 15.0f) * x + 10.0f);
     }
 
     // popcount
