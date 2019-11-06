@@ -1,22 +1,17 @@
 #ifndef PHYSICS_INTERSECTION_TESTS_HPP_INCLUDE
 #define PHYSICS_INTERSECTION_TESTS_HPP_INCLUDE
 
+#include <aabb.hpp>
+#include <anton_stl/optional.hpp>
+#include <intersections_common.hpp>
 #include <line.hpp>
 #include <math/matrix4.hpp>
 #include <math/vector3.hpp>
 #include <obb.hpp>
-#include <optional>
 #include <ray.hpp>
 
 namespace anton_engine {
     class Mesh;
-
-    class Raycast_Hit {
-    public:
-        Vector3 hit_point;
-        Vector3 barycentric_coordinates;
-        float distance = 0;
-    };
 
     class Linecast_Hit {
     public:
@@ -24,12 +19,11 @@ namespace anton_engine {
         float distance = 0;
     };
 
-    std::optional<Raycast_Hit> intersect_ray_triangle(Ray, Vector3, Vector3, Vector3);
-    bool test_ray_obb(Ray, OBB);
-    std::optional<Raycast_Hit> intersect_ray_obb(Ray, OBB);
+    anton_stl::Optional<Raycast_Hit> intersect_ray_triangle(Ray, Vector3, Vector3, Vector3);
+    anton_stl::Optional<Raycast_Hit> intersect_ray_quad(Ray, Vector3, Vector3, Vector3, Vector3);
     bool test_ray_mesh(Ray, Mesh const&);
-    std::optional<Raycast_Hit> intersect_ray_mesh(Ray, Mesh const&, Matrix4 model_transform);
-    std::optional<Linecast_Hit> intersect_line_plane(Line, Vector3 plane_normal, float plane_distance);
+    anton_stl::Optional<Raycast_Hit> intersect_ray_mesh(Ray, Mesh const&, Matrix4 model_transform);
+    anton_stl::Optional<Linecast_Hit> intersect_line_plane(Line, Vector3 plane_normal, float plane_distance);
 } // namespace anton_engine
 
 #endif // !PHYSICS_INTERSECTION_TESTS_HPP_INCLUDE

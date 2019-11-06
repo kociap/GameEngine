@@ -1,6 +1,7 @@
 #ifndef EDITOR_LEVEL_EDITOR_VIEWPORT_HPP_INCLUDE
 #define EDITOR_LEVEL_EDITOR_VIEWPORT_HPP_INCLUDE
 
+#include <anton_stl/slice.hpp>
 #include <anton_stl/vector.hpp>
 #include <components/camera.hpp>
 #include <components/transform.hpp>
@@ -24,6 +25,35 @@ namespace anton_engine {
         class Renderer;
     }
 
+    enum class Gizmo_Transform_Type {
+        translate,
+        rotate,
+        scale,
+    };
+
+    enum class Gizmo_Transform_Space {
+        world,
+        local,
+        // view,
+        // gimbal,
+    };
+
+    struct Gizmo_Data {
+        Gizmo_Transform_Type type;
+        Gizmo_Transform_Space space;
+    };
+
+    struct Gizmo_Grab_Data {
+        // Transform before applying gizmo transformations
+        Transform cached_transform;
+        Vector3 grabbed_axis;
+        // Point in the world where mouse originally grabbed gizmo
+        Vector3 mouse_grab_point;
+        Vector3 plane_normal;
+        float plane_distance;
+        bool grabbed;
+    };
+
     class Viewport: public QWidget {
         Q_OBJECT
 
@@ -34,7 +64,7 @@ namespace anton_engine {
 
         void process_actions(Matrix4 view_mat, Matrix4 projection_mat, Matrix4 inv_view_mat, Matrix4 inv_projection_mat, Transform camera_transform,
                              anton_stl::Vector<Entity>& selected_entities);
-        void render(Matrix4 view_mat, Matrix4 projection_mat, Camera, Transform camera_transform, anton_stl::Vector<Entity> const&);
+        void render(Matrix4 view_mat, Matrix4 projection_mat, Camera, Transform camera_transform, anton_stl::Slice<Entity const>);
         void resize(int32_t w, int32_t h);
         bool is_cursor_locked() const;
         void lock_cursor_at(int32_t x, int32_t y);
@@ -60,13 +90,8 @@ namespace anton_engine {
         Entity viewport_entity = null_entity;
         int32_t index;
 
-        // No idea what most of that means
-        Transform cached_gizmo_transform;
-        Vector3 gizmo_mouse_grab_point;
-        Vector3 gizmo_grabbed_axis;
-        Vector3 gizmo_plane_normal;
-        float gizmo_plane_distance;
-        bool gizmo_grabbed = false;
+        Gizmo_Data _gizmo;
+        Gizmo_Grab_Data _gizmo_grab;
 
         // Mouse movement
         int32_t lock_pos_x = 0;

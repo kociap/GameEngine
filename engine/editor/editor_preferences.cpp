@@ -14,5 +14,10 @@ namespace anton_engine {
         // Color const axis_green = {0, 220.0f / 255.0f, 0};
         editor_preferences.grid_settings.axis_z_color = {15.f / 255.f, 77.f / 255.f, 186.f / 255.f};
         editor_preferences.grid_settings.grid_flags = grid_enabled | grid_axis_x | grid_axis_z;
+
+        editor_preferences.gizmo_settings.axis_x_color = {179.f / 255.f, 20.f / 255.f, 5.f / 255.f, 0.85f};
+        editor_preferences.gizmo_settings.axis_y_color = {0, 220.0f / 255.0f, 0, 0.85f};
+        editor_preferences.gizmo_settings.axis_z_color = {15.f / 255.f, 77.f / 255.f, 186.f / 255.f, 0.85f};
+        editor_preferences.gizmo_settings.size = 125;
     }
 } // namespace anton_engine

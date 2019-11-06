@@ -2,6 +2,7 @@ set(SOURCE_FILES
     ${SOURCE_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/intersection_tests.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/line.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/obb.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ray.cpp"
     PARENT_SCOPE
 )

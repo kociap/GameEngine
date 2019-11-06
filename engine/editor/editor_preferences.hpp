@@ -17,9 +17,19 @@ namespace anton_engine {
         u32 grid_flags;
     };
 
+    class Gizmo_Settings {
+    public:
+        Color axis_x_color;
+        Color axis_y_color;
+        Color axis_z_color;
+        // Size in pixels
+        u32 size;
+    };
+
     class Editor_Preferences {
     public:
         Grid_Settings grid_settings;
+        Gizmo_Settings gizmo_settings;
     };
 
     [[nodiscard]] Editor_Preferences& get_editor_preferences();

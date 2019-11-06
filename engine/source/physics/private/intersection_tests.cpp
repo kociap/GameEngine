@@ -7,7 +7,7 @@
 #include <mesh.hpp>
 
 namespace anton_engine {
-    std::optional<Raycast_Hit> intersect_ray_triangle(Ray ray, Vector3 a, Vector3 b, Vector3 c) {
+    anton_stl::Optional<Raycast_Hit> intersect_ray_triangle(Ray ray, Vector3 a, Vector3 b, Vector3 c) {
         Vector3 ao = ray.origin - a;
         Vector3 ab = b - a;
         Vector3 ac = c - a;
@@ -17,55 +17,11 @@ namespace anton_engine {
         float v = result.y;
         float t = result.z;
         if (u < 0 || v < 0 || u + v > 1 || t < 0) {
-            return std::nullopt;
+            return anton_stl::null_optional;
         }
 
         Vector3 r(a + u * ab + v * ac);
         return Raycast_Hit{r, {u, v, 1 - u - v}, t};
-    }
-
-    bool test_ray_obb(Ray ray, OBB obb) {
-        Matrix4 rotation = Matrix4(Vector4{obb.local_x, 0}, Vector4{obb.local_y, 0}, Vector4{obb.local_z, 0}, Vector4{0, 0, 0, 1});
-        // Center OBB at 0
-        Matrix4 obb_space = math::transform::translate(-obb.center) * rotation;
-        Vector4 ray_dir = Vector4(ray.direction, 0) * rotation;
-        Vector4 ray_origin = Vector4(ray.origin, 1) * obb_space;
-        // AABB slab test
-        float tmin = -math::constants::infinity;
-        float tmax = math::constants::infinity;
-        for (int i = 0; i < 3; ++i) {
-            float tx1 = (obb.halfwidths[i] - ray_origin[i]) / ray_dir[i];
-            float tx2 = (-obb.halfwidths[i] - ray_origin[i]) / ray_dir[i];
-            tmax = math::min(tmax, math::max(tx1, tx2));
-            tmin = math::max(tmin, math::min(tx1, tx2));
-        }
-        return tmax >= 0 && tmax >= tmin;
-    }
-
-    std::optional<Raycast_Hit> intersect_ray_obb(Ray ray, OBB obb) {
-        Matrix4 rotation = Matrix4(Vector4{obb.local_x, 0}, Vector4{obb.local_y, 0}, Vector4{obb.local_z, 0}, Vector4{0, 0, 0, 1});
-        // Center OBB at 0
-        Matrix4 obb_space = math::transform::translate(-obb.center) * rotation;
-        Vector4 ray_dir = Vector4(ray.direction, 0) * rotation;
-        Vector4 ray_origin = Vector4(ray.origin, 1) * obb_space;
-        // AABB slab test
-        float tmin = -math::constants::infinity;
-        float tmax = math::constants::infinity;
-        for (int i = 0; i < 3; ++i) {
-            float tx1 = (obb.halfwidths[i] - ray_origin[i]) / ray_dir[i];
-            float tx2 = (-obb.halfwidths[i] - ray_origin[i]) / ray_dir[i];
-            tmax = math::min(tmax, math::max(tx1, tx2));
-            tmin = math::max(tmin, math::min(tx1, tx2));
-        }
-
-        if (tmax >= 0 && tmax >= tmin) {
-            Raycast_Hit out;
-            out.distance = tmax;
-            out.hit_point = ray.origin + ray.direction * tmax;
-            return out;
-        } else {
-            return std::nullopt;
-        }
     }
 
     bool test_ray_mesh(Ray ray, Mesh const& mesh) {
@@ -79,7 +35,7 @@ namespace anton_engine {
         return false;
     }
 
-    std::optional<Raycast_Hit> intersect_ray_mesh(Ray ray, Mesh const& mesh, Matrix4 model_transform) {
+    anton_stl::Optional<Raycast_Hit> intersect_ray_mesh(Ray ray, Mesh const& mesh, Matrix4 model_transform) {
         bool hit_flag = false;
         Raycast_Hit closest_hit;
         closest_hit.distance = math::constants::infinity;
@@ -98,11 +54,11 @@ namespace anton_engine {
         if (hit_flag) {
             return closest_hit;
         } else {
-            return std::nullopt;
+            return anton_stl::null_optional;
         }
     }
 
-    std::optional<Linecast_Hit> intersect_line_plane(Line line, Vector3 normal, float distance) {
+    anton_stl::Optional<Linecast_Hit> intersect_line_plane(Line line, Vector3 normal, float distance) {
         float angle_cos = math::dot(line.direction, normal);
         if (math::abs(angle_cos) > math::constants::epsilon) {
             float coeff = (distance - math::dot(line.origin, normal)) / angle_cos;
@@ -111,7 +67,7 @@ namespace anton_engine {
             out.hit_point = line.origin + line.direction * coeff;
             return out;
         } else {
-            return std::nullopt;
+            return anton_stl::null_optional;
         }
     }
 } // namespace anton_engine
