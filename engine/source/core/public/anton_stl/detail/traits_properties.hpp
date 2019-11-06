@@ -192,22 +192,69 @@ namespace anton_engine::anton_stl {
     // Note: We assume that all compilers we use support __is_assignable,
     // which apparently is the case for Clang, MSVC and GCC
     //
-    template <typename T, typename U>
-    struct Is_Assignable: Bool_Constant<__is_assignable(T, U)> {
-        static_assert(disjunction<Is_Complete_Type<T>, Is_Void<T>, Is_Unbounded_Array<T>>,
-                      "Template argument must be a complete type, void or an unbounded array.");
+    template <typename To, typename From>
+    struct Is_Assignable: Bool_Constant<__is_assignable(To, From)> {
+        static_assert(disjunction<Is_Complete_Type<To>, Is_Void<To>, Is_Unbounded_Array<To>, Is_Complete_Type<From>, Is_Void<From>, Is_Unbounded_Array<From>>,
+                      "Template arguments must be complete types, void or unbounded arrays.");
     };
 
     template <typename T, typename U>
     constexpr bool is_assignable = Is_Assignable<T, U>::value;
 
+    // Is_Copy_Assignable
+    //
+    template <typename T>
+    struct Is_Copy_Assignable: Is_Assignable<add_lvalue_reference<T>, add_lvalue_reference<T>> {
+        static_assert(disjunction<Is_Complete_Type<T>, Is_Void<T>, Is_Unbounded_Array<T>>,
+                      "Template argument must be a complete type, void or an unbounded array.");
+    };
+
+    template <typename T>
+    constexpr bool is_copy_assignable = Is_Copy_Assignable<T>::value;
+
     // Is_Move_Assignable
     //
     template <typename T>
-    struct Is_Move_Assignable: Is_Assignable<add_lvalue_reference<T>, add_rvalue_reference<T>> {};
+    struct Is_Move_Assignable: Is_Assignable<add_lvalue_reference<T>, add_rvalue_reference<T>> {
+        static_assert(disjunction<Is_Complete_Type<T>, Is_Void<T>, Is_Unbounded_Array<T>>,
+                      "Template argument must be a complete type, void or an unbounded array.");
+    };
 
     template <typename T>
     constexpr bool is_move_assignable = Is_Move_Assignable<T>::value;
+
+    // Is_Trivially_Assignable
+    //
+    template <typename To, typename From>
+    struct Is_Trivially_Assignable: Bool_Constant<__is_trivially_assignable(To, From)> {
+        static_assert(disjunction<Is_Complete_Type<To>, Is_Void<To>, Is_Unbounded_Array<To>, Is_Complete_Type<From>, Is_Void<From>, Is_Unbounded_Array<From>>,
+                      "Template arguments must be complete types, void or unbounded arrays.");
+    };
+
+    template <typename To, typename From>
+    constexpr bool is_trivially_assignable = Is_Trivially_Assignable<To, From>::value;
+
+    // Is_Trivially_Copy_Assignable
+    //
+    template <typename T>
+    struct Is_Trivially_Copy_Assignable: Is_Trivially_Assignable<add_lvalue_reference<T>, add_lvalue_reference<T>> {
+        static_assert(disjunction<Is_Complete_Type<T>, Is_Void<T>, Is_Unbounded_Array<T>>,
+                      "Template argument must be a complete type, void or an unbounded array.");
+    };
+
+    template <typename T>
+    constexpr bool is_trivially_copy_assignable = Is_Trivially_Copy_Assignable<T>::value;
+
+    // Is_Trivially_Move_Assignable
+    //
+    template <typename T>
+    struct Is_Trivially_Move_Assignable: Is_Trivially_Assignable<add_lvalue_reference<T>, add_rvalue_reference<T>> {
+        static_assert(disjunction<Is_Complete_Type<T>, Is_Void<T>, Is_Unbounded_Array<T>>,
+                      "Template argument must be a complete type, void or an unbounded array.");
+    };
+
+    template <typename T>
+    constexpr bool is_trivially_move_assignable = Is_Trivially_Move_Assignable<T>::value;
 
     // Is_Constructible
     //
