@@ -5,7 +5,7 @@
     </Type>
 
     <Type Name="anton_engine::Vector3">
-        <DisplayString>{{ x = {x}, y = {y}, z = {z}}}</DisplayString>
+        <DisplayString>{{ x = {x}, y = {y}, z = {z} }}</DisplayString>
     </Type>
 
     <Type Name="anton_engine::Vector4">

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <!-- anton_engine::anton_stl::String -->
     <Type Name="anton_engine::anton_stl::String">
         <DisplayString>{_data, s8}</DisplayString>
         <StringView>_data, s8</StringView>
@@ -14,6 +15,7 @@
         </Expand>
     </Type>
 
+    <!-- anton_engine::anton_stl::String_View -->
     <Type Name="anton_engine::anton_stl::String_View">
         <DisplayString>{_begin, s8}</DisplayString>
         <StringView>_begin, s8</StringView>
@@ -26,6 +28,7 @@
         </Expand>
     </Type>
 
+    <!-- anton_engine::anton_stl::Static_Vector<T, Capacity> -->
     <Type Name="anton_engine::anton_stl::Static_Vector&lt;*,*&gt;">
         <DisplayString>{{ size = {_size}, capacity = {(uint64_t)$T2} }}</DisplayString>
         <Expand>
@@ -36,6 +39,7 @@
         </Expand>
     </Type>
 
+    <!-- anton_engine::anton_stl::Vector<T, Allocator> -->
     <Type Name="anton_engine::anton_stl::Vector&lt;*,*&gt;">
         <DisplayString>{{ size = {_size}, capacity = {_capacity} }}</DisplayString>
         <Expand>
@@ -43,6 +47,15 @@
                 <Size>_size</Size>
                 <ValuePointer>_data</ValuePointer>
             </ArrayItems>
+        </Expand>
+    </Type>
+
+    <!-- anton_engine::anton_stl::Optional<T> -->
+    <Type Name="anton_engine::anton_stl::Optional&lt;*&gt;">
+        <DisplayString Condition="_holds_value">{_value}</DisplayString>
+        <DisplayString Condition="!_holds_value">{{ Null }}</DisplayString>
+        <Expand>
+            <ExpandedItem Condition="_holds_value">_value</ExpandedItem>
         </Expand>
     </Type>
 </AutoVisualizer>
