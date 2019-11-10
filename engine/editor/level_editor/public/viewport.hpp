@@ -7,6 +7,7 @@
 #include <components/transform.hpp>
 #include <diagnostic_macros.hpp>
 #include <ecs/entity.hpp>
+#include <gizmo_context.hpp>
 #include <math/matrix4.hpp>
 #include <math/vector3.hpp>
 
@@ -24,35 +25,6 @@ namespace anton_engine {
     namespace rendering {
         class Renderer;
     }
-
-    enum class Gizmo_Transform_Type {
-        translate,
-        rotate,
-        scale,
-    };
-
-    enum class Gizmo_Transform_Space {
-        world,
-        local,
-        // view,
-        // gimbal,
-    };
-
-    struct Gizmo_Data {
-        Gizmo_Transform_Type type;
-        Gizmo_Transform_Space space;
-    };
-
-    struct Gizmo_Grab_Data {
-        // Transform before applying gizmo transformations
-        Transform cached_transform;
-        Vector3 grabbed_axis;
-        // Point in the world where mouse originally grabbed gizmo
-        Vector3 mouse_grab_point;
-        Vector3 plane_normal;
-        float plane_distance;
-        bool grabbed;
-    };
 
     class Viewport: public QWidget {
         Q_OBJECT
@@ -89,9 +61,6 @@ namespace anton_engine {
 
         Entity viewport_entity = null_entity;
         int32_t index;
-
-        Gizmo_Data _gizmo;
-        Gizmo_Grab_Data _gizmo_grab;
 
         // Mouse movement
         int32_t lock_pos_x = 0;

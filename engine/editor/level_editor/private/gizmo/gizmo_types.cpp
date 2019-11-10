@@ -6,6 +6,7 @@
 #include <builtin_shaders.hpp>
 #include <gizmo/gizmo.hpp>
 #include <glad.hpp>
+#include <intersection_tests.hpp>
 #include <intrinsics.hpp>
 #include <math/math.hpp>
 #include <math/quaternion.hpp>
@@ -261,20 +262,20 @@ namespace anton_engine::gizmo {
             meshes.vertices[4 * index + 2] = meshes.vertices[4 * index + 3] = end;
         };
 
-        create_line(0, {-0.05f, 0.05f, 0.0f}, {-0.05f, 0.05f, -0.8f});
-        create_line(1, {0.05f, 0.05f, 0.0f}, {0.05f, 0.05f, -0.8f});
-        create_line(2, {-0.05f, -0.05f, 0.0f}, {-0.05f, -0.05f, -0.8f});
-        create_line(3, {0.05f, -0.05f, 0.0f}, {0.05f, -0.05f, -0.8f});
+        create_line(0, {-0.05f, 0.05f, 0.0f}, {-0.05f, 0.05f, -0.1f});
+        create_line(1, {0.05f, 0.05f, 0.0f}, {0.05f, 0.05f, -0.1f});
+        create_line(2, {-0.05f, -0.05f, 0.0f}, {-0.05f, -0.05f, -0.1f});
+        create_line(3, {0.05f, -0.05f, 0.0f}, {0.05f, -0.05f, -0.1f});
 
         create_line(4, {-0.05f, 0.05f, 0.0f}, {0.05f, 0.05f, 0.0f});
         create_line(5, {-0.05f, -0.05f, 0.0f}, {0.05f, -0.05f, 0.0f});
-        create_line(6, {-0.05f, 0.05f, -0.8f}, {0.05f, 0.05f, -0.8f});
-        create_line(7, {-0.05f, -0.05f, -0.8f}, {0.05f, -0.05f, -0.8f});
+        create_line(6, {-0.05f, 0.05f, -0.1f}, {0.05f, 0.05f, -0.1f});
+        create_line(7, {-0.05f, -0.05f, -0.1f}, {0.05f, -0.05f, -0.1f});
 
         create_line(8, {-0.05f, -0.05f, 0.0f}, {-0.05f, 0.05f, 0.0f});
         create_line(9, {0.05f, -0.05f, 0.0f}, {0.05f, 0.05f, 0.0f});
-        create_line(10, {-0.05f, -0.05f, -0.8f}, {-0.05f, 0.05f, -0.8f});
-        create_line(11, {0.05f, -0.05f, -0.8f}, {0.05f, 0.05f, -0.8f});
+        create_line(10, {-0.05f, -0.05f, -0.1f}, {-0.05f, 0.05f, -0.1f});
+        create_line(11, {0.05f, -0.05f, -0.1f}, {0.05f, 0.05f, -0.1f});
 
         for (i32 i = 0; i < 16; ++i) {
             meshes.normals[i] = Vector3::forward;
@@ -305,7 +306,8 @@ namespace anton_engine::gizmo {
             uniform_color_shader.use();
             Matrix4 const vp_mat = view_projection_matrix;
             float scale = compute_scale(world_transform, arrow.size, vp_mat, viewport_size);
-            uniform_color_shader.set_matrix4("model_mat", math::transform::scale(scale) * world_transform);
+            uniform_color_shader.set_matrix4(
+                "model_mat", math::transform::scale(Vector3{1.0f, 1.0f, (arrow.draw_style == Arrow_3D_Style::cone ? 8.0f : 8.5f)} * scale) * world_transform);
             uniform_color_shader.set_matrix4("vp_mat", vp_mat);
             uniform_color_shader.set_vec4("color", Color(1.0f, 147.0f / 255.0f, 1.0f / 255.0f));
             uniform_color_shader.set_vec3("camera_pos", camera_pos);
@@ -315,8 +317,22 @@ namespace anton_engine::gizmo {
             glBindVertexBuffer(0, vbo, base_offset + offsetof(Intersection_Meshes, vertices), sizeof(Vector3));
             glBindVertexBuffer(1, vbo, base_offset + offsetof(Intersection_Meshes, normals), sizeof(Vector3));
             glBindVertexBuffer(2, vbo, base_offset + offsetof(Intersection_Meshes, scale_factors), sizeof(float));
-            for (u32 i = 0; i < 12; ++i) {
-                glDrawArrays(GL_TRIANGLE_STRIP, 4 * i, 4);
+
+            i32 first[12];
+            i32 count[12];
+            for (i32 i = 0; i < 12; ++i) {
+                first[i] = i * 4;
+                count[i] = 4;
+            }
+            glMultiDrawArrays(GL_TRIANGLE_STRIP, first, count, 12);
+            switch (arrow.draw_style) {
+                case Arrow_3D_Style::cube: {
+                    uniform_color_shader.set_matrix4("model_mat", math::transform::scale(Vector3{2.0f, 2.0f, 2.0f} * scale) *
+                                                                      math::transform::translate(Vector3{0.0f, 0.0f, -0.85f} * scale) * world_transform);
+                    glMultiDrawArrays(GL_TRIANGLE_STRIP, first, count, 12);
+                } break;
+                default:
+                    break;
             }
         }
 
@@ -349,43 +365,80 @@ namespace anton_engine::gizmo {
         float const scale = compute_scale(world_transform, arrow.size, view_projection_matrix, viewport_size);
         switch (arrow.draw_style) {
             case Arrow_3D_Style::cone: {
-                OBB line_bounding_vol;
-                line_bounding_vol.local_x = Vector3(Vector4(Vector3::right, 0.0f) * world_transform);
-                line_bounding_vol.local_y = Vector3(Vector4(Vector3::up, 0.0f) * world_transform);
-                line_bounding_vol.local_z = Vector3(Vector4(Vector3::forward, 0.0f) * world_transform);
-                line_bounding_vol.halfwidths = {0.05f * scale, 0.05f * scale, 0.4f * scale};
-                line_bounding_vol.center = math::transform::get_translation(world_transform) + line_bounding_vol.local_z * 0.4 * scale;
-                if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, line_bounding_vol); hit.holds_value()) {
-                    return hit->distance;
-                } else {
-                    return anton_stl::null_optional;
+                anton_stl::Optional<float> result = anton_stl::null_optional;
+
+                // OBB line_bounding_vol;
+                // line_bounding_vol.local_x = Vector3(Vector4(Vector3::right, 0.0f) * world_transform);
+                // line_bounding_vol.local_y = Vector3(Vector4(Vector3::up, 0.0f) * world_transform);
+                // line_bounding_vol.local_z = Vector3(Vector4(Vector3::forward, 0.0f) * world_transform);
+                // line_bounding_vol.halfwidths = {0.05f * scale, 0.05f * scale, 0.4f * scale};
+                // line_bounding_vol.center = math::transform::get_translation(world_transform) + line_bounding_vol.local_z * 0.4f * scale;
+                // if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, line_bounding_vol); hit.holds_value()) {
+                //     result = hit->distance;
+                // }
+
+                Vector3 const vertex1 = Vector3(Vector4(0, 0, 0, 1) * world_transform);
+                Vector3 const vertex2 = Vector3(Vector4(0, 0, -0.8f * scale, 1) * world_transform);
+                if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_cylinder(ray, vertex1, vertex2, 0.05f * scale);
+                    hit.holds_value() && (!result || hit->distance < *result)) {
+                    result = hit->distance;
                 }
+
+                Vector3 const vertex = Vector3(Vector4(0.0f, 0.0f, -1.05f, 1.0f) * math::transform::scale(scale) * world_transform);
+                Vector3 const direction = Vector3(Vector4(-Vector3::forward, 0.0f) * world_transform);
+                // 0.2 height, 0.05 radius
+                float const angle_cos = 0.970143f;
+                float const height = 0.3f * scale;
+                if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_cone(ray, vertex, direction, angle_cos, height);
+                    hit.holds_value() && (!result || hit->distance < *result)) {
+                    result = hit->distance;
+                }
+
+                return result;
             }
             case Arrow_3D_Style::cube: {
-                OBB line_bounding_vol;
-                line_bounding_vol.local_x = Vector3(Vector4(Vector3::right, 0.0f) * world_transform);
-                line_bounding_vol.local_y = Vector3(Vector4(Vector3::up, 0.0f) * world_transform);
-                line_bounding_vol.local_z = Vector3(Vector4(Vector3::forward, 0.0f) * world_transform);
-                line_bounding_vol.halfwidths = {0.05f * scale, 0.05f * scale, 0.4f * scale};
-                line_bounding_vol.center = math::transform::get_translation(world_transform) + line_bounding_vol.local_z * 0.4;
-                if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, line_bounding_vol); hit.holds_value()) {
-                    return hit->distance;
-                } else {
-                    return anton_stl::null_optional;
+                anton_stl::Optional<float> result = anton_stl::null_optional;
+
+                // OBB line_bounding_vol;
+                // line_bounding_vol.local_x = Vector3(Vector4(Vector3::right, 0.0f) * world_transform);
+                // line_bounding_vol.local_y = Vector3(Vector4(Vector3::up, 0.0f) * world_transform);
+                // line_bounding_vol.local_z = Vector3(Vector4(Vector3::forward, 0.0f) * world_transform);
+                // line_bounding_vol.halfwidths = {0.05f * scale, 0.05f * scale, 0.425f * scale};
+                // line_bounding_vol.center = math::transform::get_translation(world_transform) + line_bounding_vol.local_z * 0.425f * scale;
+                // if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, line_bounding_vol); hit.holds_value()) {
+                //     result = hit->distance;
+                // }
+
+                Vector3 const vertex1 = Vector3(Vector4(0, 0, 0, 1) * world_transform);
+                Vector3 const vertex2 = Vector3(Vector4(0, 0, -0.8f * scale, 1) * world_transform);
+                if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_cylinder(ray, vertex1, vertex2, 0.05f * scale);
+                    hit.holds_value() && (!result || hit->distance < *result)) {
+                    result = hit->distance;
                 }
+
+                OBB cube_bounding_vol;
+                cube_bounding_vol.local_x = Vector3(Vector4(Vector3::right, 0.0f) * world_transform);
+                cube_bounding_vol.local_y = Vector3(Vector4(Vector3::up, 0.0f) * world_transform);
+                cube_bounding_vol.local_z = Vector3(Vector4(Vector3::forward, 0.0f) * world_transform);
+                cube_bounding_vol.halfwidths = {0.1f * scale, 0.1f * scale, 0.1f * scale};
+                cube_bounding_vol.center = math::transform::get_translation(world_transform) + cube_bounding_vol.local_z * 0.95f * scale;
+                if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, cube_bounding_vol);
+                    hit.holds_value() && (!result || hit->distance < *result)) {
+                    result = hit->distance;
+                }
+
+                return result;
             }
         }
     }
 
-    void draw_dial_3d(Dial_3D const dial, Matrix4 const world_transform, Matrix4 const view_mat, Matrix4 const projection_mat, Vector3 const camera_pos,
-                      Vector2 const viewport_size) {
+    void draw_dial_3d(Dial_3D const dial, Matrix4 const world_transform, Matrix4 const vp_mat, Vector3 const camera_pos, Vector2 const viewport_size) {
         if (ANTON_UNLIKELY(vao == 0)) {
             initialize_ogl();
         }
 
         Shader& uniform_color_shader = get_builtin_shader(Builtin_Shader::uniform_color_line_3d);
         uniform_color_shader.use();
-        Matrix4 const vp_mat = view_mat * projection_mat;
         float scale = compute_scale(world_transform, dial.size, vp_mat, viewport_size);
         uniform_color_shader.set_matrix4("model_mat", math::transform::scale(scale) * world_transform);
         uniform_color_shader.set_matrix4("vp_mat", vp_mat);
