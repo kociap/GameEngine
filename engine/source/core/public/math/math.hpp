@@ -43,6 +43,10 @@ namespace anton_engine::math {
         return radians * constants::rad_to_deg;
     }
 
+    inline float sqrt(float a) {
+        return ::sqrt(a);
+    }
+
     inline float inv_sqrt(float a) {
         return 1 / sqrt(a);
     }

@@ -21,6 +21,9 @@ namespace anton_engine {
 
     anton_stl::Optional<Raycast_Hit> intersect_ray_triangle(Ray, Vector3, Vector3, Vector3);
     anton_stl::Optional<Raycast_Hit> intersect_ray_quad(Ray, Vector3, Vector3, Vector3, Vector3);
+    anton_stl::Optional<Raycast_Hit> intersect_ray_plane(Ray, Vector3 plane_normal, float plane_distance);
+    anton_stl::Optional<Raycast_Hit> intersect_ray_cone(Ray, Vector3 vertex, Vector3 direction, float angle_cos, float height);
+    anton_stl::Optional<Raycast_Hit> intersect_ray_cylinder(Ray, Vector3 vertex1, Vector3 vertex2, float radius);
     bool test_ray_mesh(Ray, Mesh const&);
     anton_stl::Optional<Raycast_Hit> intersect_ray_mesh(Ray, Mesh const&, Matrix4 model_transform);
     anton_stl::Optional<Linecast_Hit> intersect_line_plane(Line, Vector3 plane_normal, float plane_distance);
