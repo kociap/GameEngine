@@ -164,7 +164,9 @@ namespace anton_engine {
             if (viewport) {
                 Matrix4 const view_mat = get_camera_view_matrix(transform);
                 Matrix4 const projection_mat = get_camera_projection_matrix(camera, viewport->width(), viewport->height());
-                viewport->render(view_mat, projection_mat, camera, transform, shared_state.selected_entities);
+                Matrix4 const inv_view_mat = math::inverse(view_mat);
+                Matrix4 const inv_projection_mat = math::inverse(projection_mat);
+                viewport->render(view_mat, inv_view_mat, projection_mat, inv_projection_mat, camera, transform, shared_state.selected_entities);
             }
         }
     }

@@ -36,7 +36,8 @@ namespace anton_engine {
 
         void process_actions(Matrix4 view_mat, Matrix4 projection_mat, Matrix4 inv_view_mat, Matrix4 inv_projection_mat, Transform camera_transform,
                              anton_stl::Vector<Entity>& selected_entities);
-        void render(Matrix4 view_mat, Matrix4 projection_mat, Camera, Transform camera_transform, anton_stl::Slice<Entity const>);
+        void render(Matrix4 view_mat, Matrix4 inv_view_mat, Matrix4 projection_mat, Matrix4 inv_projection_mat, Camera, Transform camera_transform,
+                    anton_stl::Slice<Entity const>);
         void resize(int32_t w, int32_t h);
         bool is_cursor_locked() const;
         void lock_cursor_at(int32_t x, int32_t y);
@@ -56,6 +57,7 @@ namespace anton_engine {
 
     private:
         Framebuffer* framebuffer = nullptr;
+        Framebuffer* multisampled_framebuffer = nullptr;
         rendering::Renderer* renderer = nullptr;
         QOpenGLContext* context;
 

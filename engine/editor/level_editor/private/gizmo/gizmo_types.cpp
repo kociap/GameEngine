@@ -295,46 +295,46 @@ namespace anton_engine::gizmo {
     void draw_arrow_3d(Arrow_3D const arrow, Matrix4 const world_transform, Matrix4 const view_projection_matrix, Vector2 const viewport_size,
                        Vector3 camera_pos) {
         // TODO: For debugging purposes
-        {
-            if (vao == 0) {
-                initialize_ogl();
-            }
+        // {
+        //     if (vao == 0) {
+        //         initialize_ogl();
+        //     }
 
-            static int xyz_call_this_function_once = write_intersection_geometry_data_to_gpu();
+        //     static int xyz_call_this_function_once = write_intersection_geometry_data_to_gpu();
 
-            Shader& uniform_color_shader = get_builtin_shader(Builtin_Shader::uniform_color_line_3d);
-            uniform_color_shader.use();
-            Matrix4 const vp_mat = view_projection_matrix;
-            float scale = compute_scale(world_transform, arrow.size, vp_mat, viewport_size);
-            uniform_color_shader.set_matrix4(
-                "model_mat", math::transform::scale(Vector3{1.0f, 1.0f, (arrow.draw_style == Arrow_3D_Style::cone ? 8.0f : 8.5f)} * scale) * world_transform);
-            uniform_color_shader.set_matrix4("vp_mat", vp_mat);
-            uniform_color_shader.set_vec4("color", Color(1.0f, 147.0f / 255.0f, 1.0f / 255.0f));
-            uniform_color_shader.set_vec3("camera_pos", camera_pos);
-            uniform_color_shader.set_float("line_width", scale * 0.01f);
-            glBindVertexArray(line_vao);
-            u64 const base_offset = offsetof(Gizmos_Vertex_Data, intersection_meshes);
-            glBindVertexBuffer(0, vbo, base_offset + offsetof(Intersection_Meshes, vertices), sizeof(Vector3));
-            glBindVertexBuffer(1, vbo, base_offset + offsetof(Intersection_Meshes, normals), sizeof(Vector3));
-            glBindVertexBuffer(2, vbo, base_offset + offsetof(Intersection_Meshes, scale_factors), sizeof(float));
+        //     Shader& uniform_color_shader = get_builtin_shader(Builtin_Shader::uniform_color_line_3d);
+        //     uniform_color_shader.use();
+        //     Matrix4 const vp_mat = view_projection_matrix;
+        //     float scale = compute_scale(world_transform, arrow.size, vp_mat, viewport_size);
+        //     uniform_color_shader.set_matrix4(
+        //         "model_mat", math::transform::scale(Vector3{1.0f, 1.0f, (arrow.draw_style == Arrow_3D_Style::cone ? 8.0f : 8.5f)} * scale) * world_transform);
+        //     uniform_color_shader.set_matrix4("vp_mat", vp_mat);
+        //     uniform_color_shader.set_vec4("color", Color(1.0f, 147.0f / 255.0f, 1.0f / 255.0f));
+        //     uniform_color_shader.set_vec3("camera_pos", camera_pos);
+        //     uniform_color_shader.set_float("line_width", scale * 0.01f);
+        //     glBindVertexArray(line_vao);
+        //     u64 const base_offset = offsetof(Gizmos_Vertex_Data, intersection_meshes);
+        //     glBindVertexBuffer(0, vbo, base_offset + offsetof(Intersection_Meshes, vertices), sizeof(Vector3));
+        //     glBindVertexBuffer(1, vbo, base_offset + offsetof(Intersection_Meshes, normals), sizeof(Vector3));
+        //     glBindVertexBuffer(2, vbo, base_offset + offsetof(Intersection_Meshes, scale_factors), sizeof(float));
 
-            i32 first[12];
-            i32 count[12];
-            for (i32 i = 0; i < 12; ++i) {
-                first[i] = i * 4;
-                count[i] = 4;
-            }
-            glMultiDrawArrays(GL_TRIANGLE_STRIP, first, count, 12);
-            switch (arrow.draw_style) {
-                case Arrow_3D_Style::cube: {
-                    uniform_color_shader.set_matrix4("model_mat", math::transform::scale(Vector3{2.0f, 2.0f, 2.0f} * scale) *
-                                                                      math::transform::translate(Vector3{0.0f, 0.0f, -0.85f} * scale) * world_transform);
-                    glMultiDrawArrays(GL_TRIANGLE_STRIP, first, count, 12);
-                } break;
-                default:
-                    break;
-            }
-        }
+        //     i32 first[12];
+        //     i32 count[12];
+        //     for (i32 i = 0; i < 12; ++i) {
+        //         first[i] = i * 4;
+        //         count[i] = 4;
+        //     }
+        //     glMultiDrawArrays(GL_TRIANGLE_STRIP, first, count, 12);
+        //     switch (arrow.draw_style) {
+        //         case Arrow_3D_Style::cube: {
+        //             uniform_color_shader.set_matrix4("model_mat", math::transform::scale(Vector3{2.0f, 2.0f, 2.0f} * scale) *
+        //                                                               math::transform::translate(Vector3{0.0f, 0.0f, -0.85f} * scale) * world_transform);
+        //             glMultiDrawArrays(GL_TRIANGLE_STRIP, first, count, 12);
+        //         } break;
+        //         default:
+        //             break;
+        //     }
+        // }
 
         if (ANTON_UNLIKELY(vao == 0)) {
             initialize_ogl();
@@ -452,5 +452,9 @@ namespace anton_engine::gizmo {
         glBindVertexBuffer(1, vbo, base_offset + offsetof(Dial_Vertex_Data, normals), sizeof(Vector3));
         glBindVertexBuffer(2, vbo, base_offset + offsetof(Dial_Vertex_Data, scale_factors), sizeof(float));
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 2 * dial_vertex_count + 2);
+    }
+
+    anton_stl::Optional<float> intersect_dial_3d(Ray, Dial_3D, Matrix4 world_transform, Matrix4 view_projection_matrix, Vector2 viewport_size) {
+        return anton_stl::null_optional;
     }
 } // namespace anton_engine::gizmo
