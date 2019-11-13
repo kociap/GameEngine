@@ -47,7 +47,7 @@ namespace anton_engine::gizmo {
         Plane_Vertex_Data plane;
         Arrow_Vertex_Data arrow;
         Dial_Vertex_Data dial;
-        Intersection_Meshes intersection_meshes;
+        // Intersection_Meshes intersection_meshes;
     };
 
     constexpr i32 plane_base_index = 0;
@@ -158,8 +158,9 @@ namespace anton_engine::gizmo {
 
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferStorage(GL_ARRAY_BUFFER, sizeof(Gizmos_Vertex_Data) + 10000 * (sizeof(Vector3) + sizeof(Vector3) + sizeof(float)), &gizmos_vertex_data,
+        glBufferStorage(GL_ARRAY_BUFFER, sizeof(Gizmos_Vertex_Data) + 10000 * (sizeof(Vector3) + sizeof(Vector3) + sizeof(float)), nullptr,
                         GL_DYNAMIC_STORAGE_BIT);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Gizmos_Vertex_Data), &gizmos_vertex_data);
 
         glGenVertexArrays(1, &vao);
         glBindVertexArray(vao);
@@ -287,7 +288,7 @@ namespace anton_engine::gizmo {
             meshes.scale_factors[i] = 1.0f;
         }
 
-        glNamedBufferSubData(vbo, offsetof(Gizmos_Vertex_Data, intersection_meshes), sizeof(Intersection_Meshes), &meshes);
+        // glNamedBufferSubData(vbo, offsetof(Gizmos_Vertex_Data, intersection_meshes), sizeof(Intersection_Meshes), &meshes);
 
         return 0;
     }
