@@ -82,7 +82,17 @@ namespace anton_engine {
         multisample_info.height = h;
         multisampled_framebuffer = new Framebuffer(multisample_info);
 
-        renderer = new rendering::Renderer(w, h);
+        Framebuffer::Construct_Info deferred_framebuffer_info;
+        deferred_framebuffer_info.width = w;
+        deferred_framebuffer_info.height = h;
+        deferred_framebuffer_info.depth_buffer.enabled = true;
+        deferred_framebuffer_info.depth_buffer.buffer_type = Framebuffer::Buffer_Type::texture;
+        deferred_framebuffer_info.color_buffers.resize(2);
+        // Normal
+        deferred_framebuffer_info.color_buffers[0].internal_format = Framebuffer::Internal_Format::rgb32f;
+        // albedo-specular
+        deferred_framebuffer_info.color_buffers[1].internal_format = Framebuffer::Internal_Format::rgba8;
+        deferred_framebuffer = new Framebuffer(deferred_framebuffer_info);
 
         ECS& ecs = Editor::get_ecs();
         auto [entity, viewport_camera, camera, transform] = ecs.create<Viewport_Camera, Camera, Transform>();
@@ -93,15 +103,15 @@ namespace anton_engine {
     Viewport::~Viewport() {
         ECS& ecs = Editor::get_ecs();
         ecs.destroy(viewport_entity);
+        delete deferred_framebuffer;
         delete multisampled_framebuffer;
         delete framebuffer;
-        delete renderer;
     }
 
     void Viewport::resize(int32_t const w, int32_t const h) {
-        renderer->resize(w, h);
         framebuffer->resize(w, h);
         multisampled_framebuffer->resize(w, h);
+        deferred_framebuffer->resize(w, h);
         QWidget::resize(w, h);
     }
 
@@ -418,7 +428,7 @@ namespace anton_engine {
                            anton_stl::Slice<Entity const> selected_entities) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        gizmo::debug_commit_draw_lines(vp_mat, camera_pos, timing::get_delta_time());
+        // gizmo::debug_commit_draw_lines(vp_mat, camera_pos, timing::get_delta_time());
         // TODO: That's terrible
         if (selected_entities.size() > 0) {
             ECS& ecs = Editor::get_ecs();
@@ -463,17 +473,34 @@ namespace anton_engine {
                 } break;
 
                 case Gizmo_Transform_Type::rotate: {
-                    gizmo::Dial_3D const dial_z = {gizmo_settings.axis_z_color, gizmo_settings.size};
-                    Matrix4 const rotation_z = math::transform::rotate_y(math::constants::pi);
-                    gizmo::draw_dial_3d(dial_z, compute_rotation(gizmo_ctx.space, rotation_z, object_rotation) * offset, vp_mat, camera_pos, viewport_size);
+                    Color axis_colors[3] = {gizmo_settings.axis_x_color, gizmo_settings.axis_y_color, gizmo_settings.axis_z_color};
+                    Matrix4 const rotations[3] = {math::transform::rotate_y(math::constants::half_pi), math::transform::rotate_x(-math::constants::half_pi),
+                                                  math::transform::rotate_y(math::constants::pi)};
+                    Matrix4 const transforms[3] = {compute_rotation(gizmo_ctx.space, rotations[0], object_rotation) * offset,
+                                                   compute_rotation(gizmo_ctx.space, rotations[1], object_rotation) * offset,
+                                                   compute_rotation(gizmo_ctx.space, rotations[2], object_rotation) * offset};
 
-                    gizmo::Dial_3D const dial_y = {gizmo_settings.axis_y_color, gizmo_settings.size};
-                    Matrix4 const rotation_y = math::transform::rotate_x(-math::constants::half_pi);
-                    gizmo::draw_dial_3d(dial_y, compute_rotation(gizmo_ctx.space, rotation_y, object_rotation) * offset, vp_mat, camera_pos, viewport_size);
+                    if (!gizmo_ctx.grab.grabbed) {
+                        gizmo::Dial_3D const dial = {Color::white, gizmo_settings.size};
+                        anton_stl::Optional<float> const hits[3] = {gizmo::intersect_dial_3d(mouse_ray, dial, transforms[0], vp_mat, viewport_size),
+                                                                    gizmo::intersect_dial_3d(mouse_ray, dial, transforms[1], vp_mat, viewport_size),
+                                                                    gizmo::intersect_dial_3d(mouse_ray, dial, transforms[2], vp_mat, viewport_size)};
+                        if (hits[0] || hits[1] || hits[2]) {
+                            auto value_or_infty = [](anton_stl::Optional<float> const& hit) { return (hit ? hit.value() : math::constants::infinity); };
+                            if (value_or_infty(hits[0]) < value_or_infty(hits[1]) && value_or_infty(hits[0]) < value_or_infty(hits[2])) {
+                                axis_colors[0].a = 1.0f;
+                            } else if (value_or_infty(hits[1]) < value_or_infty(hits[0]) && value_or_infty(hits[1]) < value_or_infty(hits[2])) {
+                                axis_colors[1].a = 1.0f;
+                            } else {
+                                axis_colors[2].a = 1.0f;
+                            }
+                        }
+                    }
 
-                    gizmo::Dial_3D const dial_x = {gizmo_settings.axis_x_color, gizmo_settings.size};
-                    Matrix4 const rotation_x = math::transform::rotate_y(math::constants::half_pi);
-                    gizmo::draw_dial_3d(dial_x, compute_rotation(gizmo_ctx.space, rotation_x, object_rotation) * offset, vp_mat, camera_pos, viewport_size);
+                    for (i32 i = 0; i < 3; ++i) {
+                        gizmo::Dial_3D const dial = {axis_colors[i], gizmo_settings.size};
+                        gizmo::draw_dial_3d(dial, transforms[i], vp_mat, camera_pos, viewport_size);
+                    }
                 } break;
 
                 case Gizmo_Transform_Type::scale: {
@@ -592,31 +619,42 @@ namespace anton_engine {
         Ray const mouse_ray = screen_to_ray(inv_view_mat, inv_proj_mat, viewport_size.x, viewport_size.y, mouse_pos);
 
         // TODO fix this shitcode
-        renderer->render_frame(view_mat, proj_mat, camera_transform, viewport_size);
+        glEnable(GL_DEPTH_TEST);
+        glViewport(0, 0, viewport_size.x, viewport_size.y);
+        bind_framebuffer(deferred_framebuffer);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        rendering::bind_mesh_vao();
+        ECS& ecs = Editor::get_ecs();
+        ECS snapshot = ecs.snapshot<Transform, Static_Mesh_Component>();
+        rendering::render_scene(snapshot, camera_transform, view_mat, proj_mat);
 
-        // Copy depth and color attachment buffers
-        bind_framebuffer(renderer->framebuffer, Framebuffer::read);
-        bind_framebuffer(framebuffer, Framebuffer::draw);
-        blit_framebuffer(framebuffer, renderer->framebuffer, opengl::depth_buffer_bit);
-        bind_framebuffer(renderer->postprocess_front_buffer, Framebuffer::read);
-        glReadBuffer(GL_COLOR_ATTACHMENT0);
-        blit_framebuffer(framebuffer, renderer->postprocess_front_buffer, opengl::color_buffer_bit);
-        bind_framebuffer(framebuffer);
-        // TODO: Change camera position from local to global.
+        bind_framebuffer(multisampled_framebuffer);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glBindTextureUnit(0, deferred_framebuffer->get_depth_texture());
+        glBindTextureUnit(1, deferred_framebuffer->get_color_texture(0));
+        glBindTextureUnit(2, deferred_framebuffer->get_color_texture(1));
+
+        Shader& deferred_shading = get_builtin_shader(Builtin_Shader::deferred_shading);
+        deferred_shading.use();
+        deferred_shading.set_vec3("camera.position", camera_transform.local_position);
+        deferred_shading.set_vec2("viewport_size", viewport_size);
+        deferred_shading.set_matrix4("inv_view_mat", inv_view_mat);
+        deferred_shading.set_matrix4("inv_proj_mat", inv_proj_mat);
+        rendering::render_texture_quad();
+        // TODO: Vertex buffers rebind after call to render_texture_quad
         rendering::bind_vertex_buffers();
+
+        // TODO: Change camera position from local to global.
         draw_skybox(view_mat, proj_mat);
         draw_grid(view_mat * proj_mat, camera_transform.local_position, camera, framebuffer->size());
         // TODO: Draw outlines here.
         glDisable(GL_DEPTH_TEST);
-        bind_framebuffer(multisampled_framebuffer, Framebuffer::draw);
-        blit_framebuffer(multisampled_framebuffer, framebuffer, opengl::color_buffer_bit);
-        bind_framebuffer(multisampled_framebuffer);
         draw_gizmo(mouse_ray, camera_transform.local_position, view_mat * proj_mat, framebuffer->size(), selected_entities);
         bind_framebuffer(framebuffer, Framebuffer::draw);
         blit_framebuffer(framebuffer, multisampled_framebuffer, opengl::color_buffer_bit);
 
         glBindFramebuffer(GL_FRAMEBUFFER, context->defaultFramebufferObject());
-        glDisable(GL_FRAMEBUFFER_SRGB);
         glBindTextureUnit(0, framebuffer->get_color_texture(0));
         Shader& gamma_correction_shader = get_builtin_shader(Builtin_Shader::gamma_correction);
         gamma_correction_shader.use();

@@ -2,6 +2,7 @@
 #define ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
 
 #include <anton_int.hpp>
+#include <anton_stl/slice.hpp>
 #include <anton_stl/static_vector.hpp>
 #include <math/vector2.hpp>
 #include <opengl.hpp>
@@ -69,6 +70,7 @@ namespace anton_engine {
         void resize(i32 width, i32 height);
         Vector2 size() const;
         u32 get_color_texture(i32 index) const;
+        anton_stl::Slice<u32 const> get_color_textures() const;
         u32 get_depth_texture() const;
 
         u32 get_framebuffer_gl_handle() const;

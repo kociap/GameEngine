@@ -53,11 +53,12 @@ namespace anton_engine {
                 }
             }
 
-            anton_stl::Static_Vector<u32, max_color_attachments> active_color_attachments;
+            u32 active_color_attachments[max_color_attachments];
             for (u32 i = 0; i < color_buffers.size(); ++i) {
-                active_color_attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
+                active_color_attachments[i] = GL_COLOR_ATTACHMENT0 + i;
             }
-            glDrawBuffers(active_color_buffers, &active_color_attachments[0]);
+            glDrawBuffers(active_color_buffers, active_color_attachments);
+            glReadBuffer(GL_COLOR_ATTACHMENT0);
         } else {
             glDrawBuffer(GL_NONE);
             glReadBuffer(GL_NONE);
@@ -128,8 +129,6 @@ namespace anton_engine {
             case 0:
                 CHECK_GL_ERRORS();
         }
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     void Framebuffer::delete_framebuffer() {
@@ -186,24 +185,24 @@ namespace anton_engine {
     }
 
     u32 Framebuffer::get_color_texture(i32 const index) const {
-        if (info.multisampled) {
-            throw std::runtime_error("Framebuffer is multisampled. Unable to get texture");
-        }
-
         if (index >= active_color_buffers || index < 0) {
-            throw std::runtime_error("Color buffer with index " + std::to_string(index) + " is not bound");
+            throw std::runtime_error("Color buffer with index " + std::to_string(index) + " is not bound.");
         }
 
         return color_buffers[index];
     }
 
+    anton_stl::Slice<u32 const> Framebuffer::get_color_textures() const {
+        return color_buffers;
+    }
+
     u32 Framebuffer::get_depth_texture() const {
-        if (info.multisampled) {
-            throw std::runtime_error("Framebuffer is multisampled. Unable to get texture");
+        if (info.depth_buffer.buffer_type == Buffer_Type::renderbuffer) {
+            throw std::runtime_error("Framebuffer uses renderbuffer as depth buffer. Unable to get texture.");
         }
 
         if (!info.depth_buffer.enabled) {
-            throw std::runtime_error("No depth buffer bound");
+            throw std::runtime_error("No depth buffer bound.");
         }
 
         return depth_buffer;

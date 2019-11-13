@@ -59,6 +59,10 @@ vec3 compute_point_lighting(Point_Light light, vec3 surface_position, vec3 surfa
 vec3 compute_directional_lighting(Directional_Light light, vec3 surface_normal, vec3 view_vec, vec3 albedo_color, float specular_factor);
 
 void main() {
+    vec4 fragment_depth = texture(gbuffer_depth, tex_coords);
+    // Pass depth through
+    gl_FragDepth = fragment_depth.r;
+
     vec4 albedo_spec = texture(gbuffer_albedo_spec, tex_coords);
     if(albedo_spec == vec4(0.0)) {
         // Light doesn't bounce off pure black surfaces, so we can exit early.
@@ -68,7 +72,7 @@ void main() {
 
     vec3 albedo = albedo_spec.rgb;
     float specular = albedo_spec.a;
-    vec3 point_ndc = vec3(tex_coords, texture(gbuffer_depth, tex_coords).r);
+    vec3 point_ndc = vec3(tex_coords, fragment_depth.r);
     vec3 surface_position = unproject_point(point_ndc);
     vec3 surface_normal = texture(gbuffer_normal, tex_coords).rgb;
     

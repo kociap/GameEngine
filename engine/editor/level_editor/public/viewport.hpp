@@ -58,7 +58,7 @@ namespace anton_engine {
     private:
         Framebuffer* framebuffer = nullptr;
         Framebuffer* multisampled_framebuffer = nullptr;
-        rendering::Renderer* renderer = nullptr;
+        Framebuffer* deferred_framebuffer = nullptr;
         QOpenGLContext* context;
 
         Entity viewport_entity = null_entity;
