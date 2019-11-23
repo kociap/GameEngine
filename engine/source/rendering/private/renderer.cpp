@@ -16,7 +16,6 @@
 #include <components/transform.hpp>
 #include <debug_macros.hpp> // CHECK_GL_ERRORS
 #include <ecs/ecs.hpp>
-#include <editor.hpp>
 #include <engine.hpp>
 #include <framebuffer.hpp>
 #include <glad.hpp>
@@ -32,6 +31,10 @@
 
 #include <algorithm> // std::sort
 #include <unordered_map>
+
+#if ANTON_WITH_EDITOR
+#include <editor.hpp>
+#endif
 
 namespace anton_engine {
     static Resource_Manager<Mesh>& get_mesh_manager() {

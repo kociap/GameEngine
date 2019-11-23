@@ -31,8 +31,10 @@ find_package(OpenGL REQUIRED)
 
 add_subdirectory(dependencies)
 add_subdirectory(source)
-add_subdirectory(editor)
 add_subdirectory(shaders)
+if(${ENGINE_WITH_EDITOR})
+    add_subdirectory(editor)
+endif()
 
 target_compile_definitions(${ENGINE_NAME} 
     PRIVATE 
@@ -43,6 +45,7 @@ target_compile_definitions(${ENGINE_NAME}
     ANTON_COMPILER_GCC=${ENGINE_COMPILER_GCC} 
     ANTON_COMPILER_MSVC=${ENGINE_COMPILER_MSVC} 
     ANTON_COMPILER_UNKNOWN=${ENGINE_COMPILER_UNKNOWN}
+    ANTON_WITH_EDITOR=${ENGINE_WITH_EDITOR}
     # Use unicode instead of multibyte charset (VS)
     UNICODE
     _UNICODE
@@ -102,6 +105,7 @@ target_compile_definitions(Codegen
     ANTON_COMPILER_GCC=${ENGINE_COMPILER_GCC} 
     ANTON_COMPILER_MSVC=${ENGINE_COMPILER_MSVC} 
     ANTON_COMPILER_UNKNOWN=${ENGINE_COMPILER_UNKNOWN}
+    ANTON_WITH_EDITOR=${ENGINE_WITH_EDITOR}
     # Use unicode instead of multibyte charset (VS)
     UNICODE
     _UNICODE
@@ -166,6 +170,7 @@ target_compile_definitions(${ENGINE_LOADER_NAME}
     ANTON_COMPILER_GCC=${ENGINE_COMPILER_GCC} 
     ANTON_COMPILER_MSVC=${ENGINE_COMPILER_MSVC} 
     ANTON_COMPILER_UNKNOWN=${ENGINE_COMPILER_UNKNOWN}
+    ANTON_WITH_EDITOR=${ENGINE_WITH_EDITOR}
 )
 target_compile_options(${ENGINE_LOADER_NAME} PRIVATE ${ENGINE_CXX_FLAGS})
 target_include_directories(${ENGINE_LOADER_NAME} 
@@ -182,3 +187,11 @@ set_target_properties(${ENGINE_LOADER_NAME}
 )
 target_link_libraries(${ENGINE_LOADER_NAME} ${ENGINE_NAME})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${ENGINE_LOADER_SOURCE_FILES})
+
+# target_link_options(${ENGINE_LOADER_NAME}
+#     PRIVATE /PROFILE
+# )
+
+# target_link_options(${ENGINE_NAME}
+#     PRIVATE /PROFILE
+# )

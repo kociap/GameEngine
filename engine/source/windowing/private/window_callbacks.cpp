@@ -136,11 +136,10 @@ namespace anton_engine {
             {GLFW_KEY_NUM_LOCK, Key::num_lock},
         };
 
-        if (action != GLFW_REPEAT) {
-            Key mapped_key = keyboard_button_map.at(key);
+        if (auto key_iter = keyboard_button_map.find(key); action != GLFW_REPEAT && key_iter != keyboard_button_map.end()) {
             float value = static_cast<float>(action); // GLFW_PRESS is 1, GLFW_RELEASE is 0
             Input::Manager& input_manager = get_input_manager();
-            input_manager.add_event({mapped_key, value});
+            input_manager.add_event({key_iter->second, value});
         }
     }
 

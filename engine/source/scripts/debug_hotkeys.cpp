@@ -2,9 +2,8 @@
 
 #include <input/input.hpp>
 
-#include <assets.hpp>
 #include <anton_stl/string.hpp>
-#include <editor.hpp>
+#include <assets.hpp>
 #include <engine.hpp>
 #include <logging.hpp>
 #include <renderer.hpp>
@@ -35,7 +34,7 @@ namespace anton_engine {
         std::swap(current_fxaa, next_fxaa);
     }
 
-    void Debug_Hotkeys::update(Debug_Hotkeys&) {
+    void Debug_Hotkeys::update(Debug_Hotkeys& debug_hotkeys) {
         auto reload = Input::get_action("reload_shaders");
         if (reload.released) {
             // TODO reloading shaders
@@ -47,16 +46,18 @@ namespace anton_engine {
             swap_fxaa_shader();
         }
 
-        //auto capture_mouse = Input::get_action("capture_mouse");
-        //if (capture_mouse.released) {
-        //    if (debug_hotkeys.cursor_captured) {
-        //        debug_hotkeys.cursor_captured = false;
-        //        Engine::get_window().unlock_cursor();
-        //    } else {
-        //        debug_hotkeys.cursor_captured = true;
-        //        Engine::get_window().lock_cursor();
-        //    }
-        //    Editor::set_mouse_captured(debug_hotkeys.cursor_captured);
-        //}
+#if !ANTON_WITH_EDITOR
+        auto capture_mouse = Input::get_action("capture_mouse");
+        if (capture_mouse.released) {
+            if (debug_hotkeys.cursor_captured) {
+                debug_hotkeys.cursor_captured = false;
+                Engine::get_window().unlock_cursor();
+            } else {
+                debug_hotkeys.cursor_captured = true;
+                Engine::get_window().lock_cursor();
+            }
+            // Editor::set_mouse_captured(debug_hotkeys.cursor_captured);
+        }
+#endif // !ANTON_WITH_EDITOR
     }
 } // namespace anton_engine

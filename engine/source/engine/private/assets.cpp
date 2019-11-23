@@ -6,14 +6,10 @@
 #include <anton_stl/vector.hpp>
 #include <build_config.hpp>
 #include <debug_macros.hpp> // CHECK_GL_ERRORS
-#include <importers/obj.hpp>
-#include <importers/png.hpp>
-#include <importers/tga.hpp>
 #include <math/vector3.hpp>
 #include <mesh.hpp>
 #include <opengl.hpp>
 #include <paths.hpp>
-#include <postprocess.hpp>
 #include <shader.hpp>
 #include <texture_format.hpp>
 #include <utils/filesystem.hpp>

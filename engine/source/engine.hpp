@@ -4,6 +4,8 @@
 #include <subsystem_forward_declarations.hpp>
 
 namespace anton_engine {
+    class Framebuffer;
+
     class Engine {
     private:
         static Input::Manager* input_manager;
@@ -14,6 +16,10 @@ namespace anton_engine {
         static Resource_Manager<Mesh>* mesh_manager;
         static Resource_Manager<Shader>* shader_manager;
         static Resource_Manager<Material>* material_manager;
+
+        static Framebuffer* deferred_framebuffer;
+        static Framebuffer* postprocess_front;
+        static Framebuffer* postprocess_back;
 
     public:
         static void init();

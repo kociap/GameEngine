@@ -5,6 +5,8 @@
 #include <diagnostic_macros.hpp>
 #include <glad.hpp>
 #include <opengl.hpp>
+#include <renderer.hpp>
+#include <builtin_shaders.hpp>
 #include <stdexcept>
 
 #define GLFW_INCLUDE_NONE
@@ -36,8 +38,10 @@ namespace anton_engine {
 
         glfwMakeContextCurrent(window_handle);
 
-        opengl::load_functions();
-        opengl::load_constants();
+		// TODO: Move out of the window.
+        opengl::load();
+        rendering::setup_rendering();
+        load_builtin_shaders();
 
         glViewport(0, 0, window_width, window_height);
         glfwSetCursorPosCallback(window_handle, mouse_position_callback);
