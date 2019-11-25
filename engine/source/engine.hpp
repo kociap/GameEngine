@@ -10,7 +10,6 @@ namespace anton_engine {
     private:
         static Input::Manager* input_manager;
         static rendering::Renderer* renderer;
-        static Time_Core* time_core;
         static ECS* ecs;
         static Window* main_window;
         static Resource_Manager<Mesh>* mesh_manager;
@@ -36,7 +35,6 @@ namespace anton_engine {
         static rendering::Renderer& get_renderer();
         static ECS& get_ecs();
         static Resource_Manager<Mesh>& get_mesh_manager();
-        static Time_Core& get_time_manager();
         static Resource_Manager<Shader>& get_shader_manager();
         static Resource_Manager<Material>& get_material_manager();
     };

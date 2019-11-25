@@ -1,11 +1,11 @@
-#include <time/time_platform.hpp>
+#include <time.hpp>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
 namespace anton_engine {
-    uint64_t get_performance_counter() {
-        uint64_t counts;
+    static u64 get_performance_counter() {
+        u64 counts;
         // The output value is always nonzero and we may safely ignore the return value since:
         //   "On systems that run Windows XP or later, the function will always succeed and will thus never return zero."
         //   https://docs.microsoft.com/en-us/windows/win32/api/profileapi/nf-profileapi-queryperformancecounter
@@ -13,8 +13,8 @@ namespace anton_engine {
         return counts;
     }
 
-    static uint64_t get_win_performance_frequency() {
-        uint64_t frequency;
+    static u64 get_win_performance_frequency() {
+        u64 frequency;
         // The output value is always nonzeroand we may safely ignore the return value since:
         //   "On systems that run Windows XP or later, the function will always succeed and will thus never return zero."
         //   https://docs.microsoft.com/en-us/windows/win32/api/profileapi/nf-profileapi-queryperformancefrequency
@@ -22,8 +22,8 @@ namespace anton_engine {
         return frequency;
     }
 
-    uint64_t get_performance_frequency() {
-        static uint64_t frequency = get_win_performance_frequency();
+    static u64 get_performance_frequency() {
+        static u64 frequency = get_win_performance_frequency();
         return frequency;
     }
 

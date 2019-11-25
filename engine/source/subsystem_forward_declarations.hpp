@@ -2,7 +2,6 @@
 #define SUBSYSTEM_FORWARD_DECLARATIONS_HPP_INCLUDE
 
 namespace anton_engine {
-    class Time_Core;
     class Window;
     class ECS;
     namespace rendering {

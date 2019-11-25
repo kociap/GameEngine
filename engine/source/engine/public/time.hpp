@@ -1,43 +1,47 @@
 #ifndef ENGINE_TIME_HPP_INCLUDE
 #define ENGINE_TIME_HPP_INCLUDE
 
-#include <cstdint>
+#include <anton_int.hpp>
 #include <macro_undefs.hpp>
 
-// "time" collides with time.h's time function. I have no idea what a better name for this namespace could be
-namespace anton_engine::timing {
+namespace anton_engine {
+    struct System_Time {
+        u16 year;
+        // 1 through 12
+        u16 month;
+        // 1 through 31
+        u16 day;
+        // 0 (Sunday) through 6 (Saturday)
+        u16 day_of_week;
+        // 0 through 23
+        u16 hour;
+        // 0 through 59
+        u16 minutes;
+        // 0 through 59
+        u16 seconds;
+        // 0 through 999
+        u16 milliseconds;
+    };
+
+    // Returns time in seconds
+    double get_time();
+    System_Time get_utc_system_time();
+    System_Time get_local_system_time();
+
     // The time it took to complete the previous frame
     double get_delta_time();
 
     // Time scale independent time it took to complete the previous frame
     double get_unscaled_delta_time();
 
-    // Time since the start of the game
-    double get_time();
+    // Time since the start of the game at the beginning of the frame
+    double get_frame_time();
 
-    // Time scale independent time since the start of the game
-    double get_unscaled_time();
-
-    // The number of frames since the start of the game
-    uint64_t get_frame_count();
-}; // namespace anton_engine::timing
-
-// Time, but with floats instead of doubles
-namespace anton_engine::timingf {
-    // The time it took to complete the previous frame
-    float get_delta_time();
-
-    // Time scale independent time it took to complete the previous frame
-    float get_unscaled_delta_time();
-
-    // Time since the start of the game
-    float get_time();
-
-    // Time scale independent time since the start of the game
-    float get_unscaled_time();
+    // Time scale independent time since the start of the game at the beginning of the frame
+    double get_unscaled_frame_time();
 
     // The number of frames since the start of the game
-    using timing::get_frame_count;
-} // namespace anton_engine::timingf
+    u64 get_frame_count();
+}; // namespace anton_engine
 
 #endif // !ENGINE_TIME_HPP_INCLUDE

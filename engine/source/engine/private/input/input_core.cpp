@@ -187,7 +187,7 @@ namespace anton_engine::Input {
         }
         input_event_queue.clear();
 
-        float delta_time = timingf::get_delta_time();
+        float delta_time = get_delta_time();
         for (auto& mapping: axis_mappings) {
             Key_State const& key_state = key_states[mapping.key];
             if (utils::key::is_mouse_axis(mapping.key) || utils::key::is_gamepad_axis(mapping.key)) {

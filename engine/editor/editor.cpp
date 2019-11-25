@@ -20,7 +20,7 @@
 #include <resource_manager.hpp>
 #include <shader.hpp>
 #include <time.hpp>
-#include <time/time_core.hpp>
+#include <time/time_internal.hpp>
 #include <utils/filesystem.hpp>
 #include <viewport.hpp>
 #include <viewport_camera.hpp>
@@ -58,7 +58,7 @@ namespace anton_engine {
         surface_format.setSwapInterval(1);
         QSurfaceFormat::setDefaultFormat(surface_format);
 
-        time_core::init();
+        time_init();
         mesh_manager = new Resource_Manager<Mesh>();
         shader_manager = new Resource_Manager<Shader>();
         material_manager = new Resource_Manager<Material>();
@@ -93,8 +93,8 @@ namespace anton_engine {
 
     void Editor::loop() {
         qapplication->processEvents();
-        time_core::update_time();
-        if (timingf::get_delta_time() > 0.017f) {
+        time_update();
+        if (get_delta_time() > 0.017f) {
             //log_message(Log_Message_Severity::info, anton_stl::to_string(timingf::get_delta_time()));
         }
         // TODO separate inputs for each viewport

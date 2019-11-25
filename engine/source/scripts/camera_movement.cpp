@@ -18,7 +18,7 @@ namespace anton_engine {
 
         // Move
         Vector3 camera_front = get_camera_front(transform);
-        float camera_speed = 0.15f * 60 * timingf::get_delta_time();
+        float camera_speed = 0.15f * 60.0f * get_delta_time();
         float forward = Input::get_axis("move_forward");
         transform.translate(camera_front * camera_speed * forward);
         float sideways = Input::get_axis("move_sideways");

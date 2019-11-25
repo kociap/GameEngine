@@ -21,8 +21,7 @@ set(SOURCE_FILES
 set(HEADER_FILES
     ${HEADER_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input_core.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/time/time_core.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/time/time_platform.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/time/time_internal.hpp"
     PARENT_SCOPE
 )
 

@@ -1,6 +1,6 @@
 #include <logging.hpp>
 
-#include <time/time_platform.hpp>
+#include <time.hpp>
 
 #include <build_config.hpp>
 #if ANTON_WITH_EDITOR
@@ -20,7 +20,8 @@ namespace anton_engine {
         System_Time sys_time = get_local_system_time();
         char t[9] = {};
         sprintf(t, "%02d:%02d:%02d", sys_time.hour, sys_time.minutes, sys_time.seconds);
-        editor.log_viewer->add_message(severity, t, message);
+        // editor.log_viewer->add_message(severity, t, message);
+        fprintf(stdout, "%s Debug Message: %s\n", t, message.data());
 #else
         System_Time sys_time = get_local_system_time();
         if (severity == Log_Message_Severity::info) {

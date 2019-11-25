@@ -8,7 +8,7 @@
 #include <input/input_core.hpp>
 #include <mesh.hpp>
 #include <resource_manager.hpp>
-#include <time/time_core.hpp>
+#include <time/time_internal.hpp>
 #include <utils/filesystem.hpp>
 #include <window.hpp>
 
@@ -45,7 +45,7 @@ namespace anton_engine {
     Framebuffer* Engine::postprocess_back = nullptr;
 
     void Engine::init() {
-        time_core::init();
+        time_init();
         main_window = new Window(1280, 720);
         mesh_manager = new Resource_Manager<Mesh>();
         shader_manager = new Resource_Manager<Shader>();
@@ -259,7 +259,7 @@ namespace anton_engine {
 
     void Engine::loop() {
         main_window->poll_events();
-        time_core::update_time();
+        time_update();
         input_manager->process_events();
 
         auto camera_mov_view = ecs->view<Camera_Movement, Camera, Transform>();
