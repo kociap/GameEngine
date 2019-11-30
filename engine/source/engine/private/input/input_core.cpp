@@ -301,14 +301,14 @@ namespace anton_engine::Input {
         // TODO radial dead zone makes axes never reach 1 (values are slightly less than 1, e.g. 0.99996)
 
         if (use_radial_deadzone_for_gamepad_sticks) { // Radial dead zone
-            float left_stick_length = math::min(left_stick.length(), 1.0f);
+            float left_stick_length = math::min(math::length(left_stick), 1.0f);
             if (left_stick_length > gamepad_dead_zone) {
                 left_stick = math::normalize(left_stick) * (left_stick_length - gamepad_dead_zone) / (1 - gamepad_dead_zone);
             } else {
                 left_stick = Vector2::zero;
             }
 
-            float right_stick_length = math::min(right_stick.length(), 1.0f);
+            float right_stick_length = math::min(math::length(right_stick), 1.0f);
             if (right_stick_length > gamepad_dead_zone) {
                 right_stick = math::normalize(right_stick) * (right_stick_length - gamepad_dead_zone) / (1 - gamepad_dead_zone);
             } else {

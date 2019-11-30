@@ -17,7 +17,6 @@ namespace anton_engine::math::transform {
     Matrix4 scale(float scale);
     Matrix4 orthographic(float left, float right, float bottom, float top, float near, float far);
     Matrix4 perspective(float fov, float aspect_ratio, float near, float far);
-    Matrix4 look_at(Vector3 position, Vector3 target, Vector3 up);
 
     Vector3 get_translation(Matrix4);
 } // namespace anton_engine::math::transform
@@ -79,16 +78,6 @@ namespace anton_engine::math::transform {
 
         // left handed
         // return {{inv_tan / aspect_ratio, 0, 0, 0}, {0, inv_tan, 0, 0}, {0, 0, (far + near) / (far - near), 1}, {0, 0, -2 * near * far / (far - near), 0}};
-    }
-
-    inline Matrix4 look_at(Vector3 position, Vector3 target, Vector3 up_vec) {
-        Vector3 forward = (target - position).normalize();
-        Vector3 right = math::cross(forward, up_vec).normalize();
-        Vector3 up = math::cross(right, forward);
-        return {{right.x, up.x, -forward.x, 0},
-                {right.y, up.y, -forward.y, 0},
-                {right.z, up.z, -forward.z, 0},
-                {-math::dot(right, position), -math::dot(up, position), math::dot(forward, position), 1}};
     }
 
     inline Vector3 get_translation(Matrix4 mat) {

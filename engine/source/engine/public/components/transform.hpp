@@ -20,7 +20,7 @@ namespace anton_engine {
         }
 
         void scale(Vector3 const& scale_vec) {
-            local_scale.multiply_componentwise(scale_vec);
+            local_scale = math::multiply_componentwise(local_scale, scale_vec);
         }
 
         // axis to rotate about

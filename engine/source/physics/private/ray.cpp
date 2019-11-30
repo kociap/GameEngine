@@ -23,11 +23,11 @@ namespace anton_engine {
         }
 
         Vector3 ray_direction_view_space = ray_end_homogenized - ray_start_homogenized;
-        ray_direction_view_space.normalize();
+        ray_direction_view_space = math::normalize(ray_direction_view_space);
 
         Vector3 ray_start_world_space = Vector3(Vector4(ray_start_homogenized, 1.0f) * inv_view);
         Vector3 ray_direction_world_space = Vector3(Vector4(ray_direction_view_space, 0.0f) * inv_view);
-        ray_direction_world_space.normalize();
+        ray_direction_world_space = math::normalize(ray_direction_world_space);
 
         return {ray_start_world_space, ray_direction_world_space};
     }
@@ -55,7 +55,7 @@ namespace anton_engine {
         }
 
         Vector3 ray_direction = ray_end_homogenized - ray_start_homogenized;
-        ray_direction.normalize();
+        ray_direction = math::normalize(ray_direction);
 
         return {ray_start_homogenized, ray_direction};
     }

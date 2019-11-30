@@ -24,10 +24,9 @@ namespace anton_engine {
         explicit Vector2(Vector3 const&);
         explicit Vector2(Vector4 const&);
 
-        float& operator[](int);
-        float operator[](int) const;
+        float& operator[](i32);
+        float operator[](i32) const;
 
-        Vector2& operator-();
         Vector2 operator-() const;
         Vector2& operator+=(Vector2);
         Vector2& operator-=(Vector2);
@@ -35,19 +34,6 @@ namespace anton_engine {
         Vector2& operator-=(float);
         Vector2& operator*=(float);
         Vector2& operator/=(float);
-
-        // Check if all components are equal 0
-        bool is_zero() const;
-        bool is_almost_zero(float tolerance = 0.00001f) const;
-
-        float length_squared() const;
-        float length() const;
-
-        // If vector is non-zero, normalizes the vector.
-        // Otherwise leaves it unchanged
-        Vector2& normalize();
-
-        Vector2& multiply_componentwise(Vector2 const&);
     };
 
     Vector2 operator+(Vector2, Vector2);
@@ -61,32 +47,62 @@ namespace anton_engine {
     bool operator!=(Vector2, Vector2);
 
     void swap(Vector2&, Vector2&);
+
+    namespace math {
+        bool is_almost_zero(Vector2, float tolerance = 0.000001f);
+
+        float dot(Vector2, Vector2);
+        float length_squared(Vector2);
+        float length(Vector2);
+
+        // If vector is non-zero, returns normalized copy of the vector.
+        // Otherwise returns zero vector
+        Vector2 normalize(Vector2);
+
+        Vector2 multiply_componentwise(Vector2, Vector2);
+    } // namespace math
+
+    class IVector2 {
+    public:
+        i64 x = 0;
+        i64 y = 0;
+
+        IVector2() = default;
+        IVector2(i64 x, i64 y): x(x), y(y) {}
+        explicit IVector2(Vector2 const v): x(v.x), y(v.y) {}
+
+        explicit operator Vector2() {
+            return Vector2(x, y);
+        }
+
+        i64& operator[](i32);
+        i64 operator[](i32) const;
+
+        IVector2 operator-() const;
+        IVector2& operator+=(IVector2);
+        IVector2& operator-=(IVector2);
+        IVector2& operator+=(i64);
+        IVector2& operator-=(i64);
+        IVector2& operator*=(i64);
+        IVector2& operator/=(i64);
+    };
+
+    IVector2 operator+(IVector2, IVector2);
+    IVector2 operator-(IVector2, IVector2);
+    IVector2 operator+(IVector2, i64);
+    IVector2 operator-(IVector2, i64);
+    IVector2 operator*(IVector2, i64);
+    IVector2 operator*(i64, IVector2);
+    IVector2 operator/(IVector2, i64);
+    bool operator==(IVector2, IVector2);
+    bool operator!=(IVector2, IVector2);
+
+    void swap(IVector2&, IVector2&);
+
+    namespace math {
+        IVector2 multiply_componentwise(IVector2, IVector2);
+    }
 } // namespace anton_engine
-
-namespace anton_engine::math {
-    inline float dot(Vector2 const& vec1, Vector2 const& vec2) {
-        return vec1.x * vec2.x + vec1.y * vec2.y;
-    }
-
-    inline float length_squared(Vector2 v) {
-        return v.x * v.x + v.y * v.y;
-    }
-
-    inline float length(Vector2 v) {
-        return std::sqrt(v.x * v.x + v.y * v.y);
-    }
-
-    // If vector is non-zero, returns normalized copy of the vector.
-    // Otherwise returns zero vector
-    inline Vector2 normalize(Vector2 vec) {
-        vec.normalize();
-        return vec;
-    }
-
-    inline Vector2 multiply_componentwise(Vector2 const& a, Vector2 const& b) {
-        return {a.x * b.x, a.y * b.y};
-    }
-} // namespace anton_engine::math
 
 namespace anton_engine {
     inline Vector2 const Vector2::zero = Vector2(0.0f, 0.0f);
@@ -94,18 +110,12 @@ namespace anton_engine {
     inline Vector2 const Vector2::up = Vector2(0.0f, 1.0f);
     inline Vector2 const Vector2::right = Vector2(1.0f, 0.0f);
 
-    inline float& Vector2::operator[](int index) {
+    inline float& Vector2::operator[](i32 index) {
         return (&x)[index];
     }
 
-    inline float Vector2::operator[](int index) const {
+    inline float Vector2::operator[](i32 index) const {
         return (&x)[index];
-    }
-
-    inline Vector2& Vector2::operator-() {
-        x = -x;
-        y = -y;
-        return *this;
     }
 
     inline Vector2 Vector2::operator-() const {
@@ -145,36 +155,6 @@ namespace anton_engine {
     inline Vector2& Vector2::operator/=(float a) {
         x /= a;
         y /= a;
-        return *this;
-    }
-
-    inline bool Vector2::is_zero() const {
-        return x == 0.0f && y == 0.0f;
-    }
-
-    inline bool Vector2::is_almost_zero(float tolerance) const {
-        return math::abs(x) <= tolerance && math::abs(y) <= tolerance;
-    }
-
-    inline float Vector2::length_squared() const {
-        return x * x + y * y;
-    }
-
-    inline float Vector2::length() const {
-        return std::sqrt(x * x + y * y);
-    }
-
-    inline Vector2& Vector2::normalize() {
-        if (!is_zero()) {
-            float inverse_vec_length = math::inv_sqrt(length_squared());
-            *this *= inverse_vec_length;
-        }
-        return *this;
-    }
-
-    inline Vector2& Vector2::multiply_componentwise(Vector2 const& a) {
-        x *= a.x;
-        y *= a.y;
         return *this;
     }
 
@@ -225,6 +205,136 @@ namespace anton_engine {
         anton_stl::swap(a.x, b.x);
         anton_stl::swap(a.y, b.y);
     }
+
+    namespace math {
+        inline bool is_almost_zero(Vector2 const v, float const tolerance) {
+            return math::abs(v.x) <= tolerance && math::abs(v.y) <= tolerance;
+        }
+
+        inline float dot(Vector2 const vec1, Vector2 const vec2) {
+            return vec1.x * vec2.x + vec1.y * vec2.y;
+        }
+
+        inline float length_squared(Vector2 const v) {
+            return v.x * v.x + v.y * v.y;
+        }
+
+        inline float length(Vector2 const v) {
+            return sqrt(v.x * v.x + v.y * v.y);
+        }
+
+        // If vector is non-zero, returns normalized copy of the vector.
+        // Otherwise returns zero vector
+        inline Vector2 normalize(Vector2 vec) {
+            if (!is_almost_zero(vec)) {
+                float inverse_vec_length = math::inv_sqrt(math::length_squared(vec));
+                vec *= inverse_vec_length;
+            }
+
+            return vec;
+        }
+
+        inline Vector2 multiply_componentwise(Vector2 const a, Vector2 const b) {
+            return {a.x * b.x, a.y * b.y};
+        }
+    } // namespace math
+
+    // IVector2
+
+    inline i64& IVector2::operator[](i32 const index) {
+        return (&x)[index];
+    }
+
+    inline i64 IVector2::operator[](i32 const index) const {
+        return (&x)[index];
+    }
+
+    inline IVector2 IVector2::operator-() const {
+        return {-x, -y};
+    }
+
+    inline IVector2& IVector2::operator+=(IVector2 const v) {
+        x += v.x;
+        y += v.y;
+        return *this;
+    }
+
+    inline IVector2& IVector2::operator-=(IVector2 const v) {
+        x -= v.x;
+        y -= v.y;
+        return *this;
+    }
+
+    inline IVector2& IVector2::operator+=(i64 const a) {
+        x += a;
+        y += a;
+        return *this;
+    }
+
+    inline IVector2& IVector2::operator-=(i64 const a) {
+        x -= a;
+        y -= a;
+        return *this;
+    }
+
+    inline IVector2& IVector2::operator*=(i64 const a) {
+        x *= a;
+        y *= a;
+        return *this;
+    }
+
+    inline IVector2& IVector2::operator/=(i64 const a) {
+        x /= a;
+        y /= a;
+        return *this;
+    }
+
+    inline IVector2 operator+(IVector2 const v1, IVector2 const v2) {
+        return {v1.x + v2.x, v1.y + v2.y};
+    }
+
+    inline IVector2 operator-(IVector2 const v1, IVector2 const v2) {
+        return {v1.x - v2.x, v1.y - v2.y};
+    }
+
+    inline IVector2 operator+(IVector2 const v, i64 const a) {
+        return {v.x + a, v.y + a};
+    }
+
+    inline IVector2 operator-(IVector2 const v, i64 const a) {
+        return {v.x - a, v.y - a};
+    }
+
+    inline IVector2 operator*(IVector2 const v, i64 const a) {
+        return {v.x * a, v.y * a};
+    }
+
+    inline IVector2 operator*(i64 const a, IVector2 const v) {
+        return {v.x * a, v.y * a};
+    }
+
+    inline IVector2 operator/(IVector2 const v, i64 const a) {
+        return {v.x / a, v.y / a};
+    }
+
+    inline bool operator==(IVector2 const v1, IVector2 const v2) {
+        return v1.x == v2.x && v1.y == v2.y;
+    }
+
+    inline bool operator!=(IVector2 const v1, IVector2 const v2) {
+        return v1.x != v2.x || v1.y != v2.y;
+    }
+
+    inline void swap(IVector2& v1, IVector2& v2) {
+        anton_stl::swap(v1.x, v2.x);
+        anton_stl::swap(v1.y, v2.y);
+    }
+
+    namespace math {
+        inline IVector2 multiply_componentwise(IVector2 const v1, IVector2 const v2) {
+            return {v1.x * v2.x, v1.y * v2.y};
+        }
+    } // namespace math
 } // namespace anton_engine
 
 #endif // !CORE_MATH_VECTOR2_HPP_INCLUDE

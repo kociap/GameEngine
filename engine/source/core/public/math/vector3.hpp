@@ -29,7 +29,6 @@ namespace anton_engine {
         float& operator[](int);
         float operator[](int) const;
 
-        Vector3& operator-();
         Vector3 operator-() const;
         Vector3& operator+=(Vector3);
         Vector3& operator-=(Vector3);
@@ -37,19 +36,6 @@ namespace anton_engine {
         Vector3& operator-=(float);
         Vector3& operator*=(float);
         Vector3& operator/=(float);
-
-        // Check if all components are equal 0
-        bool is_zero() const;
-        bool is_almost_zero(float tolerance = 0.00001f) const;
-
-        float length_squared() const;
-        float length() const;
-
-        // If vector is non-zero, normalizes the vector.
-        // Otherwise leaves it unchanged
-        Vector3& normalize();
-
-        Vector3& multiply_componentwise(Vector3 const&);
     };
 
     Vector3 operator+(Vector3, Vector3);
@@ -63,36 +49,22 @@ namespace anton_engine {
     bool operator!=(Vector3, Vector3);
 
     void swap(Vector3&, Vector3&);
+
+    namespace math {
+        bool is_almost_zero(Vector3, float tolerance = 0.000001f);
+
+        float dot(Vector3, Vector3);
+        Vector3 cross(Vector3, Vector3);
+        float length_squared(Vector3);
+        float length(Vector3);
+
+        // If vector is non-zero, returns normalized copy of the vector.
+        // Otherwise returns zero vector
+        Vector3 normalize(Vector3);
+
+        Vector3 multiply_componentwise(Vector3, Vector3);
+    } // namespace math
 } // namespace anton_engine
-
-namespace anton_engine::math {
-    inline float dot(Vector3 const& vec1, Vector3 const& vec2) {
-        return vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z;
-    }
-
-    inline Vector3 cross(Vector3 const& vec1, Vector3 const& vec2) {
-        return Vector3(vec1.y * vec2.z - vec2.y * vec1.z, vec1.z * vec2.x - vec1.x * vec2.z, vec1.x * vec2.y - vec1.y * vec2.x);
-    }
-
-    inline float length_squared(Vector3 v) {
-        return v.x * v.x + v.y * v.y + v.z * v.z;
-    }
-
-    inline float length(Vector3 v) {
-        return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-    }
-
-    // If vector is non-zero, returns normalized copy of the vector.
-    // Otherwise returns zero vector
-    inline Vector3 normalize(Vector3 vec) {
-        vec.normalize();
-        return vec;
-    }
-
-    inline Vector3 multiply_componentwise(Vector3 const& a, Vector3 const& b) {
-        return {a.x * b.x, a.y * b.y, a.z * b.z};
-    }
-} // namespace anton_engine::math
 
 namespace anton_engine {
     inline Vector3 const Vector3::zero = Vector3(0, 0, 0);
@@ -107,13 +79,6 @@ namespace anton_engine {
 
     inline float Vector3::operator[](int index) const {
         return (&x)[index];
-    }
-
-    inline Vector3& Vector3::operator-() {
-        x = -x;
-        y = -y;
-        z = -z;
-        return *this;
     }
 
     inline Vector3 Vector3::operator-() const {
@@ -159,37 +124,6 @@ namespace anton_engine {
         x /= a;
         y /= a;
         z /= a;
-        return *this;
-    }
-
-    inline bool Vector3::is_zero() const {
-        return x == 0.0f && y == 0.0f && z == 0.0f;
-    }
-
-    inline bool Vector3::is_almost_zero(float tolerance) const {
-        return math::abs(x) <= tolerance && math::abs(y) <= tolerance && math::abs(z) <= tolerance;
-    }
-
-    inline float Vector3::length_squared() const {
-        return x * x + y * y + z * z;
-    }
-
-    inline float Vector3::length() const {
-        return std::sqrt(length_squared());
-    }
-
-    inline Vector3& Vector3::normalize() {
-        if (!is_zero()) {
-            float inverse_vec_length = math::inv_sqrt(length_squared());
-            *this *= inverse_vec_length;
-        }
-        return *this;
-    }
-
-    inline Vector3& Vector3::multiply_componentwise(Vector3 const& a) {
-        x *= a.x;
-        y *= a.y;
-        z *= a.z;
         return *this;
     }
 
@@ -241,6 +175,41 @@ namespace anton_engine {
         anton_stl::swap(a.y, b.y);
         anton_stl::swap(a.z, b.z);
     }
+
+    namespace math {
+        inline bool is_almost_zero(Vector3 const v, float const tolerance) {
+            return math::abs(v.x) <= tolerance && math::abs(v.y) <= tolerance && math::abs(v.z) <= tolerance;
+        }
+
+        inline float dot(Vector3 const v1, Vector3 const v2) {
+            return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+        }
+
+        inline Vector3 cross(Vector3 const v1, Vector3 const v2) {
+            return Vector3(v1.y * v2.z - v2.y * v1.z, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
+        }
+
+        inline float length_squared(Vector3 const v) {
+            return v.x * v.x + v.y * v.y + v.z * v.z;
+        }
+
+        inline float length(Vector3 v) {
+            return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+        }
+
+        inline Vector3 normalize(Vector3 vec) {
+            if (!is_almost_zero(vec)) {
+                float inverse_vec_length = math::inv_sqrt(length_squared(vec));
+                vec *= inverse_vec_length;
+            }
+
+            return vec;
+        }
+
+        inline Vector3 multiply_componentwise(Vector3 const a, Vector3 const b) {
+            return {a.x * b.x, a.y * b.y, a.z * b.z};
+        }
+    } // namespace math
 } // namespace anton_engine
 
 #endif // !CORE_MATH_VECTOR3_HPP_INCLUDE
