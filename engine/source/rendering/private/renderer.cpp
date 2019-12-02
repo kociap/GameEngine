@@ -33,7 +33,7 @@
 #include <unordered_map>
 
 #if ANTON_WITH_EDITOR
-#include <editor.hpp>
+#    include <editor.hpp>
 #endif
 
 namespace anton_engine {
@@ -100,10 +100,9 @@ namespace anton_engine::rendering {
         Directional_Light_Data directional_lights[16];
     };
 
-    template <typename T>
-    struct Buffer {
-        T* buffer;
-        T* head;
+    struct GPU_Buffer {
+        u32 handle;
+        void* mapped;
         i64 size;
     };
 
@@ -115,16 +114,16 @@ namespace anton_engine::rendering {
     // Dynamic lights and environment data. Bound to binding 0 and 1 respectively.
     static u32 lighting_data_ubo = 0;
 
-    // Persistently mapped vertex buffer for rendering geometry.
-    static u32 vertex_buffer = 0;
     constexpr i64 vertex_buffer_vertex_count = 1048576 * 2;
     constexpr i64 vertex_buffer_size = vertex_buffer_vertex_count * sizeof(Vertex);
+    static GPU_Buffer gpu_vertex_buffer;
+    static Buffer<Vertex> vertex_buffer;
+    static Buffer<Vertex> persistent_vertex_buffer;
+
     constexpr i64 draw_id_count = 65536;
     constexpr i64 draw_id_buffer_size = draw_id_count * sizeof(u32);
-    static void* mapped_vertex_buffer = nullptr;
-    static Buffer<Vertex> persistent_vertex_buffer;
     // By default filled with numbers 0 - draw_id_count.
-    static void* mapped_draw_id_buffer = nullptr;
+    static Buffer<u32> draw_id_buffer;
 
     constexpr i64 draw_elements_cmd_buffer_size = draw_id_count * sizeof(Draw_Elements_Command);
     constexpr i64 draw_arrays_cmd_buffer_size = draw_id_count * sizeof(Draw_Arrays_Command);
@@ -135,18 +134,18 @@ namespace anton_engine::rendering {
     static Buffer<Draw_Elements_Command> draw_elements_cmd_buffer;
 
     // Persistently mapped SSBO with matrix data.
-    static u32 ssbo = 0;
     constexpr i64 matrix_ssbo_size = draw_id_count * sizeof(Matrix4);
     constexpr i64 material_ssbo_size = draw_id_count * sizeof(Material);
     constexpr i64 ssbo_size = matrix_ssbo_size + material_ssbo_size;
-    static void* mapped_matrix_ssbo = nullptr;
-    static void* mapped_material_ssbo = nullptr;
+    static GPU_Buffer gpu_ssbo;
+    static Buffer<Matrix4> matrix_buffer;
+    static Buffer<Material> material_buffer;
 
     // Persistently mapped element buffer for rendering geometry.
-    static u32 element_buffer = 0;
     constexpr i64 element_buffer_index_count = 1048576 * 2;
     constexpr i64 element_buffer_size = element_buffer_index_count * sizeof(u32);
-    static void* mapped_element_buffer = nullptr;
+    static GPU_Buffer gpu_element_buffer;
+    static Buffer<u32> element_buffer;
     static Buffer<u32> persistent_element_buffer;
 
     struct Array_Texture {
@@ -230,36 +229,45 @@ namespace anton_engine::rendering {
 
         // TODO: Synchronisation to prevent buffer races
         // TODO: One huge buffer for (almost) everything (I guess)
-        glGenBuffers(1, &vertex_buffer);
-        glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+
+        glGenBuffers(1, &gpu_vertex_buffer.handle);
+        glBindBuffer(GL_ARRAY_BUFFER, gpu_vertex_buffer.handle);
         glBufferStorage(GL_ARRAY_BUFFER, vertex_buffer_size + draw_id_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
-        glBindVertexBuffer(0, vertex_buffer, 0, sizeof(Vertex));
-        glBindVertexBuffer(1, vertex_buffer, vertex_buffer_size, sizeof(u32));
-        mapped_vertex_buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vertex_buffer_size + draw_id_buffer_size, buffer_flags);
-        {
-            Vertex* const mapped_buffer = reinterpret_cast<Vertex*>(mapped_vertex_buffer) + vertex_buffer_vertex_count / 2;
-            persistent_vertex_buffer = Buffer<Vertex>{mapped_buffer, mapped_buffer, vertex_buffer_vertex_count / 2};
-        }
-        mapped_draw_id_buffer = reinterpret_cast<char*>(mapped_vertex_buffer) + vertex_buffer_size;
-        anton_stl::iota(reinterpret_cast<u32*>(mapped_draw_id_buffer), reinterpret_cast<u32*>(mapped_draw_id_buffer) + draw_id_count, 0);
+        gpu_vertex_buffer.size = vertex_buffer_size;
+        glBindVertexBuffer(0, gpu_vertex_buffer.handle, 0, sizeof(Vertex));
+        glBindVertexBuffer(1, gpu_vertex_buffer.handle, vertex_buffer_size, sizeof(u32));
 
-        glGenBuffers(1, &ssbo);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+        gpu_vertex_buffer.mapped = glMapBufferRange(GL_ARRAY_BUFFER, 0, vertex_buffer_size + draw_id_buffer_size, buffer_flags);
+        vertex_buffer.buffer = vertex_buffer.head = reinterpret_cast<Vertex*>(gpu_vertex_buffer.mapped);
+        vertex_buffer.size = vertex_buffer_vertex_count / 2;
+        persistent_vertex_buffer.buffer = persistent_vertex_buffer.head = vertex_buffer.buffer + vertex_buffer_vertex_count / 2;
+        persistent_vertex_buffer.size = vertex_buffer_vertex_count / 2;
+
+        draw_id_buffer.buffer = draw_id_buffer.head = reinterpret_cast<u32*>(reinterpret_cast<char*>(gpu_vertex_buffer.mapped) + vertex_buffer_size);
+        anton_stl::iota(draw_id_buffer.buffer, draw_id_buffer.buffer + draw_id_count, 0);
+
+        glGenBuffers(1, &gpu_ssbo.handle);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, gpu_ssbo.handle);
         glBufferStorage(GL_SHADER_STORAGE_BUFFER, ssbo_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
-        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, draw_matrix_data, ssbo, 0, matrix_ssbo_size);
-        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, draw_material_data_binding, ssbo, matrix_ssbo_size, material_ssbo_size);
-        mapped_matrix_ssbo = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ssbo_size, buffer_flags);
-        mapped_material_ssbo = reinterpret_cast<char*>(mapped_matrix_ssbo) + matrix_ssbo_size;
+        gpu_ssbo.size = ssbo_size;
+        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, draw_matrix_data, gpu_ssbo.handle, 0, matrix_ssbo_size);
+        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, draw_material_data_binding, gpu_ssbo.handle, matrix_ssbo_size, material_ssbo_size);
+        gpu_ssbo.mapped = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ssbo_size, buffer_flags);
+        matrix_buffer.buffer = matrix_buffer.head = reinterpret_cast<Matrix4*>(gpu_ssbo.mapped);
+        matrix_buffer.size = matrix_ssbo_size / sizeof(Matrix4);
+        material_buffer.buffer = material_buffer.head = reinterpret_cast<Material*>(matrix_buffer.buffer + matrix_ssbo_size / sizeof(Matrix4));
+        material_buffer.size = material_ssbo_size / sizeof(Material);
 
-        glGenBuffers(2, &element_buffer);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
+        glGenBuffers(2, &gpu_element_buffer.handle);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpu_element_buffer.handle);
         // Another huge buffer
         glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, element_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
-        mapped_element_buffer = glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, element_buffer_size, buffer_flags);
-        {
-            u32* const mapped_buffer = reinterpret_cast<u32*>(mapped_element_buffer) + element_buffer_index_count / 2;
-            persistent_element_buffer = {mapped_buffer, mapped_buffer, element_buffer_index_count / 2};
-        }
+        gpu_element_buffer.size = element_buffer_size;
+        gpu_element_buffer.mapped = glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, element_buffer_size, buffer_flags);
+        element_buffer.buffer = element_buffer.head = reinterpret_cast<u32*>(gpu_element_buffer.mapped);
+        element_buffer.size = element_buffer_index_count / 2;
+        persistent_element_buffer.buffer = persistent_element_buffer.head = element_buffer.buffer + element_buffer_index_count / 2;
+        persistent_element_buffer.size = element_buffer_index_count / 2;
 
         // Indirect Draw CMD buffer
         glGenBuffers(1, &draw_cmd_buffer);
@@ -290,6 +298,7 @@ namespace anton_engine::rendering {
             void const* const pixels_loc[2] = {pixels, pixels + 3};
             Texture handles[2];
             // TODO: Something's wrong with loading to gpu since the textures don't appear in renderdoc
+            //  Are you sure about that?
             load_textures_generate_mipmaps(default_format, 2, pixels_loc, handles);
             bind_texture(0, handles[0]);
         }
@@ -339,28 +348,29 @@ namespace anton_engine::rendering {
     }
 
     void bind_vertex_buffers() {
-        glBindVertexBuffer(0, vertex_buffer, 0, sizeof(Vertex));
-        glBindVertexBuffer(1, vertex_buffer, vertex_buffer_size, sizeof(u32));
+        glBindVertexBuffer(0, gpu_vertex_buffer.handle, 0, sizeof(Vertex));
+        glBindVertexBuffer(1, gpu_vertex_buffer.handle, vertex_buffer_size, sizeof(u32));
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpu_element_buffer.handle);
     }
 
-    Vertex_Buffer get_vertex_buffer() {
-        return {mapped_vertex_buffer, vertex_buffer_size};
+    Buffer<Vertex>& get_vertex_buffer() {
+        return vertex_buffer;
     }
 
-    Draw_ID_Buffer get_draw_id_buffer() {
-        return {reinterpret_cast<u32*>(mapped_draw_id_buffer), draw_id_buffer_size};
+    Buffer<u32>& get_draw_id_buffer() {
+        return draw_id_buffer;
     }
 
-    Matrix_Buffer get_matrix_buffer() {
-        return {reinterpret_cast<Matrix4*>(mapped_matrix_ssbo), ssbo_size};
+    Buffer<Matrix4>& get_matrix_buffer() {
+        return matrix_buffer;
     }
 
-    Material_Buffer get_material_buffer() {
-        return {reinterpret_cast<Material*>(mapped_material_ssbo), material_ssbo_size};
+    Buffer<Material>& get_material_buffer() {
+        return material_buffer;
     }
 
-    Element_Buffer get_element_buffer() {
-        return {reinterpret_cast<u32*>(mapped_element_buffer), element_buffer_size};
+    Buffer<u32>& get_element_buffer() {
+        return element_buffer;
     }
 
     [[nodiscard]] static int32_t find_texture_with_format(Texture_Format const format) {
@@ -442,6 +452,51 @@ namespace anton_engine::rendering {
         }
         texture_storage.free_list.erase(texture_storage.free_list.begin(), texture_storage.free_list.begin() + texture_count);
         glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+    }
+
+    Draw_Elements_Command write_geometry(anton_stl::Slice<Vertex const> const vertices, anton_stl::Slice<u32 const> const indices) {
+        Draw_Elements_Command cmd = {};
+
+        i64 vert_head_offset = vertex_buffer.head - vertex_buffer.buffer;
+        if (vertex_buffer.size - vert_head_offset < vertices.size()) {
+            vertex_buffer.head = vertex_buffer.buffer;
+            vert_head_offset = 0;
+        }
+        memcpy(vertex_buffer.head, vertices.data(), vertices.size() * sizeof(Vertex));
+        vertex_buffer.head += vertices.size();
+        cmd.base_vertex = vert_head_offset;
+
+        i64 elem_head_offset = element_buffer.head - element_buffer.buffer;
+        if (element_buffer.size - elem_head_offset < indices.size()) {
+            element_buffer.head = element_buffer.buffer;
+            elem_head_offset = 0;
+        }
+        memcpy(element_buffer.head, indices.data(), indices.size() * sizeof(u32));
+        element_buffer.head += indices.size();
+        cmd.count = indices.size();
+        cmd.first_index = elem_head_offset;
+
+        return cmd;
+    }
+
+    u32 write_matrices_and_materials(anton_stl::Slice<Matrix4 const> const matrices, anton_stl::Slice<Material const> const materials) {
+        i64 material_head_offset = material_buffer.head - material_buffer.buffer;
+        if (material_buffer.size - material_head_offset < materials.size()) {
+            material_buffer.head = material_buffer.buffer;
+            material_head_offset = 0;
+        }
+        memcpy(material_buffer.head, materials.data(), materials.size() * sizeof(Material));
+        material_buffer.head += materials.size();
+
+        i64 matrix_head_offset = matrix_buffer.head - matrix_buffer.buffer;
+        if (matrix_buffer.size - matrix_head_offset < matrices.size()) {
+            matrix_buffer.head = matrix_buffer.buffer;
+            matrix_head_offset = 0;
+        }
+        memcpy(matrix_buffer.head, matrices.data(), matrices.size() * sizeof(Matrix4));
+        matrix_buffer.head += matrices.size();
+
+        return matrix_head_offset;
     }
 
     u64 write_persistent_geometry(anton_stl::Slice<Vertex const> const vertices, anton_stl::Slice<u32 const> const indices) {
@@ -532,18 +587,12 @@ namespace anton_engine::rendering {
         // snapshot.respect<Static_Mesh_Component, Transform>();
         bind_default_textures();
         bind_mesh_vao();
-        glBindVertexBuffer(0, vertex_buffer, 0, sizeof(Vertex));
-        glBindVertexBuffer(1, vertex_buffer, vertex_buffer_size, sizeof(u32));
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
+        bind_vertex_buffers();
         auto objects = snapshot.view<Static_Mesh_Component, Transform>();
         Static_Mesh_Component last_mesh = {};
         Resource_Manager<Shader>& shader_manager = get_shader_manager();
         Resource_Manager<Material>& material_manager = get_material_manager();
         Resource_Manager<Mesh>& mesh_manager = get_mesh_manager();
-        Mapped_Buffer material_buffer = get_material_buffer();
-        Mapped_Buffer vertex_buffer = get_vertex_buffer();
-        Mapped_Buffer element_buffer = get_element_buffer();
-        Mapped_Buffer matrix_buffer = get_matrix_buffer();
 
         struct Bound_Texture {
             u32 index = 0;
@@ -576,12 +625,6 @@ namespace anton_engine::rendering {
         };
 
         Bound_Texture bound_textures[16] = {};
-        i64 vertices_written = 0;
-        i64 indices_written = 0;
-        Vertex* vertex_head_ptr = reinterpret_cast<Vertex*>(vertex_buffer.data);
-        u32* index_head_ptr = element_buffer.data;
-        Material* material_head_ptr = material_buffer.data;
-        Matrix4* matrix_head_ptr = matrix_buffer.data;
         i64 current_draw = 0;
         Draw_Elements_Command cmd = {};
         // TODO: wrap around, write_geometry functions, etc.
@@ -593,7 +636,6 @@ namespace anton_engine::rendering {
                 if (ANTON_LIKELY(current_draw != 0)) {
                     add_draw_command(cmd);
                 }
-                cmd.base_instance = current_draw;
                 cmd.instance_count = 1;
             } else {
                 cmd.instance_count += 1;
@@ -612,17 +654,9 @@ namespace anton_engine::rendering {
 
             if (static_mesh.mesh_handle != last_mesh.mesh_handle) {
                 Mesh const& mesh = mesh_manager.get(static_mesh.mesh_handle);
-                i64 const vertex_data_size = mesh.vertices.size();
-                memcpy(vertex_head_ptr, mesh.vertices.data(), vertex_data_size * sizeof(Vertex));
-                vertex_head_ptr += vertex_data_size;
-                cmd.base_vertex = vertices_written;
-                vertices_written += vertex_data_size;
-                i64 const indices_data_size = mesh.indices.size();
-                memcpy(index_head_ptr, mesh.indices.data(), indices_data_size * sizeof(u32));
-                index_head_ptr += indices_data_size;
-                cmd.count = mesh.indices.size();
-                cmd.first_index = indices_written;
-                indices_written += indices_data_size;
+                cmd = write_geometry(mesh.vertices, mesh.indices);
+                cmd.instance_count = 1;
+                cmd.base_instance = current_draw;
             }
 
             {
@@ -631,20 +665,16 @@ namespace anton_engine::rendering {
                 //
                 // Skip first texture slot since it should always have the default textures bound
                 Material const mat = material_manager.get(static_mesh.material_handle);
-                Material shader_mat = mat;
-                shader_mat.diffuse_texture.index = find_slot_and_bind_texture(bound_textures, mat.diffuse_texture, current_draw);
-                shader_mat.specular_texture.index = find_slot_and_bind_texture(bound_textures, mat.specular_texture, current_draw);
-                shader_mat.normal_map.index = find_slot_and_bind_texture(bound_textures, mat.normal_map, current_draw);
-                // memcpy(material_head_ptr, &shader_mat, sizeof(Material));
-                *material_head_ptr = shader_mat;
-                material_head_ptr += 1;
-            }
-
-            {
-                Matrix4 const model = to_matrix(transform);
-                // memcpy(matrix_head_ptr, &model, sizeof(Matrix4));
-                *matrix_head_ptr = model;
-                matrix_head_ptr += 1;
+                Material materials[1] = {mat};
+                materials[0].diffuse_texture.index = find_slot_and_bind_texture(bound_textures, mat.diffuse_texture, current_draw);
+                materials[0].specular_texture.index = find_slot_and_bind_texture(bound_textures, mat.specular_texture, current_draw);
+                materials[0].normal_map.index = find_slot_and_bind_texture(bound_textures, mat.normal_map, current_draw);
+                Matrix4 const matrices[1] = {to_matrix(transform)};
+                [[maybe_unused]] u32 const base_instance = write_matrices_and_materials(matrices, materials);
+                if (static_mesh.shader_handle != last_mesh.shader_handle || static_mesh.mesh_handle != last_mesh.mesh_handle ||
+                    static_mesh.material_handle != last_mesh.material_handle) {
+                    cmd.base_instance = base_instance;
+                }
             }
 
             last_mesh = static_mesh;

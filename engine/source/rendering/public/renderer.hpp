@@ -26,25 +26,6 @@ namespace anton_engine {
 } // namespace anton_engine
 
 namespace anton_engine::rendering {
-    class Renderer {
-    public:
-        Renderer(int32_t width, int32_t height);
-        ~Renderer();
-
-        void resize(int32_t width, int32_t height);
-        void render_frame(Matrix4 view_mat, Matrix4 proj_mat, Transform camera_transform, Vector2 viewport_size);
-        void swap_postprocess_buffers();
-
-    private:
-        void build_framebuffers(int32_t width, int32_t height);
-        void delete_framebuffers();
-
-    public:
-        Framebuffer* framebuffer;
-        Framebuffer* postprocess_front_buffer;
-        Framebuffer* postprocess_back_buffer;
-    };
-
     struct Draw_Arrays_Command {
         u32 count;
         u32 instance_count;
@@ -67,29 +48,31 @@ namespace anton_engine::rendering {
     };
 
     template <typename T>
-    struct Mapped_Buffer {
-        T* data;
+    struct Buffer {
+        T* buffer;
+        T* head;
         i64 size;
     };
-
-    using Vertex_Buffer = Mapped_Buffer<void>;
-    using Matrix_Buffer = Mapped_Buffer<Matrix4>;
-    using Material_Buffer = Mapped_Buffer<Material>;
-    using Element_Buffer = Mapped_Buffer<u32>;
-    using Draw_ID_Buffer = Mapped_Buffer<u32>;
 
     void setup_rendering();
     void update_dynamic_lights();
     void bind_mesh_vao();
     void bind_vertex_buffers();
-    [[nodiscard]] Vertex_Buffer get_vertex_buffer();
-    [[nodiscard]] Draw_ID_Buffer get_draw_id_buffer();
-    [[nodiscard]] Matrix_Buffer get_matrix_buffer();
-    [[nodiscard]] Material_Buffer get_material_buffer();
-    [[nodiscard]] Element_Buffer get_element_buffer();
+    [[nodiscard]] Buffer<Vertex>& get_vertex_buffer();
+    [[nodiscard]] Buffer<u32>& get_draw_id_buffer();
+    [[nodiscard]] Buffer<Matrix4>& get_matrix_buffer();
+    [[nodiscard]] Buffer<Material>& get_material_buffer();
+    [[nodiscard]] Buffer<u32>& get_element_buffer();
+
+    // Write geometry to gpu buffers. The geometry will eventually be overwritten.
+    [[nodiscard]] Draw_Elements_Command write_geometry(anton_stl::Slice<Vertex const>, anton_stl::Slice<u32 const>);
+
+    // Write matrices and materials to gpu buffers. Data will eventually be overwritten.
+    // Returns draw_id offset to be used as base_instance in draw commands.
+    [[nodiscard]] u32 write_matrices_and_materials(anton_stl::Slice<Matrix4 const>, anton_stl::Slice<Material const>);
 
     // Returns: Handle to the persistent geometry.
-    u64 write_persistent_geometry(anton_stl::Slice<Vertex const>, anton_stl::Slice<u32 const>);
+    [[nodiscard]] u64 write_persistent_geometry(anton_stl::Slice<Vertex const>, anton_stl::Slice<u32 const>);
 
     // Loads base texture and generates mipmaps (since we don't have pregenerated mipmaps yet).
     // pixels is a pointer to an array of pointers to the pixel data.
@@ -111,6 +94,26 @@ namespace anton_engine::rendering {
     // Intended for rendering textures to the screen or applying postprocessing effects
     // Rebinds element buffer and vertex buffer with binding index 0
     void render_texture_quad();
+
+    // Ugly thing
+    class Renderer {
+    public:
+        Renderer(int32_t width, int32_t height);
+        ~Renderer();
+
+        void resize(int32_t width, int32_t height);
+        void render_frame(Matrix4 view_mat, Matrix4 proj_mat, Transform camera_transform, Vector2 viewport_size);
+        void swap_postprocess_buffers();
+
+    private:
+        void build_framebuffers(int32_t width, int32_t height);
+        void delete_framebuffers();
+
+    public:
+        Framebuffer* framebuffer;
+        Framebuffer* postprocess_front_buffer;
+        Framebuffer* postprocess_back_buffer;
+    };
 } // namespace anton_engine::rendering
 
 #endif // !ENGINE_RENDERER_RENDERER_HPP_INCLUDE
