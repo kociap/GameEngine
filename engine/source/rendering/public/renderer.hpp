@@ -51,6 +51,9 @@ namespace anton_engine::rendering {
     void update_dynamic_lights();
     void bind_mesh_vao();
     void bind_vertex_buffers();
+
+    // Access to mapped gpu buffers
+
     [[nodiscard]] Buffer<Vertex>& get_vertex_buffer();
     [[nodiscard]] Buffer<u32>& get_draw_id_buffer();
     [[nodiscard]] Buffer<Matrix4>& get_matrix_buffer();
@@ -64,17 +67,26 @@ namespace anton_engine::rendering {
     // Returns draw_id offset to be used as base_instance in draw commands.
     [[nodiscard]] u32 write_matrices_and_materials(anton_stl::Slice<Matrix4 const>, anton_stl::Slice<Material const>);
 
+    // Write geometry that will persist across multiple frames. Geometry will not be overwritten.
     // Returns: Handle to the persistent geometry.
     [[nodiscard]] u64 write_persistent_geometry(anton_stl::Slice<Vertex const>, anton_stl::Slice<u32 const>);
 
     // Loads base texture and generates mipmaps (since we don't have pregenerated mipmaps yet).
     // pixels is a pointer to an array of pointers to the pixel data.
     // handles (out) array of handles to the textures. Must be at least texture_count big.
-    // handle <gl texture handle (u32), layer (f32)>
-    void load_textures_generate_mipmaps(Texture_Format, int32_t texture_count, void const* const* pixels, Texture* handles);
-    void bind_texture(uint32_t unit, Texture handle);
+    // handle <internal texture index (u32), layer (f32)>
+    void load_textures_generate_mipmaps(Texture_Format, i32 texture_count, void const* const* pixels, Texture* handles);
+
+    // handle <internal texture index (u32), layer (f32)>
+    // The handle is translated to gl texture handle and then bound.
+    // Since textures are stored as array textures, textures with same index do not have to
+    //   be bound multiple times.
+    void bind_texture(u32 unit, Texture handle);
+
+    // TODO: Texture unloading.
     // void unload_texture(uint64_t handle);
     // void unload_textures(int32_t handle_count, uint64_t const* handles);
+
     void add_draw_command(Draw_Elements_Command);
     void add_draw_command(Draw_Persistent_Geometry_Command);
     void commit_draw();

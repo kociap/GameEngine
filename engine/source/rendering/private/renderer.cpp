@@ -291,8 +291,6 @@ namespace anton_engine::rendering {
             u8 const pixels[] = {0, 0, 0, 255, 127, 127, 255};
             void const* const pixels_loc[2] = {pixels, pixels + 3};
             Texture handles[2];
-            // TODO: Something's wrong with loading to gpu since the textures don't appear in renderdoc
-            //  Are you sure about that?
             load_textures_generate_mipmaps(default_format, 2, pixels_loc, handles);
             bind_texture(0, handles[0]);
         }
@@ -393,8 +391,7 @@ namespace anton_engine::rendering {
         return min_filter == GL_LINEAR || min_filter == GL_LINEAR_MIPMAP_NEAREST || min_filter == GL_LINEAR_MIPMAP_LINEAR;
     }
 
-    // Handle <gl texture handle (u32), layer (u32)>
-    void load_textures_generate_mipmaps(Texture_Format const format, int32_t const texture_count, void const* const* const pixels, Texture* const handles) {
+    void load_textures_generate_mipmaps(Texture_Format const format, i32 const texture_count, void const* const* const pixels, Texture* const handles) {
         i32 texture_index = find_texture_with_format(format);
         if (texture_index == -1) {
             i32 unused_texture = find_unused_texture();
@@ -415,8 +412,10 @@ namespace anton_engine::rendering {
             texture_index = unused_texture;
         } else {
             if (textures_storage[texture_index].free_list.size() >= texture_count) {
+                // We have a texture with free slots
                 glBindTexture(GL_TEXTURE_2D_ARRAY, textures[texture_index].handle);
             } else {
+                // No free slots. Resize texture storage, so we can fit the new textures.
                 u32 new_texture;
                 glGenTextures(1, &new_texture);
                 glBindTexture(GL_TEXTURE_2D_ARRAY, new_texture);
@@ -517,7 +516,7 @@ namespace anton_engine::rendering {
         bind_texture(0, Texture{0, 0});
     }
 
-    void bind_texture(uint32_t const unit, Texture const handle) {
+    void bind_texture(u32 const unit, Texture const handle) {
         glBindTextureUnit(unit, textures[handle.index].handle);
     }
 
