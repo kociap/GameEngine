@@ -125,12 +125,8 @@ namespace anton_engine::rendering {
     // By default filled with numbers 0 - draw_id_count.
     static Buffer<u32> draw_id_buffer;
 
-    constexpr i64 draw_elements_cmd_buffer_size = draw_id_count * sizeof(Draw_Elements_Command);
-    constexpr i64 draw_arrays_cmd_buffer_size = draw_id_count * sizeof(Draw_Arrays_Command);
-    constexpr i64 draw_cmd_buffer_size = draw_elements_cmd_buffer_size + draw_arrays_cmd_buffer_size;
-    static u32 draw_cmd_buffer = 0;
-    static void* mapped_draw_elements_cmd_buffer = nullptr;
-    static void* mapped_draw_arrays_cmd_buffer = nullptr;
+    constexpr i64 draw_cmd_buffer_size = draw_id_count * sizeof(Draw_Elements_Command);
+    static GPU_Buffer gpu_draw_cmd_buffer;
     static Buffer<Draw_Elements_Command> draw_elements_cmd_buffer;
 
     // Persistently mapped SSBO with matrix data.
@@ -148,11 +144,6 @@ namespace anton_engine::rendering {
     static Buffer<u32> element_buffer;
     static Buffer<u32> persistent_element_buffer;
 
-    struct Array_Texture {
-        uint32_t handle;
-        Texture_Format format;
-    };
-
     [[nodiscard]] static bool operator==(Texture_Format lhs, Texture_Format rhs) {
         bool const swizzle_equal = lhs.swizzle_mask[0] == rhs.swizzle_mask[0] && lhs.swizzle_mask[1] == rhs.swizzle_mask[1] &&
                                    lhs.swizzle_mask[2] == rhs.swizzle_mask[2] && lhs.swizzle_mask[3] == rhs.swizzle_mask[3];
@@ -165,16 +156,20 @@ namespace anton_engine::rendering {
         return !(lhs == rhs);
     }
 
+    struct Array_Texture {
+        u32 handle;
+        Texture_Format format;
+    };
+
     struct Array_Texture_Storage {
         anton_stl::Vector<uint32_t> free_list;
-        int32_t size = 0;
+        i32 size = 0;
     };
 
     static anton_stl::Vector<Array_Texture> textures(64, Array_Texture{});
     static anton_stl::Vector<Array_Texture_Storage> textures_storage(64, Array_Texture_Storage());
 
-    // Draw command buffers.
-    static anton_stl::Vector<Draw_Arrays_Command> draw_arrays_commands;
+    // Draw commands buffer
     static anton_stl::Vector<Draw_Elements_Command> draw_elements_commands;
 
     static std::unordered_map<u64, Draw_Elements_Command> persistent_draw_commands_map;
@@ -186,10 +181,10 @@ namespace anton_engine::rendering {
 
     // Standard vao used for rendering meshes with position, normals, texture coords, tangent and bitangent.
     // Uses binding index 0.
-    static uint32_t mesh_vao = 0;
+    static u32 mesh_vao = 0;
 
-    constexpr uint64_t align_size(uint64_t const size, uint64_t const alignment) {
-        uint64_t const misalignment = size & (alignment - 1);
+    constexpr u64 align_size(u64 const size, u64 const alignment) {
+        u64 const misalignment = size & (alignment - 1);
         return size + (misalignment != 0 ? alignment - misalignment : 0);
     }
 
@@ -270,15 +265,13 @@ namespace anton_engine::rendering {
         persistent_element_buffer.size = element_buffer_index_count / 2;
 
         // Indirect Draw CMD buffer
-        glGenBuffers(1, &draw_cmd_buffer);
-        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, draw_cmd_buffer);
+        glGenBuffers(1, &gpu_draw_cmd_buffer.handle);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gpu_draw_cmd_buffer.handle);
         glBufferStorage(GL_DRAW_INDIRECT_BUFFER, draw_cmd_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
-        mapped_draw_elements_cmd_buffer = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, draw_cmd_buffer_size, buffer_flags);
-        {
-            Draw_Elements_Command* const mapped_buffer = reinterpret_cast<Draw_Elements_Command*>(mapped_draw_elements_cmd_buffer);
-            draw_elements_cmd_buffer = {mapped_buffer, mapped_buffer, draw_elements_cmd_buffer_size / sizeof(Draw_Elements_Command)};
-        }
-        mapped_draw_arrays_cmd_buffer = reinterpret_cast<char*>(mapped_draw_elements_cmd_buffer) + draw_elements_cmd_buffer_size;
+        gpu_draw_cmd_buffer.size = draw_cmd_buffer_size;
+        gpu_draw_cmd_buffer.mapped = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, draw_cmd_buffer_size, buffer_flags);
+        draw_elements_cmd_buffer.buffer = draw_elements_cmd_buffer.head = reinterpret_cast<Draw_Elements_Command*>(gpu_draw_cmd_buffer.mapped);
+        draw_elements_cmd_buffer.size = gpu_draw_cmd_buffer.size / sizeof(Draw_Elements_Command);
 
         // Uniforms
 
@@ -289,12 +282,13 @@ namespace anton_engine::rendering {
 
         // Default Textures
 
-        // Empty (0, 0, 0, 1) 1x1 texture bound to unit 0 layer 0
-        // Default normal map (0.5, 0.5, 1.0, 1.0) 1x1  bound to unit 0 layer 1
+        // Black (0, 0, 0, 1) 1x1 texture bound to unit 0 layer 0
+        // Black transparent (0, 0, 0, 0) 1x1 texture bound to unit 0 layer 1
+        // Default tangent space normal map (0.5, 0.5, 1.0, 1.0) 1x1 bound to unit 0 layer 2
         {
             Texture_Format const default_format = {
-                1, 1, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, GL_NEAREST_MIPMAP_NEAREST, 1, {GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA}};
-            uint8_t const pixels[] = {0, 0, 0, 127, 127, 255};
+                1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST_MIPMAP_NEAREST, 1, {GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA}};
+            u8 const pixels[] = {0, 0, 0, 255, 127, 127, 255};
             void const* const pixels_loc[2] = {pixels, pixels + 3};
             Texture handles[2];
             // TODO: Something's wrong with loading to gpu since the textures don't appear in renderdoc
@@ -401,21 +395,21 @@ namespace anton_engine::rendering {
 
     // Handle <gl texture handle (u32), layer (u32)>
     void load_textures_generate_mipmaps(Texture_Format const format, int32_t const texture_count, void const* const* const pixels, Texture* const handles) {
-        int32_t texture_index = find_texture_with_format(format);
+        i32 texture_index = find_texture_with_format(format);
         if (texture_index == -1) {
-            int32_t unused_texture = find_unused_texture();
+            i32 unused_texture = find_unused_texture();
             textures[unused_texture].format = format;
             glGenTextures(1, &textures[unused_texture].handle);
             glBindTexture(GL_TEXTURE_2D_ARRAY, textures[unused_texture].handle);
             glTexStorage3D(GL_TEXTURE_2D_ARRAY, format.mip_levels, format.sized_internal_format, format.width, format.height, texture_count);
-            // uint32_t const mag_filter = should_use_linear_magnififcation_filter(texture.filter) ? GL_LINEAR : GL_NEAREST;
+            // u32 const mag_filter = should_use_linear_magnififcation_filter(texture.filter) ? GL_LINEAR : GL_NEAREST;
             // TODO: Currently all textures are trilinearily filtered by default.
             glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, format.swizzle_mask);
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            for (int32_t i = 0; i < texture_count; ++i) {
+            for (i32 i = 0; i < texture_count; ++i) {
                 textures_storage[unused_texture].free_list.push_back(i);
             }
             texture_index = unused_texture;
@@ -423,29 +417,29 @@ namespace anton_engine::rendering {
             if (textures_storage[texture_index].free_list.size() >= texture_count) {
                 glBindTexture(GL_TEXTURE_2D_ARRAY, textures[texture_index].handle);
             } else {
-                uint32_t new_texture;
+                u32 new_texture;
                 glGenTextures(1, &new_texture);
                 glBindTexture(GL_TEXTURE_2D_ARRAY, new_texture);
                 Array_Texture_Storage& texture_storage = textures_storage[texture_index];
-                int32_t const new_size = texture_storage.size + texture_count - texture_storage.free_list.size();
+                i32 const new_size = texture_storage.size + texture_count - texture_storage.free_list.size();
                 glTexStorage3D(GL_TEXTURE_2D_ARRAY, format.mip_levels, format.sized_internal_format, format.width, format.height, new_size);
-                for (int32_t i = 0; i < format.mip_levels; ++i) {
+                for (i32 i = 0; i < format.mip_levels; ++i) {
                     glCopyImageSubData(textures[texture_index].handle, GL_TEXTURE_2D_ARRAY, i, 0, 0, 0, new_texture, GL_TEXTURE_2D_ARRAY, i, 0, 0, 0,
                                        format.width, format.height, texture_storage.size);
                 }
                 glDeleteTextures(1, &textures[texture_index].handle);
                 textures[texture_index].handle = new_texture;
-                int32_t const old_size = texture_storage.size;
+                i32 const old_size = texture_storage.size;
                 texture_storage.size = new_size;
-                for (int32_t i = old_size; i < new_size; ++i) {
+                for (i32 i = old_size; i < new_size; ++i) {
                     texture_storage.free_list.push_back(i);
                 }
             }
         }
 
         Array_Texture_Storage& texture_storage = textures_storage[texture_index];
-        for (int32_t i = 0; i < texture_count; ++i) {
-            int32_t const unused_texture = texture_storage.free_list[i];
+        for (i32 i = 0; i < texture_count; ++i) {
+            i32 const unused_texture = texture_storage.free_list[i];
             glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, unused_texture, format.width, format.height, 1, format.pixel_format, format.pixel_type, pixels[i]);
             handles[i].index = texture_index;
             handles[i].layer = unused_texture;
@@ -540,10 +534,6 @@ namespace anton_engine::rendering {
     //     for (int32_t i = 0; i < handle_count; ++i) {}
     // }
 
-    void add_draw_command(Draw_Arrays_Command const command) {
-        draw_arrays_commands.push_back(command);
-    }
-
     void add_draw_command(Draw_Elements_Command const command) {
         draw_elements_commands.push_back(command);
     }
@@ -558,7 +548,6 @@ namespace anton_engine::rendering {
     void commit_draw() {
         if (draw_elements_commands.size() > 0) {
             if (draw_elements_cmd_buffer.head - draw_elements_cmd_buffer.buffer + draw_elements_commands.size() > draw_elements_cmd_buffer.size) {
-                // Wrap around
                 draw_elements_cmd_buffer.head = draw_elements_cmd_buffer.buffer;
             }
 
@@ -567,12 +556,6 @@ namespace anton_engine::rendering {
             glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)offset, draw_elements_commands.size(), sizeof(Draw_Elements_Command));
             draw_elements_cmd_buffer.head += draw_elements_commands.size();
             draw_elements_commands.clear();
-        }
-
-        if (draw_arrays_commands.size() > 0) {
-            memcpy(mapped_draw_arrays_cmd_buffer, draw_arrays_commands.data(), draw_arrays_commands.size() * sizeof(Draw_Arrays_Command));
-            glMultiDrawArraysIndirect(GL_TRIANGLES, (void*)draw_elements_cmd_buffer_size, draw_arrays_commands.size(), sizeof(Draw_Arrays_Command));
-            draw_arrays_commands.clear();
         }
     }
 

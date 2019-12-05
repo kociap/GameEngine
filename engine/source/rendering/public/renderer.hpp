@@ -26,13 +26,6 @@ namespace anton_engine {
 } // namespace anton_engine
 
 namespace anton_engine::rendering {
-    struct Draw_Arrays_Command {
-        u32 count;
-        u32 instance_count;
-        u32 first;
-        u32 base_instance;
-    };
-
     struct Draw_Elements_Command {
         u32 count;
         u32 instance_count;
@@ -82,7 +75,6 @@ namespace anton_engine::rendering {
     void bind_texture(uint32_t unit, Texture handle);
     // void unload_texture(uint64_t handle);
     // void unload_textures(int32_t handle_count, uint64_t const* handles);
-    void add_draw_command(Draw_Arrays_Command);
     void add_draw_command(Draw_Elements_Command);
     void add_draw_command(Draw_Persistent_Geometry_Command);
     void commit_draw();
