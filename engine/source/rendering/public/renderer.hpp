@@ -21,7 +21,6 @@ namespace anton_engine {
     class Matrix4;
     class Transform;
     class Mesh;
-
     class Framebuffer;
 } // namespace anton_engine
 

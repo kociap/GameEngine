@@ -9,9 +9,17 @@ namespace anton_engine {
     //   to gl texture handle when the texture is bound. layer is the array texture layer.
     class alignas(16) Texture {
     public:
+        static Texture const default_black;
+        static Texture const default_black_transparent;
+        static Texture const default_normal_map;
+
         u32 index = 0;
         float layer = 0;
     };
+
+    inline Texture const Texture::default_black{0, 0.0f};
+    inline Texture const Texture::default_black_transparent{0, 1.0f};
+    inline Texture const Texture::default_normal_map{0, 2.0f};
 
     class Material {
     public:

@@ -23,8 +23,8 @@ out Frag_Data {
 
 void main() {
     const mat4 model = model_matrices[draw_id];
-    const mat3 model_reduced = mat3(model);
-    const vec3 normal = normalize(transpose(inverse(model_reduced)) * in_normal);
+    const mat3 model_reduced = transpose(inverse(mat3(model)));
+    const vec3 normal = normalize(model_reduced * in_normal);
     const vec3 tangent = normalize(model_reduced * in_tangent);
     const vec3 bitangent = normalize(model_reduced * in_bitangent);
 

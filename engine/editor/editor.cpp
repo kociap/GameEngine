@@ -209,6 +209,8 @@ namespace anton_engine {
             void* pix_data = pixels.data();
             rendering::load_textures_generate_mipmaps(format, 1, &pix_data, &handle);
             barrel_mat.diffuse_texture = handle;
+            barrel_mat.specular_texture = Texture::default_black;
+            barrel_mat.normal_map = Texture::default_normal_map;
         }
         Handle<Material> const material_handle = material_manager->add(std::move(barrel_mat));
 #endif

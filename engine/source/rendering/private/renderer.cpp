@@ -2,6 +2,7 @@
 
 #include <anton_int.hpp>
 #include <anton_stl/algorithm.hpp>
+#include <anton_stl/string.hpp>
 #include <anton_stl/utility.hpp>
 #include <anton_stl/vector.hpp>
 #include <assets.hpp>
@@ -21,6 +22,7 @@
 #include <glad.hpp>
 #include <handle.hpp>
 #include <intrinsics.hpp>
+#include <logging.hpp>
 #include <math/matrix4.hpp>
 #include <math/transform.hpp>
 #include <mesh.hpp>
@@ -288,10 +290,10 @@ namespace anton_engine::rendering {
         {
             Texture_Format const default_format = {
                 1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST_MIPMAP_NEAREST, 1, {GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA}};
-            u8 const pixels[] = {0, 0, 0, 255, 127, 127, 255};
-            void const* const pixels_loc[2] = {pixels, pixels + 3};
-            Texture handles[2];
-            load_textures_generate_mipmaps(default_format, 2, pixels_loc, handles);
+            u8 const pixels[] = {0, 0, 0, 255, 0, 0, 0, 0, 127, 127, 255, 255};
+            void const* const pixels_loc[3] = {pixels, pixels + 4, pixels + 8};
+            Texture handles[3];
+            load_textures_generate_mipmaps(default_format, 3, pixels_loc, handles);
             bind_texture(0, handles[0]);
         }
     }
@@ -582,7 +584,7 @@ namespace anton_engine::rendering {
         };
 
         auto find_slot_and_bind_texture = [](Bound_Texture bound_textures[16], Texture const texture, i64 const current_draw) -> u32 {
-            for (i32 i = 1; i < 16; ++i) {
+            for (i32 i = 0; i < 16; ++i) {
                 if (bound_textures[i].index == texture.index) {
                     return i;
                 }
