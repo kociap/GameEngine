@@ -110,40 +110,29 @@ namespace anton_engine::rendering {
 
     // Buffer binding indices
     constexpr u32 lighting_data_binding = 0;
-    constexpr u32 draw_matrix_data = 1;
-    constexpr u32 draw_material_data_binding = 2;
+    constexpr u32 draw_matrix_binding = 1;
+    constexpr u32 draw_material_binding = 2;
 
     // Dynamic lights and environment data. Bound to binding 0 and 1 respectively.
     static u32 lighting_data_ubo = 0;
 
-    constexpr i64 vertex_buffer_vertex_count = 1048576 * 2;
-    constexpr i64 vertex_buffer_size = vertex_buffer_vertex_count * sizeof(Vertex);
     static GPU_Buffer gpu_vertex_buffer;
     static Buffer<Vertex> vertex_buffer;
+    static GPU_Buffer gpu_persistent_vertex_buffer;
     static Buffer<Vertex> persistent_vertex_buffer;
 
-    constexpr i64 draw_id_count = 65536;
-    constexpr i64 draw_id_buffer_size = draw_id_count * sizeof(u32);
+    static GPU_Buffer gpu_draw_cmd_buffer;
+    static Buffer<Draw_Elements_Command> draw_cmd_buffer;
+
+    static GPU_Buffer gpu_draw_data_buffer;
     // By default filled with numbers 0 - draw_id_count.
     static Buffer<u32> draw_id_buffer;
-
-    constexpr i64 draw_cmd_buffer_size = draw_id_count * sizeof(Draw_Elements_Command);
-    static GPU_Buffer gpu_draw_cmd_buffer;
-    static Buffer<Draw_Elements_Command> draw_elements_cmd_buffer;
-
-    // Persistently mapped SSBO with matrix data.
-    constexpr i64 matrix_ssbo_size = draw_id_count * sizeof(Matrix4);
-    constexpr i64 material_ssbo_size = draw_id_count * sizeof(Material);
-    constexpr i64 ssbo_size = matrix_ssbo_size + material_ssbo_size;
-    static GPU_Buffer gpu_ssbo;
     static Buffer<Matrix4> matrix_buffer;
     static Buffer<Material> material_buffer;
 
-    // Persistently mapped element buffer for rendering geometry.
-    constexpr i64 element_buffer_index_count = 1048576 * 2;
-    constexpr i64 element_buffer_size = element_buffer_index_count * sizeof(u32);
     static GPU_Buffer gpu_element_buffer;
     static Buffer<u32> element_buffer;
+    static GPU_Buffer gpu_persistent_element_buffer;
     static Buffer<u32> persistent_element_buffer;
 
     [[nodiscard]] static bool operator==(Texture_Format lhs, Texture_Format rhs) {
@@ -225,62 +214,64 @@ namespace anton_engine::rendering {
         constexpr u32 buffer_flags = GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT;
 
         // TODO: Synchronisation to prevent buffer races
-        // TODO: One huge buffer for (almost) everything (I guess)
+        // TODO: Hardcoded initial size of the buffers. Make it configurable or computed offline.
 
+        gpu_vertex_buffer.size = 1048576 * sizeof(Vertex);
         glGenBuffers(1, &gpu_vertex_buffer.handle);
         glBindBuffer(GL_ARRAY_BUFFER, gpu_vertex_buffer.handle);
-        glBufferStorage(GL_ARRAY_BUFFER, vertex_buffer_size + draw_id_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
-        gpu_vertex_buffer.size = vertex_buffer_size;
-        glBindVertexBuffer(0, gpu_vertex_buffer.handle, 0, sizeof(Vertex));
-        glBindVertexBuffer(1, gpu_vertex_buffer.handle, vertex_buffer_size, sizeof(u32));
-
-        gpu_vertex_buffer.mapped = glMapBufferRange(GL_ARRAY_BUFFER, 0, vertex_buffer_size + draw_id_buffer_size, buffer_flags);
+        glBufferStorage(GL_ARRAY_BUFFER, gpu_vertex_buffer.size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
+        gpu_vertex_buffer.mapped = glMapBufferRange(GL_ARRAY_BUFFER, 0, gpu_vertex_buffer.size, buffer_flags);
         vertex_buffer.buffer = vertex_buffer.head = reinterpret_cast<Vertex*>(gpu_vertex_buffer.mapped);
-        vertex_buffer.size = vertex_buffer_vertex_count / 2;
-        persistent_vertex_buffer.buffer = persistent_vertex_buffer.head = vertex_buffer.buffer + vertex_buffer_vertex_count / 2;
-        persistent_vertex_buffer.size = vertex_buffer_vertex_count / 2;
+        vertex_buffer.size = gpu_vertex_buffer.size / sizeof(Vertex);
 
-        draw_id_buffer.buffer = draw_id_buffer.head = reinterpret_cast<u32*>(reinterpret_cast<char*>(gpu_vertex_buffer.mapped) + vertex_buffer_size);
-        anton_stl::iota(draw_id_buffer.buffer, draw_id_buffer.buffer + draw_id_count, 0);
+        gpu_persistent_vertex_buffer.size = 1048576 * sizeof(Vertex);
+        glGenBuffers(1, &gpu_persistent_vertex_buffer.handle);
+        glBindBuffer(GL_ARRAY_BUFFER, gpu_persistent_vertex_buffer.handle);
+        glBufferStorage(GL_ARRAY_BUFFER, gpu_persistent_vertex_buffer.size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
+        gpu_persistent_vertex_buffer.mapped = glMapBufferRange(GL_ARRAY_BUFFER, 0, gpu_persistent_vertex_buffer.size, buffer_flags);
+        persistent_vertex_buffer.buffer = persistent_vertex_buffer.head = reinterpret_cast<Vertex*>(gpu_persistent_vertex_buffer.mapped);
+        persistent_vertex_buffer.size = gpu_persistent_vertex_buffer.size / sizeof(Vertex);
 
-        glGenBuffers(1, &gpu_ssbo.handle);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, gpu_ssbo.handle);
-        glBufferStorage(GL_SHADER_STORAGE_BUFFER, ssbo_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
-        gpu_ssbo.size = ssbo_size;
-        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, draw_matrix_data, gpu_ssbo.handle, 0, matrix_ssbo_size);
-        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, draw_material_data_binding, gpu_ssbo.handle, matrix_ssbo_size, material_ssbo_size);
-        gpu_ssbo.mapped = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ssbo_size, buffer_flags);
-        matrix_buffer.buffer = matrix_buffer.head = reinterpret_cast<Matrix4*>(gpu_ssbo.mapped);
-        matrix_buffer.size = matrix_ssbo_size / sizeof(Matrix4);
-        material_buffer.buffer = material_buffer.head = reinterpret_cast<Material*>(matrix_buffer.buffer + matrix_ssbo_size / sizeof(Matrix4));
-        material_buffer.size = material_ssbo_size / sizeof(Material);
+        gpu_draw_data_buffer.size = 65536 * (sizeof(u32) + sizeof(Matrix4) + sizeof(Material));
+        glGenBuffers(1, &gpu_draw_data_buffer.handle);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, gpu_draw_data_buffer.handle);
+        glBufferStorage(GL_SHADER_STORAGE_BUFFER, gpu_draw_data_buffer.size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
+        gpu_draw_data_buffer.mapped = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, gpu_draw_data_buffer.size, buffer_flags);
+        draw_id_buffer.size = matrix_buffer.size = material_buffer.size = gpu_draw_data_buffer.size / (sizeof(u32) + sizeof(Matrix4) + sizeof(Material));
+        draw_id_buffer.buffer = draw_id_buffer.head = reinterpret_cast<u32*>(gpu_draw_data_buffer.mapped);
+        anton_stl::iota(draw_id_buffer.buffer, draw_id_buffer.buffer + draw_id_buffer.size, 0);
+        matrix_buffer.buffer = matrix_buffer.head = reinterpret_cast<Matrix4*>(draw_id_buffer.buffer + draw_id_buffer.size);
+        material_buffer.buffer = material_buffer.head = reinterpret_cast<Material*>(matrix_buffer.buffer + matrix_buffer.size);
 
-        glGenBuffers(2, &gpu_element_buffer.handle);
+        gpu_element_buffer.size = 1048576 * sizeof(u32);
+        glGenBuffers(1, &gpu_element_buffer.handle);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpu_element_buffer.handle);
-        // Another huge buffer
-        glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, element_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
-        gpu_element_buffer.size = element_buffer_size;
-        gpu_element_buffer.mapped = glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, element_buffer_size, buffer_flags);
+        glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, gpu_element_buffer.size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
+        gpu_element_buffer.mapped = glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, gpu_element_buffer.size, buffer_flags);
         element_buffer.buffer = element_buffer.head = reinterpret_cast<u32*>(gpu_element_buffer.mapped);
-        element_buffer.size = element_buffer_index_count / 2;
-        persistent_element_buffer.buffer = persistent_element_buffer.head = element_buffer.buffer + element_buffer_index_count / 2;
-        persistent_element_buffer.size = element_buffer_index_count / 2;
+        element_buffer.size = gpu_element_buffer.size / sizeof(u32);
 
-        // Indirect Draw CMD buffer
+        gpu_persistent_element_buffer.size = 1048576 * sizeof(u32);
+        glGenBuffers(1, &gpu_persistent_element_buffer.handle);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpu_persistent_element_buffer.handle);
+        glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, gpu_persistent_element_buffer.size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
+        gpu_persistent_element_buffer.mapped = glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, gpu_persistent_element_buffer.size, buffer_flags);
+        persistent_element_buffer.buffer = persistent_element_buffer.head = reinterpret_cast<u32*>(gpu_persistent_element_buffer.mapped);
+        persistent_element_buffer.size = gpu_persistent_element_buffer.size / sizeof(u32);
+
+        gpu_draw_cmd_buffer.size = 65536 * sizeof(Draw_Elements_Command);
         glGenBuffers(1, &gpu_draw_cmd_buffer.handle);
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gpu_draw_cmd_buffer.handle);
-        glBufferStorage(GL_DRAW_INDIRECT_BUFFER, draw_cmd_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
-        gpu_draw_cmd_buffer.size = draw_cmd_buffer_size;
-        gpu_draw_cmd_buffer.mapped = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, draw_cmd_buffer_size, buffer_flags);
-        draw_elements_cmd_buffer.buffer = draw_elements_cmd_buffer.head = reinterpret_cast<Draw_Elements_Command*>(gpu_draw_cmd_buffer.mapped);
-        draw_elements_cmd_buffer.size = gpu_draw_cmd_buffer.size / sizeof(Draw_Elements_Command);
+        glBufferStorage(GL_DRAW_INDIRECT_BUFFER, gpu_draw_cmd_buffer.size, nullptr, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
+        gpu_draw_cmd_buffer.mapped = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, gpu_draw_cmd_buffer.size, buffer_flags);
+        draw_cmd_buffer.buffer = draw_cmd_buffer.head = reinterpret_cast<Draw_Elements_Command*>(gpu_draw_cmd_buffer.mapped);
+        draw_cmd_buffer.size = gpu_draw_cmd_buffer.size / sizeof(Draw_Elements_Command);
 
         // Uniforms
 
         glGenBuffers(1, &lighting_data_ubo);
         glBindBuffer(GL_UNIFORM_BUFFER, lighting_data_ubo);
         glBufferStorage(GL_UNIFORM_BUFFER, sizeof(Lighting_Data), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glBindBufferRange(GL_UNIFORM_BUFFER, lighting_data_binding, lighting_data_ubo, 0, sizeof(Lighting_Data));
 
         // Default Textures
 
@@ -298,6 +289,30 @@ namespace anton_engine::rendering {
         }
     }
 
+    static i64 buffer_offset(void* head, void* buffer) {
+        return reinterpret_cast<char*>(head) - reinterpret_cast<char*>(buffer);
+    }
+
+    void bind_persistent_geometry_buffers() {
+        glBindVertexBuffer(0, gpu_persistent_vertex_buffer.handle, 0, sizeof(Vertex));
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpu_persistent_element_buffer.handle);
+    }
+
+    void bind_transient_geometry_buffers() {
+        glBindVertexBuffer(0, gpu_vertex_buffer.handle, 0, sizeof(Vertex));
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpu_element_buffer.handle);
+    }
+
+    void bind_buffers() {
+        glBindVertexBuffer(1, gpu_draw_data_buffer.handle, 0, sizeof(u32));
+        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, draw_matrix_binding, gpu_draw_data_buffer.handle,
+                          buffer_offset(matrix_buffer.buffer, gpu_draw_data_buffer.mapped), matrix_buffer.size * sizeof(Matrix4));
+        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, draw_material_binding, gpu_draw_data_buffer.handle,
+                          buffer_offset(material_buffer.buffer, gpu_draw_data_buffer.mapped), material_buffer.size * sizeof(Material));
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gpu_draw_cmd_buffer.handle);
+        glBindBufferRange(GL_UNIFORM_BUFFER, lighting_data_binding, lighting_data_ubo, 0, sizeof(Lighting_Data));
+    }
+
     void update_dynamic_lights() {
         ECS& ecs = get_ecs();
         // TODO: We load hardcoded environment properties at startup, but they should be modifiable.
@@ -305,7 +320,7 @@ namespace anton_engine::rendering {
         {
             auto directional_lights = ecs.view<Directional_Light_Component>();
             lights_data.directional_light_count = directional_lights.size();
-            int32_t i = 0;
+            i32 i = 0;
             for (Entity const entity: directional_lights) {
                 Directional_Light_Component& light = directional_lights.get(entity);
                 lights_data.directional_lights[i] = {light.color, light.direction, light.intensity, 0.8f, 1.0f};
@@ -314,7 +329,7 @@ namespace anton_engine::rendering {
         }
         // {
         //     auto spot_lights = ecs.view<Transform, Spot_Light_Component>();
-        //     int32_t i = 0;
+        //     i32 i = 0;
         //     for (Entity const entity: spot_lights) {
         //         auto [transform, light] = spot_lights.get<Transform, Spot_Light_Component>(entity);
         //         light_data.spot_lights[i] = {transform.local_position, light.direction, light.color, light.intensity, light.cutoff_angle, light.blend_angle,
@@ -325,7 +340,7 @@ namespace anton_engine::rendering {
         {
             auto point_lights = ecs.view<Transform, Point_Light_Component>();
             lights_data.point_lights_count = point_lights.size();
-            int32_t i = 0;
+            i32 i = 0;
             for (Entity const entity: point_lights) {
                 auto [transform, light] = point_lights.get<Transform, Point_Light_Component>(entity);
                 // TODO: Global attentuation instead of per light. Most likely hardcoded in the shaders
@@ -339,32 +354,6 @@ namespace anton_engine::rendering {
 
     void bind_mesh_vao() {
         glBindVertexArray(mesh_vao);
-    }
-
-    void bind_vertex_buffers() {
-        glBindVertexBuffer(0, gpu_vertex_buffer.handle, 0, sizeof(Vertex));
-        glBindVertexBuffer(1, gpu_vertex_buffer.handle, vertex_buffer_size, sizeof(u32));
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpu_element_buffer.handle);
-    }
-
-    Buffer<Vertex>& get_vertex_buffer() {
-        return vertex_buffer;
-    }
-
-    Buffer<u32>& get_draw_id_buffer() {
-        return draw_id_buffer;
-    }
-
-    Buffer<Matrix4>& get_matrix_buffer() {
-        return matrix_buffer;
-    }
-
-    Buffer<Material>& get_material_buffer() {
-        return material_buffer;
-    }
-
-    Buffer<u32>& get_element_buffer() {
-        return element_buffer;
     }
 
     [[nodiscard]] static int32_t find_texture_with_format(Texture_Format const format) {
@@ -507,8 +496,7 @@ namespace anton_engine::rendering {
         persistent_vertex_buffer.head += vertices.size();
         memcpy(persistent_element_buffer.head, indices.data(), indices.size() * sizeof(u32));
         persistent_element_buffer.head += indices.size();
-        Draw_Elements_Command cmd = {static_cast<u32>(indices.size()), 0, (u32)(element_buffer_index_count / 2 + index_offset),
-                                     (u32)(vertex_buffer_vertex_count / 2 + vertex_offset), 0};
+        Draw_Elements_Command cmd = {(u32)indices.size(), 0, (u32)index_offset, (u32)vertex_offset, 0};
         u64 const handle = get_persistent_geometry_next_handle();
         persistent_draw_commands_map.emplace(handle, cmd);
         return handle;
@@ -548,14 +536,14 @@ namespace anton_engine::rendering {
 
     void commit_draw() {
         if (draw_elements_commands.size() > 0) {
-            if (draw_elements_cmd_buffer.head - draw_elements_cmd_buffer.buffer + draw_elements_commands.size() > draw_elements_cmd_buffer.size) {
-                draw_elements_cmd_buffer.head = draw_elements_cmd_buffer.buffer;
+            if (draw_cmd_buffer.head - draw_cmd_buffer.buffer + draw_elements_commands.size() > draw_cmd_buffer.size) {
+                draw_cmd_buffer.head = draw_cmd_buffer.buffer;
             }
 
-            memcpy(draw_elements_cmd_buffer.head, draw_elements_commands.data(), draw_elements_commands.size() * sizeof(Draw_Elements_Command));
-            i64 const offset = (draw_elements_cmd_buffer.head - draw_elements_cmd_buffer.buffer) * sizeof(Draw_Elements_Command);
+            memcpy(draw_cmd_buffer.head, draw_elements_commands.data(), draw_elements_commands.size() * sizeof(Draw_Elements_Command));
+            i64 const offset = (draw_cmd_buffer.head - draw_cmd_buffer.buffer) * sizeof(Draw_Elements_Command);
             glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)offset, draw_elements_commands.size(), sizeof(Draw_Elements_Command));
-            draw_elements_cmd_buffer.head += draw_elements_commands.size();
+            draw_cmd_buffer.head += draw_elements_commands.size();
             draw_elements_commands.clear();
         }
     }
@@ -571,7 +559,8 @@ namespace anton_engine::rendering {
         // snapshot.respect<Static_Mesh_Component, Transform>();
         bind_default_textures();
         bind_mesh_vao();
-        bind_vertex_buffers();
+        bind_buffers();
+        bind_transient_geometry_buffers();
         auto objects = snapshot.view<Static_Mesh_Component, Transform>();
         Static_Mesh_Component last_mesh = {};
         Resource_Manager<Shader>& shader_manager = get_shader_manager();
@@ -721,7 +710,6 @@ namespace anton_engine::rendering {
         bind_framebuffer(framebuffer);
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        bind_mesh_vao();
         ECS& ecs = get_ecs();
         ECS snapshot = ecs.snapshot<Transform, Static_Mesh_Component>();
         render_scene(snapshot, camera_transform, view_mat, projection_mat);

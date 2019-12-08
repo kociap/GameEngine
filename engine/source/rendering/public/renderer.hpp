@@ -47,17 +47,11 @@ namespace anton_engine::rendering {
     };
 
     void setup_rendering();
-    void update_dynamic_lights();
+    void bind_persistent_geometry_buffers();
+    void bind_transient_geometry_buffers();
     void bind_mesh_vao();
-    void bind_vertex_buffers();
-
-    // Access to mapped gpu buffers
-
-    [[nodiscard]] Buffer<Vertex>& get_vertex_buffer();
-    [[nodiscard]] Buffer<u32>& get_draw_id_buffer();
-    [[nodiscard]] Buffer<Matrix4>& get_matrix_buffer();
-    [[nodiscard]] Buffer<Material>& get_material_buffer();
-    [[nodiscard]] Buffer<u32>& get_element_buffer();
+    void bind_buffers();
+    void update_dynamic_lights();
 
     // Write geometry to gpu buffers. The geometry will eventually be overwritten.
     [[nodiscard]] Draw_Elements_Command write_geometry(anton_stl::Slice<Vertex const>, anton_stl::Slice<u32 const>);
