@@ -39,6 +39,8 @@ namespace anton_engine::anton_stl {
         Slice(Container& c,
               enable_if<!is_slice<Container> && is_convertible<remove_pointer<decltype(anton_stl::data(c))> (*)[], value_type (*)[]>, void*> = nullptr)
             : _data(anton_stl::data(c)), _size(anton_stl::size(c)) {}
+        template <typename U>
+        Slice(Slice<U> const& other, enable_if<is_convertible<U (*)[], value_type (*)[]>, void*> = nullptr): _data(other.data()), _size(other.size()) {}
         Slice(Slice const& other): _data(other._data), _size(other._size) {}
 
         void operator=(Slice const& other) {
