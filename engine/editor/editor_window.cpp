@@ -14,6 +14,7 @@
 
 #include <dock_widget.hpp>
 #include <editor.hpp>
+#include <imgui_rendering.hpp>
 #include <log_viewer.hpp>
 #include <outliner.hpp>
 #include <user_input_filter.hpp>
@@ -46,6 +47,7 @@ namespace anton_engine {
         context->makeCurrent(surface);
         opengl::load();
         rendering::setup_rendering();
+        imgui::setup_rendering();
         load_builtin_shaders();
         load_default_editor_preferences();
 

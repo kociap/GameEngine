@@ -16,7 +16,7 @@
 namespace anton_engine {
     static anton_stl::Vector<Shader> builtin_shaders = anton_stl::Vector<Shader>(anton_stl::reserve, 5);
 #if ANTON_WITH_EDITOR
-    static anton_stl::Vector<Shader> builtin_editor_shaders = anton_stl::Vector<Shader>(anton_stl::reserve, 1);
+    static anton_stl::Vector<Shader> builtin_editor_shaders = anton_stl::Vector<Shader>(anton_stl::reserve, 3);
 #endif // ANTON_WITH_EDITOR
 
     // TODO: Should be private (most likely)
@@ -50,6 +50,10 @@ namespace anton_engine {
         Shader_File grid_vert = assets::load_shader_file("editor/grid.vert");
         Shader_File grid_frag = assets::load_shader_file("editor/grid.frag");
         builtin_editor_shaders.push_back(create_shader(grid_vert, grid_frag));
+
+        Shader_File imgui_vert = assets::load_shader_file("editor/imgui.vert");
+        Shader_File imgui_frag = assets::load_shader_file("editor/imgui.frag");
+        builtin_editor_shaders.push_back(create_shader(imgui_vert, imgui_frag));
 #endif // ANTON_WITH_EDITOR
     }
 
@@ -131,6 +135,15 @@ namespace anton_engine {
             builtin_editor_shaders[1] = create_shader(grid_vert, grid_frag);
         } catch (std::runtime_error const& error) {
             anton_stl::String error_message = anton_stl::String(error.what()) + u8"\nContinuing without reloading editor/grid shader\n-";
+            ANTON_LOG_ERROR(error_message);
+        }
+
+        try {
+            Shader_File imgui_vert = assets::load_shader_file("editor/imgui.vert");
+            Shader_File imgui_frag = assets::load_shader_file("editor/imgui.frag");
+            builtin_editor_shaders[2] = create_shader(imgui_vert, imgui_frag);
+        } catch (std::runtime_error const& error) {
+            anton_stl::String error_message = anton_stl::String(error.what()) + u8"\nContinuing without reloading editor/imgui shader\n-";
             ANTON_LOG_ERROR(error_message);
         }
 

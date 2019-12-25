@@ -16,6 +16,8 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/user_input_filter.hpp"
 )
 
+add_subdirectory(imgui/public)
+add_subdirectory(imgui/private)
 add_subdirectory(level_editor/public)
 add_subdirectory(level_editor/private)
 add_subdirectory(misc/public)

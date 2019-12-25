@@ -1,7 +1,6 @@
 set(HEADER_FILES
     ${HEADER_FILES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/builtin_editor_shaders.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/imgui_rendering.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/imgui.hpp"
     PARENT_SCOPE
 )
 

@@ -26,6 +26,10 @@ namespace anton_engine {
         class Renderer;
     }
 
+    namespace imgui {
+        class Context;
+    }
+
     class Viewport: public QWidget {
         Q_OBJECT
 
@@ -60,6 +64,7 @@ namespace anton_engine {
         Framebuffer* multisampled_framebuffer = nullptr;
         Framebuffer* deferred_framebuffer = nullptr;
         QOpenGLContext* context;
+        imgui::Context* imgui_context;
 
         Entity viewport_entity = null_entity;
         int32_t index;

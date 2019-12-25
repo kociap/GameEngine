@@ -1,6 +1,6 @@
 set(SOURCE_FILES
     ${SOURCE_FILES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/imgui_rendering.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/imgui.cpp"
     PARENT_SCOPE
 )
 
