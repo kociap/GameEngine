@@ -33,7 +33,7 @@ namespace anton_engine {
 #endif
     }
 
-    static void serialize_component_container(Type_Family::family_t identifier, serialization::Binary_Output_Archive& archive,
+    static void serialize_component_container(u64 identifier, serialization::Binary_Output_Archive& archive,
                                               Component_Container_Base const* container) {
         ANTON_ASSERT(get_component_serialization_funcs != nullptr, "Function get_component_serialization_funcs has not been loaded");
         auto& serialization_funcs = get_component_serialization_funcs();
@@ -43,7 +43,7 @@ namespace anton_engine {
         iter->serialize(archive, container);
     }
 
-    static void deserialize_component_container(Type_Family::family_t identifier, serialization::Binary_Input_Archive& archive,
+    static void deserialize_component_container(u64 identifier, serialization::Binary_Input_Archive& archive,
                                                 Component_Container_Base*& container) {
         ANTON_ASSERT(get_component_serialization_funcs != nullptr, "Function get_component_serialization_funcs has not been loaded");
         auto& serialization_funcs = get_component_serialization_funcs();

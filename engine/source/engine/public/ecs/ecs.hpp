@@ -68,10 +68,8 @@ namespace anton_engine {
         friend void deserialize(serialization::Binary_Input_Archive&, ECS&);
 
     private:
-        using family_type = Type_Family::family_t;
-
         struct Components_Container_Data {
-            Type_Family::family_t family;
+            u64 family;
             Component_Container_Base* container = nullptr;
             void (*remove)(Component_Container_Base&, Entity);
             Component_Container_Base* (*make_snapshot)(Component_Container_Base const&);
@@ -229,9 +227,9 @@ namespace anton_engine {
 
     template <typename T>
     inline Component_Container<T>* ECS::ensure_container() {
-        auto component_family = Type_Family::family_id<T>();
+        u64 const type = type_identifier<T>();
         for (auto& data: containers) {
-            if (data.family == component_family) {
+            if (data.family == type) {
                 return static_cast<Component_Container<T>*>(data.container);
             }
         }
@@ -243,7 +241,7 @@ namespace anton_engine {
             containers.pop_back();
             throw;
         }
-        data.family = component_family;
+        data.family = type;
         data.remove = [](Component_Container_Base& container, Entity const entity) { static_cast<Component_Container<T>&>(container).remove(entity); };
         data.make_snapshot = [](Component_Container_Base const& container) -> Component_Container_Base* {
             Component_Container<T> const& c = static_cast<Component_Container<T> const&>(container);
@@ -254,9 +252,9 @@ namespace anton_engine {
 
     template <typename T>
     inline Component_Container<T> const* ECS::find_container() const {
-        auto component_family = Type_Family::family_id<T>();
+        u64 const type = type_identifier<T>();
         for (auto& data: containers) {
-            if (data.family == component_family) {
+            if (data.family == type) {
                 return static_cast<Component_Container<T> const*>(data.container);
             }
         }
@@ -265,9 +263,9 @@ namespace anton_engine {
 
     template <typename T>
     inline Component_Container<T>* ECS::find_container() {
-        auto component_family = Type_Family::family_id<T>();
+        u64 const type = type_identifier<T>();
         for (auto& data: containers) {
-            if (data.family == component_family) {
+            if (data.family == type) {
                 return static_cast<Component_Container<T>*>(data.container);
             }
         }
@@ -276,7 +274,7 @@ namespace anton_engine {
 
     template <typename T>
     inline ECS::Components_Container_Data* ECS::find_container_data() {
-        auto type = Type_Family::family_id<T>();
+        u64 const type = type_identifier<T>();
         for (auto& data: containers) {
             if (data.family == type) {
                 return &data;
@@ -287,7 +285,7 @@ namespace anton_engine {
 
     template <typename T>
     inline ECS::Components_Container_Data const* ECS::find_container_data() const {
-        auto type = Type_Family::family_id<T>();
+        u64 const type = type_identifier<T>();
         for (auto& data: containers) {
             if (data.family == type) {
                 return &data;
