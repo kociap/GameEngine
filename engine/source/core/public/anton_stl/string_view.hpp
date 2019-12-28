@@ -69,15 +69,19 @@ namespace anton_engine::anton_stl {
         return !(lhs == rhs);
     }
 
+    inline u64 hash(String_View const view) {
+        // Seeded with a randomly picked prime number. No idea how that affects the performance or collision frequency.
+        // TODO: Do my research on seeding the hash function.
+        return anton_engine::murmurhash2(view.bytes_begin(), view.size_bytes(), 547391837);
+    }
+
 } // namespace anton_engine::anton_stl
 
 namespace std {
     template <>
     struct hash<anton_engine::anton_stl::String_View> {
         uint64_t operator()(anton_engine::anton_stl::String_View const view) const {
-            // Seeded with a randomly picked prime number. No idea how that affects the performance or collision frequency.
-            // TODO: Do my research on seeding the hash function.
-            return anton_engine::murmurhash2(view.bytes_begin(), view.size_bytes(), 547391837);
+            return anton_engine::anton_stl::hash(view);
         }
     };
 } // namespace std
