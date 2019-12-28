@@ -58,7 +58,7 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/logging.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/macro_undefs.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/paths.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/type_family.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/typeid.hpp"
     PARENT_SCOPE
 )
 
