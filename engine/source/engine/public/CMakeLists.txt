@@ -16,6 +16,8 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/component_serialization.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/ecs.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/entity.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ecs/jobs.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ecs/system.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/key_state.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/assets.hpp"

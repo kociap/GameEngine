@@ -12,6 +12,9 @@
 #include <utils/filesystem.hpp>
 #include <window.hpp>
 
+#include <ecs/jobs_management.hpp>
+#include <ecs/system_management.hpp>
+
 #include <builtin_shaders.hpp>
 #include <framebuffer.hpp>
 #include <glad.hpp>
@@ -76,20 +79,17 @@ namespace anton_engine {
         postprocess_back = new Framebuffer(postprocess_info);
         postprocess_front = new Framebuffer(postprocess_info);
 
+        init_systems();
+
         load_world();
     }
 
 #include <serialization/archives/binary.hpp>
 #include <serialization/serialization.hpp>
 
+    // BS code to output anything on the screen
     void Engine::load_world() {
-#define RENDER_CUBES 0
-
-        /*assets::load_shader_file_and_attach(default_shader, "normals.vert");
-        assets::load_shader_file_and_attach(default_shader, "normals.geom");
-        assets::load_shader_file_and_attach(default_shader, "normals.frag");*/
-
-        auto basic_frag = assets::load_shader_file(RENDER_CUBES ? "basicfrag.2.frag" : "basicfrag.frag");
+        auto basic_frag = assets::load_shader_file("basicfrag.frag");
         auto basic_vert = assets::load_shader_file("basicvertex.vert");
         Shader default_shader = create_shader(basic_vert, basic_frag);
         Handle<Shader> default_shader_handle = shader_manager->add(std::move(default_shader));
@@ -99,32 +99,22 @@ namespace anton_engine {
         Shader unlit_default_shader = create_shader(unlit_vert, unlit_frag);
         /* Handle<Shader> unlit_default_shader_handle = */ shader_manager->add(std::move(unlit_default_shader));
 
-        Handle<Mesh> box_handle;
-        Handle<Material> material_handle;
-        // BS code to output anything on the screen
-        if constexpr (RENDER_CUBES) {
-            // anton_stl::Vector<Mesh> meshes = assets::load_model("cube.obj");
-            // auto& container = meshes[0];
-            // material_handle = material_manager->add(Material());
-            // box_handle = mesh_manager->add(std::move(container));
-        } else {
-            Mesh container = assets::load_mesh("barrel", 1);
-            Material barrel_mat;
-            {
-                anton_stl::Vector<uint8_t> pixels;
-                Texture_Format const format = assets::load_texture_no_mipmaps("barrel_texture", 0, pixels);
-                Texture handle;
-                void* pix_data = pixels.data();
-                rendering::load_textures_generate_mipmaps(format, 1, &pix_data, &handle);
-                barrel_mat.diffuse_texture = handle;
-                barrel_mat.specular_texture = Texture::default_black;
-                barrel_mat.normal_map = Texture::default_normal_map;
-            }
-            material_handle = material_manager->add(std::move(barrel_mat));
-            box_handle = mesh_manager->add(std::move(container));
+        Mesh container = assets::load_mesh("barrel", 1);
+        Material barrel_mat;
+        {
+            anton_stl::Vector<uint8_t> pixels;
+            Texture_Format const format = assets::load_texture_no_mipmaps("barrel_texture", 0, pixels);
+            Texture handle;
+            void* pix_data = pixels.data();
+            rendering::load_textures_generate_mipmaps(format, 1, &pix_data, &handle);
+            barrel_mat.diffuse_texture = handle;
+            barrel_mat.specular_texture = Texture::default_black;
+            barrel_mat.normal_map = Texture::default_normal_map;
         }
+        Handle<Material> const material_handle = material_manager->add(std::move(barrel_mat));
+        Handle<Mesh> const box_handle = mesh_manager->add(std::move(container));
 
-        Handle<Mesh> quad_mesh = mesh_manager->add(generate_plane());
+        Handle<Mesh> const quad_mesh = mesh_manager->add(generate_plane());
 
         if constexpr (DESERIALIZE) {
             std::filesystem::path serialization_in_path = utils::concat_paths(paths::project_directory(), "ecs.bin");
@@ -154,19 +144,6 @@ namespace anton_engine {
             quad_sm.mesh_handle = quad_mesh;
             quad_sm.shader_handle = default_shader_handle;
             ecs->add_component<Transform>(quad);
-
-            // Plane floor_mesh;
-            // floor_mesh.material.diffuse_texture.handle = assets::load_srgb_texture("wood_floor.png", false);
-            // Handle<Mesh> floor_handle = mesh_manager->add(std::move(floor_mesh));
-            // for (uint32_t i = 0; i < 121; ++i) {
-            //     Entity floor = Entity::instantiate();
-            //     Transform& floor_t = add_component<Transform>(floor);
-            //     Static_Mesh_Component& floor_sm = add_component<Static_Mesh_Component>(floor);
-            //     floor_sm.mesh_handle = floor_handle;
-            //     floor_sm.shader_handle = default_shader_handle;
-            //     floor_t.rotate(Vector3::right, math::radians(-90));
-            //     floor_t.translate({(static_cast<float>(i % 11) - 5.0f) * 2.0f, -2, (static_cast<float>(i / 11) - 5.0f) * 2.0f});
-            // }
 
             auto instantiate_point_lamp = [](Vector3 position, Color color, float intensity) {
                 Entity lamp = ecs->create();
@@ -274,6 +251,9 @@ namespace anton_engine {
         for (Entity const entity: dbg_hotkeys) {
             Debug_Hotkeys::update(dbg_hotkeys.get(entity));
         }
+
+        update_systems();
+        execute_jobs();
 
         // TODO make this rendering code great again (not that it ever was great, but still)
         rendering::update_dynamic_lights();

@@ -12,6 +12,9 @@ namespace anton_engine {
     using u32 = unsigned int;
     using u64 = unsigned long long;
 
+    using f32 = float;
+    using f64 = double;
+
     using isize = i64;
     using usize = u64;
 } // namespace anton_engine

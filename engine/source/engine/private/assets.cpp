@@ -5,7 +5,6 @@
 #include <anton_int.hpp>
 #include <anton_stl/vector.hpp>
 #include <build_config.hpp>
-#include <debug_macros.hpp> // CHECK_GL_ERRORS
 #include <math/vector3.hpp>
 #include <mesh.hpp>
 #include <opengl.hpp>

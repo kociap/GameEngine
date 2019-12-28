@@ -8,7 +8,7 @@
 #endif
 
 #ifndef ANTON_WITH_EDITOR
-#    define ANTON_WITH_EDITOR 1
+#    define ANTON_WITH_EDITOR 0
 #endif
 
 #ifndef GE_BUILD_SHIPPING_DEBUG

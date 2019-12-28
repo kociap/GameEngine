@@ -1,5 +1,5 @@
-#ifndef ENGINE_ENTITY_HPP_INCLUDE
-#define ENGINE_ENTITY_HPP_INCLUDE
+#ifndef ENGINE_ECS_ENTITY_HPP_INCLUDE
+#define ENGINE_ECS_ENTITY_HPP_INCLUDE
 
 #include <anton_stl/utility.hpp>
 #include <cstdint>
@@ -36,4 +36,4 @@ namespace anton_engine {
 
 ANTON_DEFAULT_SERIALIZABLE(anton_engine::Entity);
 
-#endif // !ENGINE_ENTITY_HPP_INCLUDE
+#endif // !ENGINE_ECS_ENTITY_HPP_INCLUDE

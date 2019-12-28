@@ -25,6 +25,7 @@ namespace anton_engine {
 
     // Returns time in seconds
     double get_time();
+    
     System_Time get_utc_system_time();
     System_Time get_local_system_time();
 
