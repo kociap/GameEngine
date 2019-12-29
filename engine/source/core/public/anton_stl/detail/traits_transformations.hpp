@@ -188,6 +188,46 @@ namespace anton_engine::anton_stl {
 
     template <typename T>
     using decay = typename Decay<T>::type;
+
+    // Make_Signed
+    //
+    template <typename T>
+    struct Make_Signed {};
+    // clang-format off
+    template<> struct Make_Signed<signed char> { using type = signed char; };
+    template<> struct Make_Signed<unsigned char> { using type = signed char; };
+    template<> struct Make_Signed<signed short> { using type = signed short; };
+    template<> struct Make_Signed<unsigned short> { using type = signed short; };
+    template<> struct Make_Signed<signed int> { using type = signed int; };
+    template<> struct Make_Signed<unsigned int> { using type = signed int; };
+    template<> struct Make_Signed<signed long> { using type = signed long; };
+    template<> struct Make_Signed<unsigned long> { using type = signed long; };
+    template<> struct Make_Signed<signed long long> { using type = signed long long; };
+    template<> struct Make_Signed<unsigned long long> { using type = signed long long; };
+    // clang-format on
+
+    template <typename T>
+    using make_signed = typename Make_Signed<T>::type;
+
+    // Make_Unsigned
+    //
+    template <typename T>
+    struct Make_Unsigned {};
+    // clang-format off
+    template<> struct Make_Unsigned<signed char> { using type = unsigned char; };
+    template<> struct Make_Unsigned<unsigned char> { using type = unsigned char; };
+    template<> struct Make_Unsigned<signed short> { using type = unsigned short; };
+    template<> struct Make_Unsigned<unsigned short> { using type = unsigned short; };
+    template<> struct Make_Unsigned<signed int> { using type = unsigned int; };
+    template<> struct Make_Unsigned<unsigned int> { using type = unsigned int; };
+    template<> struct Make_Unsigned<signed long> { using type = unsigned long; };
+    template<> struct Make_Unsigned<unsigned long> { using type = unsigned long; };
+    template<> struct Make_Unsigned<signed long long> { using type = unsigned long long; };
+    template<> struct Make_Unsigned<unsigned long long> { using type = unsigned long long; };
+    // clang-format on
+
+    template <typename T>
+    using make_unsigned = typename Make_Unsigned<T>::type;
 } // namespace anton_engine::anton_stl
 
 #endif // !CORE_ANTON_STL_DETAIL_TRAITS_TRANSFORMATIONS_HPP_INCLUDE
