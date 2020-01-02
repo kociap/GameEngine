@@ -27,6 +27,7 @@ set(SOURCE_FILES ${SOURCE_FILES} ${PLATFORM_SOURCES}
     "${CMAKE_CURRENT_SOURCE_DIR}/debug_macros.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/logging.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/paths.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/random.cpp"
     PARENT_SCOPE
 )
 

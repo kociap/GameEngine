@@ -6,7 +6,7 @@
 #include <random>
 
 namespace anton_engine {
-    static std::mt19937_64 mersenne_engine;
+    static std::mt19937_64 mersenne_engine(278432434351ULL);
 
     template <typename T>
     auto subtract_as_unsigned(T x, T y) -> anton_stl::make_unsigned<T> {
@@ -58,5 +58,9 @@ namespace anton_engine {
 
     f64 random_f64(f64 min, f64 max) {
         return std::uniform_real_distribution<f64>(min, max)(mersenne_engine);
+    }
+
+    void seed_default_random_engine(u64 const s) {
+        mersenne_engine.seed(s);
     }
 } // namespace anton_engine
