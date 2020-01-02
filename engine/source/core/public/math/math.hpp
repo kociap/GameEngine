@@ -43,6 +43,10 @@ namespace anton_engine::math {
         return radians * constants::rad_to_deg;
     }
 
+    inline f32 pow(f32 base, f32 exp) {
+        return ::pow(base, exp);
+    }
+
     inline float sqrt(float a) {
         return ::sqrt(a);
     }
@@ -97,6 +101,12 @@ namespace anton_engine::math {
         } else {
             return target;
         }
+    }
+
+    // lerp
+    // Computes the linear interpolation between a and b for the parameter t in the interval [0, 1].
+    constexpr f32 lerp(float const a, float const b, float const t) {
+        return (1.0f - t) * a + t * b;
     }
 
     // smoothstep
