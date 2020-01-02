@@ -21,7 +21,7 @@ namespace anton_engine {
         }
     }
 
-    anton_stl::Optional<Raycast_Hit> intersect_ray_triangle(Ray ray, Vector3 a, Vector3 b, Vector3 c) {
+    anton_stl::Optional<Raycast_Hit> intersect_ray_triangle(Ray const ray, Vector3 const a, Vector3 const b, Vector3 const c) {
         Vector3 ao = ray.origin - a;
         Vector3 ab = b - a;
         Vector3 ac = c - a;
