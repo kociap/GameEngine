@@ -94,6 +94,8 @@ namespace anton_engine {
         template <typename T>
         Components_Container_Data const* find_container_data() const;
     };
+
+    ECS& get_ecs();
 } // namespace anton_engine
 
 namespace anton_engine {

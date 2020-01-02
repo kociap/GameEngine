@@ -62,14 +62,6 @@ namespace anton_engine {
         return Engine::get_material_manager();
 #endif
     }
-
-    static ECS& get_ecs() {
-#if ANTON_WITH_EDITOR
-        return Editor::get_ecs();
-#else
-        return Engine::get_ecs();
-#endif
-    }
 } // namespace anton_engine
 
 namespace anton_engine::rendering {
@@ -185,6 +177,7 @@ namespace anton_engine::rendering {
 
     void setup_rendering() {
         glDisable(GL_FRAMEBUFFER_SRGB);
+        // glClipControl(GL_UPPER_LEFT, GL_NEGATIVE_ONE_TO_ONE);
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

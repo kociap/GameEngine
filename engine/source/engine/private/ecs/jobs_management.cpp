@@ -8,6 +8,8 @@ namespace anton_engine {
 
     i64 schedule_job(Job* job) {
         jobs.push_back(job);
+		// TODO: Generate id
+        return 0;
     }
 
     void execute_jobs() {

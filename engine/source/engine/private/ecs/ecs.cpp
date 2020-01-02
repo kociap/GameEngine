@@ -11,7 +11,9 @@
 #    include <editor.hpp>
 #    include <editor_window.hpp>
 #    include <outliner.hpp>
-#endif
+#else
+#    include <engine.hpp>
+#endif // ANTON_WITH_EDITOR
 
 namespace anton_engine {
     ECS::~ECS() {
@@ -33,8 +35,7 @@ namespace anton_engine {
 #endif
     }
 
-    static void serialize_component_container(u64 identifier, serialization::Binary_Output_Archive& archive,
-                                              Component_Container_Base const* container) {
+    static void serialize_component_container(u64 identifier, serialization::Binary_Output_Archive& archive, Component_Container_Base const* container) {
         ANTON_ASSERT(get_component_serialization_funcs != nullptr, "Function get_component_serialization_funcs has not been loaded");
         auto& serialization_funcs = get_component_serialization_funcs();
         auto iter = anton_stl::find_if(serialization_funcs.begin(), serialization_funcs.end(),
@@ -43,8 +44,7 @@ namespace anton_engine {
         iter->serialize(archive, container);
     }
 
-    static void deserialize_component_container(u64 identifier, serialization::Binary_Input_Archive& archive,
-                                                Component_Container_Base*& container) {
+    static void deserialize_component_container(u64 identifier, serialization::Binary_Input_Archive& archive, Component_Container_Base*& container) {
         ANTON_ASSERT(get_component_serialization_funcs != nullptr, "Function get_component_serialization_funcs has not been loaded");
         auto& serialization_funcs = get_component_serialization_funcs();
         auto iter = anton_stl::find_if(serialization_funcs.begin(), serialization_funcs.end(),
@@ -71,5 +71,13 @@ namespace anton_engine {
             archive.read(data.family);
             deserialize_component_container(data.family, archive, data.container);
         }
+    }
+
+    ECS& get_ecs() {
+#if ANTON_WITH_EDITOR
+        return Editor::get_ecs();
+#else
+        return Engine::get_ecs();
+#endif
     }
 } // namespace anton_engine
