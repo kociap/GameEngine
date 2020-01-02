@@ -464,6 +464,88 @@ namespace anton_engine::anton_stl {
     template <typename T>
     constexpr bool is_trivially_destructible = Is_Trivially_Destructible<T>::value;
 #endif // ANTON_COMPILER_ID == ANTON_COMPILER_CLANG || ANTON_COMPILER_ID == ANTON_COMPILER_MSVC
+
+    namespace detail {
+        template <typename T>
+        struct Is_Integral: False_Type {};
+        // clang-format off
+        template<> struct Is_Integral<bool>: True_Type {};
+        template<> struct Is_Integral<char>: True_Type {};
+        template<> struct Is_Integral<signed char>: True_Type {};
+        template<> struct Is_Integral<unsigned char>: True_Type {};
+        // TODO: char8_t
+        // template<> struct Is_Integral<char8_t>: True_Type {};
+        template<> struct Is_Integral<char16_t>: True_Type {};
+        template<> struct Is_Integral<char32_t>: True_Type {};
+        template<> struct Is_Integral<wchar_t>: True_Type {};
+        template<> struct Is_Integral<short>: True_Type {};
+        template<> struct Is_Integral<unsigned short>: True_Type {};
+        template<> struct Is_Integral<int>: True_Type {};
+        template<> struct Is_Integral<unsigned int>: True_Type {};
+        template<> struct Is_Integral<long>: True_Type {};
+        template<> struct Is_Integral<unsigned long>: True_Type {};
+        template<> struct Is_Integral<long long>: True_Type {};
+        template<> struct Is_Integral<unsigned long long>: True_Type {};
+        // clang-format on
+    } // namespace detail
+
+    // Is_Integral
+    template <typename T>
+    struct Is_Integral: detail::Is_Integral<remove_const<T>> {};
+
+    template <typename T>
+    inline constexpr bool is_integral = Is_Integral<T>::value;
+
+    namespace detail {
+        template <typename T>
+        struct Is_Floating_Point: False_Type {};
+        // clang-format off
+        template<> struct Is_Floating_Point<float>: True_Type {};
+        template<> struct Is_Floating_Point<double>: True_Type {};
+        template<> struct Is_Floating_Point<long double>: True_Type {};
+        // clang-format on
+    } // namespace detail
+
+    // Is_Floating_Point
+    template <typename T>
+    struct Is_Floating_Point: detail::Is_Floating_Point<remove_const<T>> {};
+
+    template <typename T>
+    inline constexpr bool is_floating_point = Is_Floating_Point<T>::value;
+
+    // Is_Arithmetic
+    template <typename T>
+    struct Is_Arithmetic: Bool_Constant<is_integral<T> || is_floating_point<T>> {};
+
+    template <typename T>
+    inline constexpr bool is_arithmetic = Is_Arithmetic<T>::value;
+
+    // Is_Signed
+    template <typename T, bool arithmetic = is_arithmetic<T>, bool integral = is_integral<T>>
+    struct Is_Signed: False_Type {};
+
+    template <typename T>
+    struct Is_Signed<T, true, true>: Bool_Constant<(T(-1) < T(0))> {};
+
+    template <typename T>
+    struct Is_Signed<T, true, false>: True_Type {}; // floating point
+
+    template <typename T>
+    inline constexpr bool is_signed = Is_Signed<T>::value;
+
+    // Is_Unsigned
+    template <typename T, bool arithmetic = is_arithmetic<T>, bool integral = is_integral<T>>
+    struct Is_Unsigned: False_Type {};
+
+    template <typename T>
+    struct Is_Unsigned<T, true, true>: Bool_Constant<(T(-1) > T(0))> {};
+
+    template <typename T>
+    struct Is_Unsigned<T, true, false>: False_Type {}; // floating point
+
+    template <typename T>
+    inline constexpr bool is_unsigned = Is_Unsigned<T>::value;
+
 } // namespace anton_engine::anton_stl
 
 #endif // !CORE_ANTON_STL_DETAIL_TRAITS_PROPERTIES_HPP_INCLUDE
