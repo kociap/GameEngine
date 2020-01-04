@@ -13,6 +13,12 @@ namespace anton_engine {
         systems = create_systems();
     }
 
+    void start_systems() {
+        for (System* system: systems) {
+            system->start();
+        }
+    }
+
     void update_systems() {
         for (System* system: systems) {
             system->update();

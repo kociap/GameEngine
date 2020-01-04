@@ -29,7 +29,9 @@
 #include <components/transform.hpp>
 #include <debug_hotkeys.hpp>
 #include <math/math.hpp>
+#include <math/noise.hpp>
 #include <paths.hpp>
+#include <random.hpp>
 #include <scripts/camera_movement.hpp>
 
 #include <build_config.hpp>
@@ -82,6 +84,8 @@ namespace anton_engine {
         init_systems();
 
         load_world();
+
+        start_systems();
     }
 
 #include <serialization/archives/binary.hpp>
@@ -103,6 +107,55 @@ namespace anton_engine {
         Material barrel_mat;
         {
             anton_stl::Vector<uint8_t> pixels;
+            // auto create_noise_texture = [](anton_stl::Vector<uint8_t>& pixels) {
+            //     i32 const perm_table[] = {
+            //         11,  3,   299, 83,  42,  81,  213, 25,  98,  279, 292, 43,  22,  247, 243, 145, 245, 240, 96,  17,  26,  152, 244, 32,  62,  24,  119, 186,
+            //         274, 188, 163, 39,  175, 90,  156, 79,  278, 237, 157, 13,  258, 7,   225, 131, 252, 94,  176, 52,  44,  136, 283, 0,   168, 208, 167, 95,
+            //         197, 255, 259, 2,   248, 86,  271, 92,  64,  142, 234, 179, 15,  211, 132, 189, 20,  124, 35,  183, 146, 199, 294, 241, 264, 233, 57,  121,
+            //         220, 105, 184, 260, 99,  205, 185, 36,  174, 56,  246, 269, 88,  215, 198, 204, 238, 149, 228, 63,  139, 137, 242, 84,  19,  221, 129, 66,
+            //         103, 253, 37,  102, 256, 71,  77,  268, 135, 254, 158, 277, 126, 10,  227, 45,  100, 68,  38,  284, 14,  166, 218, 162, 216, 58,  122, 108,
+            //         267, 69,  200, 75,  140, 117, 111, 222, 193, 55,  224, 266, 251, 257, 116, 143, 235, 114, 287, 70,  61,  209, 87,  91,  51,  276, 50,  177,
+            //         33,  285, 291, 78,  239, 159, 262, 296, 273, 101, 125, 160, 210, 8,   4,   29,  281, 250, 232, 93,  59,  236, 54,  173, 144, 249, 169, 82,
+            //         23,  60,  161, 9,   231, 74,  182, 223, 27,  134, 138, 202, 31,  155, 172, 21,  280, 289, 47,  97,  297, 203, 154, 164, 118, 151, 226, 113,
+            //         123, 207, 120, 16,  298, 48,  217, 165, 12,  288, 130, 282, 187, 40,  229, 270, 110, 72,  171, 41,  230, 65,  67,  196, 28,  148, 112, 104,
+            //         192, 195, 1,   109, 106, 212, 219, 18,  293, 80,  73,  133, 290, 272, 261, 180, 141, 190, 286, 194, 53,  214, 147, 76,  206, 34,  191, 300,
+            //         127, 49,  170, 275, 6,   181, 153, 265, 178, 107, 5,   263, 150, 128, 115, 85,  89,  295, 201, 30,  46};
+
+            //     seed_default_random_engine(534432432);
+            //     Vector2 gradients[24] = {};
+            //     for (i32 i = 0; i < 24; ++i) {
+            //         i64 random = random_i64(0, 1440);
+            //         f32 angle = f32(random) * 0.25f;
+            //         gradients[i].x = cos(math::radians(angle));
+            //         gradients[i].y = sin(math::radians(angle));
+            //     }
+
+            //     for (i32 y = 0; y < 2048 * 2; ++y) {
+            //         for (i32 x = 0; x < 2048 * 2; ++x) {
+            //             Vector2 pos(x, y);
+            //             pos /= 500.0f;
+            //             f32 noise_val = math::perlin_noise(pos, gradients, perm_table);
+            //             f32 scaled = noise_val * 127.5f + 127.5f;
+            //             pixels.push_back(scaled);
+            //         }
+            //     }
+
+            //     Texture_Format format;
+            //     format.width = 2048 * 2;
+            //     format.height = 2048 * 2;
+            //     format.sized_internal_format = GL_R8;
+            //     format.pixel_format = GL_RED;
+            //     format.pixel_type = GL_UNSIGNED_BYTE;
+            //     format.mip_levels = 1;
+            //     format.filter = GL_NEAREST_MIPMAP_NEAREST;
+            //     format.swizzle_mask[0] = GL_RED;
+            //     format.swizzle_mask[1] = GL_RED;
+            //     format.swizzle_mask[2] = GL_RED;
+            //     format.swizzle_mask[3] = GL_ONE;
+            //     return format;
+            // };
+
+            // Texture_Format const format = create_noise_texture(pixels);
             Texture_Format const format = assets::load_texture_no_mipmaps("barrel_texture", 0, pixels);
             Texture handle;
             void* pix_data = pixels.data();

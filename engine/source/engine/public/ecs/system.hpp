@@ -6,6 +6,7 @@ namespace anton_engine {
     public:
         virtual ~System() {}
 
+        virtual void start() {}
         virtual void update() = 0;
     };
 } // namespace anton_engine

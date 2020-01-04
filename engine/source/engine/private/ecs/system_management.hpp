@@ -6,5 +6,6 @@ namespace anton_engine {
     ENGINE_API extern create_systems_type create_systems;
 
     void init_systems();
+    void start_systems();
     void update_systems();
 } // namespace anton_engine
