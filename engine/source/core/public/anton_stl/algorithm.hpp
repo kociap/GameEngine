@@ -44,14 +44,6 @@ namespace anton_engine::anton_stl {
         return container[index];
     }
 
-    // empty
-    // Checks whether container contains 0 elements.
-    //
-    template <typename T>
-    [[nodiscard]] inline constexpr bool empty(T const& container) {
-        return container.size() == typename T::size_type(0);
-    }
-
     // find
     // Linearily searches the range [first, last[.
     //
