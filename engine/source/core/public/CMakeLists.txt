@@ -1,4 +1,5 @@
 set(TEMPLATE_IMPLEMENTATION_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/fixed_array.tpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/static_string.tpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/static_vector.tpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/vector.tpp"
@@ -17,6 +18,7 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/algorithm.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/allocator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/config.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/fixed_array.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/iterators.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/memory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/pair.hpp"
@@ -58,6 +60,7 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/logging.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/macro_undefs.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/paths.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/random.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/typeid.hpp"
     PARENT_SCOPE
 )

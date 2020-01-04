@@ -12,6 +12,11 @@ namespace anton_engine {
     private:
         anton_stl::String_View _message;
     };
+
+    class Invalid_Argument_Exception: public Exception {
+    public:
+        using Exception::Exception;
+    };
 } // namespace anton_engine
 
 #endif // !CORE_EXCEPTION_HPP_INCLUDE
