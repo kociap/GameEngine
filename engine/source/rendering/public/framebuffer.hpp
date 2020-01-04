@@ -1,9 +1,9 @@
-#ifndef ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
-#define ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
+#ifndef RENDERING_FRAMEBUFFER_HPP_INCLUDE
+#define RENDERING_FRAMEBUFFER_HPP_INCLUDE
 
 #include <anton_int.hpp>
+#include <anton_stl/fixed_array.hpp>
 #include <anton_stl/slice.hpp>
-#include <anton_stl/static_vector.hpp>
 #include <math/vector2.hpp>
 #include <opengl.hpp>
 
@@ -49,7 +49,7 @@ namespace anton_engine {
         };
 
         struct Construct_Info {
-            anton_stl::Static_Vector<Color_Buffer_Info, max_color_attachments> color_buffers;
+            anton_stl::Fixed_Array<Color_Buffer_Info, max_color_attachments> color_buffers;
             Depth_Buffer_Info depth_buffer;
             Stencil_Buffer_Info stencil_buffer;
             i32 width = 0;
@@ -81,7 +81,7 @@ namespace anton_engine {
         void delete_framebuffer();
 
         Construct_Info info;
-        anton_stl::Static_Vector<u32, max_color_attachments> color_buffers;
+        anton_stl::Fixed_Array<u32, max_color_attachments> color_buffers;
         i32 active_color_buffers = 0;
         u32 framebuffer = 0;
         u32 depth_buffer = 0;
@@ -97,4 +97,4 @@ namespace anton_engine {
 
 #include <opengl_enums_undefs.hpp>
 
-#endif // !ENGINE_RENDERER_FRAMEBUFFER_HPP_INCLUDE
+#endif // !RENDERING_FRAMEBUFFER_HPP_INCLUDE
