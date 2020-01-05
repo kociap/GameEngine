@@ -1,7 +1,7 @@
 #ifndef CORE_ANTON_STL_DETAIL_STRING_ITERATORS_HPP_INCLUDE
 #define CORE_ANTON_STL_DETAIL_STRING_ITERATORS_HPP_INCLUDE
 
-#include <anton_stl/config.hpp>
+#include <anton_int.hpp>
 #include <anton_stl/iterators.hpp>
 
 // TODO: constexpr
@@ -20,8 +20,8 @@ namespace anton_engine::anton_stl {
     //
     class UTF8_Char_Iterator {
     public:
-        using value_type = uint32_t;
-        using difference_type = anton_stl::ptrdiff_t;
+        using value_type = u32;
+        using difference_type = isize;
         using iterator_category = anton_stl::Random_Access_Iterator_Tag;
 
         UTF8_Char_Iterator() = delete;

@@ -4,7 +4,7 @@
 namespace anton_engine::anton_stl {
     // addressof
     template <typename T>
-    [[nodiscard]] inline constexpr T* addressof(T& value) ANTON_NOEXCEPT {
+    [[nodiscard]] inline constexpr T* addressof(T& value) {
 #ifndef ANTON_HAS_NO_BUILTIN_ADDRESSOF
         return __builtin_addressof(value);
 #else

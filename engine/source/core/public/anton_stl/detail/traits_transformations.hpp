@@ -1,7 +1,7 @@
 #ifndef CORE_ANTON_STL_DETAIL_TRAITS_TRANSFORMATIONS_HPP_INCLUDE
 #define CORE_ANTON_STL_DETAIL_TRAITS_TRANSFORMATIONS_HPP_INCLUDE
 
-#include <anton_stl/config.hpp>
+#include <anton_int.hpp>
 #include <anton_stl/detail/traits_base.hpp>
 #include <anton_stl/detail/traits_common.hpp>
 #include <anton_stl/detail/traits_function.hpp>
@@ -29,7 +29,7 @@ namespace anton_engine::anton_stl {
         using type = T;
     };
 
-    template <typename T, anton_stl::size_t N>
+    template <typename T, usize N>
     struct Remove_Extent<T[N]> {
         using type = T;
     };
@@ -49,7 +49,7 @@ namespace anton_engine::anton_stl {
         using type = typename Remove_All_Extents<T>::type;
     };
 
-    template <typename T, anton_stl::size_t N>
+    template <typename T, usize N>
     struct Remove_All_Extents<T[N]> {
         using type = typename Remove_All_Extents<T>::type;
     };

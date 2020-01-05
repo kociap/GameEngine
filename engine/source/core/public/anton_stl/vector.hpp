@@ -25,8 +25,8 @@ namespace anton_engine::anton_stl {
     public:
         using value_type = T;
         using allocator_type = Allocator;
-        using size_type = anton_stl::ssize_t;
-        using difference_type = anton_stl::ptrdiff_t;
+        using size_type = i64;
+        using difference_type = isize;
         using pointer = T*;
         using const_pointer = T const*;
         using reference = T&;

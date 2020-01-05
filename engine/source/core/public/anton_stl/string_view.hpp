@@ -1,7 +1,7 @@
 #ifndef CORE_ANTON_STL_STRING_VIEW_HPP_INCLUDE
 #define CORE_ANTON_STL_STRING_VIEW_HPP_INCLUDE
 
-#include <anton_stl/config.hpp>
+#include <anton_int.hpp>
 #include <anton_stl/detail/string_iterators.hpp>
 #include <anton_stl/iterators.hpp>
 #include <anton_stl/string_utils.hpp>
@@ -9,14 +9,13 @@
 #include <build_config.hpp>
 #include <hashing/murmurhash2.hpp>
 
-#include <cstdint>
 #include <functional> // std::hash
 
 namespace anton_engine::anton_stl {
     class String_View {
     public:
-        using size_type = anton_stl::ssize_t;
-        using difference_type = anton_stl::ptrdiff_t;
+        using size_type = i64;
+        using difference_type = isize;
         using value_type = char;
         using byte_iterator = char*;
         using byte_const_iterator = char const*;

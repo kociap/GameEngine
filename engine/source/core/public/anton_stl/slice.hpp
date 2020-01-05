@@ -2,7 +2,6 @@
 #define CORE_ANTON_STL_SLICE_HPP_INCLUDE
 
 #include <anton_int.hpp>
-#include <anton_stl/config.hpp>
 #include <anton_stl/iterators.hpp>
 #include <anton_stl/type_traits.hpp>
 #include <anton_stl/utility.hpp>
@@ -27,8 +26,8 @@ namespace anton_engine::anton_stl {
     class Slice {
     public:
         using value_type = T;
-        using size_type = isize;
-        using difference_type = anton_stl::ptrdiff_t;
+        using size_type = i64;
+        using difference_type = isize;
         using iterator = T*;
         using const_iterator = T const*;
 

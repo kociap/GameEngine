@@ -1,10 +1,10 @@
 #ifndef CORE_ANTON_STL_ALIGNED_BUFFER_HPP_INCLUDE
 #define CORE_ANTON_STL_ALIGNED_BUFFER_HPP_INCLUDE
 
-#include <anton_stl/config.hpp>
+#include <anton_int.hpp>
 
 namespace anton_engine::anton_stl {
-    template <anton_stl::size_t size, anton_stl::size_t alignment>
+    template <usize size, usize alignment>
     struct Aligned_Buffer {
         alignas(alignment) char buffer[size];
     };

@@ -1,7 +1,7 @@
 #ifndef ENGINE_ECS_COMPONENT_CONTAINER_ITERATOR_HPP_INCLUDE
 #define ENGINE_ECS_COMPONENT_CONTAINER_ITERATOR_HPP_INCLUDE
 
-#include <anton_stl/config.hpp>
+#include <anton_int.hpp>
 #include <anton_stl/iterators.hpp>
 #include <anton_stl/type_traits.hpp>
 
@@ -16,7 +16,7 @@ namespace anton_engine {
         using value_type = Component;
         using reference = Component&;
         using pointer = Component*;
-        using difference_type = anton_stl::ptrdiff_t;
+        using difference_type = isize;
         using iteragor_category = anton_stl::Contiguous_Iterator_Tag;
 
         Component_Container_Iterator() = delete;

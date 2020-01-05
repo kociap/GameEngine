@@ -1,7 +1,7 @@
 #ifndef CORE_ANTON_STL_DETAIL_TRAITS_PROPERTIES_HPP_INCLUDE
 #define CORE_ANTON_STL_DETAIL_TRAITS_PROPERTIES_HPP_INCLUDE
 
-#include <anton_stl/config.hpp>
+#include <anton_int.hpp>
 #include <anton_stl/detail/traits_base.hpp>
 #include <anton_stl/detail/traits_common.hpp>
 #include <anton_stl/detail/traits_function.hpp>
@@ -13,7 +13,7 @@ namespace anton_engine::anton_stl {
     template <typename T>
     struct Is_Bounded_Array: anton_stl::False_Type {};
 
-    template <typename T, anton_stl::size_t N>
+    template <typename T, usize N>
     struct Is_Bounded_Array<T[N]>: anton_stl::True_Type {};
 
     template <typename T>
@@ -40,36 +40,36 @@ namespace anton_engine::anton_stl {
     // Rank
     //
     template <typename T>
-    struct Rank: anton_stl::Integral_Constant<anton_stl::size_t, 0> {};
+    struct Rank: anton_stl::Integral_Constant<usize, 0> {};
 
     template <typename T>
-    struct Rank<T[]>: anton_stl::Integral_Constant<anton_stl::size_t, Rank<T>::value + 1> {};
+    struct Rank<T[]>: anton_stl::Integral_Constant<usize, Rank<T>::value + 1> {};
 
-    template <typename T, anton_stl::size_t N>
-    struct Rank<T[N]>: anton_stl::Integral_Constant<anton_stl::size_t, Rank<T>::value + 1> {};
+    template <typename T, usize N>
+    struct Rank<T[N]>: anton_stl::Integral_Constant<usize, Rank<T>::value + 1> {};
 
     template <typename T>
-    constexpr anton_stl::size_t rank = Rank<T>::value;
+    constexpr usize rank = Rank<T>::value;
 
     // Extent
     //
-    template <typename T, anton_stl::size_t N = 0>
-    struct Extent: anton_stl::Integral_Constant<anton_stl::size_t, 0> {};
+    template <typename T, usize N = 0>
+    struct Extent: anton_stl::Integral_Constant<usize, 0> {};
 
     template <typename T>
-    struct Extent<T[], 0>: anton_stl::Integral_Constant<anton_stl::size_t, 0> {};
+    struct Extent<T[], 0>: anton_stl::Integral_Constant<usize, 0> {};
 
-    template <typename T, anton_stl::size_t N>
-    struct Extent<T[], N>: anton_stl::Integral_Constant<anton_stl::size_t, Extent<T, N - 1>::value> {};
+    template <typename T, usize N>
+    struct Extent<T[], N>: anton_stl::Integral_Constant<usize, Extent<T, N - 1>::value> {};
 
-    template <typename T, anton_stl::size_t E>
-    struct Extent<T[E], 0>: anton_stl::Integral_Constant<anton_stl::size_t, E> {};
+    template <typename T, usize E>
+    struct Extent<T[E], 0>: anton_stl::Integral_Constant<usize, E> {};
 
-    template <typename T, anton_stl::size_t E, anton_stl::size_t N>
-    struct Extent<T[E], N>: anton_stl::Integral_Constant<anton_stl::size_t, Extent<T, N - 1>::value> {};
+    template <typename T, usize E, usize N>
+    struct Extent<T[E], N>: anton_stl::Integral_Constant<usize, Extent<T, N - 1>::value> {};
 
     template <typename T>
-    constexpr anton_stl::size_t extent = Extent<T>::value;
+    constexpr usize extent = Extent<T>::value;
 
     // Is_Pointer
     //
@@ -148,7 +148,7 @@ namespace anton_engine::anton_stl {
         template <typename T>
         struct Is_Complete {
         private:
-            template <typename T, anton_stl::size_t = sizeof(T)>
+            template <typename T, usize = sizeof(T)>
             static anton_stl::True_Type test(int);
 
             template <typename T>

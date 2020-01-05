@@ -1,6 +1,5 @@
 set(TEMPLATE_IMPLEMENTATION_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/fixed_array.tpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/static_string.tpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/vector.tpp"
 )
 
@@ -22,7 +21,6 @@ set(HEADER_FILES ${HEADER_FILES} ${TEMPLATE_IMPLEMENTATION_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/memory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/pair.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/slice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/static_string.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string_utils.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string_view.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/anton_stl/string.hpp"

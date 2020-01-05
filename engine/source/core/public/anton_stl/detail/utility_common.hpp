@@ -1,6 +1,7 @@
 #ifndef CORE_ANTON_STL_UTILITY_COMMON_HPP_INCLUDE
 #define CORE_ANTON_STL_UTILITY_COMMON_HPP_INCLUDE
 
+#include <anton_int.hpp>
 #include <anton_stl/type_traits.hpp>
 
 namespace anton_engine::anton_stl {
@@ -30,10 +31,10 @@ namespace anton_engine::anton_stl {
     template <typename>
     struct Tuple_Size;
 
-    template <anton_stl::ssize_t, typename>
+    template <usize, typename>
     struct Tuple_Element;
 
-    template <anton_stl::ssize_t I, typename T>
+    template <usize I, typename T>
     using tuple_element = typename Tuple_Element<I, T>::type;
 } // namespace anton_engine::anton_stl
 

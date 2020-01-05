@@ -1,7 +1,7 @@
 #ifndef CORE_ANTON_STL_DETAIL_TRAITS_COMMON_HPP_INCLUDE
 #define CORE_ANTON_STL_DETAIL_TRAITS_COMMON_HPP_INCLUDE
 
-#include <anton_stl/config.hpp>
+#include <anton_int.hpp>
 #include <anton_stl/detail/traits_base.hpp>
 
 namespace anton_engine::anton_stl {
@@ -14,7 +14,7 @@ namespace anton_engine::anton_stl {
         template <typename T>
         struct Is_Array<T[]>: anton_stl::True_Type {};
 
-        template <typename T, anton_stl::size_t N>
+        template <typename T, usize N>
         struct Is_Array<T[N]>: anton_stl::True_Type {};
 
         // Is_Same

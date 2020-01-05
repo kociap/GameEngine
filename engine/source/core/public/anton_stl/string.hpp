@@ -24,8 +24,8 @@ namespace anton_engine::anton_stl {
     class String {
     public:
         using value_type = char;
-        using size_type = anton_stl::ssize_t;
-        using difference_type = anton_stl::ptrdiff_t;
+        using size_type = i64;
+        using difference_type = isize;
         using allocator_type = anton_stl::Polymorphic_Allocator;
         using byte_iterator = char*;
         using byte_const_iterator = char*;

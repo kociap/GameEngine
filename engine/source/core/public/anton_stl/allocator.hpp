@@ -1,8 +1,8 @@
 #ifndef CORE_ANTON_STL_ALLOCATOR_HPP_INCLUDE
 #define CORE_ANTON_STL_ALLOCATOR_HPP_INCLUDE
 
+#include <anton_int.hpp>
 #include <anton_stl/aligned_buffer.hpp>
-#include <anton_stl/config.hpp>
 #include <diagnostic_macros.hpp>
 
 namespace anton_engine::anton_stl {
@@ -14,8 +14,8 @@ namespace anton_engine::anton_stl {
     public:
         virtual ~Memory_Allocator() = default;
 
-        [[nodiscard]] ANTON_DECLSPEC_ALLOCATOR virtual void* allocate(anton_stl::ssize_t size, anton_stl::ssize_t alignment) = 0;
-        virtual void deallocate(void*, anton_stl::ssize_t size, anton_stl::ssize_t alignment) = 0;
+        [[nodiscard]] ANTON_DECLSPEC_ALLOCATOR virtual void* allocate(isize size, isize alignment) = 0;
+        virtual void deallocate(void*, isize size, isize alignment) = 0;
         [[nodiscard]] virtual bool is_equal(Memory_Allocator const&) const = 0;
     };
 
@@ -38,9 +38,8 @@ namespace anton_engine::anton_stl {
     //
     class Allocator: public Memory_Allocator {
     public:
-        // Allocates size bytes of memory
-        [[nodiscard]] ANTON_DECLSPEC_ALLOCATOR void* allocate(anton_stl::ssize_t size, anton_stl::ssize_t alignment) override;
-        void deallocate(void*, anton_stl::ssize_t size, anton_stl::ssize_t alignment) override;
+        [[nodiscard]] ANTON_DECLSPEC_ALLOCATOR void* allocate(isize size, isize alignment) override;
+        void deallocate(void*, isize size, isize alignment) override;
         [[nodiscard]] bool is_equal(Memory_Allocator const& other) const override;
     };
 
@@ -56,28 +55,62 @@ namespace anton_engine::anton_stl {
         return false; // All Allocators are stateless and may always be considered equal.
     }
 
+    // // Buffer_Allocator
+    // class Buffer_Allocator: public Memory_Allocator {
+    // private:
+    //     struct Block_Data {
+    //         Block_Data* previous_block = nullptr;
+    //         Block_Data* next_block = nullptr;
+    //         bool free = true;
+    //     };
+
+    // public:
+    //     static constexpr usize data_block_size = sizeof(Block_Data);
+
+    //     Buffer_Allocator(char*, char*);
+
+    //     [[nodiscard]] ANTON_DECLSPEC_ALLOCATOR void* allocate(isize size, isize alignment) override;
+    //     void deallocate(void*, isize size, isize alignment) override;
+    //     [[nodiscard]] bool is_equal(Memory_Allocator const& other) const override;
+
+    // private:
+    //     // Store the linked list of blocks in a separate array
+    //     char* begin;
+    //     char* end;
+    // };
+
     // Stack_Allocator
-    template <anton_stl::size_t size, anton_stl::size_t alignment>
+    // The effective size of the buffer is smaller due to.
+    //
+    template <usize size, usize alignment>
     class Stack_Allocator: public Memory_Allocator {
     public:
-        [[nodiscard]] ANTON_DECLSPEC_ALLOCATOR void* allocate(anton_stl::ssize_t size, anton_stl::ssize_t alignment) override;
-        void deallocate(void*, anton_stl::ssize_t size, anton_stl::ssize_t alignment) override;
-        [[nodiscard]] bool is_equal(Memory_Allocator const& other) const override;
+        [[nodiscard]] ANTON_DECLSPEC_ALLOCATOR void* allocate(isize size, isize alignment) override {}
 
-        friend void swap(Stack_Allocator&, Stack_Allocator&);
+        void deallocate(void*, isize size, isize alignment) override {}
+
+        [[nodiscard]] bool is_equal(Memory_Allocator const& other) const override {
+            return false; // TODO: A way to compare allocators.
+        }
 
     private:
+        struct Block_Data {
+            void* previous_block;
+            void* next_block;
+            bool free;
+        };
+
         Aligned_Buffer<size, alignment> stack;
     };
 
-    template <anton_stl::size_t S1, anton_stl::size_t A1, anton_stl::size_t S2, anton_stl::size_t A2>
-    [[nodiscard]] inline bool operator==(Stack_Allocator<S1, A1> const&, Stack_Allocator<S2, A2> const&) {
-        return false;
+    template <usize S1, usize A1, usize S2, usize A2>
+    [[nodiscard]] constexpr bool operator==(Stack_Allocator<S1, A1> const&, Stack_Allocator<S2, A2> const&) {
+        return S1 == S2 && A1 == A2;
     }
 
-    template <anton_stl::size_t S1, anton_stl::size_t A1, anton_stl::size_t S2, anton_stl::size_t A2>
-    [[nodiscard]] inline bool operator!=(Stack_Allocator<S1, A1> const&, Stack_Allocator<S2, A2> const&) {
-        return true;
+    template <usize S1, usize A1, usize S2, usize A2>
+    [[nodiscard]] constexpr bool operator!=(Stack_Allocator<S1, A1> const&, Stack_Allocator<S2, A2> const&) {
+        return S1 != S2 || A1 != A2;
     }
 
     // Polymorphic_Allocator
@@ -95,8 +128,8 @@ namespace anton_engine::anton_stl {
         Polymorphic_Allocator& operator=(Polymorphic_Allocator const&) = delete;
         Polymorphic_Allocator& operator=(Polymorphic_Allocator&&) noexcept;
 
-        [[nodiscard]] ANTON_DECLSPEC_ALLOCATOR void* allocate(anton_stl::ssize_t size, anton_stl::ssize_t alignment);
-        void deallocate(void*, anton_stl::ssize_t size, anton_stl::ssize_t alignment);
+        [[nodiscard]] ANTON_DECLSPEC_ALLOCATOR void* allocate(isize size, isize alignment);
+        void deallocate(void*, isize size, isize alignment);
 
         Memory_Allocator* get_wrapped_allocator();
         Memory_Allocator const* get_wrapped_allocator() const;

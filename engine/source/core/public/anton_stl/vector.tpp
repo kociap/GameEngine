@@ -1,3 +1,5 @@
+#include <anton_assert.hpp>
+
 namespace anton_engine::anton_stl {
     template <typename T, typename Allocator>
     inline Vector<T, Allocator>::Vector() {
@@ -381,6 +383,7 @@ namespace anton_engine::anton_stl {
 
     template <typename T, typename Allocator>
     inline void Vector<T, Allocator>::pop_back() {
+        ANTON_VERIFY(_size > 0, "Trying to pop an element from an empty Array.");
         T* last_elem_ptr = get_ptr(_size - 1);
         anton_stl::destruct(last_elem_ptr);
         --_size;
@@ -414,12 +417,12 @@ namespace anton_engine::anton_stl {
 
     template <typename T, typename Allocator>
     inline T* Vector<T, Allocator>::get_ptr(size_type index) {
-        return std::launder(_data) + index;
+        return std::launder(_data + index);
     }
 
     template <typename T, typename Allocator>
     inline T const* Vector<T, Allocator>::get_ptr(size_type index) const {
-        return std::launder(_data) + index;
+        return std::launder(_data + index);
     }
 
     template <typename T, typename Allocator>
@@ -435,13 +438,13 @@ namespace anton_engine::anton_stl {
 
     template <typename T, typename Allocator>
     inline T* Vector<T, Allocator>::allocate(size_type const size) {
-        void* mem = _allocator.allocate(size * static_cast<anton_stl::ssize_t>(sizeof(T)), static_cast<anton_stl::ssize_t>(alignof(T)));
+        void* mem = _allocator.allocate(size * static_cast<isize>(sizeof(T)), static_cast<isize>(alignof(T)));
         return static_cast<T*>(mem);
     }
 
     template <typename T, typename Allocator>
     inline void Vector<T, Allocator>::deallocate(void* mem, size_type const size) {
-        _allocator.deallocate(mem, size * static_cast<anton_stl::ssize_t>(sizeof(T)), static_cast<anton_stl::ssize_t>(alignof(T)));
+        _allocator.deallocate(mem, size * static_cast<isize>(sizeof(T)), static_cast<isize>(alignof(T)));
     }
 
     template <typename T, typename Allocator>
@@ -467,7 +470,7 @@ namespace anton_engine::anton_stl {
             _capacity = new_capacity;
         }
     }
-}
+} // namespace anton_engine::anton_stl
 
 namespace anton_engine {
     template <typename T, typename Allocator>
@@ -496,7 +499,7 @@ namespace anton_engine {
                     deserialize(in, elem);
                 }
             } catch (...) {
-                // TODO move stream backward to maintain weak guarantee
+                // TODO: Move stream backwards to maintain weak guarantee
                 anton_stl::destruct_n(vec.data(), size);
                 throw;
             }
@@ -510,10 +513,10 @@ namespace anton_engine {
                 }
                 vec._size = size;
             } catch (...) {
-                // TODO move stream backward to maintain weak guarantee
+                // TODO: Move stream backwards to maintain weak guarantee
                 anton_stl::destruct_n(vec.data(), size - n);
                 throw;
             }
         }
     }
-} // namespace anton_engine::anton_stl
+} // namespace anton_engine

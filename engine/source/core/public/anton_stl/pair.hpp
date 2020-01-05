@@ -1,6 +1,7 @@
 #ifndef CORE_ANTON_STL_PAIR_HPP_INCLUDE
 #define CORE_ANTON_STL_PAIR_HPP_INCLUDE
 
+#include <anton_int.hpp>
 #include <anton_stl/detail/utility_common.hpp>
 #include <anton_stl/type_traits.hpp>
 
@@ -81,22 +82,22 @@ namespace anton_engine::anton_stl {
     // Does not support volatile qualified Pair since it has been deprecated in C++20
     //
     template <typename T1, typename T2>
-    struct Tuple_Size<Pair<T1, T2>>: Integral_Constant<anton_stl::ssize_t, 2> {};
+    struct Tuple_Size<Pair<T1, T2>>: Integral_Constant<usize, 2> {};
 
     template <typename T1, typename T2>
-    struct Tuple_Size<Pair<T1, T2> const>: Integral_Constant<anton_stl::ssize_t, 2> {};
+    struct Tuple_Size<Pair<T1, T2> const>: Integral_Constant<usize, 2> {};
 
     // Tuple_Element
     //
     // Does not support volatile qualifier Pair since it has been deprecates in C++20
     //
-    template <anton_stl::ssize_t I, typename T1, typename T2>
+    template <usize I, typename T1, typename T2>
     struct Tuple_Element<I, Pair<T1, T2>> {
         static_assert(I == 0 || I == 1, "anton_stl::Pair has only 2 elements");
         using type = conditional<I == 0, T1, T2>;
     };
 
-    template <anton_stl::ssize_t I, typename T1, typename T2>
+    template <usize I, typename T1, typename T2>
     struct Tuple_Element<I, Pair<T1, T2> const> {
         static_assert(I == 0 || I == 1, "anton_stl::Pair has only 2 elements");
         using type = conditional<I == 0, T1 const, T2 const>;
@@ -108,7 +109,7 @@ namespace anton_engine::anton_stl {
         swap(a.second, b.second);
     }
 
-    template <anton_stl::ssize_t N, typename T1, typename T2>
+    template <usize N, typename T1, typename T2>
     [[nodiscard]] inline constexpr tuple_element<N, Pair<T1, T2>>& get(Pair<T1, T2>& p) {
         static_assert(N == 0 || N == 1, "anton_stl::Pair has only 2 elements");
         if constexpr (N == 0) {
@@ -118,7 +119,7 @@ namespace anton_engine::anton_stl {
         }
     }
 
-    template <anton_stl::ssize_t N, typename T1, typename T2>
+    template <usize N, typename T1, typename T2>
     [[nodiscard]] inline constexpr tuple_element<N, Pair<T1, T2> const>& get(Pair<T1, T2> const& p) {
         static_assert(N == 0 || N == 1, "anton_stl::Pair has only 2 elements");
         if constexpr (N == 0) {
@@ -128,7 +129,7 @@ namespace anton_engine::anton_stl {
         }
     }
 
-    template <anton_stl::ssize_t N, typename T1, typename T2>
+    template <usize N, typename T1, typename T2>
     [[nodiscard]] inline constexpr tuple_element<N, Pair<T1, T2>>&& get(Pair<T1, T2>&& p) {
         static_assert(N == 0 || N == 1, "anton_stl::Pair has only 2 elements");
         if constexpr (N == 0) {
@@ -138,7 +139,7 @@ namespace anton_engine::anton_stl {
         }
     }
 
-    template <anton_stl::ssize_t N, typename T1, typename T2>
+    template <usize N, typename T1, typename T2>
     [[nodiscard]] inline constexpr tuple_element<N, Pair<T1, T2> const>&& get(Pair<T1, T2> const&& p) {
         static_assert(N == 0 || N == 1, "anton_stl::Pair has only 2 elements");
         if constexpr (N == 0) {
@@ -205,10 +206,10 @@ namespace std {
     template <typename T1, typename T2>
     struct tuple_size<anton_engine::anton_stl::Pair<T1, T2> const>: anton_engine::anton_stl::Tuple_Size<anton_engine::anton_stl::Pair<T1, T2> const> {};
 
-    template <anton_engine::anton_stl::ssize_t I, typename T1, typename T2>
+    template <size_t I, typename T1, typename T2>
     struct tuple_element<I, anton_engine::anton_stl::Pair<T1, T2>>: anton_engine::anton_stl::Tuple_Element<I, anton_engine::anton_stl::Pair<T1, T2>> {};
 
-    template <anton_engine::anton_stl::ssize_t I, typename T1, typename T2>
+    template <size_t I, typename T1, typename T2>
     struct tuple_element<I, anton_engine::anton_stl::Pair<T1, T2> const>
         : anton_engine::anton_stl::Tuple_Element<I, anton_engine::anton_stl::Pair<T1, T2> const> {};
 } // namespace std

@@ -12,11 +12,13 @@ namespace anton_engine::anton_stl {
         return &default_allocator;
     }
 
-    constexpr bool is_overaligned_for_new(anton_stl::ssize_t alignment) {
-        return alignment > static_cast<anton_stl::ssize_t>(__STDCPP_DEFAULT_NEW_ALIGNMENT__);
+    // Allocator
+
+    constexpr bool is_overaligned_for_new(isize alignment) {
+        return alignment > static_cast<isize>(__STDCPP_DEFAULT_NEW_ALIGNMENT__);
     }
 
-    void* Allocator::allocate(anton_stl::ssize_t const bytes, anton_stl::ssize_t const alignment) {
+    void* Allocator::allocate(isize const bytes, isize const alignment) {
         if (bytes <= 0 || alignment <= 0) {
             return nullptr;
         }
@@ -30,7 +32,7 @@ namespace anton_engine::anton_stl {
         }
     }
 
-    void Allocator::deallocate(void* ptr, anton_stl::ssize_t const bytes, anton_stl::ssize_t const alignment) {
+    void Allocator::deallocate(void* ptr, isize const bytes, isize const alignment) {
         if (bytes <= 0 || alignment <= 0) {
             return; // TODO add some sort of diagnostic maybe?
         }
@@ -45,6 +47,32 @@ namespace anton_engine::anton_stl {
     bool Allocator::is_equal(Memory_Allocator const& other) const {
         return this == &other || typeid(*this) == typeid(other);
     }
+
+    // Buffer Allocator
+
+    static char* adjust_to_alignment(char* address, usize alignment) {
+        uintptr_t misalignment = (reinterpret_cast<uintptr_t>(address) & (alignment - 1));
+        address += (misalignment != 0 ? alignment - misalignment : 0);
+        return address;
+    }
+
+    // Buffer_Allocator::Buffer_Allocator(char* b, char* e): begin(adjust_to_alignment(b, alignof(Block_Data))), end(e) {
+    //     Block_Data* block_data = reinterpret_cast<Block_Data*>(begin);
+    //     *block_data = Block_Data{};
+    // }
+
+    // void* Buffer_Allocator::allocate(isize size, isize alignment) {
+    //     auto aligned_block_size = [](Block_Data* block_begin, Block_Data* block_end, usize alignment) {
+    //         char* begin = adjust_to_alignment(reinterpret_cast<char*>(block_begin + 1), alignment);
+    //         char* end = reinterpret_cast<char*>(block_end);
+    //         return end - begin;
+    //     };
+    // }
+
+    // void Buffer_Allocator::deallocate(void*, isize size, isize alignment);
+    // bool Buffer_Allocator::is_equal(Memory_Allocator const& other) const;
+
+    // Polymorphic Allocator
 
     Polymorphic_Allocator::Polymorphic_Allocator(): allocator(get_default_allocator()) {}
 
@@ -62,11 +90,11 @@ namespace anton_engine::anton_stl {
         return *this;
     }
 
-    void* Polymorphic_Allocator::allocate(anton_stl::ssize_t size, anton_stl::ssize_t alignment) {
+    void* Polymorphic_Allocator::allocate(isize size, isize alignment) {
         return allocator->allocate(size, alignment);
     }
 
-    void Polymorphic_Allocator::deallocate(void* mem, anton_stl::ssize_t size, anton_stl::ssize_t alignment) {
+    void Polymorphic_Allocator::deallocate(void* mem, isize size, isize alignment) {
         allocator->deallocate(mem, size, alignment);
     }
 

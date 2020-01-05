@@ -1,7 +1,7 @@
 #ifndef CORE_ANTON_STL_ITERATORS_HPP_INCLUDE
 #define CORE_ANTON_STL_ITERATORS_HPP_INCLUDE
 
-#include <anton_stl/config.hpp>
+#include <anton_int.hpp>
 #include <anton_stl/detail/memory_common.hpp>
 #include <anton_stl/type_traits.hpp>
 
@@ -69,7 +69,7 @@ namespace anton_engine::anton_stl {
 
     template <typename T>
     struct Iterator_Traits<T*> {
-        using difference_type = anton_ptrdiff_t;
+        using difference_type = isize;
         using value_type = anton_stl::remove_const<T>;
         using pointer = T*;
         using reference = T&;
