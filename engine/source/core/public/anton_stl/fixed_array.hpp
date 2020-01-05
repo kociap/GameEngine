@@ -2,7 +2,7 @@
 #define CORE_ANTON_STL_FIXED_ARRAY_HPP_INCLUDE
 
 #include <anton_int.hpp>
-#include <anton_stl/config.hpp>
+#include <anton_stl/tags.hpp>
 #include <exception.hpp>
 #include <memory/aligned_buffer.hpp>
 #include <serialization/archives/binary.hpp>

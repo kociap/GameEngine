@@ -6,7 +6,6 @@
 // anton_stl::is_swappable, anton_stl::is_noexcept_swappable are defined in <anton_stl/utility>
 // anton_stl::is_iterator_wrapper is defined in <anton_stl/iterators>
 
-#include <anton_stl/config.hpp>
 #include <anton_stl/detail/traits_base.hpp>
 #include <anton_stl/detail/traits_function.hpp>
 #include <anton_stl/detail/traits_properties.hpp>

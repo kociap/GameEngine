@@ -3,7 +3,7 @@
 
 #include <anton_assert.hpp>
 #include <anton_stl/aligned_buffer.hpp>
-#include <anton_stl/config.hpp>
+#include <anton_stl/tags.hpp>
 #include <anton_stl/memory.hpp>
 #include <anton_stl/type_traits.hpp>
 #include <intrinsics.hpp>

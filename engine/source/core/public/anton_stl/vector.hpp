@@ -3,9 +3,9 @@
 
 #include <anton_assert.hpp>
 #include <anton_stl/allocator.hpp>
-#include <anton_stl/config.hpp>
 #include <anton_stl/iterators.hpp>
 #include <anton_stl/memory.hpp>
+#include <anton_stl/tags.hpp>
 #include <anton_stl/type_traits.hpp>
 #include <anton_stl/utility.hpp>
 #include <math/math.hpp>

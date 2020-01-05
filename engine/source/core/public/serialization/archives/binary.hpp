@@ -2,7 +2,6 @@
 #define CORE_SERIALIZATION_ACHIVES_BINARY_HPP_INCLUDE
 
 #include <anton_int.hpp>
-#include <anton_stl/config.hpp>
 #include <fstream>
 #include <new>
 

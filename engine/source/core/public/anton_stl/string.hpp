@@ -2,10 +2,10 @@
 #define CORE_ANTON_STL_STRING_HPP_INCLUDE
 
 #include <anton_stl/allocator.hpp>
-#include <anton_stl/config.hpp>
 #include <anton_stl/detail/string_iterators.hpp>
 #include <anton_stl/iterators.hpp>
 #include <anton_stl/string_view.hpp>
+#include <anton_stl/tags.hpp>
 
 namespace anton_engine::anton_stl {
     // String
