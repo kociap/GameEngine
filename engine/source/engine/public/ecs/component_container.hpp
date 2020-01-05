@@ -82,7 +82,7 @@ namespace anton_engine {
             } else {
                 _components.emplace_back(std::forward<Args>(args)...);
                 add_entity(entity);
-                return _components.back();
+                return _components[_components.size() - 1];
             }
         }
 

@@ -120,26 +120,6 @@ namespace anton_engine::anton_stl {
     }
 
     template <typename T, typename Allocator>
-    inline auto Vector<T, Allocator>::front() -> reference {
-        return *get_ptr(0);
-    }
-
-    template <typename T, typename Allocator>
-    inline auto Vector<T, Allocator>::front() const -> const_reference {
-        return *get_ptr(0);
-    }
-
-    template <typename T, typename Allocator>
-    inline auto Vector<T, Allocator>::back() -> reference {
-        return *get_ptr(_size - 1);
-    }
-
-    template <typename T, typename Allocator>
-    inline auto Vector<T, Allocator>::back() const -> const_reference {
-        return *get_ptr(_size - 1);
-    }
-
-    template <typename T, typename Allocator>
     inline auto Vector<T, Allocator>::data() -> pointer {
         return get_ptr();
     }
@@ -176,26 +156,6 @@ namespace anton_engine::anton_stl {
     template <typename T, typename Allocator>
     inline auto Vector<T, Allocator>::cend() const -> const_iterator {
         return const_iterator(get_ptr(_size));
-    }
-
-    template <typename T, typename Allocator>
-    inline auto Vector<T, Allocator>::rbegin() -> reverse_iterator {
-        return reverse_iterator(end());
-    }
-
-    template <typename T, typename Allocator>
-    inline auto Vector<T, Allocator>::rend() -> reverse_iterator {
-        return reverse_iterator(begin());
-    }
-
-    template <typename T, typename Allocator>
-    inline auto Vector<T, Allocator>::crbegin() const -> reverse_const_iterator {
-        return reverse_const_iterator(cend());
-    }
-
-    template <typename T, typename Allocator>
-    inline auto Vector<T, Allocator>::crend() const -> reverse_const_iterator {
-        return reverse_const_iterator(cbegin());
     }
 
     template <typename T, typename Allocator>

@@ -39,12 +39,12 @@ namespace anton_engine::utils {
                         state = State::tag_close;
                     } else if (std::isalnum(c)) {
                         tag.properties.emplace_back();
-                        tag.properties.back().name += c;
+                        tag.properties[tag.properties.size() - 1].name += c;
                         state = State::property_name;
                     }
                 } else if (state == State::property_name) {
                     if (std::isalnum(c)) {
-                        tag.properties.back().name += c;
+                        tag.properties[tag.properties.size() - 1].name += c;
                     } else {
                         state = State::property_name_end;
                     }
@@ -56,7 +56,7 @@ namespace anton_engine::utils {
                     if (c == '"') {
                         state = State::property_value_end;
                     } else {
-                        tag.properties.back().value += c;
+                        tag.properties[tag.properties.size() - 1].value += c;
                     }
                 } else if (state == State::property_value_end) {
                     if (c == '/') {
@@ -64,7 +64,7 @@ namespace anton_engine::utils {
                         state = State::tag_close;
                     } else if (std::isalnum(c)) {
                         tag.properties.emplace_back();
-                        tag.properties.back().name += c;
+                        tag.properties[tag.properties.size() - 1].name += c;
                         state = State::property_name;
                     }
                 }

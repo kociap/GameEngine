@@ -31,29 +31,23 @@ namespace anton_engine::anton_stl {
         using const_pointer = T const*;
         using reference = T&;
         using const_reference = T const&;
-        using iterator = T*; // Note:
+        using iterator = T*;
         using const_iterator = T const*;
-        using reverse_iterator = anton_stl::Reverse_Iterator<iterator>;
-        using reverse_const_iterator = anton_stl::Reverse_Iterator<const_iterator>;
 
-        /* [[nodiscard]] */ Vector();
-        /* [[nodiscard]] */ explicit Vector(size_type size);
-        /* [[nodiscard]] */ Vector(Reserve_Tag, size_type size);
-        /* [[nodiscard]] */ Vector(size_type, value_type const&);
-        /* [[nodiscard]] */ Vector(Vector const& original);
-        /* [[nodiscard]] */ Vector(Vector&& from) noexcept;
+        Vector();
+        explicit Vector(size_type size);
+        Vector(Reserve_Tag, size_type size);
+        Vector(size_type, value_type const&);
+        Vector(Vector const& original);
+        Vector(Vector&& from) noexcept;
         template <typename... Args>
-        /* [[nodiscard]] */ Vector(Variadic_Construct_Tag, Args&&...);
+        Vector(Variadic_Construct_Tag, Args&&...);
         ~Vector();
         Vector& operator=(Vector const& original);
         Vector& operator=(Vector&& from) noexcept;
 
         [[nodiscard]] reference operator[](size_type);
         [[nodiscard]] const_reference operator[](size_type) const;
-        [[nodiscard]] reference front();
-        [[nodiscard]] const_reference front() const;
-        [[nodiscard]] reference back();
-        [[nodiscard]] const_reference back() const;
         [[nodiscard]] pointer data();
         [[nodiscard]] const_pointer data() const;
 
@@ -63,10 +57,6 @@ namespace anton_engine::anton_stl {
         [[nodiscard]] const_iterator end() const;
         [[nodiscard]] const_iterator cbegin() const;
         [[nodiscard]] const_iterator cend() const;
-        [[nodiscard]] reverse_iterator rbegin();
-        [[nodiscard]] reverse_iterator rend();
-        [[nodiscard]] reverse_const_iterator crbegin() const;
-        [[nodiscard]] reverse_const_iterator crend() const;
 
         [[nodiscard]] size_type size() const;
         [[nodiscard]] size_type capacity() const;
