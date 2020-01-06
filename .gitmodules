@@ -7,3 +7,6 @@
 [submodule "engine/dependencies/imgui"]
 	path = engine/dependencies/imgui
 	url = https://github.com/kociap/imgui.git
+[submodule "engine/dependencies/freetype"]
+	path = engine/dependencies/freetype
+	url = https://github.com/kociap/FreeType.git
