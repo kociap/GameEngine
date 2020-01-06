@@ -92,7 +92,7 @@ namespace anton_engine::Input {
 
     void Manager::load_bindings() {
         // TODO uses engine exe dir
-        std::filesystem::path bindings_file_path(utils::concat_paths(paths::engine_executable_directory(), "input_bindings.config"));
+        std::filesystem::path bindings_file_path(utils::concat_paths(paths::executable_directory(), "input_bindings.config"));
         std::string config_file = assets::read_file_raw_string(bindings_file_path);
         anton_stl::Vector<Axis_Mapping> loaded_axes;
         anton_stl::Vector<Action_Mapping> loaded_actions;

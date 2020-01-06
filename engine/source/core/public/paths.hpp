@@ -5,15 +5,15 @@
 #include <filesystem>
 
 namespace anton_engine::paths {
-    std::filesystem::path engine_executable_name();
-    std::filesystem::path engine_executable_directory();
-    std::filesystem::path project_directory();
+    std::filesystem::path executable_name();
+    std::filesystem::path executable_directory();
 
-#if !GE_BUILD_SHIPPING
-    // Non-shipping build only
     std::filesystem::path assets_directory();
     std::filesystem::path shaders_directory();
-#endif
+
+#if ANTON_WITH_EDITOR
+    std::filesystem::path project_directory();
+#endif // ANTON_WITH_EDITOR
 } // namespace anton_engine::paths
 
 #endif // !CORE_PATHS_HPP_INCLUDE

@@ -20,7 +20,7 @@ namespace anton_engine::assets {
     std::string read_file_raw_string(std::filesystem::path const& filename) {
         std::ifstream file(filename);
         if (!file) {
-            throw std::invalid_argument("Could not open file " + filename.string());
+            throw std::invalid_argument("Could not open file " + filename.generic_string());
         }
         std::string out;
         std::getline(file, out, '\0');

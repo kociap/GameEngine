@@ -170,10 +170,10 @@ namespace anton_engine {
         Handle<Mesh> const quad_mesh = mesh_manager->add(generate_plane());
 
         if constexpr (DESERIALIZE) {
-            std::filesystem::path serialization_in_path = utils::concat_paths(paths::project_directory(), "ecs.bin");
-            std::ifstream file(serialization_in_path, std::ios::binary);
-            serialization::Binary_Input_Archive in_archive(file);
-            deserialize(in_archive, *ecs);
+            // std::filesystem::path serialization_in_path = utils::concat_paths(paths::project_directory(), "ecs.bin");
+            // std::ifstream file(serialization_in_path, std::ios::binary);
+            // serialization::Binary_Input_Archive in_archive(file);
+            // deserialize(in_archive, *ecs);
         } else {
             auto instantiate_box = [default_shader_handle, box_handle, material_handle](Vector3 position, float rotation = 0) {
                 Entity box = ecs->create();
