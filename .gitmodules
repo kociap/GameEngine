@@ -13,3 +13,6 @@
 [submodule "engine/dependencies/zlib"]
 	path = engine/dependencies/zlib
 	url = https://github.com/kociap/zlib.git
+[submodule "engine/dependencies/glad"]
+	path = engine/dependencies/glad
+	url = https://github.com/kociap/glad.git
