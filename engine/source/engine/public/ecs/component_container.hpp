@@ -181,7 +181,7 @@ namespace anton_engine {
     inline void Component_Container_Base::remove_entity(Entity const entity) {
         ANTON_ASSERT(has(entity), "Attempting to remove entity that has not been registered");
         auto index = indirect_index(entity);
-        auto back_index = indirect_index(_entities.back());
+        auto back_index = indirect_index(_entities[_entities.size() - 1]);
         _entities.erase_unsorted(index);
         _indirect[back_index] = _indirect[index];
         _indirect[index] = npos;
