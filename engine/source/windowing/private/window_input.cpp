@@ -1,17 +1,12 @@
 #include <window.hpp>
 
-#include <diagnostic_macros.hpp>
-
-#define GLFW_INCLUDE_NONE
-ANTON_DISABLE_WARNINGS();
-#include <GLFW/glfw3.h>
-ANTON_RESTORE_WARNINGS();
-
 #include <anton_stl/string.hpp>
 #include <build_config.hpp>
+#include <diagnostic_macros.hpp>
 #include <engine.hpp>
 #include <framebuffer.hpp>
 #include <glad.hpp>
+#include <glfw.hpp>
 #include <input/input_core.hpp>
 #include <key.hpp>
 #include <logging.hpp>
@@ -176,5 +171,14 @@ namespace anton_engine {
                 }*/
             }
         }
+    }
+
+    void install_input_callbacks(GLFWwindow* window) {
+        glfwSetCursorPosCallback(window, mouse_position_callback);
+        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+        glfwSetMouseButtonCallback(window, mouse_button_callback);
+        glfwSetScrollCallback(window, scroll_callback);
+        glfwSetKeyCallback(window, keyboard_callback);
+        glfwSetJoystickCallback(joystick_config_callback);
     }
 } // namespace anton_engine

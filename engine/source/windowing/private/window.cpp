@@ -2,27 +2,17 @@
 
 #include <anton_assert.hpp>
 #include <build_config.hpp>
+#include <builtin_shaders.hpp>
 #include <diagnostic_macros.hpp>
 #include <glad.hpp>
+#include <glfw.hpp>
 #include <opengl.hpp>
 #include <renderer.hpp>
-#include <builtin_shaders.hpp>
+#include <window_input.hpp>
+
 #include <stdexcept>
 
-#define GLFW_INCLUDE_NONE
-ANTON_DISABLE_WARNINGS();
-#include <GLFW/glfw3.h>
-ANTON_RESTORE_WARNINGS();
-
 namespace anton_engine {
-    void framebuffer_size_callback(GLFWwindow* const, int width, int height);
-    void mouse_button_callback(GLFWwindow* const, int button, int action, int mods);
-    void mouse_position_callback(GLFWwindow* const, double param_x, double param_y);
-    void scroll_callback(GLFWwindow* const, double offset_x, double offset_y);
-    void keyboard_callback(GLFWwindow* const, int, int, int, int);
-    void joystick_config_callback(int, int);
-    void process_gamepad_input();
-
     Window::Window(int32_t width, int32_t height): window_width(width), window_height(height) {
         ANTON_ASSERT(window_width > 0 && window_height > 0, "Window dimensions may not be 0");
 
@@ -38,18 +28,14 @@ namespace anton_engine {
 
         glfwMakeContextCurrent(window_handle);
 
-		// TODO: Move out of the window.
+        install_input_callbacks(window_handle);
+
+        // TODO: Move out of the window.
         opengl::load();
         rendering::setup_rendering();
         load_builtin_shaders();
 
         glViewport(0, 0, window_width, window_height);
-        glfwSetCursorPosCallback(window_handle, mouse_position_callback);
-        glfwSetFramebufferSizeCallback(window_handle, framebuffer_size_callback);
-        glfwSetMouseButtonCallback(window_handle, mouse_button_callback);
-        glfwSetScrollCallback(window_handle, scroll_callback);
-        glfwSetKeyCallback(window_handle, keyboard_callback);
-        glfwSetJoystickCallback(joystick_config_callback);
 
         // VSync
         glfwSwapInterval(1);
