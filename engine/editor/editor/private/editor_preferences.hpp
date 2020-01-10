@@ -33,6 +33,8 @@ namespace anton_engine {
     };
 
     [[nodiscard]] Editor_Preferences& get_editor_preferences();
+    // TODO: set function and no by-reference return
+    // void set_editor_preferences(Editor_Preferences);
     void load_default_editor_preferences();
 } // namespace anton_engine
 

@@ -1,19 +1,15 @@
 set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/editor_events.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/editor_main.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/editor_preferences.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/editor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/editor_window.cpp"
 )
     
 set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/editor_events.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/editor_preferences.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/editor_subsystem_fwd.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/editor_window.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/editor.hpp"
 )
 
+add_subdirectory(editor/public)
+add_subdirectory(editor/private)
 add_subdirectory(imgui/public)
 add_subdirectory(imgui/private)
 # add_subdirectory(level_editor/public)

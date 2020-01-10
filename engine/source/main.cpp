@@ -1,6 +1,4 @@
-#include <filesystem>
 #include <module_loader.hpp>
-#include <paths_internal.hpp>
 #include <stdexcept>
 
 #include <ecs/component_serialization.hpp>
@@ -28,10 +26,10 @@ int main(int argc, char** argv) {
     get_component_serialization_funcs = get_function_from_module<get_component_serialization_funcs_t>(game_module, "get_component_serialization_functions");
     create_systems = get_function_from_module<create_systems_type>(game_module, "create_systems");
 
-#if !ANTON_WITH_EDITOR
-    engine_main(argc, argv);
-#else
+#if ANTON_WITH_EDITOR
     editor_main(argc, argv);
+#else
+    engine_main(argc, argv);
 #endif // !ANTON_WITH_EDITOR
 
     unload_module(game_module);
