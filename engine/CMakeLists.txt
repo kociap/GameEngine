@@ -3,19 +3,9 @@ set_target_properties(${ENGINE_NAME}
     PROPERTIES
     FOLDER ${ENGINE_FOLDER_NAME}
     WINDOWS_EXPORT_ALL_SYMBOLS ON
-    AUTOMOC ON
-    AUTORCC ON
-    AUTOUIC ON
-    AUTOMOC_MOC_OPTIONS --no-warnings
 )
 
-# Disable warnings from UIC or MOC or whatever. I don't know how it works.
-set_source_files_properties(
-    ${ENGINE_NAME}_autogen/mocs_compilation.cpp
-    PROPERTIES COMPILE_FLAGS -w
-)
 
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
 find_package(OpenGL REQUIRED)
 
 # Debug Interface Access. Might use it one day for better assert
@@ -72,10 +62,10 @@ target_sources(${ENGINE_NAME}
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCE_FILES_ROOT} ${HEADER_FILES_ROOT} ${UI_FILES_ROOT})
 target_link_libraries(${ENGINE_NAME}
     ${OPENGL_LIBRARIES}
-    Qt5::Widgets
     glad    
     glfw
     zlibstatic
+    freetype
 )
 
 if(WIN32)

@@ -14,9 +14,9 @@ namespace anton_engine {
         // }
 
         std::filesystem::path exe_directory(argv[0], std::filesystem::path::generic_format);
-        paths::set_engine_executable_name(exe_directory.filename());
+        paths::set_executable_name(exe_directory.filename());
         exe_directory.remove_filename();
-        paths::set_engine_executable_directory(exe_directory);
+        paths::set_executable_directory(exe_directory);
         //std::filesystem::path project_directory(argv[1], std::filesystem::path::generic_format);
         std::filesystem::path project_directory("C:/Users/An0num0us/Documents/GameEngine_Game/GameEngine_Game.geproject",
                                                 std::filesystem::path::generic_format);
