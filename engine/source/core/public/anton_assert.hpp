@@ -7,6 +7,8 @@
 namespace anton_engine {
     void anton_assert(char const* message, char const* file, unsigned long long line);
 
+#define ANTON_FAIL(condition, msg) (ANTON_LIKELY(static_cast<bool>(condition)) ? (void)0 : ::anton_engine::anton_assert(msg, __FILE__, __LINE__))
+
 #if ANTON_DEBUG
 #    define ANTON_ASSERT(condition, msg) (ANTON_LIKELY(static_cast<bool>(condition)) ? (void)0 : ::anton_engine::anton_assert(msg, __FILE__, __LINE__))
 #else
