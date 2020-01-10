@@ -15,10 +15,10 @@
 #include <material.hpp>
 #include <mesh.hpp>
 #include <paths.hpp>
+#include <paths_internal.hpp>
 #include <renderer.hpp>
 #include <resource_manager.hpp>
 #include <shader.hpp>
-#include <time.hpp>
 #include <time/time_internal.hpp>
 #include <utils/filesystem.hpp>
 
@@ -26,17 +26,32 @@
 #include <logging.hpp>
 #include <serialization/archives/binary.hpp>
 #include <serialization/serialization.hpp>
-#include <time.hpp>
 
 namespace anton_engine {
-    Resource_Manager<Mesh>* Editor::mesh_manager = nullptr;
-    Resource_Manager<Shader>* Editor::shader_manager = nullptr;
-    Resource_Manager<Material>* Editor::material_manager = nullptr;
-    Input::Manager* Editor::input_manager = nullptr;
-    ECS* Editor::ecs = nullptr;
-    bool Editor::close = false;
+    static bool _quit = false;
 
-    void Editor::init() {
+    // TODO: Temporarily
+    static Editor_Window* editor_window = nullptr;
+    static Resource_Manager<Mesh>* mesh_manager = nullptr;
+    static Resource_Manager<Shader>* shader_manager = nullptr;
+    static Resource_Manager<Material>* material_manager = nullptr;
+    static Input::Manager* input_manager = nullptr;
+    static ECS* ecs = nullptr;
+
+    void quit() {
+        _quit = true;
+    }
+
+    static void loop() {
+        time_update();
+
+        ecs->remove_requested_entities();
+    }
+
+    // TODO: Forward decl of load_world. Remove (eventually)
+    void load_world();
+
+    static void init() {
         time_init();
         mesh_manager = new Resource_Manager<Mesh>();
         shader_manager = new Resource_Manager<Shader>();
@@ -45,10 +60,10 @@ namespace anton_engine {
         input_manager->load_bindings();
         ecs = new ECS();
 
-        Editor::load_world();
+        load_world();
     }
 
-    void Editor::terminate() {
+    static void terminate() {
 #if SERIALIZE_ON_QUIT
         std::filesystem::path serialization_out_path = utils::concat_paths(paths::project_directory(), "ecs.bin");
         std::ofstream file(serialization_out_path, std::ios::binary | std::ios::trunc);
@@ -57,28 +72,42 @@ namespace anton_engine {
 #endif
     }
 
-    void Editor::loop() {
-        time_update();
-        if (get_delta_time() > 0.017f) {
-            //log_message(Log_Message_Severity::info, anton_stl::to_string(timingf::get_delta_time()));
+    int editor_main(int argc, char** argv) {
+        // Required arguments: path to executable and path to the project file
+        // if (argc < 2) {
+        //     throw std::runtime_error("Missing path to project file");
+        // }
+
+        // if(!std::filesystem::exists(argv[1])) {
+        //     throw std::runtime_error("Specified project file does not exist");
+        // }
+
+        std::filesystem::path exe_directory(argv[0], std::filesystem::path::generic_format);
+        paths::set_executable_name(exe_directory.filename());
+        exe_directory.remove_filename();
+        paths::set_executable_directory(exe_directory);
+        //std::filesystem::path project_directory(argv[1], std::filesystem::path::generic_format);
+        std::filesystem::path project_directory("C:/Users/An0num0us/Documents/GameEngine_Game/GameEngine_Game.geproject",
+                                                std::filesystem::path::generic_format);
+        project_directory.remove_filename();
+        paths::set_project_directory(project_directory);
+
+        // TODO Validate project file
+
+        init();
+        while (!_quit) {
+            loop();
         }
-        // TODO separate inputs for each viewport
-        input_manager->process_events();
-
-        //auto dbg_hotkeys = Editor::get_ecs().view<Debug_Hotkeys>();
-        //for (Entity const entity: dbg_hotkeys) {
-        //    Debug_Hotkeys::update(dbg_hotkeys.get(entity));
-        //}
-
-        ecs->remove_requested_entities();
+        terminate();
+        return 0;
     }
 
     bool Editor::should_close() {
-        return close;
+        return _quit;
     }
 
     void Editor::quit() {
-        close = true;
+        anton_engine::quit();
     }
 
     Resource_Manager<Mesh>& Editor::get_mesh_manager() {
@@ -114,7 +143,7 @@ namespace anton_engine {
 #include <serialization/archives/binary.hpp>
 #include <serialization/serialization.hpp>
 namespace anton_engine {
-    void Editor::load_world() {
+    static void load_world() {
         // #define RENDER_CUBES
 
         // asset_importing::import("C:/Users/An0num0us/Documents/GameEngine/assets_main/barrel_texture.png");
