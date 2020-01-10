@@ -31,7 +31,7 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR ("${CMAKE_CXX_COMPILER_ID}" MATCH
         # -Wno-float-equal # Not important yet
         # -Wno-global-constructors # Suppress static variables initialization warning spam. Not important, but might be worth turning on to identify startup performance issues
         # -Wno-exit-time-destructors # Suppress static variables destruction warning spam.
-        # -Wno-shadow-field-in-constructor # TODO temporarily to suppress spam
+        # -Wno-shadow-field-in-constructor
         # -Wno-missing-prototypes
         -Wnewline-eof
         -Wnon-virtual-dtor
