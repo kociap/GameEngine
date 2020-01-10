@@ -25,7 +25,6 @@
 #include <math/vector2.hpp>
 #include <mesh.hpp>
 #include <obb.hpp>
-#include <qt_key.hpp>
 #include <renderer.hpp>
 #include <resource_manager.hpp>
 #include <shader_file.hpp>
@@ -35,37 +34,11 @@
 #include <imgui.hpp>
 #include <imgui_rendering.hpp>
 
-ANTON_DISABLE_WARNINGS();
-#include <QCloseEvent>
-#include <QEvent>
-#include <QMouseEvent>
-
-#include <QCursor>
-#include <QObject>
-#include <QOpenGLContext>
-#include <QWindow>
-ANTON_RESTORE_WARNINGS();
-
 #include <cstdint>
 #include <tuple>
 
 namespace anton_engine {
-    Viewport::Viewport(int32_t vindex, QOpenGLContext* ctx): Viewport(vindex, nullptr, ctx) {}
-    Viewport::Viewport(int32_t vindex, QWidget* parent, QOpenGLContext* ctx): QWidget(parent), context(ctx), index(vindex) {
-        // Force native window and direct drawing, so that we have a surface to render onto
-        setAttribute(Qt::WA_NativeWindow, true);
-        setAttribute(Qt::WA_PaintOnScreen, true);
-        setAttribute(Qt::WA_NoSystemBackground, true);
-
-        setMinimumWidth(700);
-        setMinimumHeight(700);
-
-        setWindowTitle("Viewport");
-
-        int32_t const w = width();
-        int32_t const h = height();
-        context->makeCurrent(windowHandle());
-
+    Viewport::Viewport(int32_t vindex): index(vindex) {
         Framebuffer::Construct_Info construct_info;
         construct_info.color_buffers.resize(1);
         construct_info.color_buffers[0].internal_format = Framebuffer::Internal_Format::rgba8;
@@ -117,61 +90,6 @@ namespace anton_engine {
         framebuffer->resize(w, h);
         multisampled_framebuffer->resize(w, h);
         deferred_framebuffer->resize(w, h);
-        QWidget::resize(w, h);
-    }
-
-    QPaintEngine* Viewport::paintEngine() const {
-        return nullptr;
-    }
-
-    bool Viewport::is_cursor_locked() const {
-        return cursor_locked;
-    }
-
-    void Viewport::lock_cursor_at(int32_t x, int32_t y) {
-        cursor_locked = true;
-        lock_pos_x = x;
-        lock_pos_y = y;
-        QCursor::setPos(x, y);
-        setCursor(Qt::BlankCursor);
-        setMouseTracking(true);
-    }
-
-    void Viewport::unlock_cursor() {
-        setMouseTracking(false);
-        setCursor(Qt::ArrowCursor);
-        cursor_locked = false;
-    }
-
-    void Viewport::closeEvent(QCloseEvent* e) {
-        QWidget::closeEvent(e);
-        Q_EMIT window_closed(index);
-    }
-
-    void Viewport::resizeEvent(QResizeEvent*) {
-        ANTON_LOG_INFO("Resize event");
-        int32_t w = width();
-        int32_t h = height();
-        resize(w, h);
-    }
-
-    void Viewport::mouseMoveEvent(QMouseEvent* mouse_event) {
-        if (cursor_locked) {
-            Input::Manager& input_manager = Editor::get_input_manager();
-            int32_t delta_x = mouse_event->globalX() - lock_pos_x;
-            int32_t delta_y = lock_pos_y - mouse_event->globalY();
-            input_manager.add_event(Input::Mouse_Event(delta_x, delta_y, 0.0f));
-            QCursor::setPos(lock_pos_x, lock_pos_y);
-        } else {
-            // ANTON_LOG_INFO("Non-cursor-locked mouse event");
-        }
-    }
-
-    void Viewport::mousePressEvent(QMouseEvent* mouse_event) {
-        Q_EMIT made_active(index);
-        Input::Manager& input_manager = Editor::get_input_manager();
-        Key key = key_from_qt_mouse_button(mouse_event->button());
-        input_manager.add_event(Input::Event(key, mouse_event->type() == QEvent::MouseButtonPress));
     }
 
     static Entity pick_object(Ray const ray) {
@@ -210,7 +128,7 @@ namespace anton_engine {
         int32_t const window_content_size_x = width();
         int32_t const window_content_size_y = height();
         Vector2 const viewport_size(window_content_size_x, window_content_size_y);
-        QPoint qcursor_pos = mapFromGlobal(QCursor::pos()); // TODO choose screen
+        // QPoint qcursor_pos = mapFromGlobal(QCursor::pos()); // TODO choose screen
         // Transform from top-left to bottom-left
         Vector2 mouse_pos(qcursor_pos.x(), height() - qcursor_pos.y());
 
@@ -618,8 +536,6 @@ namespace anton_engine {
 
         // TODO: Mist instead of sudden clip
 
-        Vector2 const viewport_size(width(), height());
-        QPoint qcursor_pos = mapFromGlobal(QCursor::pos()); // TODO choose screen
         // Transform from top-left to bottom-left
         Vector2 const mouse_pos(qcursor_pos.x(), height() - qcursor_pos.y());
         Ray const mouse_ray = screen_to_ray(inv_view_mat, inv_proj_mat, viewport_size.x, viewport_size.y, mouse_pos);
@@ -695,6 +611,6 @@ namespace anton_engine {
             imgui::commit_draw();
         }
 
-        context->swapBuffers(windowHandle());
+        // context->swapBuffers(windowHandle());
     }
 } // namespace anton_engine

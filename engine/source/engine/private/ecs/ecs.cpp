@@ -9,8 +9,6 @@
 
 #if ANTON_WITH_EDITOR
 #    include <editor.hpp>
-#    include <editor_window.hpp>
-#    include <outliner.hpp>
 #else
 #    include <engine.hpp>
 #endif // ANTON_WITH_EDITOR
@@ -25,14 +23,7 @@ namespace anton_engine {
 
     Entity ECS::create() {
         // TODO: More clever entity creation (generations and reusing ids)
-#if !ANTON_WITH_EDITOR
         return _entities.emplace_back(id_generator.next());
-#else
-        Entity entity = _entities.emplace_back(id_generator.next());
-        Editor_Window& editor = Editor::get_window();
-        editor.outliner->add_entity(entity);
-        return entity;
-#endif
     }
 
     static void serialize_component_container(u64 identifier, serialization::Binary_Output_Archive& archive, Component_Container_Base const* container) {

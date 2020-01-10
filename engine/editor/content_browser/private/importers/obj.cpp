@@ -188,7 +188,7 @@ namespace anton_engine::importers {
                         ++obj_it;
                     }
                     meshes_internal.emplace_back();
-                    current_mesh = &meshes_internal.back();
+                    current_mesh = &meshes_internal[meshes_internal.size() - 1];
                     current_mesh->name = std::string(begin, obj_it);
                     seek(obj_it, '\n');
                     ++obj_it;

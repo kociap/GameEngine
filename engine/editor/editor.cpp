@@ -14,7 +14,6 @@
 #include <input/input_core.hpp>
 #include <material.hpp>
 #include <mesh.hpp>
-#include <outliner.hpp>
 #include <paths.hpp>
 #include <renderer.hpp>
 #include <resource_manager.hpp>
@@ -22,10 +21,6 @@
 #include <time.hpp>
 #include <time/time_internal.hpp>
 #include <utils/filesystem.hpp>
-#include <viewport.hpp>
-#include <viewport_camera.hpp>
-
-#include <editor_qapplication.hpp>
 
 // TODO: Remove
 #include <logging.hpp>
@@ -33,16 +28,7 @@
 #include <serialization/serialization.hpp>
 #include <time.hpp>
 
-ANTON_DISABLE_WARNINGS();
-#include <QCoreApplication>
-#include <QOpenGLWidget>
-#include <QPalette>
-#include <QSurfaceFormat>
-ANTON_RESTORE_WARNINGS();
-
 namespace anton_engine {
-    Editor_Window* Editor::editor_window = nullptr;
-    Editor_QApplication* Editor::qapplication = nullptr;
     Resource_Manager<Mesh>* Editor::mesh_manager = nullptr;
     Resource_Manager<Shader>* Editor::shader_manager = nullptr;
     Resource_Manager<Material>* Editor::material_manager = nullptr;
@@ -51,13 +37,6 @@ namespace anton_engine {
     bool Editor::close = false;
 
     void Editor::init() {
-        QSurfaceFormat surface_format;
-        surface_format.setVersion(4, 5);
-        surface_format.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
-        surface_format.setRenderableType(QSurfaceFormat::RenderableType::OpenGL);
-        surface_format.setSwapInterval(1);
-        QSurfaceFormat::setDefaultFormat(surface_format);
-
         time_init();
         mesh_manager = new Resource_Manager<Mesh>();
         shader_manager = new Resource_Manager<Shader>();
@@ -65,15 +44,6 @@ namespace anton_engine {
         input_manager = new Input::Manager();
         input_manager->load_bindings();
         ecs = new ECS();
-
-        QPalette dark_palette;
-        dark_palette.setColor(QPalette::Window, QColor(25, 25, 25));
-
-        qapplication = new Editor_QApplication();
-        qapplication->setPalette(dark_palette);
-        editor_window = new Editor_Window();
-        editor_window->setup_interface();
-        editor_window->show();
 
         Editor::load_world();
     }
@@ -85,14 +55,9 @@ namespace anton_engine {
         serialization::Binary_Output_Archive out_archive(file);
         serialize(out_archive, Engine::get_ecs());
 #endif
-        delete editor_window;
-        editor_window = nullptr;
-        delete qapplication;
-        qapplication = nullptr;
     }
 
     void Editor::loop() {
-        qapplication->processEvents();
         time_update();
         if (get_delta_time() > 0.017f) {
             //log_message(Log_Message_Severity::info, anton_stl::to_string(timingf::get_delta_time()));
@@ -100,16 +65,11 @@ namespace anton_engine {
         // TODO separate inputs for each viewport
         input_manager->process_events();
 
-        editor_window->update();
-        editor_window->render();
-
         //auto dbg_hotkeys = Editor::get_ecs().view<Debug_Hotkeys>();
         //for (Entity const entity: dbg_hotkeys) {
         //    Debug_Hotkeys::update(dbg_hotkeys.get(entity));
         //}
 
-        anton_stl::Vector<Entity> const& entities_to_remove = ecs->get_entities_to_remove();
-        editor_window->outliner->remove_entities(entities_to_remove);
         ecs->remove_requested_entities();
     }
 
@@ -141,9 +101,6 @@ namespace anton_engine {
         return *ecs;
     }
 
-    Editor_Window& Editor::get_window() {
-        return *editor_window;
-    }
 } // namespace anton_engine
 
 #include <asset_guid.hpp>

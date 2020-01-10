@@ -160,7 +160,7 @@ namespace anton_engine::imgui {
 
         Widget widget;
         widget.style = ctx.default_style;
-        widget.parent = (ctx.widget_stack.size() != 0 ? ctx.widget_stack.back() : -1);
+        widget.parent = (ctx.widget_stack.size() != 0 ? ctx.widget_stack[ctx.widget_stack.size() - 1] : -1);
         widget.parent_window_id = ctx.current_window;
         ctx.widgets.push_back(widget);
         i64 const widget_id = ctx.widgets.size() - 1;
@@ -182,7 +182,8 @@ namespace anton_engine::imgui {
         }
 
         if (ctx.widget_stack.size() != 0) {
-            return ctx.widgets[ctx.widget_stack.back()].style;
+            i64 const index = ctx.widget_stack[ctx.widget_stack.size() - 1];
+            return ctx.widgets[index].style;
         } else {
             Window& window = ctx.windows.at(ctx.current_window);
             return window.style;
@@ -196,7 +197,8 @@ namespace anton_engine::imgui {
         }
 
         if (ctx.widget_stack.size() != 0) {
-            ctx.widgets[ctx.widget_stack.back()].style = style;
+            i64 const index = ctx.widget_stack[ctx.widget_stack.size() - 1];
+            ctx.widgets[index].style = style;
         } else {
             Window& window = ctx.windows.at(ctx.current_window);
             window.style = style;
