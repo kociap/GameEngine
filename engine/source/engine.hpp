@@ -1,8 +1,6 @@
 #ifndef ENGINE_HPP_INCLUDE
 #define ENGINE_HPP_INCLUDE
 
-#include <subsystem_forward_declarations.hpp>
-
 namespace anton_engine {
     class Framebuffer;
     class Window;
