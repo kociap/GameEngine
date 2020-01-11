@@ -5,7 +5,9 @@
 #include <assets.hpp>
 #include <ecs/ecs.hpp>
 #include <ecs/entity.hpp>
-#include <input/input_core.hpp>
+#include <input.hpp>
+#include <input/input_internal.hpp>
+#include <logging.hpp>
 #include <mesh.hpp>
 #include <resource_manager.hpp>
 #include <time/time_internal.hpp>
@@ -36,8 +38,10 @@
 
 #include <build_config.hpp>
 
+// For load_bindings
+#include <utils/simple_xml_parser.hpp>
+
 namespace anton_engine {
-    Input::Manager* Engine::input_manager = nullptr;
     rendering::Renderer* Engine::renderer = nullptr;
     ECS* Engine::ecs = nullptr;
     Window* Engine::main_window = nullptr;
@@ -49,14 +53,69 @@ namespace anton_engine {
     Framebuffer* Engine::postprocess_front = nullptr;
     Framebuffer* Engine::postprocess_back = nullptr;
 
+    // TODO: Rework.
+    static void load_input_bindings() {
+        // TODO uses engine exe dir
+        std::filesystem::path const bindings_file_path(utils::concat_paths(paths::executable_directory(), "input_bindings.config"));
+        std::string const config_file = assets::read_file_raw_string(bindings_file_path);
+        {
+            auto find_property = [](auto& properties, auto predicate) -> anton_stl::Vector<utils::xml::Tag_Property>::iterator {
+                auto end = properties.end();
+                for (auto iter = properties.begin(); iter != end; ++iter) {
+                    if (predicate(*iter)) {
+                        return iter;
+                    }
+                }
+                return end;
+            };
+
+            anton_stl::Vector<utils::xml::Tag> tags(utils::xml::parse(config_file));
+            for (utils::xml::Tag& tag: tags) {
+                if (tag.name != "axis" && tag.name != "action") {
+                    ANTON_LOG_INFO("Unknown tag, skipping...");
+                    continue;
+                }
+
+                auto axis_prop = find_property(tag.properties, [](auto& property) { return property.name == "axis"; });
+                auto action_prop = find_property(tag.properties, [](auto& property) { return property.name == "action"; });
+                auto key_prop = find_property(tag.properties, [](auto& property) { return property.name == "key"; });
+                auto accumulation_speed_prop = find_property(tag.properties, [](auto& property) { return property.name == "scale"; });
+                auto sensitivity_prop = find_property(tag.properties, [](auto& property) { return property.name == "sensitivity"; });
+
+                if (axis_prop == tag.properties.end() && action_prop == tag.properties.end()) {
+                    ANTON_LOG_INFO("Missing action/axis property, skipping...");
+                    continue;
+                }
+                if (key_prop == tag.properties.end()) {
+                    ANTON_LOG_INFO("Missing key property, skipping...");
+                    continue;
+                }
+
+                if (axis_prop != tag.properties.end()) {
+                    if (sensitivity_prop == tag.properties.end()) {
+                        ANTON_LOG_INFO("Missing sensitivity property, skipping...");
+                        continue;
+                    }
+                    if (accumulation_speed_prop == tag.properties.end()) {
+                        ANTON_LOG_INFO("Missing scale property, skipping...");
+                        continue;
+                    }
+                    input::add_axis(axis_prop->value.data(), key_from_string(key_prop->value), std::stof(sensitivity_prop->value),
+                                    std::stof(accumulation_speed_prop->value), false);
+                } else {
+                    input::add_action(action_prop->value.data(), key_from_string(key_prop->value));
+                }
+            }
+        }
+    }
+
     void Engine::init() {
         time_init();
         main_window = new Window(1280, 720);
         mesh_manager = new Resource_Manager<Mesh>();
         shader_manager = new Resource_Manager<Shader>();
         material_manager = new Resource_Manager<Material>();
-        input_manager = new Input::Manager();
-        input_manager->load_bindings();
+        load_input_bindings();
         ecs = new ECS();
 
         renderer = new rendering::Renderer(main_window->width(), main_window->height());
@@ -248,8 +307,6 @@ namespace anton_engine {
         unload_builtin_shaders();
         delete ecs;
         ecs = nullptr;
-        delete input_manager;
-        input_manager = nullptr;
         delete material_manager;
         material_manager = nullptr;
         delete shader_manager;
@@ -292,7 +349,7 @@ namespace anton_engine {
     void Engine::loop() {
         main_window->poll_events();
         time_update();
-        input_manager->process_events();
+        input::process_events();
 
         auto camera_mov_view = ecs->view<Camera_Movement, Camera, Transform>();
         for (Entity const entity: camera_mov_view) {
@@ -337,10 +394,6 @@ namespace anton_engine {
 
     bool Engine::should_close() {
         return main_window->should_close();
-    }
-
-    Input::Manager& Engine::get_input_manager() {
-        return *input_manager;
     }
 
     Window& Engine::get_window() {

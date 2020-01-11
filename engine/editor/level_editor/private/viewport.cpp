@@ -16,8 +16,8 @@
 #include <gizmo/dial_3d.hpp>
 #include <gizmo/gizmo.hpp>
 #include <glad.hpp>
-#include <input/input.hpp>
-#include <input/input_core.hpp>
+#include <input.hpp>
+#include <input/input_internal.hpp>
 #include <intersection_tests.hpp>
 #include <line.hpp>
 #include <logging.hpp>
@@ -132,8 +132,8 @@ namespace anton_engine {
         // Transform from top-left to bottom-left
         Vector2 mouse_pos(qcursor_pos.x(), height() - qcursor_pos.y());
 
-        auto const state = Input::get_key_state(Key::right_mouse_button);
-        auto const shift_state = Input::get_key_state(Key::left_shift);
+        auto const state = input::get_key_state(Key::right_mouse_button);
+        auto const shift_state = input::get_key_state(Key::left_shift);
         Ray const ray = screen_to_ray(inv_view_mat, inv_projection_mat, window_content_size_x, window_content_size_y, mouse_pos);
         if (!state.down && state.up_down_transitioned) {
             Entity selected_entity = pick_object(ray);
@@ -167,7 +167,7 @@ namespace anton_engine {
             Transform& transform_ref = ecs.get_component<Transform>(selected_entities.front());
             Transform const transform = transform_ref;
 
-            Input::Key_State const lmb_state = Input::get_key_state(Key::left_mouse_button);
+            input::Key_State const lmb_state = input::get_key_state(Key::left_mouse_button);
             Gizmo_Context& gizmo_ctx = get_gizmo_context();
             if (lmb_state.up_down_transitioned) {
                 if (lmb_state.down) {

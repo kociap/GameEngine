@@ -1,6 +1,6 @@
 #include <debug_hotkeys.hpp>
 
-#include <input/input.hpp>
+#include <input.hpp>
 
 #include <anton_stl/string.hpp>
 #include <assets.hpp>
@@ -35,19 +35,19 @@ namespace anton_engine {
     }
 
     void Debug_Hotkeys::update(Debug_Hotkeys& debug_hotkeys) {
-        auto reload = Input::get_action("reload_shaders");
+        auto reload = input::get_action("reload_shaders");
         if (reload.released) {
             // TODO reloading shaders
             //Engine::get_shader_manager().reload_shaders();
         }
 
-        auto swap_fxaa = Input::get_action("swap_fxaa_shaders");
+        auto swap_fxaa = input::get_action("swap_fxaa_shaders");
         if (swap_fxaa.released) {
             swap_fxaa_shader();
         }
 
 #if !ANTON_WITH_EDITOR
-        auto capture_mouse = Input::get_action("capture_mouse");
+        auto capture_mouse = input::get_action("capture_mouse");
         if (capture_mouse.released) {
             if (debug_hotkeys.cursor_captured) {
                 debug_hotkeys.cursor_captured = false;

@@ -11,7 +11,6 @@ set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/jobs_management.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/jobs.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/system.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/input/input_core.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/input/input.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/time/time.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/assets.cpp"
@@ -25,7 +24,7 @@ set(HEADER_FILES
     ${HEADER_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/jobs_management.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ecs/system_management.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/input/input_core.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/input/input_internal.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/time/time_internal.hpp"
     PARENT_SCOPE
 )
