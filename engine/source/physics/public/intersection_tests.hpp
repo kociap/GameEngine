@@ -1,7 +1,6 @@
 #ifndef PHYSICS_INTERSECTION_TESTS_HPP_INCLUDE
 #define PHYSICS_INTERSECTION_TESTS_HPP_INCLUDE
 
-#include <aabb.hpp>
 #include <anton_stl/optional.hpp>
 #include <intersections_common.hpp>
 #include <line.hpp>
