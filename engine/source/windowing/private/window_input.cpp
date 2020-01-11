@@ -7,7 +7,7 @@
 #include <framebuffer.hpp>
 #include <glad.hpp>
 #include <glfw.hpp>
-#include <input/input_core.hpp>
+#include <input/input_internal.hpp>
 #include <key.hpp>
 #include <logging.hpp>
 #include <renderer.hpp>
@@ -41,8 +41,7 @@ namespace anton_engine {
 
         Key key = mouse_button_map.at(button);
         float value = static_cast<float>(action); // GLFW_PRESS is 1, GLFW_RELEASE is  0
-        Input::Manager& input_manager = get_input_manager();
-        input_manager.add_event({key, value});
+        input::add_event(key, value);
     }
 
     void mouse_position_callback(GLFWwindow* const, double const param_x, double const param_y) {
@@ -56,13 +55,12 @@ namespace anton_engine {
         last_x = x;
         last_y = y;
 
-        Input::Manager& input_manager = get_input_manager();
-        input_manager.add_event({offset_x, offset_y, 0.0f});
+        input::add_event(Key::mouse_x, offset_x);
+        input::add_event(Key::mouse_y, offset_y);
     }
 
     void scroll_callback(GLFWwindow* const, double const /* offset_x */, double const offset_y) {
-        Input::Manager& input_manager = get_input_manager();
-        input_manager.add_event({0.0f, 0.0f, static_cast<float>(offset_y)});
+        input::add_event(Key::mouse_scroll, static_cast<float>(offset_y));
     }
 
     void keyboard_callback(GLFWwindow* const, int const key, int const /* scancode */, int const action, int const /* mods */) {
@@ -133,8 +131,7 @@ namespace anton_engine {
 
         if (auto key_iter = keyboard_button_map.find(key); action != GLFW_REPEAT && key_iter != keyboard_button_map.end()) {
             float value = static_cast<float>(action); // GLFW_PRESS is 1, GLFW_RELEASE is 0
-            Input::Manager& input_manager = get_input_manager();
-            input_manager.add_event({key_iter->second, value});
+            input::add_event(key_iter->second, value);
         }
     }
 
@@ -147,20 +144,19 @@ namespace anton_engine {
 
     void process_gamepad_input() {
         // Gamepad input
-        Input::Manager& input_manager = get_input_manager();
         for (int32_t joystick_index = GLFW_JOYSTICK_1; joystick_index < GLFW_JOYSTICK_LAST; ++joystick_index) {
             if (glfwJoystickPresent(joystick_index) && glfwJoystickIsGamepad(joystick_index)) {
                 int count;
                 float const* axes = glfwGetJoystickAxes(joystick_index, &count);
                 // Xbox controller mapping for windows build
-                input_manager.add_gamepad_stick_event({joystick_index, Key::gamepad_left_stick_x_axis, axes[0]});
-                input_manager.add_gamepad_stick_event({joystick_index, Key::gamepad_left_stick_y_axis, axes[1]});
-                input_manager.add_gamepad_stick_event({joystick_index, Key::gamepad_right_stick_x_axis, axes[2]});
-                input_manager.add_gamepad_stick_event({joystick_index, Key::gamepad_right_stick_y_axis, axes[3]});
+                input::add_gamepad_event(joystick_index, Key::gamepad_left_stick_x_axis, axes[0]);
+                input::add_gamepad_event(joystick_index, Key::gamepad_left_stick_y_axis, axes[1]);
+                input::add_gamepad_event(joystick_index, Key::gamepad_right_stick_x_axis, axes[2]);
+                input::add_gamepad_event(joystick_index, Key::gamepad_right_stick_y_axis, axes[3]);
                 // Triggers on windows have range -1 (released), 1 (pressed)
                 // Remap to 0 (released), 1 (pressed)
-                input_manager.add_event({joystick_index, Key::gamepad_left_trigger, (axes[4] + 1.0f) / 2.0f});
-                input_manager.add_event({joystick_index, Key::gamepad_right_trigger, (axes[5] + 1.0f) / 2.0f});
+                input::add_gamepad_event(joystick_index, Key::gamepad_left_trigger, (axes[4] + 1.0f) / 2.0f);
+                input::add_gamepad_event(joystick_index, Key::gamepad_right_trigger, (axes[5] + 1.0f) / 2.0f);
 
                 // TODO add mapping for linux build
                 // TODO add other controllers if I ever buy them

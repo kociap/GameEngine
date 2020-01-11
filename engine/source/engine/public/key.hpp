@@ -150,12 +150,9 @@ namespace anton_engine {
         gamepad_button_19,
     };
 
-    namespace utils {
-        namespace key {
-            bool is_mouse_axis(Key key);
-            bool is_gamepad_axis(Key key);
-        } // namespace key
-    }     // namespace utils
+    bool is_mouse_axis(Key);
+    bool is_gamepad_axis(Key);
+    bool is_gamepad_stick(Key);
 
     std::string key_to_string(Key);
     Key key_from_string(std::string const&);

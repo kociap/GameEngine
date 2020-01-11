@@ -10,8 +10,8 @@
 #include <ecs/ecs.hpp>
 #include <editor_window.hpp>
 #include <engine.hpp>
-#include <input/input.hpp>
-#include <input/input_core.hpp>
+#include <input.hpp>
+#include <input/input_internal.hpp>
 #include <material.hpp>
 #include <mesh.hpp>
 #include <paths.hpp>
@@ -35,7 +35,6 @@ namespace anton_engine {
     static Resource_Manager<Mesh>* mesh_manager = nullptr;
     static Resource_Manager<Shader>* shader_manager = nullptr;
     static Resource_Manager<Material>* material_manager = nullptr;
-    static Input::Manager* input_manager = nullptr;
     static ECS* ecs = nullptr;
 
     void quit() {
@@ -56,8 +55,6 @@ namespace anton_engine {
         mesh_manager = new Resource_Manager<Mesh>();
         shader_manager = new Resource_Manager<Shader>();
         material_manager = new Resource_Manager<Material>();
-        input_manager = new Input::Manager();
-        input_manager->load_bindings();
         ecs = new ECS();
 
         load_world();
@@ -120,10 +117,6 @@ namespace anton_engine {
 
     Resource_Manager<Material>& Editor::get_material_manager() {
         return *material_manager;
-    }
-
-    Input::Manager& Editor::get_input_manager() {
-        return *input_manager;
     }
 
     ECS& Editor::get_ecs() {

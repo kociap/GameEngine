@@ -5,10 +5,20 @@
 
 namespace anton_engine {
     class Framebuffer;
+    class Window;
+    class ECS;
+    namespace rendering {
+        class Renderer;
+    }
+
+    class Shader;
+    class Mesh;
+    class Material;
+    template <typename T>
+    class Resource_Manager;
 
     class Engine {
     private:
-        static Input::Manager* input_manager;
         static rendering::Renderer* renderer;
         static ECS* ecs;
         static Window* main_window;
@@ -30,7 +40,6 @@ namespace anton_engine {
         // TODO Temporary
         static void load_world();
 
-        static Input::Manager& get_input_manager();
         static Window& get_window();
         static rendering::Renderer& get_renderer();
         static ECS& get_ecs();

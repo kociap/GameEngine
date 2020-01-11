@@ -5,10 +5,6 @@ namespace anton_engine {
     class Editor_Window;
 
     class ECS;
-    namespace Input {
-        class Manager;
-    }
-
     class Shader;
     class Mesh;
     class Material;
@@ -27,7 +23,6 @@ namespace anton_engine {
         static Resource_Manager<Mesh>& get_mesh_manager();
         static Resource_Manager<Shader>& get_shader_manager();
         static Resource_Manager<Material>& get_material_manager();
-        static Input::Manager& get_input_manager();
         static ECS& get_ecs();
         static Editor_Window& get_window();
     };

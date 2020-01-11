@@ -6,7 +6,7 @@
 #include <components/transform.hpp>
 #include <ecs/ecs.hpp>
 #include <editor_preferences.hpp>
-#include <input/input.hpp>
+#include <input.hpp>
 #include <logging.hpp>
 #include <opengl.hpp>
 #include <renderer.hpp>
@@ -24,11 +24,11 @@ namespace anton_engine {
     Editor_Window::~Editor_Window() {}
 
     void Editor_Window::update() {
-        if (auto const state = Input::get_key_state(Key::y); state.down && state.up_down_transitioned) {
+        if (auto const state = input::get_key_state(Key::y); state.down && state.up_down_transitioned) {
             reload_builtin_shaders();
         }
 
-        auto const state = Input::get_key_state(Key::u);
+        auto const state = input::get_key_state(Key::u);
         if (state.up_down_transitioned && !state.down) {
             // Lock cursor
         }

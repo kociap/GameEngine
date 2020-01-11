@@ -8,4 +8,4 @@ namespace anton_engine {
     void process_gamepad_input();
 } // namespace anton_engine
 
-#endif WINDOWING_WINDOW_INPUT_HPP_INCLUDE
+#endif // !WINDOWING_WINDOW_INPUT_HPP_INCLUDE

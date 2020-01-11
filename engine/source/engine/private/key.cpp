@@ -3,18 +3,19 @@
 #include <unordered_map>
 
 namespace anton_engine {
-    namespace utils {
-        namespace key {
-            bool is_mouse_axis(Key key) {
-                return key == Key::mouse_x || key == Key::mouse_y || key == Key::mouse_scroll;
-            }
+    bool is_mouse_axis(Key const k) {
+        return k == Key::mouse_x || k == Key::mouse_y || k == Key::mouse_scroll;
+    }
 
-            bool is_gamepad_axis(Key key) {
-                return key == Key::gamepad_right_stick_x_axis || key == Key::gamepad_right_stick_y_axis || key == Key::gamepad_left_stick_x_axis ||
-                       key == Key::gamepad_left_stick_y_axis || key == Key::gamepad_left_trigger || key == Key::gamepad_right_trigger;
-            }
-        } // namespace key
-    }     // namespace utils
+    bool is_gamepad_axis(Key const k) {
+        return k == Key::gamepad_right_stick_x_axis || k == Key::gamepad_right_stick_y_axis || k == Key::gamepad_left_stick_x_axis ||
+               k == Key::gamepad_left_stick_y_axis || k == Key::gamepad_left_trigger || k == Key::gamepad_right_trigger;
+    }
+
+    bool is_gamepad_stick(Key const k) {
+        return k == Key::gamepad_right_stick_x_axis || k == Key::gamepad_right_stick_y_axis || k == Key::gamepad_left_stick_x_axis ||
+               k == Key::gamepad_left_stick_y_axis;
+    }
 
     std::string key_to_string(Key key) {
         // clang-format off
