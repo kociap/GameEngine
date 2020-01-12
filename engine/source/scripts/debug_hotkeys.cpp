@@ -49,13 +49,13 @@ namespace anton_engine {
 #if !ANTON_WITH_EDITOR
         auto capture_mouse = input::get_action("capture_mouse");
         if (capture_mouse.released) {
-            if (debug_hotkeys.cursor_captured) {
-                debug_hotkeys.cursor_captured = false;
-                Engine::get_window().unlock_cursor();
-            } else {
-                debug_hotkeys.cursor_captured = true;
-                Engine::get_window().lock_cursor();
-            }
+            // if (debug_hotkeys.cursor_captured) {
+            //     debug_hotkeys.cursor_captured = false;
+            //     Engine::get_window().unlock_cursor();
+            // } else {
+            //     debug_hotkeys.cursor_captured = true;
+            //     Engine::get_window().lock_cursor();
+            // }
             // Editor::set_mouse_captured(debug_hotkeys.cursor_captured);
         }
 #endif // !ANTON_WITH_EDITOR

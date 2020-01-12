@@ -20,8 +20,8 @@ namespace anton_engine::opengl {
 
     void load() {
         load_functions();
-        load_constants();
         install_debug_callback();
+        load_constants();
     }
 
     void load_functions() {
