@@ -6,7 +6,6 @@ namespace anton_engine {
     bool init_windowing();
     void terminate_windowing();
     void poll_events();
-    void enable_vsync(bool);
 } // namespace anton_engine
 
 #endif // !WINDOWING_WINDOWING_INTERNAL_HPP_INCLUDE

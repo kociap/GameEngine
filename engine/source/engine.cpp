@@ -9,6 +9,7 @@
 #include <input/input_internal.hpp>
 #include <logging.hpp>
 #include <mesh.hpp>
+#include <paths_internal.hpp>
 #include <resource_manager.hpp>
 #include <time/time_internal.hpp>
 #include <utils/filesystem.hpp>
@@ -43,16 +44,16 @@
 #include <utils/simple_xml_parser.hpp>
 
 namespace anton_engine {
-    rendering::Renderer* Engine::renderer = nullptr;
-    ECS* Engine::ecs = nullptr;
-    Window* Engine::main_window = nullptr;
-    Resource_Manager<Mesh>* Engine::mesh_manager = nullptr;
-    Resource_Manager<Shader>* Engine::shader_manager = nullptr;
-    Resource_Manager<Material>* Engine::material_manager = nullptr;
+    static rendering::Renderer* renderer = nullptr;
+    static ECS* ecs = nullptr;
+    static Window* main_window = nullptr;
+    static Resource_Manager<Mesh>* mesh_manager = nullptr;
+    static Resource_Manager<Shader>* shader_manager = nullptr;
+    static Resource_Manager<Material>* material_manager = nullptr;
 
-    Framebuffer* Engine::deferred_framebuffer = nullptr;
-    Framebuffer* Engine::postprocess_front = nullptr;
-    Framebuffer* Engine::postprocess_back = nullptr;
+    static Framebuffer* deferred_framebuffer = nullptr;
+    static Framebuffer* postprocess_front = nullptr;
+    static Framebuffer* postprocess_back = nullptr;
 
     // TODO: Rework.
     static void load_input_bindings() {
@@ -110,20 +111,27 @@ namespace anton_engine {
         }
     }
 
-    void Engine::init() {
+    // TODO: Forward decl. Remove.
+    static void load_world();
+
+    static void init() {
+        time_init();
         init_windowing();
         enable_vsync(true);
-        time_init();
-        main_window = new Window(1280, 720, false);
+        main_window = create_window(1280, 720, true);
+        make_context_current(main_window);
+        opengl::load();
+        rendering::setup_rendering();
+        load_builtin_shaders();
+
         mesh_manager = new Resource_Manager<Mesh>();
         shader_manager = new Resource_Manager<Shader>();
         material_manager = new Resource_Manager<Material>();
         load_input_bindings();
         ecs = new ECS();
 
-        // main_window->set_opacity(0.6f);
-
-        renderer = new rendering::Renderer(main_window->width(), main_window->height());
+        Dimensions const window_dims = get_window_size(main_window);
+        renderer = new rendering::Renderer(window_dims.width, window_dims.height);
 
         Framebuffer::Construct_Info deferred_framebuffer_info;
         deferred_framebuffer_info.width = 1280;
@@ -156,7 +164,7 @@ namespace anton_engine {
 #include <serialization/serialization.hpp>
 
     // BS code to output anything on the screen
-    void Engine::load_world() {
+    static void load_world() {
         auto basic_frag = assets::load_shader_file("basicfrag.frag");
         auto basic_vert = assets::load_shader_file("basicvertex.vert");
         Shader default_shader = create_shader(basic_vert, basic_frag);
@@ -306,7 +314,7 @@ namespace anton_engine {
         }
     }
 
-    void Engine::terminate() {
+    static void terminate() {
         delete renderer;
         renderer = nullptr;
         unload_builtin_shaders();
@@ -318,7 +326,7 @@ namespace anton_engine {
         shader_manager = nullptr;
         delete mesh_manager;
         mesh_manager = nullptr;
-        delete main_window;
+        destroy_window(main_window);
         main_window = nullptr;
         terminate_windowing();
     }
@@ -352,7 +360,7 @@ namespace anton_engine {
         rendering::render_texture_quad();
     }
 
-    void Engine::loop() {
+    static void loop() {
         poll_events();
         time_update();
         input::process_events();
@@ -377,13 +385,14 @@ namespace anton_engine {
         for (Entity const entity: cameras) {
             auto [camera, transform] = cameras.get<Camera, Transform>(entity);
             if (camera.active) {
+                Dimensions const window_dims = get_window_size(main_window);
                 Matrix4 const view_mat = get_camera_view_matrix(transform);
                 Matrix4 const inv_view_mat = math::inverse(view_mat);
-                Matrix4 const proj_mat = get_camera_projection_matrix(camera, main_window->width(), main_window->height());
+                Matrix4 const proj_mat = get_camera_projection_matrix(camera, window_dims.width, window_dims.height);
                 Matrix4 const inv_proj_mat = math::inverse(proj_mat);
                 // TODO: Fix shitcode.
                 render_frame(deferred_framebuffer, postprocess_back, view_mat, inv_view_mat, proj_mat, inv_proj_mat, transform,
-                             Vector2(main_window->width(), main_window->height()));
+                             Vector2(window_dims.width, window_dims.height));
                 anton_stl::swap(postprocess_front, postprocess_back);
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 glBindTextureUnit(0, postprocess_front->get_color_texture(0));
@@ -395,15 +404,22 @@ namespace anton_engine {
             }
         }
 
-        main_window->swap_buffers();
+        swap_buffers(main_window);
     }
 
-    bool Engine::should_close() {
-        return main_window->should_close();
-    }
+    int engine_main(int argc, char** argv) {
+        std::filesystem::path exe_directory(argv[0], std::filesystem::path::generic_format);
+        paths::set_executable_name(exe_directory.filename());
+        exe_directory.remove_filename();
+        paths::set_executable_directory(exe_directory);
 
-    Window& Engine::get_window() {
-        return *main_window;
+        init();
+        while (!should_close(main_window)) {
+            loop();
+        }
+        terminate();
+
+        return 0;
     }
 
     rendering::Renderer& Engine::get_renderer() {

@@ -19,8 +19,4 @@ namespace anton_engine {
     void poll_events() {
         glfwPollEvents();
     }
-
-    void enable_vsync(bool enabled) {
-        glfwSwapInterval(enabled);
-    }
 } // namespace anton_engine

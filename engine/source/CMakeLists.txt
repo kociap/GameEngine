@@ -1,5 +1,4 @@
 set(SOURCE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/engine_main.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/engine.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/module_loader.cpp"
 )
