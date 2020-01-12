@@ -1,54 +1,59 @@
 #include <window.hpp>
 
 #include <anton_assert.hpp>
-#include <builtin_shaders.hpp>
 #include <diagnostic_macros.hpp>
 #include <exception.hpp>
-#include <glad.hpp>
 #include <glfw.hpp>
-#include <opengl.hpp>
-#include <renderer.hpp>
 #include <window_input.hpp>
 
 namespace anton_engine {
-    Window::Window(i32 width, i32 height, bool decorated): window_width(width), window_height(height) {
-        ANTON_ASSERT(window_width > 0 && window_height > 0, "Window dimensions may not be 0");
+    // Window::Window(i32 width, i32 height, bool decorated): window_width(width), window_height(height) {
+    //     ANTON_ASSERT(window_width > 0 && window_height > 0, "Window dimensions may not be 0");
+
+    //     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    //     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    //     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    //     glfwWindowHint(GLFW_DECORATED, decorated);
+    //     window_handle = glfwCreateWindow(window_width, window_height, "GameEngine", nullptr, nullptr);
+    //     if (!window_handle) {
+    //         throw Exception("GLFW failed to create a window");
+    //     }
+    //     glfwDefaultWindowHints();
+
+    //     install_input_callbacks(window_handle);
+
+    //     make_context_current();
+    //     // TODO: Move out of the window.
+    //     opengl::load();
+    //     rendering::setup_rendering();
+    //     load_builtin_shaders();
+
+    //     glViewport(0, 0, window_width, window_height);
+    // }
+
+    Window* create_window(i32 width, i32 height, bool decorated) {
+        ANTON_ASSERT(width > 0 && height > 0, "Window dimensions may not be 0");
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_DECORATED, decorated);
-        window_handle = glfwCreateWindow(window_width, window_height, "GameEngine", nullptr, nullptr);
-        if (!window_handle) {
-            throw Exception("GLFW failed to create a window");
-        }
+        GLFWwindow* const window = glfwCreateWindow(width, height, "GameEngine", nullptr, nullptr);
         glfwDefaultWindowHints();
-
-        install_input_callbacks(window_handle);
-
-        make_context_current();
-        // TODO: Move out of the window.
-        opengl::load();
-        rendering::setup_rendering();
-        load_builtin_shaders();
-
-        glViewport(0, 0, window_width, window_height);
+        if (window) {
+            install_input_callbacks(window);
+            return reinterpret_cast<Window*>(window);
+        } else {
+            return nullptr;
+        }
     }
 
-    Window::~Window() {
-        glfwDestroyWindow(window_handle);
+    void destroy_window(Window* const window) {
+        glfwDestroyWindow(reinterpret_cast<GLFWwindow*>(window));
     }
 
-    bool Window::should_close() const {
-        return glfwWindowShouldClose(window_handle);
-    }
-
-    void Window::swap_buffers() {
-        glfwSwapBuffers(window_handle);
-    }
-
-    void Window::make_context_current() {
-        glfwMakeContextCurrent(window_handle);
+    bool should_close(Window* const window) {
+        return glfwWindowShouldClose(reinterpret_cast<GLFWwindow*>(window));
     }
 
     // void Window::lock_cursor() const {
@@ -65,20 +70,43 @@ namespace anton_engine {
     //     return {static_cast<float>(x), static_cast<float>(y)};
     // }
 
-    void Window::resize(i32 width, i32 height) {
-        window_width = width;
-        window_height = height;
+    void resize(Window* const window, i32 width, i32 height) {
+        glfwSetWindowSize(reinterpret_cast<GLFWwindow*>(window), width, height);
     }
 
-    i32 Window::width() const {
-        return window_width;
+    i32 get_width(Window* const window) {
+        i32 width = 0;
+        i32 height = 0;
+        glfwGetWindowSize(reinterpret_cast<GLFWwindow*>(window), &width, &height);
+        return height;
     }
 
-    i32 Window::height() const {
-        return window_height;
+    i32 get_height(Window* const window) {
+        i32 width = 0;
+        i32 height = 0;
+        glfwGetWindowSize(reinterpret_cast<GLFWwindow*>(window), &width, &height);
+        return height;
     }
 
-    void Window::set_opacity(float const opacity) {
-        glfwSetWindowOpacity(window_handle, opacity);
+    Dimensions get_window_size(Window* const window) {
+        Dimensions dims = {};
+        glfwGetWindowSize(reinterpret_cast<GLFWwindow*>(window), &dims.width, &dims.height);
+        return dims;
+    }
+
+    void set_opacity(Window* const window, float const opacity) {
+        glfwSetWindowOpacity(reinterpret_cast<GLFWwindow*>(window), opacity);
+    }
+
+    void make_context_current(Window* const window) {
+        glfwMakeContextCurrent(reinterpret_cast<GLFWwindow*>(window));
+    }
+
+    void swap_buffers(Window* const window) {
+        glfwSwapBuffers(reinterpret_cast<GLFWwindow*>(window));
+    }
+
+    void enable_vsync(bool const enabled) {
+        glfwSwapInterval(enabled);
     }
 } // namespace anton_engine

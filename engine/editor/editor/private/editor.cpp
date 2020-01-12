@@ -48,7 +48,7 @@ namespace anton_engine {
     }
 
     // TODO: Forward decl of load_world. Remove (eventually)
-    void load_world();
+    static void load_world();
 
     static void init() {
         time_init();

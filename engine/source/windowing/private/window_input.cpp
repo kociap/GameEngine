@@ -1,33 +1,22 @@
-#include <window.hpp>
+#include <window_input.hpp>
 
 #include <anton_stl/string.hpp>
-#include <build_config.hpp>
-#include <diagnostic_macros.hpp>
-#include <engine.hpp>
-#include <framebuffer.hpp>
-#include <glad.hpp>
 #include <glfw.hpp>
 #include <input/input_internal.hpp>
 #include <key.hpp>
 #include <logging.hpp>
-#include <renderer.hpp>
+#include <window.hpp>
 
-#include <stdexcept>
-#include <string>
 #include <unordered_map>
 
 namespace anton_engine {
-    void framebuffer_size_callback(GLFWwindow* const, int const width, int const height) {
-        Engine::get_window().resize(width, height);
-        glViewport(0, 0, width, height);
-#if !ANTON_WITH_EDITOR
-        Engine::get_renderer().resize(width, height);
-#endif
+    void framebuffer_size_callback(GLFWwindow* const window, int const width, int const height) {
+        resize(reinterpret_cast<Window*>(window), width, height);
     }
 
     void mouse_button_callback(GLFWwindow* const, int const button, int const action, int const /* mods */) {
         // clang-format off
-        static std::unordered_map<int32_t, Key> mouse_button_map({
+        static std::unordered_map<i32, Key> mouse_button_map({
             {GLFW_MOUSE_BUTTON_LEFT, Key::left_mouse_button},
             {GLFW_MOUSE_BUTTON_RIGHT, Key::right_mouse_button},
             {GLFW_MOUSE_BUTTON_MIDDLE, Key::middle_mouse_button},
@@ -44,9 +33,10 @@ namespace anton_engine {
         input::add_event(key, value);
     }
 
-    void mouse_position_callback(GLFWwindow* const, double const param_x, double const param_y) {
-        static float last_x = Engine::get_window().height() / 2.0f;
-        static float last_y = Engine::get_window().width() / 2.0f;
+    void mouse_position_callback(GLFWwindow* const window, double const param_x, double const param_y) {
+        Dimensions const dimensions = get_window_size(reinterpret_cast<Window*>(window));
+        static float last_x = dimensions.width / 2.0f;
+        static float last_y = dimensions.height / 2.0f;
 
         float x = static_cast<float>(param_x);
         float y = static_cast<float>(param_y);
@@ -64,7 +54,7 @@ namespace anton_engine {
     }
 
     void keyboard_callback(GLFWwindow* const, int const key, int const /* scancode */, int const action, int const /* mods */) {
-        static std::unordered_map<int32_t, Key> keyboard_button_map{
+        static std::unordered_map<i32, Key> keyboard_button_map{
             {GLFW_KEY_A, Key::a},
             {GLFW_KEY_B, Key::b},
             {GLFW_KEY_C, Key::c},
@@ -144,7 +134,7 @@ namespace anton_engine {
 
     void process_gamepad_input() {
         // Gamepad input
-        for (int32_t joystick_index = GLFW_JOYSTICK_1; joystick_index < GLFW_JOYSTICK_LAST; ++joystick_index) {
+        for (i32 joystick_index = GLFW_JOYSTICK_1; joystick_index < GLFW_JOYSTICK_LAST; ++joystick_index) {
             if (glfwJoystickPresent(joystick_index) && glfwJoystickIsGamepad(joystick_index)) {
                 int count;
                 float const* axes = glfwGetJoystickAxes(joystick_index, &count);
@@ -162,7 +152,7 @@ namespace anton_engine {
                 // TODO add other controllers if I ever buy them
 
                 /*unsigned char const* buttons = glfwGetJoystickButtons(joystick_index, &count);
-                for (int32_t i = 0; i < count; ++i) {
+                for (i32 i = 0; i < count; ++i) {
                     std::cout << i << ": " << buttons[i] << "\n";
                 }*/
             }
