@@ -9,13 +9,18 @@ namespace anton_engine {
             return false;
         }
 
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         return true;
     }
 
     void terminate_windowing() {
         glfwTerminate();
+    }
+
+    void poll_events() {
+        glfwPollEvents();
+    }
+
+    void enable_vsync(bool enabled) {
+        glfwSwapInterval(enabled);
     }
 } // namespace anton_engine

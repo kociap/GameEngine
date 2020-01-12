@@ -13,6 +13,7 @@
 #include <time/time_internal.hpp>
 #include <utils/filesystem.hpp>
 #include <window.hpp>
+#include <windowing_internal.hpp>
 
 #include <ecs/jobs_management.hpp>
 #include <ecs/system_management.hpp>
@@ -110,13 +111,17 @@ namespace anton_engine {
     }
 
     void Engine::init() {
+        init_windowing();
+        enable_vsync(true);
         time_init();
-        main_window = new Window(1280, 720);
+        main_window = new Window(1280, 720, false);
         mesh_manager = new Resource_Manager<Mesh>();
         shader_manager = new Resource_Manager<Shader>();
         material_manager = new Resource_Manager<Material>();
         load_input_bindings();
         ecs = new ECS();
+
+        // main_window->set_opacity(0.6f);
 
         renderer = new rendering::Renderer(main_window->width(), main_window->height());
 
@@ -315,6 +320,7 @@ namespace anton_engine {
         mesh_manager = nullptr;
         delete main_window;
         main_window = nullptr;
+        terminate_windowing();
     }
 
     static void render_frame(Framebuffer* const framebuffer, Framebuffer* const postprocess_back, Matrix4 const view_mat, Matrix4 const inv_view_mat,
@@ -347,7 +353,7 @@ namespace anton_engine {
     }
 
     void Engine::loop() {
-        main_window->poll_events();
+        poll_events();
         time_update();
         input::process_events();
 

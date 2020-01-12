@@ -1,7 +1,7 @@
 #ifndef WINDOWING_WINDOW_HPP_INCLUDE
 #define WINDOWING_WINDOW_HPP_INCLUDE
 
-#include <cstdint>
+#include <anton_int.hpp>
 #include <math/vector2.hpp>
 
 struct GLFWwindow;
@@ -9,7 +9,7 @@ struct GLFWwindow;
 namespace anton_engine {
     class Window {
     public:
-        Window(int32_t width, int32_t height);
+        Window(i32 width, i32 height, bool decorated);
         Window(Window const&) = delete;
         Window(Window&&) noexcept = default;
         Window& operator=(Window const&) = delete;
@@ -17,21 +17,17 @@ namespace anton_engine {
         ~Window();
 
         bool should_close() const;
-        void poll_events() const;
-        void swap_buffers() const;
-        void lock_cursor() const;
-        void unlock_cursor() const;
+        void swap_buffers();
+        void make_context_current();
 
-        // Retrieves the position of the cursor relative to the window's top-left corner
-        [[nodiscard]] Vector2 get_cursor_position() const;
-
-        void resize(int32_t width, int32_t height);
-        [[nodiscard]] int32_t width() const;
-        [[nodiscard]] int32_t height() const;
+        void resize(i32 width, i32 height);
+        [[nodiscard]] i32 width() const;
+        [[nodiscard]] i32 height() const;
+        void set_opacity(float);
 
     private:
-        int32_t window_width = 0;
-        int32_t window_height = 0;
+        i32 window_width = 0;
+        i32 window_height = 0;
         GLFWwindow* window_handle = nullptr;
     };
 } // namespace anton_engine
