@@ -19,7 +19,7 @@ namespace anton_engine {
 
     template <typename T>
     T get_function_from_module(Module module, anton_stl::String_View name) {
-        return static_cast<T>(get_function_from_module(module, name));
+        return reinterpret_cast<T>(get_function_from_module(module, name));
     }
 } // namespace anton_engine
 
