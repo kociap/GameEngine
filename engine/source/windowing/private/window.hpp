@@ -12,8 +12,22 @@ namespace anton_engine {
         i32 height;
     };
 
+    enum class Cursor_Mode {
+        // Visible and unrestricted
+        normal,
+        // Invisible, but unrestricted
+        hidden,
+        // Confined to the content area of a window
+        captured,
+        // Invisible and locked in place. Provides virtual and unlimited cursor movement
+        locked,
+    };
+
     Window* create_window(i32 width, i32 height, bool decorated);
     void destroy_window(Window*);
+
+    void set_cursor_mode(Window*, Cursor_Mode);
+    Cursor_Mode get_cursor_mode(Window*);
 
     bool should_close(Window*);
     void resize(Window*, i32 width, i32 height);

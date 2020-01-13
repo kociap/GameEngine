@@ -52,6 +52,48 @@ namespace anton_engine {
         glfwDestroyWindow(reinterpret_cast<GLFWwindow*>(window));
     }
 
+    void set_cursor_mode(Window* const window, Cursor_Mode const mode) {
+        switch (mode) {
+        case Cursor_Mode::normal: {
+            glfwSetInputMode(reinterpret_cast<GLFWwindow*>(window), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        } break;
+
+        case Cursor_Mode::hidden: {
+            glfwSetInputMode(reinterpret_cast<GLFWwindow*>(window), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        } break;
+
+        case Cursor_Mode::captured: {
+            glfwSetInputMode(reinterpret_cast<GLFWwindow*>(window), GLFW_CURSOR, GLFW_CURSOR_CAPTURED);
+        } break;
+
+        case Cursor_Mode::locked: {
+            glfwSetInputMode(reinterpret_cast<GLFWwindow*>(window), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        } break;
+        }
+    }
+
+    Cursor_Mode get_cursor_mode(Window* const window) {
+        i32 const glfw_mode = glfwGetInputMode(reinterpret_cast<GLFWwindow*>(window), GLFW_CURSOR);
+        switch (glfw_mode) {
+        case GLFW_CURSOR_NORMAL: {
+            return Cursor_Mode::normal;
+        } break;
+
+        case GLFW_CURSOR_HIDDEN: {
+            return Cursor_Mode::hidden;
+        } break;
+
+        case GLFW_CURSOR_DISABLED: {
+            return Cursor_Mode::locked;
+        } break;
+
+        case GLFW_CURSOR_CAPTURED:
+            return Cursor_Mode::captured;
+        }
+
+        return Cursor_Mode::normal;
+    }
+
     bool should_close(Window* const window) {
         return glfwWindowShouldClose(reinterpret_cast<GLFWwindow*>(window));
     }
