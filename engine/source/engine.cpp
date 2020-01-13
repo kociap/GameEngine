@@ -115,7 +115,7 @@ namespace anton_engine {
     static void load_world();
 
     static void init() {
-        time_init();
+        init_time();
         init_windowing();
         enable_vsync(true);
         main_window = create_window(1280, 720, true);
@@ -361,8 +361,8 @@ namespace anton_engine {
     }
 
     static void loop() {
-        poll_events();
-        time_update();
+        poll_window_events();
+        update_time();
         input::process_events();
 
         auto camera_mov_view = ecs->view<Camera_Movement, Camera, Transform>();

@@ -22,11 +22,11 @@ namespace anton_engine {
     // (private) Time since init was called.
     static double time_offset = 0;
 
-    void time_init() {
+    void init_time() {
         time_offset = get_time();
     }
 
-    void time_update() {
+    void update_time() {
         ++frame_count;
         double current_time = get_time() - time_offset;
         unscaled_delta_time = current_time - unscaled_frame_time;

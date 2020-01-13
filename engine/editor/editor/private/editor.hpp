@@ -17,14 +17,10 @@ namespace anton_engine {
 
     class Editor {
     public:
-        static bool should_close();
-        static void quit();
-
         static Resource_Manager<Mesh>& get_mesh_manager();
         static Resource_Manager<Shader>& get_shader_manager();
         static Resource_Manager<Material>& get_material_manager();
         static ECS& get_ecs();
-        static Editor_Window& get_window();
     };
 } // namespace anton_engine
 
