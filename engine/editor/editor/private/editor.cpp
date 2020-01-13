@@ -1,6 +1,8 @@
 #include <editor.hpp>
 
 #include <build_config.hpp>
+#include <builtin_editor_shaders.hpp>
+#include <builtin_shaders.hpp>
 #include <camera_movement.hpp>
 #include <components/camera.hpp>
 #include <components/entity_name.hpp>
@@ -9,11 +11,11 @@
 #include <diagnostic_macros.hpp>
 #include <ecs/ecs.hpp>
 #include <editor_window.hpp>
-#include <engine.hpp>
 #include <input.hpp>
 #include <input/input_internal.hpp>
 #include <material.hpp>
 #include <mesh.hpp>
+#include <opengl.hpp>
 #include <paths.hpp>
 #include <paths_internal.hpp>
 #include <renderer.hpp>
@@ -21,6 +23,8 @@
 #include <shader.hpp>
 #include <time/time_internal.hpp>
 #include <utils/filesystem.hpp>
+#include <window.hpp>
+#include <windowing_internal.hpp>
 
 // TODO: Remove
 #include <logging.hpp>
@@ -31,7 +35,7 @@ namespace anton_engine {
     static bool _quit = false;
 
     // TODO: Temporarily
-    static Editor_Window* editor_window = nullptr;
+    static Window* main_window = nullptr;
     static Resource_Manager<Mesh>* mesh_manager = nullptr;
     static Resource_Manager<Shader>* shader_manager = nullptr;
     static Resource_Manager<Material>* material_manager = nullptr;
@@ -42,7 +46,8 @@ namespace anton_engine {
     }
 
     static void loop() {
-        time_update();
+        poll_window_events();
+        update_time();
 
         ecs->remove_requested_entities();
     }
@@ -51,7 +56,15 @@ namespace anton_engine {
     static void load_world();
 
     static void init() {
-        time_init();
+        init_time();
+        init_windowing();
+        enable_vsync(true);
+        main_window = create_window(1280, 720, true);
+        make_context_current(main_window);
+        opengl::load();
+        rendering::setup_rendering();
+        load_builtin_shaders();
+
         mesh_manager = new Resource_Manager<Mesh>();
         shader_manager = new Resource_Manager<Shader>();
         material_manager = new Resource_Manager<Material>();
@@ -97,14 +110,6 @@ namespace anton_engine {
         }
         terminate();
         return 0;
-    }
-
-    bool Editor::should_close() {
-        return _quit;
-    }
-
-    void Editor::quit() {
-        anton_engine::quit();
     }
 
     Resource_Manager<Mesh>& Editor::get_mesh_manager() {

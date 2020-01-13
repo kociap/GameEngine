@@ -7,30 +7,6 @@
 #include <window_input.hpp>
 
 namespace anton_engine {
-    // Window::Window(i32 width, i32 height, bool decorated): window_width(width), window_height(height) {
-    //     ANTON_ASSERT(window_width > 0 && window_height > 0, "Window dimensions may not be 0");
-
-    //     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    //     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-    //     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    //     glfwWindowHint(GLFW_DECORATED, decorated);
-    //     window_handle = glfwCreateWindow(window_width, window_height, "GameEngine", nullptr, nullptr);
-    //     if (!window_handle) {
-    //         throw Exception("GLFW failed to create a window");
-    //     }
-    //     glfwDefaultWindowHints();
-
-    //     install_input_callbacks(window_handle);
-
-    //     make_context_current();
-    //     // TODO: Move out of the window.
-    //     opengl::load();
-    //     rendering::setup_rendering();
-    //     load_builtin_shaders();
-
-    //     glViewport(0, 0, window_width, window_height);
-    // }
-
     Window* create_window(i32 width, i32 height, bool decorated) {
         ANTON_ASSERT(width > 0 && height > 0, "Window dimensions may not be 0");
 

@@ -16,7 +16,7 @@ namespace anton_engine {
         glfwTerminate();
     }
 
-    void poll_events() {
+    void poll_window_events() {
         glfwPollEvents();
     }
 } // namespace anton_engine
