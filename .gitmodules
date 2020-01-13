@@ -1,12 +1,6 @@
-[submodule "assimp"]
-	path = engine/dependencies/assimp
-	url = https://github.com/assimp/assimp.git
 [submodule "glfw"]
 	path = engine/dependencies/glfw
-	url = https://github.com/glfw/glfw.git
-[submodule "engine/dependencies/imgui"]
-	path = engine/dependencies/imgui
-	url = https://github.com/kociap/imgui.git
+	url = https://github.com/kociap/glfw.git
 [submodule "engine/dependencies/freetype"]
 	path = engine/dependencies/freetype
 	url = https://github.com/kociap/FreeType.git

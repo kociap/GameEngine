@@ -35,6 +35,7 @@ namespace anton_engine {
 
     void mouse_position_callback(GLFWwindow* const window, double const param_x, double const param_y) {
         Dimensions const dimensions = get_window_size(reinterpret_cast<Window*>(window));
+        // TODO: Per window?
         static float last_x = dimensions.width / 2.0f;
         static float last_y = dimensions.height / 2.0f;
 
