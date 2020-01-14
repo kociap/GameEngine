@@ -1,10 +1,8 @@
 set(SOURCE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/editor_events.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/editor_window.cpp"
 )
     
 set(HEADER_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/editor_events.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/editor_window.hpp"
 )
 
