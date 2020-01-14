@@ -26,6 +26,11 @@
 #include <window.hpp>
 #include <windowing_internal.hpp>
 
+#include <builtin_editor_shaders.hpp>
+#include <glad.hpp>
+#include <imgui.hpp>
+#include <imgui_rendering.hpp>
+
 // TODO: Remove
 #include <logging.hpp>
 #include <serialization/archives/binary.hpp>
@@ -40,6 +45,7 @@ namespace anton_engine {
     static Resource_Manager<Shader>* shader_manager = nullptr;
     static Resource_Manager<Material>* material_manager = nullptr;
     static ECS* ecs = nullptr;
+    static imgui::Context* imgui_context;
 
     void quit() {
         _quit = true;
@@ -48,6 +54,40 @@ namespace anton_engine {
     static void loop() {
         poll_window_events();
         update_time();
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        Vector2 const window_size = get_window_size(main_window);
+        glViewport(0, 0, window_size.x, window_size.y);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        {
+            imgui::Context& ctx = *imgui_context;
+            imgui::begin_frame(ctx);
+            imgui::begin_window(ctx, "main_window");
+            imgui::set_window_size(ctx, {200, 200});
+            imgui::end_window(ctx);
+            imgui::begin_window(ctx, "secondary_window");
+            imgui::set_window_size(ctx, {200, 200});
+            imgui::set_window_pos(ctx, {350, 350});
+            imgui::end_window(ctx);
+            imgui::end_frame(ctx);
+
+            anton_stl::Slice<imgui::Vertex const> vertices = imgui::get_vertex_data(ctx);
+            anton_stl::Slice<u32 const> indices = imgui::get_index_data(ctx);
+            anton_stl::Slice<imgui::Draw_Command const> draw_commands = imgui::get_draw_commands(ctx);
+            imgui::Draw_Elements_Command cmd = imgui::write_geometry(vertices, indices);
+            // TODO: Add textures.
+            cmd.instance_count = 1;
+            cmd.base_instance = 0;
+            imgui::add_draw_command(cmd);
+            Shader& imgui_shader = get_builtin_shader(Builtin_Editor_Shader::imgui);
+            Matrix4 const imgui_projection = math::transform::orthographic(0, window_size.x, window_size.y, 0, 1.0f, -1.0f);
+            imgui_shader.use();
+            imgui_shader.set_matrix4("proj_mat", imgui_projection);
+            imgui::bind_buffers();
+            imgui::commit_draw();
+        }
+        swap_buffers(main_window);
 
         ecs->remove_requested_entities();
     }
@@ -69,6 +109,9 @@ namespace anton_engine {
         shader_manager = new Resource_Manager<Shader>();
         material_manager = new Resource_Manager<Material>();
         ecs = new ECS();
+
+        imgui::setup_rendering();
+        imgui_context = imgui::create_context();
 
         load_world();
     }
