@@ -14,7 +14,7 @@ set(ENGINE_FOLDER_NAME "Engine")
 set(ENGINE_DEPENDENCIES_FOLDER "Dependencies")
 set(ENGINE_TOOLS_FOLDER "Tools")
 
-set(ENGINE_WITH_EDITOR 0)
+set(ENGINE_WITH_EDITOR 1)
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT MSVC))
     # Compiling with GCC or Clang not simulating MSVC
