@@ -7,7 +7,7 @@
 #include <window_input.hpp>
 
 namespace anton_engine {
-    Window* create_window(i32 width, i32 height, bool decorated) {
+    Window* create_window(f32 width, f32 height, bool decorated) {
         ANTON_ASSERT(width > 0 && height > 0, "Window dimensions may not be 0");
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -88,28 +88,29 @@ namespace anton_engine {
     //     return {static_cast<float>(x), static_cast<float>(y)};
     // }
 
-    void resize(Window* const window, i32 width, i32 height) {
+    void resize(Window* const window, f32 width, f32 height) {
         glfwSetWindowSize(reinterpret_cast<GLFWwindow*>(window), width, height);
     }
 
-    i32 get_width(Window* const window) {
+    f32 get_width(Window* const window) {
         i32 width = 0;
         i32 height = 0;
         glfwGetWindowSize(reinterpret_cast<GLFWwindow*>(window), &width, &height);
         return height;
     }
 
-    i32 get_height(Window* const window) {
+    f32 get_height(Window* const window) {
         i32 width = 0;
         i32 height = 0;
         glfwGetWindowSize(reinterpret_cast<GLFWwindow*>(window), &width, &height);
         return height;
     }
 
-    Dimensions get_window_size(Window* const window) {
-        Dimensions dims = {};
-        glfwGetWindowSize(reinterpret_cast<GLFWwindow*>(window), &dims.width, &dims.height);
-        return dims;
+    Vector2 get_window_size(Window* const window) {
+        i32 width = 0;
+        i32 height = 0;
+        glfwGetWindowSize(reinterpret_cast<GLFWwindow*>(window), &width, &height);
+        return {(f32)width, (f32)height};
     }
 
     void set_opacity(Window* const window, float const opacity) {

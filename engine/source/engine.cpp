@@ -130,12 +130,12 @@ namespace anton_engine {
         load_input_bindings();
         ecs = new ECS();
 
-        Dimensions const window_dims = get_window_size(main_window);
-        renderer = new rendering::Renderer(window_dims.width, window_dims.height);
+        Vector2 const window_dims = get_window_size(main_window);
+        renderer = new rendering::Renderer(window_dims.x, window_dims.y);
 
         Framebuffer::Construct_Info deferred_framebuffer_info;
-        deferred_framebuffer_info.width = 1280;
-        deferred_framebuffer_info.height = 720;
+        deferred_framebuffer_info.width = window_dims.x;
+        deferred_framebuffer_info.height = window_dims.y;
         deferred_framebuffer_info.depth_buffer.enabled = true;
         deferred_framebuffer_info.depth_buffer.buffer_type = Framebuffer::Buffer_Type::texture;
         deferred_framebuffer_info.color_buffers.resize(2);
@@ -146,8 +146,8 @@ namespace anton_engine {
         deferred_framebuffer = new Framebuffer(deferred_framebuffer_info);
 
         Framebuffer::Construct_Info postprocess_info;
-        postprocess_info.width = 1280;
-        postprocess_info.height = 720;
+        postprocess_info.width = window_dims.x;
+        postprocess_info.height = window_dims.y;
         postprocess_info.color_buffers.resize(1);
         postprocess_info.color_buffers[1].internal_format = Framebuffer::Internal_Format::rgba8;
         postprocess_back = new Framebuffer(postprocess_info);
@@ -385,14 +385,14 @@ namespace anton_engine {
         for (Entity const entity: cameras) {
             auto [camera, transform] = cameras.get<Camera, Transform>(entity);
             if (camera.active) {
-                Dimensions const window_dims = get_window_size(main_window);
+                Vector2 const window_dims = get_window_size(main_window);
                 Matrix4 const view_mat = get_camera_view_matrix(transform);
                 Matrix4 const inv_view_mat = math::inverse(view_mat);
-                Matrix4 const proj_mat = get_camera_projection_matrix(camera, window_dims.width, window_dims.height);
+                Matrix4 const proj_mat = get_camera_projection_matrix(camera, window_dims.x, window_dims.y);
                 Matrix4 const inv_proj_mat = math::inverse(proj_mat);
                 // TODO: Fix shitcode.
                 render_frame(deferred_framebuffer, postprocess_back, view_mat, inv_view_mat, proj_mat, inv_proj_mat, transform,
-                             Vector2(window_dims.width, window_dims.height));
+                             Vector2(window_dims.x, window_dims.y));
                 anton_stl::swap(postprocess_front, postprocess_back);
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 glBindTextureUnit(0, postprocess_front->get_color_texture(0));

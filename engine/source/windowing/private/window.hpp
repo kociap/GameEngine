@@ -7,11 +7,6 @@
 namespace anton_engine {
     class Window;
 
-    struct Dimensions {
-        i32 width;
-        i32 height;
-    };
-
     enum class Cursor_Mode {
         // Visible and unrestricted
         normal,
@@ -23,17 +18,17 @@ namespace anton_engine {
         locked,
     };
 
-    Window* create_window(i32 width, i32 height, bool decorated);
+    Window* create_window(f32 width, f32 height, bool decorated);
     void destroy_window(Window*);
 
     void set_cursor_mode(Window*, Cursor_Mode);
     Cursor_Mode get_cursor_mode(Window*);
 
     bool should_close(Window*);
-    void resize(Window*, i32 width, i32 height);
-    i32 get_width(Window*);
-    i32 get_height(Window*);
-    Dimensions get_window_size(Window*);
+    void resize(Window*, f32 width, f32 height);
+    f32 get_width(Window*);
+    f32 get_height(Window*);
+    Vector2 get_window_size(Window*);
     void set_opacity(Window*, float);
 
     void make_context_current(Window*);
