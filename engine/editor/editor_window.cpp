@@ -17,8 +17,6 @@
 #include <stdexcept>
 
 namespace anton_engine {
-    constexpr uint32_t max_viewports = 4;
-
     Editor_Window::Editor_Window() {}
 
     Editor_Window::~Editor_Window() {}
