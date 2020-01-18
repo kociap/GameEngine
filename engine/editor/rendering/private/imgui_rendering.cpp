@@ -52,17 +52,17 @@ namespace anton_engine::imgui {
 
         gpu_element_buffer.size = 65536 * sizeof(u32);
         glGenBuffers(1, &gpu_element_buffer.handle);
-        glBindBuffer(GL_ARRAY_BUFFER, gpu_element_buffer.handle);
-        glBufferStorage(GL_ARRAY_BUFFER, gpu_element_buffer.size, 0, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
-        gpu_element_buffer.mapped = glMapBufferRange(GL_ARRAY_BUFFER, 0, gpu_element_buffer.size, buffer_flags);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpu_element_buffer.handle);
+        glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, gpu_element_buffer.size, 0, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
+        gpu_element_buffer.mapped = glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, gpu_element_buffer.size, buffer_flags);
         element_buffer.buffer = element_buffer.head = reinterpret_cast<u32*>(gpu_element_buffer.mapped);
         element_buffer.size = gpu_element_buffer.size / sizeof(u32);
 
         gpu_draw_cmd_buffer.size = 16384 * sizeof(Draw_Elements_Command);
         glGenBuffers(1, &gpu_draw_cmd_buffer.handle);
-        glBindBuffer(GL_ARRAY_BUFFER, gpu_draw_cmd_buffer.handle);
-        glBufferStorage(GL_ARRAY_BUFFER, gpu_draw_cmd_buffer.size, 0, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
-        gpu_draw_cmd_buffer.mapped = glMapBufferRange(GL_ARRAY_BUFFER, 0, gpu_draw_cmd_buffer.size, buffer_flags);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gpu_draw_cmd_buffer.handle);
+        glBufferStorage(GL_DRAW_INDIRECT_BUFFER, gpu_draw_cmd_buffer.size, 0, GL_DYNAMIC_STORAGE_BIT | buffer_flags);
+        gpu_draw_cmd_buffer.mapped = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, gpu_draw_cmd_buffer.size, buffer_flags);
         draw_cmd_buffer.buffer = draw_cmd_buffer.head = reinterpret_cast<Draw_Elements_Command*>(gpu_draw_cmd_buffer.mapped);
         draw_cmd_buffer.size = gpu_draw_cmd_buffer.size / sizeof(Draw_Elements_Command);
     }
