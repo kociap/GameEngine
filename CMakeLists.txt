@@ -16,9 +16,8 @@ set(ENGINE_TOOLS_FOLDER "Tools")
 
 set(ENGINE_WITH_EDITOR 1)
 
-if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT MSVC))
-    # Compiling with GCC or Clang not simulating MSVC
-    set(ENGINE_CXX_FLAGS 
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+    set(ENGINE_CXX_FLAGS
         -ferror-limit=512 # Lemme see dem errors
         -Wall -Wextra -pedantic
         # Useful warnings that are included in -Weverything
@@ -43,6 +42,39 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR ("${CMAKE_CXX_COMPILER_ID}" MATCH
     set(ENGINE_CXX_DEPENDENCIES_FLAGS -Wno-everything)
     set(ENGINE_DLL_EXPORT "")
     set(ENGINE_DLL_IMPORT "")
+elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT MSVC)
+    # Compiling with Clang not simulating MSVC
+    set(ENGINE_CXX_FLAGS
+        -ferror-limit=512 # Lemme see dem errors
+        -Wall -Wextra -pedantic
+        # Useful warnings that are included in -Weverything
+        # -Wsign-conversion
+        # -Wshorten-64-to-32
+        # -Wimplicit-int-conversion
+        # -Wfloat-conversion
+
+        # -Wno-c++98-compat -Wno-c++98-compat-pedantic # Both are useless
+        # -Wno-float-equal # Not important yet
+        # -Wno-global-constructors # Suppress static variables initialization warning spam. Not important, but might be worth turning on to identify startup performance issues
+        # -Wno-exit-time-destructors # Suppress static variables destruction warning spam.
+        # -Wno-shadow-field-in-constructor
+        # -Wno-missing-prototypes
+        -Wnewline-eof
+        -Wnon-virtual-dtor
+        -Wno-error=unused-const-variable 
+        -Wno-error=unused-parameter
+        -Wno-error=unused-variable
+    )
+
+    set(ENGINE_CXX_DEPENDENCIES_FLAGS -Wno-everything)
+    
+    if(NOT WIN32)
+        set(ENGINE_DLL_EXPORT "")
+        set(ENGINE_DLL_IMPORT "")
+    else()
+        set(ENGINE_DLL_EXPORT "__declspec(dllexport)")
+        set(ENGINE_DLL_IMPORT "__declspec(dllimport)")
+    endif()
 elseif(MSVC)
     set(ENGINE_CXX_FLAGS 
         /W4

@@ -150,8 +150,8 @@ set(ENGINE_LOADER_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/source/main.cpp"
 )
 
-add_executable(${ENGINE_LOADER_NAME} ${ENGINE_LOADER_SOURCE_FILES})
-target_compile_definitions(${ENGINE_LOADER_NAME} 
+add_executable(AntonEngineLoader ${ENGINE_LOADER_SOURCE_FILES})
+target_compile_definitions(AntonEngineLoader 
     PRIVATE 
     ENGINE_API=${ENGINE_DLL_IMPORT} 
     GAME_API=${ENGINE_DLL_IMPORT} 
@@ -162,23 +162,23 @@ target_compile_definitions(${ENGINE_LOADER_NAME}
     ANTON_COMPILER_UNKNOWN=${ENGINE_COMPILER_UNKNOWN}
     ANTON_WITH_EDITOR=${ENGINE_WITH_EDITOR}
 )
-target_compile_options(${ENGINE_LOADER_NAME} PRIVATE ${ENGINE_CXX_FLAGS})
-target_include_directories(${ENGINE_LOADER_NAME} 
+target_compile_options(AntonEngineLoader PRIVATE ${ENGINE_CXX_FLAGS})
+target_include_directories(AntonEngineLoader 
     PRIVATE ${PUBLIC_INCLUDE_DIRECTORIES_ROOT}
     PRIVATE ${PRIVATE_INCLUDE_DIRECTORIES_ROOT}
 )
-set_target_properties(${ENGINE_LOADER_NAME}
+set_target_properties(AntonEngineLoader
     PROPERTIES
     FOLDER ${ENGINE_FOLDER_NAME}
     RUNTIME_OUTPUT_DIRECTORY "${ENGINE_BINARY_OUTPUT_DIRECTORY}"
     RUNTIME_OUTPUT_DIRECTORY_DEBUG "${ENGINE_BINARY_OUTPUT_DIRECTORY}"
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${ENGINE_BINARY_OUTPUT_DIRECTORY}"
-    RUNTIME_OUTPUT_NAME_DEBUG "${ENGINE_LOADER_NAME}d"
+    RUNTIME_OUTPUT_NAME_DEBUG "AntonEngineLoader_d"
 )
-target_link_libraries(${ENGINE_LOADER_NAME} ${ENGINE_NAME})
+target_link_libraries(AntonEngineLoader ${ENGINE_NAME})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${ENGINE_LOADER_SOURCE_FILES})
 
-# target_link_options(${ENGINE_LOADER_NAME}
+# target_link_options(AntonEngineLoader
 #     PRIVATE /PROFILE
 # )
 
