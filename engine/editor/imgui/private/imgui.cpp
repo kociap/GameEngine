@@ -131,7 +131,7 @@ namespace anton_engine::imgui {
             throw Exception("Cannot create window inside another window.");
         }
 
-        u64 const id = murmurhash2(identifier.data(), identifier.size_bytes(), hash_seed);
+        u64 const id = murmurhash2_64(identifier.data(), identifier.size_bytes(), hash_seed);
         if (ctx.windows.find(id) == ctx.windows.end()) {
             Window wnd;
             wnd.style = ctx.default_style;
