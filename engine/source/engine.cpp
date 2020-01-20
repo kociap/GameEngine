@@ -46,7 +46,7 @@
 namespace anton_engine {
     static rendering::Renderer* renderer = nullptr;
     static ECS* ecs = nullptr;
-    static Window* main_window = nullptr;
+    static windowing::Window* main_window = nullptr;
     static Resource_Manager<Mesh>* mesh_manager = nullptr;
     static Resource_Manager<Shader>* shader_manager = nullptr;
     static Resource_Manager<Material>* material_manager = nullptr;
@@ -114,12 +114,86 @@ namespace anton_engine {
     // TODO: Forward decl. Remove.
     static void load_world();
 
+    static void window_resize_callback(windowing::Window* const, f32 const width, f32 const height, void*) {}
+
+    static void mouse_button_callback(windowing::Window* const, Key const button, i32 const action, void*) {
+        float const value = static_cast<float>(action); // press is 1, release is 0
+        input::add_event(button, value);
+    }
+
+    static void cursor_position_callback(windowing::Window* const window, f32 const param_x, f32 const param_y, void*) {
+        Vector2 const dimensions = windowing::get_window_size(window);
+        static float last_x = dimensions.x / 2.0f;
+        static float last_y = dimensions.y / 2.0f;
+
+        float x = static_cast<float>(param_x);
+        float y = static_cast<float>(param_y);
+        float offset_x = x - last_x;
+        float offset_y = last_y - y;
+        last_x = x;
+        last_y = y;
+
+        input::add_event(Key::mouse_x, offset_x);
+        input::add_event(Key::mouse_y, offset_y);
+    }
+
+    static void scroll_callback(windowing::Window* const, f32 const, f32 const offset_y, void*) {
+        input::add_event(Key::mouse_scroll, static_cast<float>(offset_y));
+    }
+
+    static void keyboard_callback(windowing::Window* const, Key const key, int const action, void*) {
+        if (action != 2) {
+            float value = static_cast<float>(action); // press is 1, release is 0
+            input::add_event(key, value);
+        }
+    }
+
+    static void joystick_config_callback(i32 const joy, i32 const joy_event, void*) {
+        // if (joy_event == GLFW_CONNECTED && glfwJoystickIsGamepad(joy)) {
+        //     anton_stl::String joy_name(glfwGetJoystickName(joy));
+        //     ANTON_LOG_INFO("Gamepad connected: " + joy_name + " " + anton_stl::to_string(joy));
+        // }
+    }
+
+    static void process_gamepad_input() {
+        // // Gamepad input
+        // for (i32 joystick_index = GLFW_JOYSTICK_1; joystick_index < GLFW_JOYSTICK_LAST; ++joystick_index) {
+        //     if (glfwJoystickPresent(joystick_index) && glfwJoystickIsGamepad(joystick_index)) {
+        //         int count;
+        //         float const* axes = glfwGetJoystickAxes(joystick_index, &count);
+        //         // Xbox controller mapping for windows build
+        //         input::add_gamepad_event(joystick_index, Key::gamepad_left_stick_x_axis, axes[0]);
+        //         input::add_gamepad_event(joystick_index, Key::gamepad_left_stick_y_axis, axes[1]);
+        //         input::add_gamepad_event(joystick_index, Key::gamepad_right_stick_x_axis, axes[2]);
+        //         input::add_gamepad_event(joystick_index, Key::gamepad_right_stick_y_axis, axes[3]);
+        //         // Triggers on windows have range -1 (released), 1 (pressed)
+        //         // Remap to 0 (released), 1 (pressed)
+        //         input::add_gamepad_event(joystick_index, Key::gamepad_left_trigger, (axes[4] + 1.0f) / 2.0f);
+        //         input::add_gamepad_event(joystick_index, Key::gamepad_right_trigger, (axes[5] + 1.0f) / 2.0f);
+
+        //         // TODO add mapping for linux build
+        //         // TODO add other controllers if I ever buy them
+
+        //         /*unsigned char const* buttons = glfwGetJoystickButtons(joystick_index, &count);
+        //         for (i32 i = 0; i < count; ++i) {
+        //             std::cout << i << ": " << buttons[i] << "\n";
+        //         }*/
+        //     }
+        // }
+    }
+
     static void init() {
         init_time();
-        init_windowing();
-        enable_vsync(true);
-        main_window = create_window(1280, 720, true);
-        make_context_current(main_window);
+        windowing::init();
+        windowing::enable_vsync(true);
+        main_window = windowing::create_window(1280, 720, true);
+        windowing::set_cursor_pos_callback(main_window, cursor_position_callback);
+        windowing::set_mouse_button_callback(main_window, mouse_button_callback);
+        windowing::set_key_callback(main_window, keyboard_callback);
+        windowing::set_window_resize_callback(main_window, window_resize_callback);
+        windowing::set_scroll_callback(main_window, scroll_callback);
+        windowing::set_joystick_callback(joystick_config_callback);
+        windowing::make_context_current(main_window);
         opengl::load();
         rendering::setup_rendering();
         load_builtin_shaders();
@@ -130,7 +204,7 @@ namespace anton_engine {
         load_input_bindings();
         ecs = new ECS();
 
-        Vector2 const window_dims = get_window_size(main_window);
+        Vector2 const window_dims = windowing::get_window_size(main_window);
         renderer = new rendering::Renderer(window_dims.x, window_dims.y);
 
         Framebuffer::Construct_Info deferred_framebuffer_info;
@@ -328,7 +402,7 @@ namespace anton_engine {
         mesh_manager = nullptr;
         destroy_window(main_window);
         main_window = nullptr;
-        terminate_windowing();
+        windowing::terminate();
     }
 
     static void render_frame(Framebuffer* const framebuffer, Framebuffer* const postprocess_back, Matrix4 const view_mat, Matrix4 const inv_view_mat,
@@ -361,7 +435,7 @@ namespace anton_engine {
     }
 
     static void loop() {
-        poll_window_events();
+        windowing::poll_events();
         update_time();
         input::process_events();
 
@@ -404,7 +478,7 @@ namespace anton_engine {
             }
         }
 
-        swap_buffers(main_window);
+        windowing::swap_buffers(main_window);
     }
 
     int engine_main(int argc, char** argv) {

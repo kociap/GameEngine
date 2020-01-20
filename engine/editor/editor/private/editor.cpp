@@ -40,7 +40,7 @@ namespace anton_engine {
     static bool _quit = false;
 
     // TODO: Temporarily
-    static Window* main_window = nullptr;
+    static windowing::Window* main_window = nullptr;
     static Resource_Manager<Mesh>* mesh_manager = nullptr;
     static Resource_Manager<Shader>* shader_manager = nullptr;
     static Resource_Manager<Material>* material_manager = nullptr;
@@ -52,23 +52,51 @@ namespace anton_engine {
     }
 
     static void loop() {
-        poll_window_events();
+        windowing::poll_events();
         update_time();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        Vector2 const window_size = get_window_size(main_window);
+        Vector2 const window_size = windowing::get_window_size(main_window);
         glViewport(0, 0, window_size.x, window_size.y);
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         {
             imgui::Context& ctx = *imgui_context;
+            imgui::Input_State input = {};
+            input.cursor_position = windowing::get_cursor_pos(main_window);
+            ANTON_LOG_INFO(anton_stl::to_string(input.cursor_position.x) + " " + anton_stl::to_string(input.cursor_position.y));
+            imgui::set_input_state(ctx, input);
             imgui::begin_frame(ctx);
             imgui::begin_window(ctx, "main_window");
+            imgui::Style main_style = imgui::get_style(ctx);
+            main_style.background_color = {0.1f, 0.1f, 0.1f};
+            if (imgui::is_window_hot(ctx)) {
+                main_style.background_color = {0.3f, 0.3f, 0.3f};
+                ANTON_LOG_INFO("main_window hot");
+            }
+
+            if (imgui::is_window_active(ctx)) {
+                main_style.background_color = {0.6f, 0.6f, 0.6f};
+                ANTON_LOG_INFO("main_window active");
+            }
+            imgui::set_style(ctx, main_style);
             imgui::set_window_size(ctx, {200, 200});
             imgui::end_window(ctx);
             imgui::begin_window(ctx, "secondary_window");
             imgui::set_window_size(ctx, {200, 200});
             imgui::set_window_pos(ctx, {350, 350});
+            imgui::Style secondary_style = imgui::get_style(ctx);
+            secondary_style.background_color = {0.1f, 0.1f, 0.1f};
+            if (imgui::is_window_hot(ctx)) {
+                secondary_style.background_color = {0.3f, 0.3f, 0.3f};
+                ANTON_LOG_INFO("secondary_window hot");
+            }
+
+            if (imgui::is_window_active(ctx)) {
+                secondary_style.background_color = {0.6f, 0.6f, 0.6f};
+                ANTON_LOG_INFO("secondary_window active");
+            }
+            imgui::set_style(ctx, secondary_style);
             imgui::end_window(ctx);
             imgui::end_frame(ctx);
 
@@ -87,7 +115,8 @@ namespace anton_engine {
             imgui::bind_buffers();
             imgui::commit_draw();
         }
-        swap_buffers(main_window);
+
+        windowing::swap_buffers(main_window);
 
         ecs->remove_requested_entities();
     }
@@ -97,10 +126,10 @@ namespace anton_engine {
 
     static void init() {
         init_time();
-        init_windowing();
-        enable_vsync(true);
-        main_window = create_window(1280, 720, true);
-        make_context_current(main_window);
+        windowing::init();
+        windowing::enable_vsync(true);
+        main_window = windowing::create_window(1280, 720, true);
+        windowing::make_context_current(main_window);
         opengl::load();
         rendering::setup_rendering();
         load_builtin_shaders();
@@ -123,6 +152,7 @@ namespace anton_engine {
         serialization::Binary_Output_Archive out_archive(file);
         serialize(out_archive, Engine::get_ecs());
 #endif
+        windowing::terminate();
     }
 
     int editor_main(int argc, char** argv) {
