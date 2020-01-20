@@ -25,6 +25,15 @@ namespace anton_engine::imgui {
     void begin_frame(Context&);
     void end_frame(Context&);
 
+    class Input_State {
+    public:
+        Vector2 cursor_position;
+        bool left_mouse_button;
+        bool right_mouse_button;
+    };
+
+    void set_input_state(Context&, Input_State);
+
     class Vertex {
     public:
         Vector2 position;
@@ -71,6 +80,9 @@ namespace anton_engine::imgui {
     void set_height(Context&, float height);
 
     // State queries
+
+    bool is_window_hot(Context&);
+    bool is_window_active(Context&);
 
     // bool hovered(Context&);
     // bool clicked(Context&);

@@ -1,8 +1,6 @@
 set(SOURCE_FILES
     ${SOURCE_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/window.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/window_input.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/windowing_internal.cpp"
     PARENT_SCOPE
 )
 
@@ -10,7 +8,6 @@ set(HEADER_FILES
     ${HEADER_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/glfw.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/window.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/window_input.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/windowing_internal.hpp"
     PARENT_SCOPE
 )

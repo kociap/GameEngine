@@ -11,11 +11,10 @@ namespace anton_engine::imgui {
     class Window {
     public:
         i64 id;
+
         Vector2 position;
         Vector2 dimensions;
         Style style;
-        bool hovered;
-        bool clicked;
     };
 
     class Widget {
@@ -33,9 +32,15 @@ namespace anton_engine::imgui {
 
     class Context {
     public:
-        std::unordered_map<u64, Window> windows;
-        anton_stl::Vector<Widget> widgets;
+        struct {
+            std::unordered_map<i64, Window> windows;
+        } current, next;
+        i64 hot_window = -1;
+        i64 active_window = -1;
+        // Currently bound window.
         i64 current_window = -1;
+        Input_State input = {};
+        anton_stl::Vector<Widget> widgets;
         anton_stl::Vector<i64> widget_stack;
         Style default_style;
         anton_stl::Vector<Vertex> vertex_buffer;
@@ -70,17 +75,42 @@ namespace anton_engine::imgui {
         ctx.default_style = style;
     }
 
+    void set_input_state(Context& ctx, Input_State const state) {
+        ctx.input = state;
+    }
+
+    static void process_input(Context& ctx) {
+        Vector2 const cursor = ctx.input.cursor_position;
+        ctx.hot_window = -1;
+        for (auto& entry: ctx.current.windows) {
+            Window const& window = entry.second;
+            bool const fits_in_x = cursor.x >= window.position.x && cursor.x <= window.position.x + window.dimensions.x;
+            bool const fits_in_y = cursor.y >= window.position.y && cursor.y <= window.position.y + window.dimensions.y;
+            if (fits_in_x && fits_in_y) {
+                ctx.hot_window = window.id;
+            }
+        }
+
+        if (ctx.input.left_mouse_button) {
+            ctx.active_window = ctx.hot_window;
+        }
+    }
+
     void begin_frame(Context& ctx) {
         ctx.widgets.clear();
         ctx.vertex_buffer.clear();
         ctx.index_buffer.clear();
         ctx.draw_commands_buffer.clear();
+
+        process_input(ctx);
     }
 
     void end_frame(Context& ctx) {
         if (ctx.current_window != -1) {
             throw Exception("A window has not been ended prior to call to end_frame.");
         }
+
+        ctx.current = ctx.next;
 
         // generate geometry and indices,
         // and build command list
@@ -91,8 +121,8 @@ namespace anton_engine::imgui {
         auto& verts = ctx.vertex_buffer;
         auto& indices = ctx.index_buffer;
         auto& cmds = ctx.draw_commands_buffer;
-        for (auto& entry: ctx.windows) {
-            Window& window = entry.second;
+        for (auto& entry: ctx.current.windows) {
+            Window const& window = entry.second;
             Draw_Command cmd;
             cmd.vertex_offset = verts.size();
             Vertex::Color const color = color_to_vertex_color(window.style.background_color);
@@ -131,14 +161,17 @@ namespace anton_engine::imgui {
             throw Exception("Cannot create window inside another window.");
         }
 
-        u64 const id = murmurhash2_64(identifier.data(), identifier.size_bytes(), hash_seed);
-        if (ctx.windows.find(id) == ctx.windows.end()) {
+        i64 const id = murmurhash2_32(identifier.data(), identifier.size_bytes(), hash_seed);
+        auto const iter = ctx.next.windows.find(id);
+        if (iter == ctx.next.windows.end()) {
             Window wnd;
+            wnd.id = id;
             wnd.style = ctx.default_style;
-            ctx.windows.emplace(id, wnd);
+            ctx.next.windows.emplace(id, wnd);
+            ctx.current_window = wnd.id;
+        } else {
+            ctx.current_window = id;
         }
-
-        ctx.current_window = id;
     }
 
     void end_window(Context& ctx) {
@@ -185,7 +218,7 @@ namespace anton_engine::imgui {
             i64 const index = ctx.widget_stack[ctx.widget_stack.size() - 1];
             return ctx.widgets[index].style;
         } else {
-            Window& window = ctx.windows.at(ctx.current_window);
+            Window& window = ctx.next.windows.at(ctx.current_window);
             return window.style;
         }
     }
@@ -200,7 +233,7 @@ namespace anton_engine::imgui {
             i64 const index = ctx.widget_stack[ctx.widget_stack.size() - 1];
             ctx.widgets[index].style = style;
         } else {
-            Window& window = ctx.windows.at(ctx.current_window);
+            Window& window = ctx.next.windows.at(ctx.current_window);
             window.style = style;
         }
     }
@@ -210,7 +243,7 @@ namespace anton_engine::imgui {
             throw Exception("No current window.");
         }
 
-        Window& wnd = ctx.windows.at(ctx.current_window);
+        Window& wnd = ctx.next.windows.at(ctx.current_window);
         wnd.dimensions = size;
     }
 
@@ -219,8 +252,24 @@ namespace anton_engine::imgui {
             throw Exception("No current window.");
         }
 
-        Window& wnd = ctx.windows.at(ctx.current_window);
+        Window& wnd = ctx.next.windows.at(ctx.current_window);
         wnd.position = pos;
+    }
+
+    bool is_window_hot(Context& ctx) {
+        if (ctx.current_window == -1) {
+            throw Exception("No current window.");
+        }
+
+        return ctx.hot_window == ctx.current_window;
+    }
+
+    bool is_window_active(Context& ctx) {
+        if (ctx.current_window == -1) {
+            throw Exception("No current window.");
+        }
+
+        return ctx.active_window == ctx.current_window;
     }
 
     // bool hovered(Context& ctx) {

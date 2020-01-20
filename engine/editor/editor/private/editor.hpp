@@ -2,8 +2,6 @@
 #define EDITOR_HPP_INCLUDE
 
 namespace anton_engine {
-    class Editor_Window;
-
     class ECS;
     class Shader;
     class Mesh;

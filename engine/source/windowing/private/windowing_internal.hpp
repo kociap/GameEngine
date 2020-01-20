@@ -1,11 +1,11 @@
 #ifndef WINDOWING_WINDOWING_INTERNAL_HPP_INCLUDE
 #define WINDOWING_WINDOWING_INTERNAL_HPP_INCLUDE
 
-namespace anton_engine {
+namespace anton_engine::windowing {
     // Returns true if windowing has been successfully initialized.
-    bool init_windowing();
-    void terminate_windowing();
-    void poll_window_events();
-} // namespace anton_engine
+    bool init();
+    void terminate();
+    void poll_events();
+} // namespace anton_engine::windowing
 
 #endif // !WINDOWING_WINDOWING_INTERNAL_HPP_INCLUDE
