@@ -62,10 +62,6 @@ namespace anton_engine {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         {
             imgui::Context& ctx = *imgui_context;
-            imgui::Input_State input = {};
-            input.cursor_position = windowing::get_cursor_pos(main_window);
-            ANTON_LOG_INFO(anton_stl::to_string(input.cursor_position.x) + " " + anton_stl::to_string(input.cursor_position.y));
-            imgui::set_input_state(ctx, input);
             imgui::begin_frame(ctx);
             imgui::begin_window(ctx, "main_window");
             imgui::Style main_style = imgui::get_style(ctx);
@@ -84,7 +80,6 @@ namespace anton_engine {
             imgui::end_window(ctx);
             imgui::begin_window(ctx, "secondary_window");
             imgui::set_window_size(ctx, {200, 200});
-            imgui::set_window_pos(ctx, {350, 350});
             imgui::Style secondary_style = imgui::get_style(ctx);
             secondary_style.background_color = {0.1f, 0.1f, 0.1f};
             if (imgui::is_window_hot(ctx)) {
@@ -124,6 +119,24 @@ namespace anton_engine {
     // TODO: Forward decl of load_world. Remove (eventually)
     static void load_world();
 
+    static void cursor_pos_callback(windowing::Window* const window, f32 const x, f32 const y, void* const data) {
+        imgui::Context& ctx = *reinterpret_cast<imgui::Context*>(data);
+        imgui::Input_State imgui_input = imgui::get_input_state(ctx);
+        imgui_input.cursor_position = {x, y};
+        imgui::set_input_state(ctx, imgui_input);
+    }
+
+    static void mouse_button_callback(windowing::Window* const window, Key const button, i32 const action, void* const data) {
+        imgui::Context& ctx = *reinterpret_cast<imgui::Context*>(data);
+        imgui::Input_State imgui_input = imgui::get_input_state(ctx);
+        switch (button) {
+        case Key::left_mouse_button:
+            imgui_input.left_mouse_button = action;
+            break;
+        }
+        imgui::set_input_state(ctx, imgui_input);
+    }
+
     static void init() {
         init_time();
         windowing::init();
@@ -141,6 +154,8 @@ namespace anton_engine {
 
         imgui::setup_rendering();
         imgui_context = imgui::create_context();
+        windowing::set_cursor_pos_callback(main_window, cursor_pos_callback, imgui_context);
+        windowing::set_mouse_button_callback(main_window, mouse_button_callback, imgui_context);
 
         load_world();
     }
