@@ -33,6 +33,7 @@ namespace anton_engine::imgui {
     };
 
     void set_input_state(Context&, Input_State);
+    Input_State get_input_state(Context&);
 
     class Vertex {
     public:

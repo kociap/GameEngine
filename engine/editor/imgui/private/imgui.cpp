@@ -7,6 +7,8 @@
 
 #include <unordered_map>
 
+#include <logging.hpp>
+
 namespace anton_engine::imgui {
     class Window {
     public:
@@ -40,6 +42,7 @@ namespace anton_engine::imgui {
         // Currently bound window.
         i64 current_window = -1;
         Input_State input = {};
+        Input_State prev_input = {};
         anton_stl::Vector<Widget> widgets;
         anton_stl::Vector<i64> widget_stack;
         Style default_style;
@@ -79,21 +82,37 @@ namespace anton_engine::imgui {
         ctx.input = state;
     }
 
+    Input_State get_input_state(Context& ctx) {
+        return ctx.input;
+    }
+
     static void process_input(Context& ctx) {
         Vector2 const cursor = ctx.input.cursor_position;
-        ctx.hot_window = -1;
-        for (auto& entry: ctx.current.windows) {
-            Window const& window = entry.second;
-            bool const fits_in_x = cursor.x >= window.position.x && cursor.x <= window.position.x + window.dimensions.x;
-            bool const fits_in_y = cursor.y >= window.position.y && cursor.y <= window.position.y + window.dimensions.y;
-            if (fits_in_x && fits_in_y) {
-                ctx.hot_window = window.id;
+        bool const just_left_clicked = !ctx.prev_input.left_mouse_button && ctx.input.left_mouse_button;
+        if (just_left_clicked) {
+            if (ctx.input.left_mouse_button) {
+                ctx.active_window = ctx.hot_window;
+            }
+        } else if (ctx.input.left_mouse_button) {
+            if (ctx.active_window != -1) {
+                Vector2 const cursor_pos_delta = ctx.input.cursor_position - ctx.prev_input.cursor_position;
+                Window& window = ctx.next.windows.at(ctx.active_window);
+                window.position += cursor_pos_delta;
+                ANTON_LOG_INFO("cursor_pos_delta: " + anton_stl::to_string(cursor_pos_delta.x) + " " + anton_stl::to_string(cursor_pos_delta.y));
+            }
+        } else {
+            ctx.hot_window = -1;
+            for (auto& entry: ctx.current.windows) {
+                Window const& window = entry.second;
+                bool const fits_in_x = cursor.x >= window.position.x && cursor.x <= window.position.x + window.dimensions.x;
+                bool const fits_in_y = cursor.y >= window.position.y && cursor.y <= window.position.y + window.dimensions.y;
+                if (fits_in_x && fits_in_y) {
+                    ctx.hot_window = window.id;
+                }
             }
         }
 
-        if (ctx.input.left_mouse_button) {
-            ctx.active_window = ctx.hot_window;
-        }
+        ctx.prev_input = ctx.input;
     }
 
     void begin_frame(Context& ctx) {
