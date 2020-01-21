@@ -73,12 +73,14 @@ namespace anton_engine::imgui {
     // Set style of current widget or window.
     void set_style(Context&, Style);
 
+    void set_window_border_area(Context&, f32);
+
     void set_window_size(Context&, Vector2);
 
     void set_window_pos(Context&, Vector2);
 
-    void set_width(Context&, float width);
-    void set_height(Context&, float height);
+    void set_width(Context&, f32 width);
+    void set_height(Context&, f32 height);
 
     // State queries
 

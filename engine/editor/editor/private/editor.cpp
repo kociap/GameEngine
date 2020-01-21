@@ -76,10 +76,8 @@ namespace anton_engine {
                 ANTON_LOG_INFO("main_window active");
             }
             imgui::set_style(ctx, main_style);
-            imgui::set_window_size(ctx, {200, 200});
             imgui::end_window(ctx);
             imgui::begin_window(ctx, "secondary_window");
-            imgui::set_window_size(ctx, {200, 200});
             imgui::Style secondary_style = imgui::get_style(ctx);
             secondary_style.background_color = {0.1f, 0.1f, 0.1f};
             if (imgui::is_window_hot(ctx)) {
@@ -156,6 +154,17 @@ namespace anton_engine {
         imgui_context = imgui::create_context();
         windowing::set_cursor_pos_callback(main_window, cursor_pos_callback, imgui_context);
         windowing::set_mouse_button_callback(main_window, mouse_button_callback, imgui_context);
+
+        imgui::Context& ctx = *imgui_context;
+        imgui::begin_frame(ctx);
+        imgui::begin_window(ctx, "main_window");
+        imgui::set_window_size(ctx, {200, 200});
+        imgui::end_window(ctx);
+        imgui::begin_window(ctx, "secondary_window");
+        imgui::set_window_size(ctx, {200, 200});
+        imgui::set_window_pos(ctx, {350, 350});
+        imgui::end_window(ctx);
+        imgui::end_frame(ctx);
 
         load_world();
     }

@@ -4,6 +4,7 @@
 #include <anton_stl/vector.hpp>
 #include <exception.hpp>
 #include <hashing/murmurhash2.hpp>
+#include <math/math.hpp>
 
 #include <unordered_map>
 
@@ -16,6 +17,7 @@ namespace anton_engine::imgui {
 
         Vector2 position;
         Vector2 dimensions;
+        f32 border_area_width;
         Style style;
     };
 
@@ -86,6 +88,31 @@ namespace anton_engine::imgui {
         return ctx.input;
     }
 
+    // Assumes the cursor is inside the window.
+    // returns -1 if cursor is not in the border area of a window.
+    // returns 0 if cursor is in top border area, 1 if right, 2 if bottom, 3 if left.
+    // TODO: corner resizing
+    static i32 check_cursor_in_border_area(Window const& window, Vector2 const cursor_pos) {
+        f32 const dist_top = cursor_pos.y - window.position.y;
+        f32 const dist_bottom = window.position.y + window.dimensions.y - cursor_pos.y;
+        f32 const dist_left = cursor_pos.x - window.position.x;
+        f32 const dist_right = window.position.x + window.dimensions.x - cursor_pos.x;
+        f32 const closest_edge_dist = math::min(math::min(dist_top, dist_bottom), math::min(dist_left, dist_right));
+        if (closest_edge_dist <= window.border_area_width) {
+            if (dist_top == closest_edge_dist) {
+                return 0;
+            } else if (dist_bottom == closest_edge_dist) {
+                return 2;
+            } else if (dist_right == closest_edge_dist) {
+                return 1;
+            } else {
+                return 3;
+            }
+        } else {
+            return -1;
+        }
+    }
+
     static void process_input(Context& ctx) {
         Vector2 const cursor = ctx.input.cursor_position;
         bool const just_left_clicked = !ctx.prev_input.left_mouse_button && ctx.input.left_mouse_button;
@@ -96,9 +123,31 @@ namespace anton_engine::imgui {
         } else if (ctx.input.left_mouse_button) {
             if (ctx.active_window != -1) {
                 Vector2 const cursor_pos_delta = ctx.input.cursor_position - ctx.prev_input.cursor_position;
-                Window& window = ctx.next.windows.at(ctx.active_window);
-                window.position += cursor_pos_delta;
                 ANTON_LOG_INFO("cursor_pos_delta: " + anton_stl::to_string(cursor_pos_delta.x) + " " + anton_stl::to_string(cursor_pos_delta.y));
+                Window& window = ctx.next.windows.at(ctx.active_window);
+                if (i32 const border = check_cursor_in_border_area(window, ctx.prev_input.cursor_position); border != -1) {
+                    switch (border) {
+                    case 0: {
+                        window.position.y += cursor_pos_delta.y;
+                        window.dimensions.y -= cursor_pos_delta.y;
+                    } break;
+
+                    case 2: {
+                        window.dimensions.y += cursor_pos_delta.y;
+                    } break;
+
+                    case 1: {
+                        window.dimensions.x += cursor_pos_delta.x;
+                    } break;
+
+                    case 3: {
+                        window.position.x += cursor_pos_delta.x;
+                        window.dimensions.x -= cursor_pos_delta.x;
+                    } break;
+                    }
+                } else {
+                    window.position += cursor_pos_delta;
+                }
             }
         } else {
             ctx.hot_window = -1;
@@ -186,6 +235,7 @@ namespace anton_engine::imgui {
             Window wnd;
             wnd.id = id;
             wnd.style = ctx.default_style;
+            wnd.border_area_width = 4.0f;
             ctx.next.windows.emplace(id, wnd);
             ctx.current_window = wnd.id;
         } else {
@@ -255,6 +305,14 @@ namespace anton_engine::imgui {
             Window& window = ctx.next.windows.at(ctx.current_window);
             window.style = style;
         }
+    }
+
+    void set_window_border_area(Context& ctx, f32 const width) {
+        ANTON_VERIFY(width >= 1.0f, "Border area may not be thinner than 1 pixel.");
+        ANTON_VERIFY(ctx.current_window != -1, "No current window.");
+
+        Window& window = ctx.next.windows.at(ctx.current_window);
+        window.border_area_width = width;
     }
 
     void set_window_size(Context& ctx, Vector2 const size) {
