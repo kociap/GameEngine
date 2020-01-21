@@ -277,26 +277,32 @@ namespace anton_engine::windowing {
 
     void set_window_resize_callback(Window* const window, window_resize_function const cb, void* user_data) {
         window->window_resize_callback = cb;
+        window->window_resize_callback_user_data = user_data;
     }
 
     void set_cursor_pos_callback(Window* const window, cursor_pos_function const cb, void* user_data) {
         window->cursor_pos_callback = cb;
+        window->cursor_pos_callback_user_data = user_data;
     }
 
     void set_mouse_button_callback(Window* const window, mouse_button_function const cb, void* user_data) {
         window->mouse_button_callback = cb;
+        window->mouse_button_callback_user_data = user_data;
     }
 
     void set_scroll_callback(Window* const window, scroll_function const cb, void* user_data) {
         window->scroll_callback = cb;
+        window->scroll_callback_user_data = user_data;
     }
 
     void set_key_callback(Window* const window, key_function const cb, void* user_data) {
         window->key_callback = cb;
+        window->key_callback_user_data = user_data;
     }
 
     void set_joystick_callback(joystick_function const cb, void* user_data) {
         windowing.joystick_callback = cb;
+        windowing.joystick_callback_user_data = user_data;
     }
 
     Vector2 get_cursor_pos(Window* const window) {
