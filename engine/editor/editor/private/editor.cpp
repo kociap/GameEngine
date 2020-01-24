@@ -24,7 +24,6 @@
 #include <time/time_internal.hpp>
 #include <utils/filesystem.hpp>
 #include <window.hpp>
-#include <windowing_internal.hpp>
 
 #include <builtin_editor_shaders.hpp>
 #include <glad.hpp>
@@ -35,6 +34,7 @@
 #include <logging.hpp>
 #include <serialization/archives/binary.hpp>
 #include <serialization/serialization.hpp>
+#include <time.hpp>
 
 namespace anton_engine {
     static bool _quit = false;
@@ -55,25 +55,26 @@ namespace anton_engine {
         windowing::poll_events();
         update_time();
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        Vector2 const window_size = windowing::get_window_size(main_window);
-        glViewport(0, 0, window_size.x, window_size.y);
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // ANTON_LOG_INFO(anton_stl::to_string(get_delta_time()));
         {
             imgui::Context& ctx = *imgui_context;
+            imgui::Input_State imgui_input = imgui::get_input_state(ctx);
+            imgui_input.cursor_position = windowing::get_cursor_pos(main_window);
+            imgui_input.left_mouse_button = windowing::get_key(Key::left_mouse_button);
+            imgui::set_input_state(ctx, imgui_input);
+
             imgui::begin_frame(ctx);
             imgui::begin_window(ctx, "main_window");
             imgui::Style main_style = imgui::get_style(ctx);
             main_style.background_color = {0.1f, 0.1f, 0.1f};
             if (imgui::is_window_hot(ctx)) {
                 main_style.background_color = {0.3f, 0.3f, 0.3f};
-                ANTON_LOG_INFO("main_window hot");
+                // ANTON_LOG_INFO("main_window hot");
             }
 
             if (imgui::is_window_active(ctx)) {
                 main_style.background_color = {0.6f, 0.6f, 0.6f};
-                ANTON_LOG_INFO("main_window active");
+                // ANTON_LOG_INFO("main_window active");
             }
             imgui::set_style(ctx, main_style);
             imgui::end_window(ctx);
@@ -82,12 +83,12 @@ namespace anton_engine {
             secondary_style.background_color = {0.1f, 0.1f, 0.1f};
             if (imgui::is_window_hot(ctx)) {
                 secondary_style.background_color = {0.3f, 0.3f, 0.3f};
-                ANTON_LOG_INFO("secondary_window hot");
+                // ANTON_LOG_INFO("secondary_window hot");
             }
 
             if (imgui::is_window_active(ctx)) {
                 secondary_style.background_color = {0.6f, 0.6f, 0.6f};
-                ANTON_LOG_INFO("secondary_window active");
+                // ANTON_LOG_INFO("secondary_window active");
             }
             imgui::set_style(ctx, secondary_style);
             imgui::end_window(ctx);
@@ -100,16 +101,34 @@ namespace anton_engine {
             // TODO: Add textures.
             cmd.instance_count = 1;
             cmd.base_instance = 0;
-            imgui::add_draw_command(cmd);
             Shader& imgui_shader = get_builtin_shader(Builtin_Editor_Shader::imgui);
-            Matrix4 const imgui_projection = math::transform::orthographic(0, window_size.x, window_size.y, 0, 1.0f, -1.0f);
-            imgui_shader.use();
-            imgui_shader.set_matrix4("proj_mat", imgui_projection);
-            imgui::bind_buffers();
-            imgui::commit_draw();
-        }
+            anton_stl::Slice<imgui::Viewport* const> const viewports = imgui::get_viewports(ctx);
+            windowing::OpenGL_Context* main_window_context = windowing::get_window_context(main_window);
+            for (imgui::Viewport* viewport: viewports) {
+                windowing::Window* native_window = imgui::get_viewport_native_window(ctx, *viewport);
+                windowing::make_context_current_with_window(main_window_context, native_window);
+                anton_stl::Slice<imgui::Draw_Command const> viewport_draw_commands = imgui::get_viewport_draw_commands(ctx, *viewport);
+                for (imgui::Draw_Command draw_command: viewport_draw_commands) {
+                    imgui::Draw_Elements_Command viewport_cmd = cmd;
+                    viewport_cmd.count = draw_command.element_count;
+                    viewport_cmd.base_vertex += draw_command.vertex_offset;
+                    viewport_cmd.first_index += draw_command.index_offset;
+                    imgui::add_draw_command(viewport_cmd);
+                }
 
-        windowing::swap_buffers(main_window);
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                Vector2 const window_size = windowing::get_window_size(native_window);
+                glViewport(0, 0, window_size.x, window_size.y);
+                glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                Matrix4 const imgui_projection = math::transform::orthographic(0, window_size.x, window_size.y, 0, 1.0f, -1.0f);
+                imgui_shader.use();
+                imgui_shader.set_matrix4("proj_mat", imgui_projection);
+                imgui::bind_buffers();
+                imgui::commit_draw();
+                windowing::swap_buffers(native_window);
+            }
+        }
 
         ecs->remove_requested_entities();
     }
@@ -117,29 +136,14 @@ namespace anton_engine {
     // TODO: Forward decl of load_world. Remove (eventually)
     static void load_world();
 
-    static void cursor_pos_callback(windowing::Window* const window, f32 const x, f32 const y, void* const data) {
-        imgui::Context& ctx = *reinterpret_cast<imgui::Context*>(data);
-        imgui::Input_State imgui_input = imgui::get_input_state(ctx);
-        imgui_input.cursor_position = {x, y};
-        imgui::set_input_state(ctx, imgui_input);
-    }
-
-    static void mouse_button_callback(windowing::Window* const window, Key const button, i32 const action, void* const data) {
-        imgui::Context& ctx = *reinterpret_cast<imgui::Context*>(data);
-        imgui::Input_State imgui_input = imgui::get_input_state(ctx);
-        switch (button) {
-        case Key::left_mouse_button:
-            imgui_input.left_mouse_button = action;
-            break;
-        }
-        imgui::set_input_state(ctx, imgui_input);
-    }
+    static void cursor_pos_callback(windowing::Window* const window, f32 const x, f32 const y, void* const data) {}
+    static void mouse_button_callback(windowing::Window* const window, Key const button, i32 const action, void* const data) {}
 
     static void init() {
         init_time();
         windowing::init();
         windowing::enable_vsync(true);
-        main_window = windowing::create_window(1280, 720, true);
+        main_window = windowing::create_window(1280, 720, nullptr, true, true);
         windowing::make_context_current(main_window);
         opengl::load();
         rendering::setup_rendering();
@@ -154,6 +158,7 @@ namespace anton_engine {
         imgui_context = imgui::create_context();
         windowing::set_cursor_pos_callback(main_window, cursor_pos_callback, imgui_context);
         windowing::set_mouse_button_callback(main_window, mouse_button_callback, imgui_context);
+        imgui::set_main_viewport_native_window(*imgui_context, main_window);
 
         imgui::Context& ctx = *imgui_context;
         imgui::begin_frame(ctx);

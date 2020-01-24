@@ -1,5 +1,11 @@
+if(WIN32) # TODO other platforms
+    set(PLATFORM_SOURCES 
+        "${CMAKE_CURRENT_SOURCE_DIR}/window_win.cpp"
+    )
+endif()
+
 set(SOURCE_FILES
-    ${SOURCE_FILES}
+    ${SOURCE_FILES} ${PLATFORM_SOURCES}
     "${CMAKE_CURRENT_SOURCE_DIR}/window.cpp"
     PARENT_SCOPE
 )
@@ -8,7 +14,6 @@ set(HEADER_FILES
     ${HEADER_FILES}
     "${CMAKE_CURRENT_SOURCE_DIR}/glfw.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/window.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/windowing_internal.hpp"
     PARENT_SCOPE
 )
 
