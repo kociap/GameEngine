@@ -30,6 +30,8 @@ namespace anton_engine {
         right_alt,
         left_shift,
         right_shift,
+        left_control,
+        right_control,
 
         numpad_0,
         numpad_1,
@@ -61,6 +63,7 @@ namespace anton_engine {
         end,
         delete_key,
 
+        zero,
         one,
         two,
         three,
@@ -70,7 +73,6 @@ namespace anton_engine {
         seven,
         eight,
         nine,
-        zero,
         minus,
         plus,
         tilde,
@@ -120,6 +122,8 @@ namespace anton_engine {
         f10,
         f11,
         f12,
+
+        pause,
 
         gamepad_left_stick_x_axis,
         gamepad_left_stick_y_axis,

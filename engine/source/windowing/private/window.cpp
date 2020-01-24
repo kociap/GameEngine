@@ -5,6 +5,7 @@
 #include <diagnostic_macros.hpp>
 #include <exception.hpp>
 #include <glfw.hpp>
+#include <window_internal.hpp>
 
 namespace anton_engine::windowing {
     class Windowing {
@@ -12,21 +13,6 @@ namespace anton_engine::windowing {
         joystick_function joystick_callback;
         void* joystick_callback_user_data;
         anton_stl::Vector<Window*> windows;
-    };
-
-    class Window {
-    public:
-        window_resize_function window_resize_callback;
-        cursor_pos_function cursor_pos_callback;
-        mouse_button_function mouse_button_callback;
-        scroll_function scroll_callback;
-        key_function key_callback;
-        void* window_resize_callback_user_data;
-        void* cursor_pos_callback_user_data;
-        void* mouse_button_callback_user_data;
-        void* scroll_callback_user_data;
-        void* key_callback_user_data;
-        GLFWwindow* glfw_window;
     };
 
     static Windowing windowing;
@@ -55,6 +41,7 @@ namespace anton_engine::windowing {
 
     void poll_events() {
         glfwPollEvents();
+        poll_user_input_devices_state();
     }
 
     static void _window_resize_callback(GLFWwindow* const glfw_window, int const width, int const height) {
@@ -185,14 +172,17 @@ namespace anton_engine::windowing {
         }
     }
 
-    Window* create_window(f32 width, f32 height, bool decorated) {
+    Window* create_window(f32 const width, f32 const height, Window* const share, bool const create_context, bool const decorated) {
         ANTON_ASSERT(width > 0 && height > 0, "Window dimensions may not be 0");
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_DECORATED, decorated);
-        GLFWwindow* const glfw_window = glfwCreateWindow(width, height, "GameEngine", nullptr, nullptr);
+        if (!create_context) {
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        }
+        GLFWwindow* const glfw_window = glfwCreateWindow(width, height, "GameEngine", nullptr, share ? share->glfw_window : nullptr);
         glfwDefaultWindowHints();
         if (glfw_window) {
             glfwSetCursorPosCallback(glfw_window, _cursor_pos_callback);
@@ -341,8 +331,22 @@ namespace anton_engine::windowing {
         return {(f32)width, (f32)height};
     }
 
+    Vector2 get_window_pos(Window* const window) {
+        i32 x, y;
+        glfwGetWindowPos(window->glfw_window, &x, &y);
+        return {(f32)x, (f32)y};
+    }
+
+    void set_window_pos(Window* const window, Vector2 const pos) {
+        glfwSetWindowPos(window->glfw_window, pos.x, pos.y);
+    }
+
     void set_opacity(Window* const window, float const opacity) {
         glfwSetWindowOpacity(window->glfw_window, opacity);
+    }
+
+    void focus_window(Window* const window) {
+        glfwFocusWindow(window->glfw_window);
     }
 
     void make_context_current(Window* const window) {

@@ -5,6 +5,7 @@
 #include <exception.hpp>
 #include <hashing/murmurhash2.hpp>
 #include <math/math.hpp>
+#include <window.hpp>
 
 #include <unordered_map>
 
@@ -16,9 +17,10 @@ namespace anton_engine::imgui {
         i64 id;
 
         Vector2 position;
-        Vector2 dimensions;
+        Vector2 size;
         f32 border_area_width;
         Style style;
+        Viewport* viewport;
     };
 
     class Widget {
@@ -28,10 +30,16 @@ namespace anton_engine::imgui {
         // Parent widget (index into widgets array in Context)
         i64 parent;
         Vector2 position;
-        Vector2 dimensions;
+        Vector2 size;
         Style style;
         bool hovered;
         bool clicked;
+    };
+
+    class Viewport {
+    public:
+        windowing::Window* native_window = nullptr;
+        anton_stl::Vector<Draw_Command> draw_commands_buffer;
     };
 
     class Context {
@@ -51,6 +59,8 @@ namespace anton_engine::imgui {
         anton_stl::Vector<Vertex> vertex_buffer;
         anton_stl::Vector<u32> index_buffer;
         anton_stl::Vector<Draw_Command> draw_commands_buffer;
+        anton_stl::Vector<Viewport*> viewports;
+        Viewport* dragged_viewport;
     };
 
     // TODO: Better seed.
@@ -63,11 +73,25 @@ namespace anton_engine::imgui {
     Context* create_context() {
         Context* ctx = new Context;
         set_default_style_default_dark(*ctx);
+        Viewport* main_viewport = new Viewport;
+        ctx->viewports.emplace_back(main_viewport);
+        ctx->dragged_viewport = nullptr;
         return ctx;
     }
 
     void destroy_context(Context* ctx) {
+        for (i64 i = 1; i < ctx->viewports.size(); ++i) {
+            windowing::destroy_window(ctx->viewports[i]->native_window);
+            delete ctx->viewports[i];
+        }
+
+        delete ctx->viewports[0];
         delete ctx;
+    }
+
+    void set_main_viewport_native_window(Context& ctx, windowing::Window* window) {
+        ANTON_VERIFY(window, "window is nullptr.");
+        ctx.viewports[0]->native_window = window;
     }
 
     void set_default_style_default_dark(Context& ctx) {
@@ -94,9 +118,9 @@ namespace anton_engine::imgui {
     // TODO: corner resizing
     static i32 check_cursor_in_border_area(Window const& window, Vector2 const cursor_pos) {
         f32 const dist_top = cursor_pos.y - window.position.y;
-        f32 const dist_bottom = window.position.y + window.dimensions.y - cursor_pos.y;
+        f32 const dist_bottom = window.position.y + window.size.y - cursor_pos.y;
         f32 const dist_left = cursor_pos.x - window.position.x;
-        f32 const dist_right = window.position.x + window.dimensions.x - cursor_pos.x;
+        f32 const dist_right = window.position.x + window.size.x - cursor_pos.x;
         f32 const closest_edge_dist = math::min(math::min(dist_top, dist_bottom), math::min(dist_left, dist_right));
         if (closest_edge_dist <= window.border_area_width) {
             if (dist_top == closest_edge_dist) {
@@ -113,48 +137,77 @@ namespace anton_engine::imgui {
         }
     }
 
+    static void drag_window(Context& ctx, Window& window, Vector2 const cursor_delta) {
+        if (!ctx.dragged_viewport) {
+            Vector2 const native_window_pos = windowing::get_window_pos(window.viewport->native_window);
+            Vector2 const imgui_window_pos = window.position + native_window_pos;
+
+            Viewport* viewport = new Viewport;
+            ctx.dragged_viewport = viewport;
+            ctx.viewports.emplace_back(viewport);
+            viewport->native_window = windowing::create_window(window.size.x, window.size.y, nullptr, true, false);
+            windowing::focus_window(viewport->native_window);
+            windowing::set_window_pos(viewport->native_window, imgui_window_pos);
+            window.viewport = viewport;
+            window.position = {0, 0};
+        }
+
+        Vector2 const native_window_pos = windowing::get_window_pos(ctx.dragged_viewport->native_window);
+        windowing::set_window_pos(ctx.dragged_viewport->native_window, native_window_pos + cursor_delta);
+    }
+
     static void process_input(Context& ctx) {
         Vector2 const cursor = ctx.input.cursor_position;
         bool const just_left_clicked = !ctx.prev_input.left_mouse_button && ctx.input.left_mouse_button;
+        bool const just_left_released = ctx.prev_input.left_mouse_button && !ctx.input.left_mouse_button;
         if (just_left_clicked) {
             if (ctx.input.left_mouse_button) {
                 ctx.active_window = ctx.hot_window;
             }
         } else if (ctx.input.left_mouse_button) {
             if (ctx.active_window != -1) {
+                Window& window = ctx.next.windows.at(ctx.active_window);
                 Vector2 const cursor_pos_delta = ctx.input.cursor_position - ctx.prev_input.cursor_position;
                 ANTON_LOG_INFO("cursor_pos_delta: " + anton_stl::to_string(cursor_pos_delta.x) + " " + anton_stl::to_string(cursor_pos_delta.y));
-                Window& window = ctx.next.windows.at(ctx.active_window);
-                if (i32 const border = check_cursor_in_border_area(window, ctx.prev_input.cursor_position); border != -1) {
-                    switch (border) {
-                    case 0: {
-                        window.position.y += cursor_pos_delta.y;
-                        window.dimensions.y -= cursor_pos_delta.y;
-                    } break;
-
-                    case 2: {
-                        window.dimensions.y += cursor_pos_delta.y;
-                    } break;
-
-                    case 1: {
-                        window.dimensions.x += cursor_pos_delta.x;
-                    } break;
-
-                    case 3: {
-                        window.position.x += cursor_pos_delta.x;
-                        window.dimensions.x -= cursor_pos_delta.x;
-                    } break;
-                    }
+                if (ctx.dragged_viewport) {
+                    drag_window(ctx, window, cursor_pos_delta);
                 } else {
-                    window.position += cursor_pos_delta;
+                    if (i32 const border = check_cursor_in_border_area(window, ctx.prev_input.cursor_position); border != -1) {
+                        switch (border) {
+                        case 0: {
+                            window.position.y += cursor_pos_delta.y;
+                            window.size.y -= cursor_pos_delta.y;
+                        } break;
+
+                        case 2: {
+                            window.size.y += cursor_pos_delta.y;
+                        } break;
+
+                        case 1: {
+                            window.size.x += cursor_pos_delta.x;
+                        } break;
+
+                        case 3: {
+                            window.position.x += cursor_pos_delta.x;
+                            window.size.x -= cursor_pos_delta.x;
+                        } break;
+                        }
+                    } else {
+                        drag_window(ctx, window, cursor_pos_delta);
+                        ANTON_LOG_INFO(anton_stl::to_string(cursor_pos_delta.x) + " " + anton_stl::to_string(cursor_pos_delta.y));
+                    }
                 }
             }
         } else {
+            if (just_left_released) {
+                ctx.dragged_viewport = nullptr;
+            }
+
             ctx.hot_window = -1;
             for (auto& entry: ctx.current.windows) {
                 Window const& window = entry.second;
-                bool const fits_in_x = cursor.x >= window.position.x && cursor.x <= window.position.x + window.dimensions.x;
-                bool const fits_in_y = cursor.y >= window.position.y && cursor.y <= window.position.y + window.dimensions.y;
+                bool const fits_in_x = cursor.x >= window.position.x && cursor.x <= window.position.x + window.size.x;
+                bool const fits_in_y = cursor.y >= window.position.y && cursor.y <= window.position.y + window.size.y;
                 if (fits_in_x && fits_in_y) {
                     ctx.hot_window = window.id;
                 }
@@ -169,6 +222,10 @@ namespace anton_engine::imgui {
         ctx.vertex_buffer.clear();
         ctx.index_buffer.clear();
         ctx.draw_commands_buffer.clear();
+
+        for (Viewport* viewport: ctx.viewports) {
+            viewport->draw_commands_buffer.clear();
+        }
 
         process_input(ctx);
     }
@@ -195,21 +252,34 @@ namespace anton_engine::imgui {
             cmd.vertex_offset = verts.size();
             Vertex::Color const color = color_to_vertex_color(window.style.background_color);
             verts.emplace_back(window.position, Vector2{0.0f, 1.0f}, color);
-            verts.emplace_back(window.position + Vector2(0, window.dimensions.y), Vector2{0.0f, 0.0f}, color);
-            verts.emplace_back(window.position + window.dimensions, Vector2{1.0f, 0.0f}, color);
-            verts.emplace_back(window.position + Vector2(window.dimensions.x, 0), Vector2{1.0f, 1.0f}, color);
+            verts.emplace_back(window.position + Vector2(0, window.size.y), Vector2{0.0f, 0.0f}, color);
+            verts.emplace_back(window.position + window.size, Vector2{1.0f, 0.0f}, color);
+            verts.emplace_back(window.position + Vector2(window.size.x, 0), Vector2{1.0f, 1.0f}, color);
             cmd.index_offset = indices.size();
-            indices.push_back(cmd.vertex_offset);
-            indices.push_back(cmd.vertex_offset + 1);
-            indices.push_back(cmd.vertex_offset + 2);
-            indices.push_back(cmd.vertex_offset);
-            indices.push_back(cmd.vertex_offset + 2);
-            indices.push_back(cmd.vertex_offset + 3);
+            indices.push_back(0);
+            indices.push_back(1);
+            indices.push_back(2);
+            indices.push_back(0);
+            indices.push_back(2);
+            indices.push_back(3);
             cmd.element_count = 6;
             // TODO: Choose texture.
             cmd.texture = 0;
             cmds.push_back(cmd);
+            window.viewport->draw_commands_buffer.emplace_back(cmd);
         }
+    }
+
+    anton_stl::Slice<Viewport* const> get_viewports(Context& ctx) {
+        return ctx.viewports;
+    }
+
+    windowing::Window* get_viewport_native_window(Context&, Viewport& viewport) {
+        return viewport.native_window;
+    }
+
+    anton_stl::Slice<Draw_Command const> get_viewport_draw_commands(Context&, Viewport& viewport) {
+        return viewport.draw_commands_buffer;
     }
 
     anton_stl::Slice<Vertex const> get_vertex_data(Context& ctx) {
@@ -224,7 +294,7 @@ namespace anton_engine::imgui {
         return ctx.draw_commands_buffer;
     }
 
-    void begin_window(Context& ctx, anton_stl::String_View identifier) {
+    void begin_window(Context& ctx, anton_stl::String_View identifier, bool new_viewport) {
         if (ctx.current_window != -1) {
             throw Exception("Cannot create window inside another window.");
         }
@@ -236,6 +306,7 @@ namespace anton_engine::imgui {
             wnd.id = id;
             wnd.style = ctx.default_style;
             wnd.border_area_width = 4.0f;
+            wnd.viewport = ctx.viewports[0];
             ctx.next.windows.emplace(id, wnd);
             ctx.current_window = wnd.id;
         } else {
@@ -321,7 +392,7 @@ namespace anton_engine::imgui {
         }
 
         Window& wnd = ctx.next.windows.at(ctx.current_window);
-        wnd.dimensions = size;
+        wnd.size = size;
     }
 
     void set_window_pos(Context& ctx, Vector2 const pos) {

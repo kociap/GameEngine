@@ -6,9 +6,11 @@
 #include <anton_stl/string_view.hpp>
 #include <color.hpp>
 #include <math/vector2.hpp>
+#include <window.hpp>
 
 namespace anton_engine::imgui {
     class Context;
+    class Viewport;
 
     class Style {
     public:
@@ -17,6 +19,9 @@ namespace anton_engine::imgui {
 
     Context* create_context();
     void destroy_context(Context*);
+
+    // Main viewport's native window is not owned by imgui.
+    void set_main_viewport_native_window(Context&, windowing::Window*);
 
     void set_default_style_default_dark(Context&);
     void set_default_style(Context&, Style);
@@ -55,11 +60,15 @@ namespace anton_engine::imgui {
         u32 texture;
     };
 
+    anton_stl::Slice<Viewport* const> get_viewports(Context&);
+    windowing::Window* get_viewport_native_window(Context&, Viewport&);
+    anton_stl::Slice<Draw_Command const> get_viewport_draw_commands(Context&, Viewport&);
+
     anton_stl::Slice<Vertex const> get_vertex_data(Context&);
     anton_stl::Slice<u32 const> get_index_data(Context&);
     anton_stl::Slice<Draw_Command const> get_draw_commands(Context&);
 
-    void begin_window(Context&, anton_stl::String_View);
+    void begin_window(Context&, anton_stl::String_View, bool new_viewport = false);
     void end_window(Context&);
 
     // Generic widget to group other widgets into and manage layout.

@@ -14,7 +14,6 @@
 #include <time/time_internal.hpp>
 #include <utils/filesystem.hpp>
 #include <window.hpp>
-#include <windowing_internal.hpp>
 
 #include <ecs/jobs_management.hpp>
 #include <ecs/system_management.hpp>
@@ -186,7 +185,7 @@ namespace anton_engine {
         init_time();
         windowing::init();
         windowing::enable_vsync(true);
-        main_window = windowing::create_window(1280, 720, true);
+        main_window = windowing::create_window(1280, 720, nullptr, true, true);
         windowing::set_cursor_pos_callback(main_window, cursor_position_callback);
         windowing::set_mouse_button_callback(main_window, mouse_button_callback);
         windowing::set_key_callback(main_window, keyboard_callback);

@@ -7,6 +7,7 @@
 
 namespace anton_engine::windowing {
     class Window;
+    class OpenGL_Context;
 
     enum class Cursor_Mode {
         // Visible and unrestricted
@@ -19,7 +20,12 @@ namespace anton_engine::windowing {
         locked,
     };
 
-    Window* create_window(f32 width, f32 height, bool decorated);
+    // Returns true if windowing has been successfully initialized.
+    bool init();
+    void terminate();
+    void poll_events();
+
+    Window* create_window(f32 width, f32 height, Window* share, bool create_context, bool decorated);
     void destroy_window(Window*);
 
     void set_cursor_mode(Window*, Cursor_Mode);
@@ -41,6 +47,8 @@ namespace anton_engine::windowing {
     void set_key_callback(Window*, key_function, void* user_data = nullptr);
     void set_joystick_callback(joystick_function, void* user_data = nullptr);
 
+    // Returns whether the specified key has been pressed.
+    bool get_key(Key);
     // Retrieves cursor position relative to the given window
     Vector2 get_cursor_pos(Window*);
 
@@ -49,9 +57,14 @@ namespace anton_engine::windowing {
     f32 get_width(Window*);
     f32 get_height(Window*);
     Vector2 get_window_size(Window*);
+    Vector2 get_window_pos(Window*);
+    void set_window_pos(Window*, Vector2);
     void set_opacity(Window*, float);
+    void focus_window(Window*);
 
+    OpenGL_Context* get_window_context(Window*);
     void make_context_current(Window*);
+    void make_context_current_with_window(OpenGL_Context*, Window*);
     void swap_buffers(Window*);
     void enable_vsync(bool);
 } // namespace anton_engine::windowing
