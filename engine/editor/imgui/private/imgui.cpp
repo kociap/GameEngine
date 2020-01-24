@@ -2,7 +2,6 @@
 
 #include <anton_assert.hpp>
 #include <anton_stl/vector.hpp>
-#include <exception.hpp>
 #include <hashing/murmurhash2.hpp>
 #include <math/math.hpp>
 #include <window.hpp>
@@ -231,9 +230,7 @@ namespace anton_engine::imgui {
     }
 
     void end_frame(Context& ctx) {
-        if (ctx.current_window != -1) {
-            throw Exception("A window has not been ended prior to call to end_frame.");
-        }
+        ANTON_VERIFY(ctx.current_window == -1, "A window has not been ended prior to call to end_frame.");
 
         ctx.current = ctx.next;
 
@@ -295,9 +292,7 @@ namespace anton_engine::imgui {
     }
 
     void begin_window(Context& ctx, anton_stl::String_View identifier, bool new_viewport) {
-        if (ctx.current_window != -1) {
-            throw Exception("Cannot create window inside another window.");
-        }
+        ANTON_VERIFY(ctx.current_window == -1, "Cannot create window inside another window.");
 
         i64 const id = murmurhash2_32(identifier.data(), identifier.size_bytes(), hash_seed);
         auto const iter = ctx.next.windows.find(id);
@@ -315,21 +310,14 @@ namespace anton_engine::imgui {
     }
 
     void end_window(Context& ctx) {
-        if (ctx.current_window == -1) {
-            throw Exception("Trying to end window, but none has been made current.");
-        }
-
-        if (ctx.widget_stack.size() != 0) {
-            throw Exception("Widget stack not empty. End all child widgets before you attempt to end the window.");
-        }
+        ANTON_VERIFY(ctx.current_window != -1, "Trying to end window, but none has been made current.");
+        ANTON_VERIFY(ctx.widget_stack.size() == 0, "Widget stack not empty. End all child widgets before you attempt to end the window.");
 
         ctx.current_window = -1;
     }
 
     void begin_widget(Context& ctx) {
-        if (ctx.current_window == -1) {
-            throw Exception("Cannot create widget because no window is current.");
-        }
+        ANTON_VERIFY(ctx.current_window != -1, "Cannot create widget because no window is current.");
 
         Widget widget;
         widget.style = ctx.default_style;
@@ -341,18 +329,14 @@ namespace anton_engine::imgui {
     }
 
     void end_widget(Context& ctx) {
-        if (ctx.widget_stack.size() == 0) {
-            throw Exception("No widgets are active.");
-        }
+        ANTON_VERIFY(ctx.widget_stack.size() != 0, "No widgets are active.");
 
         ctx.widget_stack.pop_back();
     }
 
     // Get style of current widget or window
     Style get_style(Context& ctx) {
-        if (ctx.current_window == -1) {
-            throw Exception("No current window.");
-        }
+        ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
         if (ctx.widget_stack.size() != 0) {
             i64 const index = ctx.widget_stack[ctx.widget_stack.size() - 1];
@@ -365,9 +349,7 @@ namespace anton_engine::imgui {
 
     // Set style of current widget or window
     void set_style(Context& ctx, Style const style) {
-        if (ctx.current_window == -1) {
-            throw Exception("No current window.");
-        }
+        ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
         if (ctx.widget_stack.size() != 0) {
             i64 const index = ctx.widget_stack[ctx.widget_stack.size() - 1];
@@ -387,35 +369,27 @@ namespace anton_engine::imgui {
     }
 
     void set_window_size(Context& ctx, Vector2 const size) {
-        if (ctx.current_window == -1) {
-            throw Exception("No current window.");
-        }
+        ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
         Window& wnd = ctx.next.windows.at(ctx.current_window);
         wnd.size = size;
     }
 
     void set_window_pos(Context& ctx, Vector2 const pos) {
-        if (ctx.current_window == -1) {
-            throw Exception("No current window.");
-        }
+        ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
         Window& wnd = ctx.next.windows.at(ctx.current_window);
         wnd.position = pos;
     }
 
     bool is_window_hot(Context& ctx) {
-        if (ctx.current_window == -1) {
-            throw Exception("No current window.");
-        }
+        ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
         return ctx.hot_window == ctx.current_window;
     }
 
     bool is_window_active(Context& ctx) {
-        if (ctx.current_window == -1) {
-            throw Exception("No current window.");
-        }
+        ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
         return ctx.active_window == ctx.current_window;
     }
