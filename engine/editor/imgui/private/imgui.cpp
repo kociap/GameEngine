@@ -1,6 +1,7 @@
 #include <imgui.hpp>
 
 #include <anton_assert.hpp>
+#include <anton_stl/string.hpp>
 #include <anton_stl/vector.hpp>
 #include <hashing/murmurhash2.hpp>
 #include <math/math.hpp>
@@ -11,15 +12,26 @@
 #include <logging.hpp>
 
 namespace anton_engine::imgui {
+    class Dockspace {
+    public:
+        anton_stl::Vector<i64> windows;
+        i64 active_window = -1;
+        Viewport* viewport = nullptr;
+        Vector2 position;
+        // Size of content area.
+        Vector2 size;
+        // TODO: Hardcoded. Compute from font size.
+        f32 tab_bar_height = 20;
+    };
+
     class Window {
     public:
-        i64 id;
-
-        Vector2 position;
-        Vector2 size;
-        f32 border_area_width;
         Style style;
+        i64 id;
         Viewport* viewport;
+        Dockspace* dockspace;
+        f32 border_area_width;
+        bool enabled;
     };
 
     class Widget {
@@ -57,9 +69,17 @@ namespace anton_engine::imgui {
         Style default_style;
         anton_stl::Vector<Vertex> vertex_buffer;
         anton_stl::Vector<u32> index_buffer;
-        anton_stl::Vector<Draw_Command> draw_commands_buffer;
         anton_stl::Vector<Viewport*> viewports;
-        Viewport* dragged_viewport;
+        anton_stl::Vector<Dockspace*> dockspaces;
+        Viewport* dragged_viewport = nullptr;
+        bool dragging = false;
+        bool clicked_tab = false;
+    };
+
+    class Tile {
+    public:
+        // True if the tile represents a window
+        bool window;
     };
 
     // TODO: Better seed.
@@ -69,23 +89,84 @@ namespace anton_engine::imgui {
         return {static_cast<u8>(255.0f * c.r), static_cast<u8>(255.0f * c.g), static_cast<u8>(255.0f * c.b), static_cast<u8>(255.0f * c.a)};
     }
 
+    static bool test_cursor_in_box(Vector2 const cursor, Vector2 const position, Vector2 const size) {
+        bool const in_box_x = cursor.x >= position.x && cursor.x <= position.x + size.x;
+        bool const in_box_y = cursor.y >= position.y && cursor.y <= position.y + size.y;
+        return in_box_x && in_box_y;
+    }
+
     Context* create_context() {
         Context* ctx = new Context;
         set_default_style_default_dark(*ctx);
         Viewport* main_viewport = new Viewport;
         ctx->viewports.emplace_back(main_viewport);
-        ctx->dragged_viewport = nullptr;
         return ctx;
     }
 
     void destroy_context(Context* ctx) {
+        for (Dockspace* dockspace: ctx->dockspaces) {
+            delete dockspace;
+        }
+
+        delete ctx->viewports[0];
         for (i64 i = 1; i < ctx->viewports.size(); ++i) {
             windowing::destroy_window(ctx->viewports[i]->native_window);
             delete ctx->viewports[i];
         }
 
-        delete ctx->viewports[0];
         delete ctx;
+    }
+
+    static Dockspace* create_dockspace(Context& ctx, bool const new_viewport) {
+        Dockspace* const dockspace = new Dockspace;
+        // TODO: new_viewport support.
+        dockspace->viewport = ctx.viewports[0];
+        ctx.dockspaces.emplace_back(dockspace);
+        return dockspace;
+    }
+
+    static void destroy_dockspace(Context& ctx, Dockspace* const dockspace) {
+        for (i64 i = 0; i < ctx.dockspaces.size(); ++i) {
+            if (dockspace == ctx.dockspaces[i]) {
+                ctx.dockspaces.erase_unsorted_unchecked(i);
+                break;
+            }
+        }
+        delete dockspace;
+    }
+
+    static void remove_window(Dockspace* const dockspace, i64 const window) {
+        for (i64 i = 0; i < dockspace->windows.size(); i += 1) {
+            if (dockspace->windows[i] == window) {
+                if (window == dockspace->active_window) {
+                    // Prefer going left.
+                    if (i > 0) {
+                        dockspace->active_window = dockspace->windows[i - 1];
+                    } else if (i + 1 < dockspace->windows.size()) {
+                        dockspace->active_window = dockspace->windows[i + 1];
+                    }
+                    // Else dockspace has no windows and will be removed, so we don't care.
+                }
+
+                dockspace->windows.erase(dockspace->windows.begin() + i, dockspace->windows.begin() + i + 1);
+                i -= 1;
+            }
+        }
+    }
+
+    // Tab index of given window or -1 if window with given id doesn't exist in dockspace.
+    static i64 get_tab_index(Dockspace* const dockspace, i64 const window) {
+        for (i64 i = 0; i < dockspace->windows.size(); i += 1) {
+            if (dockspace->windows[i] == window) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    static f32 compute_tab_width(Dockspace* const dockspace) {
+        return dockspace->size.x / dockspace->windows.size();
     }
 
     void set_main_viewport_native_window(Context& ctx, windowing::Window* window) {
@@ -115,44 +196,44 @@ namespace anton_engine::imgui {
     // returns -1 if cursor is not in the border area of a window.
     // returns 0 if cursor is in top border area, 1 if right, 2 if bottom, 3 if left.
     // TODO: corner resizing
-    static i32 check_cursor_in_border_area(Window const& window, Vector2 const cursor_pos) {
-        f32 const dist_top = cursor_pos.y - window.position.y;
-        f32 const dist_bottom = window.position.y + window.size.y - cursor_pos.y;
-        f32 const dist_left = cursor_pos.x - window.position.x;
-        f32 const dist_right = window.position.x + window.size.x - cursor_pos.x;
-        f32 const closest_edge_dist = math::min(math::min(dist_top, dist_bottom), math::min(dist_left, dist_right));
-        if (closest_edge_dist <= window.border_area_width) {
-            if (dist_top == closest_edge_dist) {
-                return 0;
-            } else if (dist_bottom == closest_edge_dist) {
-                return 2;
-            } else if (dist_right == closest_edge_dist) {
-                return 1;
-            } else {
-                return 3;
-            }
-        } else {
-            return -1;
-        }
-    }
+    // static i32 check_cursor_in_border_area(Window const& window, Vector2 const cursor_pos) {
+    //     f32 const dist_top = cursor_pos.y - window.position.y;
+    //     f32 const dist_bottom = window.position.y + window.size.y - cursor_pos.y;
+    //     f32 const dist_left = cursor_pos.x - window.position.x;
+    //     f32 const dist_right = window.position.x + window.size.x - cursor_pos.x;
+    //     f32 const closest_edge_dist = math::min(math::min(dist_top, dist_bottom), math::min(dist_left, dist_right));
+    //     if (closest_edge_dist <= window.border_area_width) {
+    //         if (dist_top == closest_edge_dist) {
+    //             return 0;
+    //         } else if (dist_bottom == closest_edge_dist) {
+    //             return 2;
+    //         } else if (dist_right == closest_edge_dist) {
+    //             return 1;
+    //         } else {
+    //             return 3;
+    //         }
+    //     } else {
+    //         return -1;
+    //     }
+    // }
 
     static void drag_window(Context& ctx, Window& window, Vector2 const cursor_delta) {
-        if (!ctx.dragged_viewport) {
-            Vector2 const native_window_pos = windowing::get_window_pos(window.viewport->native_window);
-            Vector2 const imgui_window_pos = window.position + native_window_pos;
+        // if (!ctx.dragged_viewport) {
+        //     Vector2 const native_window_pos = windowing::get_window_pos(window.viewport->native_window);
+        //     Vector2 const imgui_window_pos = window.position + native_window_pos;
 
-            Viewport* viewport = new Viewport;
-            ctx.dragged_viewport = viewport;
-            ctx.viewports.emplace_back(viewport);
-            viewport->native_window = windowing::create_window(window.size.x, window.size.y, nullptr, true, false);
-            windowing::focus_window(viewport->native_window);
-            windowing::set_window_pos(viewport->native_window, imgui_window_pos);
-            window.viewport = viewport;
-            window.position = {0, 0};
-        }
+        //     Viewport* viewport = new Viewport;
+        //     ctx.dragged_viewport = viewport;
+        //     ctx.viewports.emplace_back(viewport);
+        //     viewport->native_window = windowing::create_window(window.size.x, window.size.y, nullptr, true, false);
+        //     windowing::focus_window(viewport->native_window);
+        //     windowing::set_window_pos(viewport->native_window, imgui_window_pos);
+        //     window.viewport = viewport;
+        //     window.position = {0, 0};
+        // }
 
-        Vector2 const native_window_pos = windowing::get_window_pos(ctx.dragged_viewport->native_window);
-        windowing::set_window_pos(ctx.dragged_viewport->native_window, native_window_pos + cursor_delta);
+        // Vector2 const native_window_pos = windowing::get_window_pos(ctx.dragged_viewport->native_window);
+        // windowing::set_window_pos(ctx.dragged_viewport->native_window, native_window_pos + cursor_delta);
     }
 
     static void process_input(Context& ctx) {
@@ -161,54 +242,134 @@ namespace anton_engine::imgui {
         bool const just_left_released = ctx.prev_input.left_mouse_button && !ctx.input.left_mouse_button;
         if (just_left_clicked) {
             if (ctx.input.left_mouse_button) {
-                ctx.active_window = ctx.hot_window;
+                if (ctx.hot_window != -1) {
+                    ctx.active_window = ctx.hot_window;
+                    Window& window = ctx.next.windows.at(ctx.active_window);
+                    window.dockspace->active_window = window.id;
+
+                    Vector2 const dockspace_pos = window.dockspace->position;
+                    Vector2 const tab_size = {compute_tab_width(window.dockspace), window.dockspace->tab_bar_height};
+                    i64 const tab_count = window.dockspace->windows.size();
+                    for (i64 i = 0; i < tab_count; i += 1) {
+                        Vector2 const tab_pos = dockspace_pos + Vector2{tab_size.x * i, 0.0f};
+                        if (test_cursor_in_box(cursor, tab_pos, tab_size)) {
+                            ctx.clicked_tab = true;
+                            break;
+                        }
+                    }
+                }
             }
         } else if (ctx.input.left_mouse_button) {
             if (ctx.active_window != -1) {
                 Window& window = ctx.next.windows.at(ctx.active_window);
                 Vector2 const cursor_pos_delta = ctx.input.cursor_position - ctx.prev_input.cursor_position;
                 ANTON_LOG_INFO("cursor_pos_delta: " + anton_stl::to_string(cursor_pos_delta.x) + " " + anton_stl::to_string(cursor_pos_delta.y));
-                if (ctx.dragged_viewport) {
-                    drag_window(ctx, window, cursor_pos_delta);
-                } else {
-                    if (i32 const border = check_cursor_in_border_area(window, ctx.prev_input.cursor_position); border != -1) {
-                        switch (border) {
-                        case 0: {
-                            window.position.y += cursor_pos_delta.y;
-                            window.size.y -= cursor_pos_delta.y;
-                        } break;
+                if (ctx.dragging) {
+                    window.dockspace->position += cursor_pos_delta;
+                }
 
-                        case 2: {
-                            window.size.y += cursor_pos_delta.y;
-                        } break;
-
-                        case 1: {
-                            window.size.x += cursor_pos_delta.x;
-                        } break;
-
-                        case 3: {
-                            window.position.x += cursor_pos_delta.x;
-                            window.size.x -= cursor_pos_delta.x;
-                        } break;
-                        }
+                if (ctx.clicked_tab && !ctx.dragging && cursor_pos_delta != Vector2{0.0f, 0.0f}) {
+                    ctx.dragging = true;
+                    if (window.dockspace->windows.size() == 1) {
+                        window.dockspace->position += cursor_pos_delta;
                     } else {
-                        drag_window(ctx, window, cursor_pos_delta);
-                        ANTON_LOG_INFO(anton_stl::to_string(cursor_pos_delta.x) + " " + anton_stl::to_string(cursor_pos_delta.y));
+                        Dockspace* const prev_dockspace = window.dockspace;
+                        i64 const tab_index = get_tab_index(prev_dockspace, prev_dockspace->active_window);
+                        f32 const tab_width = compute_tab_width(prev_dockspace);
+                        remove_window(prev_dockspace, prev_dockspace->active_window);
+                        // TODO: create new viewport.
+                        Dockspace* const dockspace = create_dockspace(ctx, false);
+                        dockspace->position = prev_dockspace->position + Vector2{tab_index * tab_width, 0} + cursor_pos_delta;
+                        dockspace->size = prev_dockspace->size;
+                        window.dockspace = dockspace;
+                        dockspace->windows.emplace_back(window.id);
+                        dockspace->active_window = window.id;
                     }
                 }
+                // if (ctx.dragged_viewport) {
+                //     drag_window(ctx, window, cursor_pos_delta);
+                // } else {
+                //     if (i32 const border = check_cursor_in_border_area(window, ctx.prev_input.cursor_position); border != -1) {
+                //         switch (border) {
+                //         case 0: {
+                //             window.position.y += cursor_pos_delta.y;
+                //             window.size.y -= cursor_pos_delta.y;
+                //         } break;
+
+                //         case 2: {
+                //             window.size.y += cursor_pos_delta.y;
+                //         } break;
+
+                //         case 1: {
+                //             window.size.x += cursor_pos_delta.x;
+                //         } break;
+
+                //         case 3: {
+                //             window.position.x += cursor_pos_delta.x;
+                //             window.size.x -= cursor_pos_delta.x;
+                //         } break;
+                //         }
+                //     } else {
+                //         drag_window(ctx, window, cursor_pos_delta);
+                //         ANTON_LOG_INFO(anton_stl::to_string(cursor_pos_delta.x) + " " + anton_stl::to_string(cursor_pos_delta.y));
+                //     }
+                // }
             }
         } else {
             if (just_left_released) {
-                ctx.dragged_viewport = nullptr;
+                if (ctx.dragging) {
+                    Window& window = ctx.next.windows.at(ctx.active_window);
+                    Dockspace* const dragged_dockspace = window.dockspace;
+
+                    for (Dockspace* const dockspace: ctx.dockspaces) {
+                        if (dockspace != dragged_dockspace) {
+                            Vector2 const tab_bar_pos = dockspace->position;
+                            Vector2 const tab_bar_size = {dockspace->size.x, dockspace->tab_bar_height};
+                            if (test_cursor_in_box(cursor, tab_bar_pos, tab_bar_size)) {
+                                window.dockspace = dockspace;
+                                dockspace->windows.emplace_back(window.id);
+                                dockspace->active_window = window.id;
+                                destroy_dockspace(ctx, dragged_dockspace);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                ctx.dragging = false;
+                ctx.clicked_tab = false;
             }
 
             ctx.hot_window = -1;
-            for (auto& entry: ctx.current.windows) {
-                Window const& window = entry.second;
-                bool const fits_in_x = cursor.x >= window.position.x && cursor.x <= window.position.x + window.size.x;
-                bool const fits_in_y = cursor.y >= window.position.y && cursor.y <= window.position.y + window.size.y;
-                if (fits_in_x && fits_in_y) {
-                    ctx.hot_window = window.id;
+            Dockspace* hot_dockspace = nullptr;
+            for (Dockspace* const dockspace: ctx.dockspaces) {
+                bool const in_dockspace_x = cursor.x >= dockspace->position.x && cursor.x <= dockspace->position.x + dockspace->size.x;
+                bool const in_dockspace_y =
+                    cursor.y >= dockspace->position.y && cursor.y <= dockspace->position.y + dockspace->size.y + dockspace->tab_bar_height;
+                if (in_dockspace_x && in_dockspace_y) {
+                    hot_dockspace = dockspace;
+                }
+            }
+
+            if (hot_dockspace) {
+                Vector2 const content_pos = hot_dockspace->position + Vector2{0, hot_dockspace->tab_bar_height};
+                bool const in_content_area_x = cursor.x >= content_pos.x && cursor.x <= content_pos.x + hot_dockspace->size.x;
+                bool const in_content_area_y = cursor.y >= content_pos.y && cursor.y <= content_pos.y + hot_dockspace->size.y;
+                if (in_content_area_x && in_content_area_y) {
+                    ctx.hot_window = hot_dockspace->active_window;
+                } else {
+                    f32 const tab_width = hot_dockspace->size.x / hot_dockspace->windows.size();
+                    f32 tab_offset = 0;
+                    for (i64 i = 0; i < hot_dockspace->windows.size(); i += 1) {
+                        Vector2 const tab_pos = hot_dockspace->position + Vector2{tab_offset, 0.0f};
+                        bool const in_tab_x = cursor.x >= tab_pos.x && cursor.x <= tab_pos.x + tab_width;
+                        bool const in_tab_y = cursor.y >= tab_pos.y && cursor.y <= tab_pos.y + hot_dockspace->tab_bar_height;
+                        if (in_tab_x && in_tab_y) {
+                            ctx.hot_window = hot_dockspace->windows[i];
+                            break;
+                        }
+                        tab_offset += tab_width;
+                    }
                 }
             }
         }
@@ -220,10 +381,13 @@ namespace anton_engine::imgui {
         ctx.widgets.clear();
         ctx.vertex_buffer.clear();
         ctx.index_buffer.clear();
-        ctx.draw_commands_buffer.clear();
 
         for (Viewport* viewport: ctx.viewports) {
             viewport->draw_commands_buffer.clear();
+        }
+
+        for (auto entry: ctx.next.windows) {
+            entry.second.enabled = false;
         }
 
         process_input(ctx);
@@ -232,7 +396,32 @@ namespace anton_engine::imgui {
     void end_frame(Context& ctx) {
         ANTON_VERIFY(ctx.current_window == -1, "A window has not been ended prior to call to end_frame.");
 
-        ctx.current = ctx.next;
+        // Remove disabled windows from dockspaces and destroy empty dockspaces.
+        for (i64 i = 0; i < ctx.dockspaces.size(); i += 1) {
+            Dockspace* const dockspace = ctx.dockspaces[i];
+            for (i64 j = 0; j < dockspace->windows.size(); j += 1) {
+                Window const& window = ctx.next.windows.at(dockspace->windows[j]);
+                if (!window.enabled) {
+                    if (window.id == dockspace->active_window) {
+                        // Prefer going left.
+                        if (j > 0) {
+                            dockspace->active_window = dockspace->windows[j - 1];
+                        } else if (j + 1 < dockspace->windows.size()) {
+                            dockspace->active_window = dockspace->windows[j + 1];
+                        }
+                        // Else dockspace has no windows and will be removed, so we don't care.
+                    }
+
+                    dockspace->windows.erase(dockspace->windows.begin() + j, dockspace->windows.end() + j + 1);
+                    j -= 1;
+                }
+            }
+
+            if (dockspace->windows.size() == 0) {
+                destroy_dockspace(ctx, dockspace);
+                i -= 1;
+            }
+        }
 
         // generate geometry and indices,
         // and build command list
@@ -242,16 +431,64 @@ namespace anton_engine::imgui {
 
         auto& verts = ctx.vertex_buffer;
         auto& indices = ctx.index_buffer;
-        auto& cmds = ctx.draw_commands_buffer;
-        for (auto& entry: ctx.current.windows) {
-            Window const& window = entry.second;
+        for (Dockspace const* const dockspace: ctx.dockspaces) {
+            Draw_Command tab_bar_cmd;
+            tab_bar_cmd.vertex_offset = verts.size();
+            // TODO: Make color customizable.
+            Vertex::Color const tab_bar_color = color_to_vertex_color(ctx.default_style.background_color);
+            verts.emplace_back(dockspace->position, Vector2{0.0f, 1.0f}, tab_bar_color);
+            verts.emplace_back(dockspace->position + Vector2{0, dockspace->tab_bar_height}, Vector2{0.0f, 0.0f}, tab_bar_color);
+            verts.emplace_back(dockspace->position + Vector2{dockspace->size.x, dockspace->tab_bar_height}, Vector2{1.0f, 0.0f}, tab_bar_color);
+            verts.emplace_back(dockspace->position + Vector2{dockspace->size.x, 0}, Vector2{1.0f, 1.0f}, tab_bar_color);
+            tab_bar_cmd.index_offset = indices.size();
+            indices.push_back(0);
+            indices.push_back(1);
+            indices.push_back(2);
+            indices.push_back(0);
+            indices.push_back(2);
+            indices.push_back(3);
+            tab_bar_cmd.element_count = 6;
+            // No texture
+            tab_bar_cmd.texture = 0;
+            dockspace->viewport->draw_commands_buffer.emplace_back(tab_bar_cmd);
+
+            f32 const tab_width = dockspace->size.x / dockspace->windows.size();
+            f32 tab_offset = 0.0f;
+            for (i64 const id: dockspace->windows) {
+                Window const& window = ctx.next.windows.at(id);
+                // Vertex::Color const tab_color = color_to_vertex_color(window.style.background_color);
+                Vertex::Color const tab_color = (id == ctx.hot_window || id == ctx.active_window ? Vertex::Color{255, 187, 61} : Vertex::Color{255, 157, 0});
+                Vector2 const tab_pos = dockspace->position + Vector2{tab_offset, 0};
+                Draw_Command cmd;
+                cmd.vertex_offset = verts.size();
+                verts.emplace_back(tab_pos, Vector2{0.0f, 1.0f}, tab_color);
+                verts.emplace_back(tab_pos + Vector2{0.0f, dockspace->tab_bar_height}, Vector2{0.0f, 0.0f}, tab_color);
+                verts.emplace_back(tab_pos + Vector2{tab_width, dockspace->tab_bar_height}, Vector2{1.0f, 0.0f}, tab_color);
+                verts.emplace_back(tab_pos + Vector2{tab_width, 0.0f}, Vector2{1.0f, 1.0f}, tab_color);
+                cmd.index_offset = indices.size();
+                indices.push_back(0);
+                indices.push_back(1);
+                indices.push_back(2);
+                indices.push_back(0);
+                indices.push_back(2);
+                indices.push_back(3);
+                cmd.element_count = 6;
+                // No texture
+                cmd.texture = 0;
+                dockspace->viewport->draw_commands_buffer.emplace_back(cmd);
+
+                tab_offset += tab_width;
+            }
+
+            Window const& window = ctx.next.windows.at(dockspace->active_window);
             Draw_Command cmd;
             cmd.vertex_offset = verts.size();
             Vertex::Color const color = color_to_vertex_color(window.style.background_color);
-            verts.emplace_back(window.position, Vector2{0.0f, 1.0f}, color);
-            verts.emplace_back(window.position + Vector2(0, window.size.y), Vector2{0.0f, 0.0f}, color);
-            verts.emplace_back(window.position + window.size, Vector2{1.0f, 0.0f}, color);
-            verts.emplace_back(window.position + Vector2(window.size.x, 0), Vector2{1.0f, 1.0f}, color);
+            Vector2 const window_pos = dockspace->position + Vector2{0, dockspace->tab_bar_height};
+            verts.emplace_back(window_pos, Vector2{0.0f, 1.0f}, color);
+            verts.emplace_back(window_pos + Vector2{0, dockspace->size.y}, Vector2{0.0f, 0.0f}, color);
+            verts.emplace_back(window_pos + dockspace->size, Vector2{1.0f, 0.0f}, color);
+            verts.emplace_back(window_pos + Vector2{dockspace->size.x, 0}, Vector2{1.0f, 1.0f}, color);
             cmd.index_offset = indices.size();
             indices.push_back(0);
             indices.push_back(1);
@@ -262,9 +499,10 @@ namespace anton_engine::imgui {
             cmd.element_count = 6;
             // TODO: Choose texture.
             cmd.texture = 0;
-            cmds.push_back(cmd);
             window.viewport->draw_commands_buffer.emplace_back(cmd);
         }
+
+        ctx.current = ctx.next;
     }
 
     anton_stl::Slice<Viewport* const> get_viewports(Context& ctx) {
@@ -287,24 +525,28 @@ namespace anton_engine::imgui {
         return ctx.index_buffer;
     }
 
-    anton_stl::Slice<Draw_Command const> get_draw_commands(Context& ctx) {
-        return ctx.draw_commands_buffer;
-    }
-
     void begin_window(Context& ctx, anton_stl::String_View identifier, bool new_viewport) {
         ANTON_VERIFY(ctx.current_window == -1, "Cannot create window inside another window.");
 
         i64 const id = murmurhash2_32(identifier.data(), identifier.size_bytes(), hash_seed);
         auto const iter = ctx.next.windows.find(id);
         if (iter == ctx.next.windows.end()) {
+            // TODO: new_viewport support.
+            Dockspace* const dockspace = create_dockspace(ctx, false);
+            dockspace->active_window = id;
+            dockspace->windows.emplace_back(id);
+
             Window wnd;
             wnd.id = id;
             wnd.style = ctx.default_style;
             wnd.border_area_width = 4.0f;
+            wnd.dockspace = dockspace;
             wnd.viewport = ctx.viewports[0];
+            wnd.enabled = true;
             ctx.next.windows.emplace(id, wnd);
             ctx.current_window = wnd.id;
         } else {
+            iter->second.enabled = true;
             ctx.current_window = id;
         }
     }
@@ -371,15 +613,16 @@ namespace anton_engine::imgui {
     void set_window_size(Context& ctx, Vector2 const size) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
-        Window& wnd = ctx.next.windows.at(ctx.current_window);
-        wnd.size = size;
+        Window& window = ctx.next.windows.at(ctx.current_window);
+        window.dockspace->size = size;
     }
 
     void set_window_pos(Context& ctx, Vector2 const pos) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
-        Window& wnd = ctx.next.windows.at(ctx.current_window);
-        wnd.position = pos;
+        Window& window = ctx.next.windows.at(ctx.current_window);
+        Dockspace* const dockspace = window.dockspace;
+        dockspace->position = pos - Vector2{0.0f, dockspace->tab_bar_height};
     }
 
     bool is_window_hot(Context& ctx) {

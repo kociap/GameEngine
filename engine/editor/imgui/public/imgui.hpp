@@ -66,7 +66,6 @@ namespace anton_engine::imgui {
 
     anton_stl::Slice<Vertex const> get_vertex_data(Context&);
     anton_stl::Slice<u32 const> get_index_data(Context&);
-    anton_stl::Slice<Draw_Command const> get_draw_commands(Context&);
 
     void begin_window(Context&, anton_stl::String_View, bool new_viewport = false);
     void end_window(Context&);
