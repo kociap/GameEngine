@@ -59,7 +59,7 @@ namespace anton_engine {
         {
             imgui::Context& ctx = *imgui_context;
             imgui::Input_State imgui_input = imgui::get_input_state(ctx);
-            imgui_input.cursor_position = windowing::get_cursor_pos(main_window);
+            imgui_input.cursor_position = windowing::get_cursor_pos();
             imgui_input.left_mouse_button = windowing::get_key(Key::left_mouse_button);
             imgui::set_input_state(ctx, imgui_input);
 
@@ -131,10 +131,12 @@ namespace anton_engine {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 glDepthFunc(GL_LEQUAL);
                 Vector2 const window_size = windowing::get_window_size(native_window);
+                Vector2 const window_pos = windowing::get_window_pos(native_window);
                 glViewport(0, 0, window_size.x, window_size.y);
                 glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                Matrix4 const imgui_projection = math::transform::orthographic(0, window_size.x, window_size.y, 0, 1.0f, -1.0f);
+                Matrix4 const imgui_projection =
+                    math::transform::orthographic(window_pos.x, window_pos.x + window_size.x, window_pos.y + window_size.y, window_pos.y, 1.0f, -1.0f);
                 imgui_shader.use();
                 imgui_shader.set_matrix4("proj_mat", imgui_projection);
                 imgui::bind_buffers();
