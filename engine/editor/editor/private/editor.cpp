@@ -66,9 +66,9 @@ namespace anton_engine {
             imgui::begin_frame(ctx);
             imgui::begin_window(ctx, "main_window");
             imgui::Style main_style = imgui::get_style(ctx);
-            main_style.background_color = {0.1f, 0.1f, 0.1f};
+            main_style.background_color = {0.2f, 0.2f, 0.2f};
             if (imgui::is_window_hot(ctx)) {
-                main_style.background_color = {0.3f, 0.3f, 0.3f};
+                main_style.background_color = {0.4f, 0.4f, 0.4f};
                 // ANTON_LOG_INFO("main_window hot");
             }
 
@@ -80,23 +80,35 @@ namespace anton_engine {
             imgui::end_window(ctx);
             imgui::begin_window(ctx, "secondary_window");
             imgui::Style secondary_style = imgui::get_style(ctx);
-            secondary_style.background_color = {0.1f, 0.1f, 0.1f};
+            secondary_style.background_color = {112.0f / 255.0f, 0.0f, 1.0f};
             if (imgui::is_window_hot(ctx)) {
-                secondary_style.background_color = {0.3f, 0.3f, 0.3f};
+                secondary_style.background_color = {146.0f / 255.0f, 56.0f / 255.0f, 1.0f};
                 // ANTON_LOG_INFO("secondary_window hot");
             }
 
             if (imgui::is_window_active(ctx)) {
-                secondary_style.background_color = {0.6f, 0.6f, 0.6f};
+                secondary_style.background_color = {175.0f / 255.0f, 110.0f / 255.0f, 1.0f};
                 // ANTON_LOG_INFO("secondary_window active");
             }
             imgui::set_style(ctx, secondary_style);
+            imgui::end_window(ctx);
+
+            imgui::begin_window(ctx, "third_window");
+            imgui::Style third_style = imgui::get_style(ctx);
+            third_style.background_color = {96.0f / 255.0f, 214.0f / 255.0f, 0.0f};
+            if (imgui::is_window_hot(ctx)) {
+                third_style.background_color = {115.0f / 255.0f, 1.0f, 0.0f};
+            }
+
+            if (imgui::is_window_active(ctx)) {
+                third_style.background_color = {144.0f / 255.0f, 1.0f, 77.0f / 255.0f};
+            }
+            imgui::set_style(ctx, third_style);
             imgui::end_window(ctx);
             imgui::end_frame(ctx);
 
             anton_stl::Slice<imgui::Vertex const> vertices = imgui::get_vertex_data(ctx);
             anton_stl::Slice<u32 const> indices = imgui::get_index_data(ctx);
-            anton_stl::Slice<imgui::Draw_Command const> draw_commands = imgui::get_draw_commands(ctx);
             imgui::Draw_Elements_Command cmd = imgui::write_geometry(vertices, indices);
             // TODO: Add textures.
             cmd.instance_count = 1;
@@ -107,8 +119,8 @@ namespace anton_engine {
             for (imgui::Viewport* viewport: viewports) {
                 windowing::Window* native_window = imgui::get_viewport_native_window(ctx, *viewport);
                 windowing::make_context_current_with_window(main_window_context, native_window);
-                anton_stl::Slice<imgui::Draw_Command const> viewport_draw_commands = imgui::get_viewport_draw_commands(ctx, *viewport);
-                for (imgui::Draw_Command draw_command: viewport_draw_commands) {
+                anton_stl::Slice<imgui::Draw_Command const> draw_commands = imgui::get_viewport_draw_commands(ctx, *viewport);
+                for (imgui::Draw_Command draw_command: draw_commands) {
                     imgui::Draw_Elements_Command viewport_cmd = cmd;
                     viewport_cmd.count = draw_command.element_count;
                     viewport_cmd.base_vertex += draw_command.vertex_offset;
@@ -117,6 +129,7 @@ namespace anton_engine {
                 }
 
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                glDepthFunc(GL_LEQUAL);
                 Vector2 const window_size = windowing::get_window_size(native_window);
                 glViewport(0, 0, window_size.x, window_size.y);
                 glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -168,6 +181,10 @@ namespace anton_engine {
         imgui::begin_window(ctx, "secondary_window");
         imgui::set_window_size(ctx, {200, 200});
         imgui::set_window_pos(ctx, {350, 350});
+        imgui::end_window(ctx);
+        imgui::begin_window(ctx, "third_window");
+        imgui::set_window_size(ctx, {200, 200});
+        imgui::set_window_pos(ctx, {550, 350});
         imgui::end_window(ctx);
         imgui::end_frame(ctx);
 
