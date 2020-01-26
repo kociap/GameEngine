@@ -49,7 +49,9 @@ namespace anton_engine::windowing {
 
     // Returns whether the specified key has been pressed.
     bool get_key(Key);
-    // Retrieves cursor position relative to the given window
+    // Retrieves cursor position.
+    Vector2 get_cursor_pos();
+    // Retrieves cursor position relative to the given window.
     Vector2 get_cursor_pos(Window*);
 
     bool should_close(Window*);

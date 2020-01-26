@@ -28,7 +28,6 @@ namespace anton_engine::imgui {
     public:
         Style style;
         i64 id;
-        Viewport* viewport;
         Dockspace* dockspace;
         f32 border_area_width;
         bool enabled;
@@ -174,6 +173,10 @@ namespace anton_engine::imgui {
         ctx.viewports[0]->native_window = window;
     }
 
+    static Vector2 get_viewport_position(Viewport* const viewport) {
+        return windowing::get_window_pos(viewport->native_window);
+    }
+
     void set_default_style_default_dark(Context& ctx) {
         Style default_theme;
         default_theme.background_color = {0.1f, 0.1f, 0.1f};
@@ -217,25 +220,6 @@ namespace anton_engine::imgui {
     //     }
     // }
 
-    static void drag_window(Context& ctx, Window& window, Vector2 const cursor_delta) {
-        // if (!ctx.dragged_viewport) {
-        //     Vector2 const native_window_pos = windowing::get_window_pos(window.viewport->native_window);
-        //     Vector2 const imgui_window_pos = window.position + native_window_pos;
-
-        //     Viewport* viewport = new Viewport;
-        //     ctx.dragged_viewport = viewport;
-        //     ctx.viewports.emplace_back(viewport);
-        //     viewport->native_window = windowing::create_window(window.size.x, window.size.y, nullptr, true, false);
-        //     windowing::focus_window(viewport->native_window);
-        //     windowing::set_window_pos(viewport->native_window, imgui_window_pos);
-        //     window.viewport = viewport;
-        //     window.position = {0, 0};
-        // }
-
-        // Vector2 const native_window_pos = windowing::get_window_pos(ctx.dragged_viewport->native_window);
-        // windowing::set_window_pos(ctx.dragged_viewport->native_window, native_window_pos + cursor_delta);
-    }
-
     static void process_input(Context& ctx) {
         Vector2 const cursor = ctx.input.cursor_position;
         bool const just_left_clicked = !ctx.prev_input.left_mouse_button && ctx.input.left_mouse_button;
@@ -245,11 +229,12 @@ namespace anton_engine::imgui {
                 if (ctx.hot_window != -1) {
                     ctx.active_window = ctx.hot_window;
                     Window& window = ctx.next.windows.at(ctx.active_window);
-                    window.dockspace->active_window = window.id;
+                    Dockspace* const dockspace = window.dockspace;
+                    dockspace->active_window = window.id;
 
-                    Vector2 const dockspace_pos = window.dockspace->position;
-                    Vector2 const tab_size = {compute_tab_width(window.dockspace), window.dockspace->tab_bar_height};
-                    i64 const tab_count = window.dockspace->windows.size();
+                    Vector2 const dockspace_pos = dockspace->position + get_viewport_position(dockspace->viewport);
+                    Vector2 const tab_size = {compute_tab_width(dockspace), dockspace->tab_bar_height};
+                    i64 const tab_count = dockspace->windows.size();
                     for (i64 i = 0; i < tab_count; i += 1) {
                         Vector2 const tab_pos = dockspace_pos + Vector2{tab_size.x * i, 0.0f};
                         if (test_cursor_in_box(cursor, tab_pos, tab_size)) {
@@ -323,7 +308,7 @@ namespace anton_engine::imgui {
 
                     for (Dockspace* const dockspace: ctx.dockspaces) {
                         if (dockspace != dragged_dockspace) {
-                            Vector2 const tab_bar_pos = dockspace->position;
+                            Vector2 const tab_bar_pos = dockspace->position + get_viewport_position(dockspace->viewport);
                             Vector2 const tab_bar_size = {dockspace->size.x, dockspace->tab_bar_height};
                             if (test_cursor_in_box(cursor, tab_bar_pos, tab_bar_size)) {
                                 window.dockspace = dockspace;
@@ -343,32 +328,27 @@ namespace anton_engine::imgui {
             ctx.hot_window = -1;
             Dockspace* hot_dockspace = nullptr;
             for (Dockspace* const dockspace: ctx.dockspaces) {
-                bool const in_dockspace_x = cursor.x >= dockspace->position.x && cursor.x <= dockspace->position.x + dockspace->size.x;
-                bool const in_dockspace_y =
-                    cursor.y >= dockspace->position.y && cursor.y <= dockspace->position.y + dockspace->size.y + dockspace->tab_bar_height;
-                if (in_dockspace_x && in_dockspace_y) {
+                Vector2 const dockspace_pos = dockspace->position + get_viewport_position(dockspace->viewport);
+                if (test_cursor_in_box(cursor, dockspace_pos, dockspace->size)) {
                     hot_dockspace = dockspace;
                 }
             }
 
             if (hot_dockspace) {
-                Vector2 const content_pos = hot_dockspace->position + Vector2{0, hot_dockspace->tab_bar_height};
-                bool const in_content_area_x = cursor.x >= content_pos.x && cursor.x <= content_pos.x + hot_dockspace->size.x;
-                bool const in_content_area_y = cursor.y >= content_pos.y && cursor.y <= content_pos.y + hot_dockspace->size.y;
-                if (in_content_area_x && in_content_area_y) {
+                Vector2 const hot_dockspace_pos = hot_dockspace->position + get_viewport_position(hot_dockspace->viewport);
+                Vector2 const content_pos = hot_dockspace_pos + Vector2{0, hot_dockspace->tab_bar_height};
+                if (test_cursor_in_box(cursor, content_pos, hot_dockspace->size)) {
                     ctx.hot_window = hot_dockspace->active_window;
                 } else {
-                    f32 const tab_width = hot_dockspace->size.x / hot_dockspace->windows.size();
+                    Vector2 const tab_size = {hot_dockspace->size.x / hot_dockspace->windows.size(), hot_dockspace->tab_bar_height};
                     f32 tab_offset = 0;
                     for (i64 i = 0; i < hot_dockspace->windows.size(); i += 1) {
-                        Vector2 const tab_pos = hot_dockspace->position + Vector2{tab_offset, 0.0f};
-                        bool const in_tab_x = cursor.x >= tab_pos.x && cursor.x <= tab_pos.x + tab_width;
-                        bool const in_tab_y = cursor.y >= tab_pos.y && cursor.y <= tab_pos.y + hot_dockspace->tab_bar_height;
-                        if (in_tab_x && in_tab_y) {
+                        Vector2 const tab_pos = hot_dockspace_pos + Vector2{tab_offset, 0.0f};
+                        if (test_cursor_in_box(cursor, tab_pos, tab_size)) {
                             ctx.hot_window = hot_dockspace->windows[i];
                             break;
                         }
-                        tab_offset += tab_width;
+                        tab_offset += tab_size.x;
                     }
                 }
             }
@@ -432,14 +412,16 @@ namespace anton_engine::imgui {
         auto& verts = ctx.vertex_buffer;
         auto& indices = ctx.index_buffer;
         for (Dockspace const* const dockspace: ctx.dockspaces) {
+            Vector2 const viewport_position = get_viewport_position(dockspace->viewport);
+            Vector2 const dockspace_pos = dockspace->position + viewport_position;
             Draw_Command tab_bar_cmd;
             tab_bar_cmd.vertex_offset = verts.size();
             // TODO: Make color customizable.
             Vertex::Color const tab_bar_color = color_to_vertex_color(ctx.default_style.background_color);
-            verts.emplace_back(dockspace->position, Vector2{0.0f, 1.0f}, tab_bar_color);
-            verts.emplace_back(dockspace->position + Vector2{0, dockspace->tab_bar_height}, Vector2{0.0f, 0.0f}, tab_bar_color);
-            verts.emplace_back(dockspace->position + Vector2{dockspace->size.x, dockspace->tab_bar_height}, Vector2{1.0f, 0.0f}, tab_bar_color);
-            verts.emplace_back(dockspace->position + Vector2{dockspace->size.x, 0}, Vector2{1.0f, 1.0f}, tab_bar_color);
+            verts.emplace_back(dockspace_pos, Vector2{0.0f, 1.0f}, tab_bar_color);
+            verts.emplace_back(dockspace_pos + Vector2{0, dockspace->tab_bar_height}, Vector2{0.0f, 0.0f}, tab_bar_color);
+            verts.emplace_back(dockspace_pos + Vector2{dockspace->size.x, dockspace->tab_bar_height}, Vector2{1.0f, 0.0f}, tab_bar_color);
+            verts.emplace_back(dockspace_pos + Vector2{dockspace->size.x, 0}, Vector2{1.0f, 1.0f}, tab_bar_color);
             tab_bar_cmd.index_offset = indices.size();
             indices.push_back(0);
             indices.push_back(1);
@@ -457,8 +439,9 @@ namespace anton_engine::imgui {
             for (i64 const id: dockspace->windows) {
                 Window const& window = ctx.next.windows.at(id);
                 // Vertex::Color const tab_color = color_to_vertex_color(window.style.background_color);
-                Vertex::Color const tab_color = (id == ctx.hot_window || id == ctx.active_window ? Vertex::Color{255, 187, 61} : Vertex::Color{255, 157, 0});
-                Vector2 const tab_pos = dockspace->position + Vector2{tab_offset, 0};
+                Vertex::Color const tab_color =
+                    (id == ctx.hot_window || id == ctx.active_window ? Vertex::Color{255, 187, 61, 255} : Vertex::Color{255, 157, 0, 255});
+                Vector2 const tab_pos = dockspace_pos + Vector2{tab_offset, 0};
                 Draw_Command cmd;
                 cmd.vertex_offset = verts.size();
                 verts.emplace_back(tab_pos, Vector2{0.0f, 1.0f}, tab_color);
@@ -484,7 +467,7 @@ namespace anton_engine::imgui {
             Draw_Command cmd;
             cmd.vertex_offset = verts.size();
             Vertex::Color const color = color_to_vertex_color(window.style.background_color);
-            Vector2 const window_pos = dockspace->position + Vector2{0, dockspace->tab_bar_height};
+            Vector2 const window_pos = dockspace_pos + Vector2{0, dockspace->tab_bar_height};
             verts.emplace_back(window_pos, Vector2{0.0f, 1.0f}, color);
             verts.emplace_back(window_pos + Vector2{0, dockspace->size.y}, Vector2{0.0f, 0.0f}, color);
             verts.emplace_back(window_pos + dockspace->size, Vector2{1.0f, 0.0f}, color);
@@ -499,7 +482,7 @@ namespace anton_engine::imgui {
             cmd.element_count = 6;
             // TODO: Choose texture.
             cmd.texture = 0;
-            window.viewport->draw_commands_buffer.emplace_back(cmd);
+            dockspace->viewport->draw_commands_buffer.emplace_back(cmd);
         }
 
         ctx.current = ctx.next;
@@ -536,15 +519,14 @@ namespace anton_engine::imgui {
             dockspace->active_window = id;
             dockspace->windows.emplace_back(id);
 
-            Window wnd;
-            wnd.id = id;
-            wnd.style = ctx.default_style;
-            wnd.border_area_width = 4.0f;
-            wnd.dockspace = dockspace;
-            wnd.viewport = ctx.viewports[0];
-            wnd.enabled = true;
-            ctx.next.windows.emplace(id, wnd);
-            ctx.current_window = wnd.id;
+            Window window;
+            window.id = id;
+            window.style = ctx.default_style;
+            window.border_area_width = 4.0f;
+            window.dockspace = dockspace;
+            window.enabled = true;
+            ctx.next.windows.emplace(id, window);
+            ctx.current_window = window.id;
         } else {
             iter->second.enabled = true;
             ctx.current_window = id;

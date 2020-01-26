@@ -85,6 +85,7 @@ namespace anton_engine::imgui {
 
     void set_window_size(Context&, Vector2);
 
+    // Relative to window's viewport.
     void set_window_pos(Context&, Vector2);
 
     void set_width(Context&, f32 width);

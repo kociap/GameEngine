@@ -110,4 +110,12 @@ namespace anton_engine::windowing {
         i32 const index = map_key_to_win_virtual_key(k);
         return index != -1 && (win_platform.key_state[index] & 0x80);
     }
+
+    Vector2 get_cursor_pos() {
+        CURSORINFO cursor_info = {};
+        cursor_info.cbSize = sizeof(CURSORINFO);
+        cursor_info.flags = CURSOR_SHOWING;
+        GetCursorInfo(&cursor_info);
+        return Vector2(cursor_info.ptScreenPos.x, cursor_info.ptScreenPos.y);
+    }
 } // namespace anton_engine::windowing
