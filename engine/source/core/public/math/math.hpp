@@ -94,6 +94,18 @@ namespace anton_engine::math {
         return x;
     }
 
+    inline f32 round(f32 x) {
+        return ::roundf(x);
+    }
+
+    inline f32 floor(f32 x) {
+        return ::floorf(x);
+    }
+
+    inline f32 ceil(f32 x) {
+        return ::ceilf(x);
+    }
+
     constexpr float step_to_value(float current, float target, float change) {
         float delta = target - current;
         if (abs(delta) > change) {
