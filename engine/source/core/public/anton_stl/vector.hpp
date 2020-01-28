@@ -70,6 +70,8 @@ namespace anton_engine::anton_stl {
 
         template <typename Input_Iterator>
         void assign(Input_Iterator first, Input_Iterator last);
+        void insert(size_type position, value_type const&);
+        // void insert(const_iterator position, value_type const& value);
         void insert_unsorted(const_iterator position, value_type const& value);
         void push_back(value_type const&);
         void push_back(value_type&&);
@@ -97,8 +99,6 @@ namespace anton_engine::anton_stl {
 
         T* get_ptr(size_type index = 0);
         T const* get_ptr(size_type index = 0) const;
-        T* get_iterator_underlying_ptr(iterator const&);
-        T const* get_iterator_underlying_ptr(const_iterator const&) const;
 
         T* allocate(size_type);
         void deallocate(void*, size_type);

@@ -33,6 +33,14 @@
 #    define ANTON_STRING_VERIFY_ENCODING 1
 #endif
 
+#ifndef ANTON_ITERATOR_DEBUG
+#    define ANTON_ITERATOR_DEBUG 1
+#endif
+
+#ifndef ANTON_BOUNDS_CHECKING
+#    define ANTON_BOUNDS_CHECKING 0
+#endif
+
 // Unicode library
 
 #ifndef ANTON_UNICODE_VALIDATE_ENCODING

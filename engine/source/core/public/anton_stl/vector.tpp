@@ -225,12 +225,52 @@ namespace anton_engine::anton_stl {
     }
 
     template <typename T, typename Allocator>
+    inline void Vector<T, Allocator>::insert(size_type const position, value_type const& value) {
+        if constexpr (ANTON_ITERATOR_DEBUG) {
+            ANTON_FAIL(position <= _size && position >= 0, "Index out of bounds.");
+        }
+
+        if (_size == _capacity || position != _size) {
+            if (_size != _capacity) {
+                anton_stl::move_backward(get_ptr(position), get_ptr(_size), get_ptr(_size + 1));
+                attempt_construct(get_ptr(position), value);
+                _size += 1;
+            } else {
+                i64 const new_capacity = _capacity * 2;
+                T* const new_data = allocate(new_capacity);
+                i64 moved = 0;
+                try {
+                    anton_stl::move(get_ptr(0), get_ptr(position), new_data);
+                    moved = position;
+                    attempt_construct(new_data + position, value);
+                    moved += 1;
+                    anton_stl::move(get_ptr(position), get_ptr(_size), new_data + position + 1);
+                } catch (...) {
+                    anton_stl::destruct_n(new_data, moved);
+                    deallocate(new_data, new_capacity);
+                    throw;
+                }
+                anton_stl::destruct_n(_data, _size);
+                deallocate(_data, _capacity);
+                _capacity = new_capacity;
+                _data = new_data;
+                _size += 1;
+            }
+        } else {
+            // Quick path when position points to end and we have room for one more element.
+            attempt_construct(get_ptr(_size), value);
+            _size += 1;
+        }
+    }
+
+    template <typename T, typename Allocator>
     inline void Vector<T, Allocator>::insert_unsorted(const_iterator position, value_type const& value) {
-        ANTON_ASSERT(get_iterator_underlying_ptr(position) >= get_ptr() && get_iterator_underlying_ptr(position) <= get_ptr(_size),
-                     "Vector::insert invalid iterator");
+        if constexpr (ANTON_ITERATOR_DEBUG) {
+            ANTON_FAIL(position < _size && position >= 0, "Index out of bounds.");
+        }
 
         ensure_capacity(_size + 1);
-        size_type offset = static_cast<size_type>(get_iterator_underlying_ptr(position) - _data);
+        size_type offset = static_cast<size_type>(position - _data);
         if (offset == _size) {
             attempt_construct(get_ptr(offset), value);
             ++_size;
@@ -386,17 +426,6 @@ namespace anton_engine::anton_stl {
     }
 
     template <typename T, typename Allocator>
-    inline T* Vector<T, Allocator>::get_iterator_underlying_ptr(iterator const& iter) {
-        return anton_stl::addressof(*iter);
-    }
-
-    // Exists to simplify changing the iterator type
-    template <typename T, typename Allocator>
-    inline T const* Vector<T, Allocator>::get_iterator_underlying_ptr(const_iterator const& iter) const {
-        return anton_stl::addressof(*iter);
-    }
-
-    template <typename T, typename Allocator>
     inline T* Vector<T, Allocator>::allocate(size_type const size) {
         void* mem = _allocator.allocate(size * static_cast<isize>(sizeof(T)), static_cast<isize>(alignof(T)));
         return static_cast<T*>(mem);
@@ -423,7 +452,10 @@ namespace anton_engine::anton_stl {
                 } else {
                     anton_stl::uninitialized_copy(_data, _data + _size, new_data);
                 }
-            } catch (...) { deallocate(new_data, new_capacity); }
+            } catch (...) {
+                deallocate(new_data, new_capacity);
+                throw;
+            }
             destruct_n(_data, _size);
             deallocate(_data, _capacity);
             _data = new_data;
