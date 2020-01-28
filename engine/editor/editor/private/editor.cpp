@@ -66,45 +66,57 @@ namespace anton_engine {
             imgui::begin_frame(ctx);
             imgui::begin_window(ctx, "main_window");
             imgui::Style main_style = imgui::get_style(ctx);
-            main_style.background_color = {0.2f, 0.2f, 0.2f};
-            if (imgui::is_window_hot(ctx)) {
-                main_style.background_color = {0.4f, 0.4f, 0.4f};
-                // ANTON_LOG_INFO("main_window hot");
-            }
+            main_style.background_color = {0.7f, 0.2f, 0.2f};
+            // if (imgui::is_window_hot(ctx)) {
+            //     main_style.background_color = {0.6f, 0.4f, 0.4f};
+            //     // ANTON_LOG_INFO("main_window hot");
+            // }
 
-            if (imgui::is_window_active(ctx)) {
-                main_style.background_color = {0.6f, 0.6f, 0.6f};
-                // ANTON_LOG_INFO("main_window active");
-            }
+            // if (imgui::is_window_active(ctx)) {
+            //     main_style.background_color = {0.6f, 0.6f, 0.6f};
+            //     // ANTON_LOG_INFO("main_window active");
+            // }
             imgui::set_style(ctx, main_style);
             imgui::end_window(ctx);
             imgui::begin_window(ctx, "secondary_window");
             imgui::Style secondary_style = imgui::get_style(ctx);
             secondary_style.background_color = {112.0f / 255.0f, 0.0f, 1.0f};
-            if (imgui::is_window_hot(ctx)) {
-                secondary_style.background_color = {146.0f / 255.0f, 56.0f / 255.0f, 1.0f};
-                // ANTON_LOG_INFO("secondary_window hot");
-            }
+            // if (imgui::is_window_hot(ctx)) {
+            //     secondary_style.background_color = {146.0f / 255.0f, 56.0f / 255.0f, 1.0f};
+            //     // ANTON_LOG_INFO("secondary_window hot");
+            // }
 
-            if (imgui::is_window_active(ctx)) {
-                secondary_style.background_color = {175.0f / 255.0f, 110.0f / 255.0f, 1.0f};
-                // ANTON_LOG_INFO("secondary_window active");
-            }
+            // if (imgui::is_window_active(ctx)) {
+            //     secondary_style.background_color = {175.0f / 255.0f, 110.0f / 255.0f, 1.0f};
+            //     // ANTON_LOG_INFO("secondary_window active");
+            // }
             imgui::set_style(ctx, secondary_style);
             imgui::end_window(ctx);
 
             imgui::begin_window(ctx, "third_window");
             imgui::Style third_style = imgui::get_style(ctx);
             third_style.background_color = {96.0f / 255.0f, 214.0f / 255.0f, 0.0f};
-            if (imgui::is_window_hot(ctx)) {
-                third_style.background_color = {115.0f / 255.0f, 1.0f, 0.0f};
-            }
+            // if (imgui::is_window_hot(ctx)) {
+            //     third_style.background_color = {115.0f / 255.0f, 1.0f, 0.0f};
+            // }
 
-            if (imgui::is_window_active(ctx)) {
-                third_style.background_color = {144.0f / 255.0f, 1.0f, 77.0f / 255.0f};
-            }
+            // if (imgui::is_window_active(ctx)) {
+            //     third_style.background_color = {144.0f / 255.0f, 1.0f, 77.0f / 255.0f};
+            // }
             imgui::set_style(ctx, third_style);
             imgui::end_window(ctx);
+
+            {
+                imgui::begin_window(ctx, "window4");
+                imgui::Style style = imgui::get_style(ctx);
+                style.background_color = {0.2f, 0.2f, 0.2f};
+                // if (imgui::is_window_hot(ctx)) {
+                //     style.background_color = {0.4f, 0.4f, 0.4f};
+                // }
+                imgui::set_style(ctx, style);
+                imgui::end_window(ctx);
+            }
+
             imgui::end_frame(ctx);
 
             anton_stl::Slice<imgui::Vertex const> vertices = imgui::get_vertex_data(ctx);
@@ -187,6 +199,10 @@ namespace anton_engine {
         imgui::begin_window(ctx, "third_window");
         imgui::set_window_size(ctx, {200, 200});
         imgui::set_window_pos(ctx, {550, 350});
+        imgui::end_window(ctx);
+        imgui::begin_window(ctx, "window4");
+        imgui::set_window_size(ctx, {200, 200});
+        imgui::set_window_pos(ctx, {520, 100});
         imgui::end_window(ctx);
         imgui::end_frame(ctx);
 
