@@ -66,7 +66,8 @@ namespace anton_engine {
             imgui::begin_frame(ctx);
             imgui::begin_window(ctx, "main_window");
             imgui::Style main_style = imgui::get_style(ctx);
-            main_style.background_color = {0.7f, 0.2f, 0.2f};
+            main_style.background_color = {0.953f, 0.322f, 0.125f};
+            // main_style.background_color = {0.7f, 0.2f, 0.2f};
             // if (imgui::is_window_hot(ctx)) {
             //     main_style.background_color = {0.6f, 0.4f, 0.4f};
             //     // ANTON_LOG_INFO("main_window hot");
@@ -80,7 +81,8 @@ namespace anton_engine {
             imgui::end_window(ctx);
             imgui::begin_window(ctx, "secondary_window");
             imgui::Style secondary_style = imgui::get_style(ctx);
-            secondary_style.background_color = {112.0f / 255.0f, 0.0f, 1.0f};
+            secondary_style.background_color = {0.51f, 0.74f, 0.4f};
+            // secondary_style.background_color = {112.0f / 255.0f, 0.0f, 1.0f};
             // if (imgui::is_window_hot(ctx)) {
             //     secondary_style.background_color = {146.0f / 255.0f, 56.0f / 255.0f, 1.0f};
             //     // ANTON_LOG_INFO("secondary_window hot");
@@ -95,7 +97,8 @@ namespace anton_engine {
 
             imgui::begin_window(ctx, "third_window");
             imgui::Style third_style = imgui::get_style(ctx);
-            third_style.background_color = {96.0f / 255.0f, 214.0f / 255.0f, 0.0f};
+            third_style.background_color = {0.0f, 0.659f, 0.941f};
+            // third_style.background_color = {96.0f / 255.0f, 214.0f / 255.0f, 0.0f};
             // if (imgui::is_window_hot(ctx)) {
             //     third_style.background_color = {115.0f / 255.0f, 1.0f, 0.0f};
             // }
@@ -109,7 +112,8 @@ namespace anton_engine {
             {
                 imgui::begin_window(ctx, "window4");
                 imgui::Style style = imgui::get_style(ctx);
-                style.background_color = {0.2f, 0.2f, 0.2f};
+                style.background_color = {1.0f, 0.733f, 0.008f};
+                // style.background_color = {0.2f, 0.2f, 0.2f};
                 // if (imgui::is_window_hot(ctx)) {
                 //     style.background_color = {0.4f, 0.4f, 0.4f};
                 // }
@@ -191,18 +195,19 @@ namespace anton_engine {
         imgui::begin_frame(ctx);
         imgui::begin_window(ctx, "main_window");
         imgui::set_window_size(ctx, {200, 200});
+        imgui::set_window_pos(ctx, {150, 150});
         imgui::end_window(ctx);
         imgui::begin_window(ctx, "secondary_window");
         imgui::set_window_size(ctx, {200, 200});
-        imgui::set_window_pos(ctx, {350, 350});
+        imgui::set_window_pos(ctx, {370, 150});
         imgui::end_window(ctx);
         imgui::begin_window(ctx, "third_window");
         imgui::set_window_size(ctx, {200, 200});
-        imgui::set_window_pos(ctx, {550, 350});
+        imgui::set_window_pos(ctx, {150, 400});
         imgui::end_window(ctx);
         imgui::begin_window(ctx, "window4");
         imgui::set_window_size(ctx, {200, 200});
-        imgui::set_window_pos(ctx, {520, 100});
+        imgui::set_window_pos(ctx, {370, 400});
         imgui::end_window(ctx);
         imgui::end_frame(ctx);
 
