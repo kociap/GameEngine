@@ -17,6 +17,11 @@ namespace anton_engine::imgui {
         Color background_color;
     };
 
+    class Settings {
+    public:
+        f32 window_drop_area_width;
+    };
+
     Context* create_context();
     void destroy_context(Context*);
 
