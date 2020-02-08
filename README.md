@@ -1,5 +1,7 @@
 # GameEngine
 ## Progress GIFs
+### IMGUI layout
+![IMGUI layout](gifs/layout.gif)
 ### IMGUI multiviewport
 ![IMGUI multiviewport](gifs/multiviewport.gif)
 ### IMGUI improved tabs
