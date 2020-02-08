@@ -104,6 +104,10 @@ namespace anton_engine::imgui {
         bool clicked_tab = false;
         Dockspace* drag_alien_dockspace = nullptr;
         Vector2 tab_click_offset;
+
+        struct Drag_Info {
+            Vector2 original_size;
+        } drag;
     };
 
     // TODO: Better seed.
@@ -782,13 +786,11 @@ namespace anton_engine::imgui {
                             }
                         } else {
                             // We left the tab bar. Create new undecorated viewport.
-                            // TODO: Restore to size before being dragged into another dockspace.
                             remove_window(ctx.drag_alien_dockspace, window);
                             Dockspace* const dockspace = create_dockspace(ctx);
                             add_window(dockspace, window, 0);
 
-                            Vector2 const dockspace_size = get_dockspace_size(ctx.drag_alien_dockspace);
-                            Viewport* const viewport = create_viewport(ctx, dockspace_size, false);
+                            Viewport* const viewport = create_viewport(ctx, ctx.drag.original_size, false);
                             parent_to_root(dockspace, viewport);
                             f32 const tab_offset = compute_tab_width(ctx.drag_alien_dockspace);
                             i64 const tab_index = get_tab_index(ctx.drag_alien_dockspace, window.id);
@@ -802,6 +804,7 @@ namespace anton_engine::imgui {
 
                 if (ctx.clicked_tab && !ctx.dragging && cursor_pos_delta != Vector2{0.0f, 0.0f}) {
                     ctx.dragging = true;
+                    ctx.drag.original_size = window.dockspace->size;
                     if (window.dockspace->windows.size() == 1) {
                         Dockspace* const dockspace = window.dockspace;
                         Viewport* const current_viewport = dockspace->viewport;
@@ -809,16 +812,12 @@ namespace anton_engine::imgui {
                         if (current_viewport->dockspaces.size() == 1 && current_viewport != ctx.viewports[0]) {
                             Vector2 const current_pos = get_viewport_screen_pos(current_viewport);
                             set_viewport_screen_pos(current_viewport, current_pos + cursor_pos_delta);
-                            // TODO: Old dockspace position
-                            // dockspace->position = {0.0f, 0.0f};
                         } else {
                             Vector2 const current_pos = get_dockspace_screen_pos(dockspace);
                             Viewport* const viewport = create_viewport(ctx, get_dockspace_size(dockspace), false);
                             set_viewport_screen_pos(viewport, current_pos + cursor_pos_delta);
                             unparent(dockspace);
                             parent_to_root(dockspace, viewport);
-                            // TODO: Old dockspace position
-                            // dockspace->position = {0.0f, 0.0f};
                         }
                     } else {
                         // TODO: Only tests for containment in tab bar.
