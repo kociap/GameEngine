@@ -15,6 +15,7 @@ namespace anton_engine::imgui {
     class Style {
     public:
         Color background_color;
+        Color preview_guides_color;
     };
 
     class Settings {

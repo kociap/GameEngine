@@ -2,6 +2,7 @@
 
 #include <anton_assert.hpp>
 #include <anton_stl/string.hpp>
+#include <anton_stl/utility.hpp>
 #include <anton_stl/vector.hpp>
 #include <hashing/murmurhash2.hpp>
 #include <intrinsics.hpp>
@@ -105,7 +106,7 @@ namespace anton_engine::imgui {
         Dockspace* drag_alien_dockspace = nullptr;
 
         struct Drag_Info {
-            Dockspace* hot_dockspace;
+            Dockspace* hot_dockspace = nullptr;
             Vector2 original_size;
             Vector2 tab_click_offset;
         } drag;
@@ -672,6 +673,7 @@ namespace anton_engine::imgui {
     void set_default_style_default_dark(Context& ctx) {
         Style default_theme;
         default_theme.background_color = {0.1f, 0.1f, 0.1f};
+        default_theme.preview_guides_color = {0.5f, 0.5f, 0.5f};
         ctx.default_style = default_theme;
     }
 
@@ -972,6 +974,7 @@ namespace anton_engine::imgui {
                 ctx.dragging = false;
                 ctx.clicked_tab = false;
                 ctx.drag_alien_dockspace = nullptr;
+                ctx.drag.hot_dockspace = nullptr;
             }
 
             ctx.hot_window = -1;
@@ -1164,6 +1167,72 @@ namespace anton_engine::imgui {
             // TODO: Choose texture.
             cmd.texture = 0;
             dockspace->viewport->draw_commands_buffer.emplace_back(cmd);
+        }
+
+        // Render dockspce drag preview guides
+        if (ctx.drag.hot_dockspace) {
+            Viewport* const viewport = ctx.drag.hot_dockspace->viewport;
+            Vector2 const dockspace_content_pos = get_dockspace_content_screen_pos(ctx.drag.hot_dockspace);
+            Vector2 const dockspace_content_size = get_dockspace_content_size(ctx.drag.hot_dockspace);
+
+            Vertex::Color const color = color_to_vertex_color(ctx.default_style.preview_guides_color);
+            Vector2 const border_area_width = dockspace_content_size * 0.5f * ctx.settings.window_drop_area_width;
+
+            Vector2 const _verts[] = {
+                // outside top-left
+                dockspace_content_pos + Vector2{1.0f, 0.0f},
+                dockspace_content_pos + Vector2{0.0f, 1.0f},
+                // outside top-right
+                dockspace_content_pos + Vector2{dockspace_content_size.x - 1.0f, 0.0f},
+                dockspace_content_pos + Vector2{dockspace_content_size.x, 1.0f},
+                // outside bottom-left
+                dockspace_content_pos + Vector2{0.0, dockspace_content_size.y - 1.0f},
+                dockspace_content_pos + Vector2{1.0f, dockspace_content_size.y},
+                // outside top-right
+                dockspace_content_pos + dockspace_content_size + Vector2{0.0f, -1.0f},
+                dockspace_content_pos + dockspace_content_size + Vector2{-1.0f, 0.0f},
+
+                // inside top-left
+                dockspace_content_pos + border_area_width + Vector2{0.0f, -1.0f},
+                dockspace_content_pos + border_area_width + Vector2{-1.0f, 0.0f},
+                // inside top-right
+                dockspace_content_pos + Vector2{dockspace_content_size.x - border_area_width.x, border_area_width.y - 1.0f},
+                dockspace_content_pos + Vector2{dockspace_content_size.x - border_area_width.x + 1.0f, border_area_width.y},
+                // inside bottom-left
+                dockspace_content_pos + Vector2{border_area_width.x - 1.0f, dockspace_content_size.y - border_area_width.y},
+                dockspace_content_pos + Vector2{border_area_width.x, dockspace_content_size.y - border_area_width.y + 1.0f},
+                // inside bottom-right
+                dockspace_content_pos + Vector2{dockspace_content_size.x - border_area_width.x + 1.0f, dockspace_content_size.y - border_area_width.y},
+                dockspace_content_pos + Vector2{dockspace_content_size.x - border_area_width.x, dockspace_content_size.y - border_area_width.y + 1.0f},
+            };
+
+            u32 const _indices[] = {
+                // inside rectangle
+                8, 9, 11, 8, 11, 10,    // top
+                10, 15, 14, 10, 14, 11, // right
+                12, 13, 15, 13, 15, 14, // bottom
+                8, 9, 12, 8, 12, 13,    // left
+                // outside lines
+                0, 1, 9, 0, 9, 8,    // top-left
+                2, 10, 11, 2, 11, 3, // top-right
+                4, 13, 12, 4, 5, 13, // bottom-left
+                7, 14, 15, 7, 6, 14, // bottom-right
+            };
+
+            Draw_Command cmd;
+            cmd.vertex_offset = verts.size();
+            cmd.index_offset = indices.size();
+            cmd.element_count = anton_stl::size(_indices);
+            cmd.texture = 0;
+            viewport->draw_commands_buffer.emplace_back(cmd);
+
+            for (i64 i = 0; i < (i64)anton_stl::size(_verts); ++i) {
+                verts.emplace_back(_verts[i], Vector2{0, 0}, color);
+            }
+
+            for (i64 i = 0; i < (i64)anton_stl::size(_indices); ++i) {
+                indices.emplace_back(_indices[i]);
+            }
         }
 
         ctx.current = ctx.next;
