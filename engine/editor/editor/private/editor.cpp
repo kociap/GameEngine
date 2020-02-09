@@ -154,6 +154,8 @@ namespace anton_engine {
             Shader& imgui_shader = get_builtin_shader(Builtin_Editor_Shader::imgui);
             anton_stl::Slice<imgui::Viewport* const> const viewports = imgui::get_viewports(ctx);
             windowing::OpenGL_Context* main_window_context = windowing::get_window_context(main_window);
+            glDisable(GL_DEPTH_TEST);
+            glEnable(GL_BLEND);
             for (imgui::Viewport* viewport: viewports) {
                 windowing::Window* native_window = imgui::get_viewport_native_window(ctx, *viewport);
                 windowing::make_context_current_with_window(main_window_context, native_window);
@@ -167,7 +169,6 @@ namespace anton_engine {
                 }
 
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                glDepthFunc(GL_LEQUAL);
                 Vector2 const window_size = windowing::get_window_size(native_window);
                 Vector2 const window_pos = windowing::get_window_pos(native_window);
                 glViewport(0, 0, window_size.x, window_size.y);
@@ -181,6 +182,8 @@ namespace anton_engine {
                 imgui::commit_draw();
                 windowing::swap_buffers(native_window);
             }
+            glDisable(GL_BLEND);
+            glEnable(GL_DEPTH_TEST);
         }
 
         ecs->remove_requested_entities();
