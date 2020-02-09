@@ -674,6 +674,7 @@ namespace anton_engine::imgui {
         Style default_theme;
         default_theme.background_color = {0.1f, 0.1f, 0.1f};
         default_theme.preview_guides_color = {0.5f, 0.5f, 0.5f};
+        default_theme.preview_color = {0.0f, 111.0f / 255.0f, 1.0f, 0.5f};
         ctx.default_style = default_theme;
     }
 
@@ -779,55 +780,11 @@ namespace anton_engine::imgui {
                             } else {
                                 // In content area.
                                 Viewport* const viewport = window.dockspace->viewport;
-                                Vector2 const hot_dockspace_pos = get_dockspace_screen_pos(hot_dockspace);
-                                Vector2 const hot_dockspace_size = get_dockspace_size(hot_dockspace);
-                                Vector2 const hot_dockspace_content_pos = get_dockspace_content_screen_pos(hot_dockspace);
-                                Vector2 const hot_dockspace_content_size = get_dockspace_content_size(hot_dockspace);
-                                Vector2 const border_area_width = hot_dockspace_content_size * 0.5f * ctx.settings.window_drop_area_width;
-                                i32 const border_section =
-                                    check_cursor_in_border_area(cursor, hot_dockspace_content_pos, hot_dockspace_content_size, border_area_width);
-                                switch (border_section) {
-                                case 0: {
-                                    Vector2 const pos = hot_dockspace_pos;
-                                    set_viewport_screen_pos(viewport, pos);
-                                    Vector2 const size = {hot_dockspace_size.x, hot_dockspace_size.y * 0.5f};
-                                    set_viewport_size(viewport, size);
-                                } break;
-                                case 2: {
-                                    Vector2 const pos = hot_dockspace_pos + Vector2{0.0f, hot_dockspace_size.y * 0.5f};
-                                    set_viewport_screen_pos(viewport, pos);
-                                    Vector2 const size = {hot_dockspace_size.x, hot_dockspace_size.y * 0.5f};
-                                    set_viewport_size(viewport, size);
-                                } break;
-
-                                case 1: {
-                                    Vector2 const pos = hot_dockspace_pos + Vector2{hot_dockspace_size.x * 0.5f, 0.0f};
-                                    set_viewport_screen_pos(viewport, pos);
-                                    Vector2 const size = {hot_dockspace_size.x * 0.5f, hot_dockspace_size.y};
-                                    set_viewport_size(viewport, size);
-                                } break;
-
-                                case 3: {
-                                    Vector2 const pos = hot_dockspace_pos;
-                                    set_viewport_screen_pos(viewport, pos);
-                                    Vector2 const size = {hot_dockspace_size.x * 0.5f, hot_dockspace_size.y};
-                                    set_viewport_size(viewport, size);
-                                } break;
-
-                                default: {
-                                    set_viewport_screen_pos(viewport, cursor - ctx.drag.tab_click_offset);
-                                    set_viewport_size(viewport, ctx.drag.original_size);
-                                } break;
-                                }
-                                recalculate_sublayout_size(&viewport->layout_root);
+                                set_viewport_screen_pos(viewport, cursor - ctx.drag.tab_click_offset);
                             }
                         } else {
                             Viewport* const viewport = window.dockspace->viewport;
                             set_viewport_screen_pos(viewport, cursor - ctx.drag.tab_click_offset);
-                            if (Vector2 const viewport_size = get_viewport_size(viewport); viewport_size != ctx.drag.original_size) {
-                                set_viewport_size(viewport, ctx.drag.original_size);
-                                recalculate_sublayout_size(&viewport->layout_root);
-                            }
                         }
                     } else {
                         // We were in a dockspace's tab bar last frame.
@@ -1219,12 +1176,12 @@ namespace anton_engine::imgui {
                 7, 14, 15, 7, 6, 14, // bottom-right
             };
 
-            Draw_Command cmd;
-            cmd.vertex_offset = verts.size();
-            cmd.index_offset = indices.size();
-            cmd.element_count = anton_stl::size(_indices);
-            cmd.texture = 0;
-            viewport->draw_commands_buffer.emplace_back(cmd);
+            Draw_Command guides_cmd;
+            guides_cmd.vertex_offset = verts.size();
+            guides_cmd.index_offset = indices.size();
+            guides_cmd.element_count = anton_stl::size(_indices);
+            guides_cmd.texture = 0;
+            viewport->draw_commands_buffer.emplace_back(guides_cmd);
 
             for (i64 i = 0; i < (i64)anton_stl::size(_verts); ++i) {
                 verts.emplace_back(_verts[i], Vector2{0, 0}, color);
@@ -1232,6 +1189,56 @@ namespace anton_engine::imgui {
 
             for (i64 i = 0; i < (i64)anton_stl::size(_indices); ++i) {
                 indices.emplace_back(_indices[i]);
+            }
+
+            Vector2 const cursor = ctx.input.cursor_position;
+            i32 const border_section = check_cursor_in_border_area(cursor, dockspace_content_pos, dockspace_content_size, border_area_width);
+            if (border_section != -1) {
+                Draw_Command preview_cmd;
+                preview_cmd.vertex_offset = verts.size();
+                preview_cmd.index_offset = indices.size();
+                preview_cmd.element_count = 6;
+                preview_cmd.texture = 0;
+                viewport->draw_commands_buffer.emplace_back(preview_cmd);
+
+                Vertex::Color const preview_color = color_to_vertex_color(ctx.default_style.preview_color);
+                Dockspace* const dockspace = ctx.drag.hot_dockspace;
+                Vector2 const dockspace_pos = get_dockspace_screen_pos(dockspace);
+                Vector2 const dockspace_size = get_dockspace_size(dockspace);
+                Vector2 preview_pos;
+                Vector2 preview_size;
+                switch (border_section) {
+                case 0: {
+                    preview_pos = dockspace_pos;
+                    preview_size = {dockspace_size.x, dockspace_size.y * 0.5f};
+                } break;
+
+                case 1: {
+                    preview_pos = dockspace_pos + Vector2{dockspace_size.x * 0.5f, 0.0f};
+                    preview_size = {dockspace_size.x * 0.5f, dockspace_size.y};
+                } break;
+
+                case 2: {
+                    preview_pos = dockspace_pos + Vector2{0.0f, dockspace_size.y * 0.5f};
+                    preview_size = {dockspace_size.x, dockspace_size.y * 0.5f};
+                } break;
+
+                case 3: {
+                    preview_pos = dockspace_pos;
+                    preview_size = {dockspace_size.x * 0.5f, dockspace_size.y};
+                } break;
+                }
+                verts.emplace_back(preview_pos, Vector2{0, 1.0}, preview_color);
+                verts.emplace_back(preview_pos + Vector2{0.0f, preview_size.y}, Vector2{0.0f, 0.0f}, preview_color);
+                verts.emplace_back(preview_pos + preview_size, Vector2{1.0f, 0.0f}, preview_color);
+                verts.emplace_back(preview_pos + Vector2{preview_size.x, 0.0f}, Vector2{1.0f, 1.0f}, preview_color);
+
+                indices.push_back(0);
+                indices.push_back(1);
+                indices.push_back(2);
+                indices.push_back(0);
+                indices.push_back(2);
+                indices.push_back(3);
             }
         }
 
