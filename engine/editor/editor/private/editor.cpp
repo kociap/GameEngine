@@ -120,6 +120,28 @@ namespace anton_engine {
                 imgui::set_style(ctx, style);
                 imgui::end_window(ctx);
             }
+            {
+                imgui::begin_window(ctx, "window5");
+                imgui::Style style = imgui::get_style(ctx);
+                style.background_color = {0.7f, 0.933f, 0.008f};
+                // style.background_color = {0.2f, 0.2f, 0.2f};
+                // if (imgui::is_window_hot(ctx)) {
+                //     style.background_color = {0.4f, 0.4f, 0.4f};
+                // }
+                imgui::set_style(ctx, style);
+                imgui::end_window(ctx);
+            }
+            {
+                imgui::begin_window(ctx, "window6");
+                imgui::Style style = imgui::get_style(ctx);
+                style.background_color = {1.0f, 0.533f, 0.308f};
+                // style.background_color = {0.2f, 0.2f, 0.2f};
+                // if (imgui::is_window_hot(ctx)) {
+                //     style.background_color = {0.4f, 0.4f, 0.4f};
+                // }
+                imgui::set_style(ctx, style);
+                imgui::end_window(ctx);
+            }
 
             imgui::end_frame(ctx);
 
@@ -208,6 +230,14 @@ namespace anton_engine {
         imgui::begin_window(ctx, "window4");
         imgui::set_window_size(ctx, {200, 200});
         imgui::set_window_pos(ctx, {370, 400});
+        imgui::end_window(ctx);
+        imgui::begin_window(ctx, "window5");
+        imgui::set_window_size(ctx, {200, 200});
+        imgui::set_window_pos(ctx, {150, 650});
+        imgui::end_window(ctx);
+        imgui::begin_window(ctx, "window6");
+        imgui::set_window_size(ctx, {200, 200});
+        imgui::set_window_pos(ctx, {370, 650});
         imgui::end_window(ctx);
         imgui::end_frame(ctx);
 
