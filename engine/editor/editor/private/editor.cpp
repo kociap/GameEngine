@@ -41,6 +41,7 @@ namespace anton_engine {
 
     // TODO: Temporarily
     static windowing::Window* main_window = nullptr;
+    static windowing::OpenGL_Context* gl_context;
     static Resource_Manager<Mesh>* mesh_manager = nullptr;
     static Resource_Manager<Shader>* shader_manager = nullptr;
     static Resource_Manager<Material>* material_manager = nullptr;
@@ -153,12 +154,11 @@ namespace anton_engine {
             cmd.base_instance = 0;
             Shader& imgui_shader = get_builtin_shader(Builtin_Editor_Shader::imgui);
             anton_stl::Slice<imgui::Viewport* const> const viewports = imgui::get_viewports(ctx);
-            windowing::OpenGL_Context* main_window_context = windowing::get_window_context(main_window);
             glDisable(GL_DEPTH_TEST);
             glEnable(GL_BLEND);
             for (imgui::Viewport* viewport: viewports) {
                 windowing::Window* native_window = imgui::get_viewport_native_window(ctx, *viewport);
-                windowing::make_context_current_with_window(main_window_context, native_window);
+                windowing::make_context_current(gl_context, native_window);
                 anton_stl::Slice<imgui::Draw_Command const> draw_commands = imgui::get_viewport_draw_commands(ctx, *viewport);
                 for (imgui::Draw_Command draw_command: draw_commands) {
                     imgui::Draw_Elements_Command viewport_cmd = cmd;
@@ -200,7 +200,8 @@ namespace anton_engine {
         windowing::init();
         windowing::enable_vsync(true);
         main_window = windowing::create_window(1280, 720, nullptr, true, true);
-        windowing::make_context_current(main_window);
+        gl_context = windowing::create_context(4, 5, windowing::OpenGL_Profile::core);
+        windowing::make_context_current(gl_context, main_window);
         opengl::load();
         rendering::setup_rendering();
         load_builtin_shaders();
@@ -212,8 +213,6 @@ namespace anton_engine {
 
         imgui::setup_rendering();
         imgui_context = imgui::create_context();
-        windowing::set_cursor_pos_callback(main_window, cursor_pos_callback, imgui_context);
-        windowing::set_mouse_button_callback(main_window, mouse_button_callback, imgui_context);
         imgui::set_main_viewport_native_window(*imgui_context, main_window);
 
         imgui::Context& ctx = *imgui_context;
