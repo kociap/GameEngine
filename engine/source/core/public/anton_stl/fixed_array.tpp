@@ -24,7 +24,7 @@ namespace anton_engine::anton_stl {
             throw Invalid_Argument_Exception("Size is greater than capacity");
         }
 
-        uninitialized_copy_n(get_ptr(0), _size, v);
+        uninitialized_fill_n(get_ptr(0), _size, v);
     }
 
     template <typename T, i64 Capacity>
