@@ -2,12 +2,8 @@
 
 #include <utils/enum.hpp>
 
-#define GLFW_EXPOSE_NATIVE_WIN32 1
-#define GLFW_EXPOSE_NATIVE_WGL 1
-#include <GLFW/glfw3native.h>
-
 #define NOMINMAX 1
-#define WIN_LEAN_AND_MEAN 1
+#define WIN32_LEAN_AND_MEAN 1
 #include <Windows.h>
 
 #include <unordered_map>
@@ -19,18 +15,6 @@ namespace anton_engine::windowing {
     };
 
     static Win_Platform win_platform;
-
-    OpenGL_Context* get_window_context(Window* window) {
-        HGLRC const context = glfwGetWGLContext(window->glfw_window);
-        return reinterpret_cast<OpenGL_Context*>(context);
-    }
-
-    void make_context_current_with_window(OpenGL_Context* context, Window* window) {
-        HWND const hwnd = glfwGetWin32Window(window->glfw_window);
-        HDC const hdc = GetDC(hwnd);
-        HGLRC const hglrc = reinterpret_cast<HGLRC>(context);
-        wglMakeCurrent(hdc, hglrc);
-    }
 
     void poll_user_input_devices_state() {
         GetKeyboardState(win_platform.key_state);
@@ -109,13 +93,5 @@ namespace anton_engine::windowing {
     bool get_key(Key const k) {
         i32 const index = map_key_to_win_virtual_key(k);
         return index != -1 && (win_platform.key_state[index] & 0x80);
-    }
-
-    Vector2 get_cursor_pos() {
-        CURSORINFO cursor_info = {};
-        cursor_info.cbSize = sizeof(CURSORINFO);
-        cursor_info.flags = CURSOR_SHOWING;
-        GetCursorInfo(&cursor_info);
-        return Vector2(cursor_info.ptScreenPos.x, cursor_info.ptScreenPos.y);
     }
 } // namespace anton_engine::windowing

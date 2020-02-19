@@ -62,10 +62,10 @@ target_sources(${ENGINE_NAME}
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCE_FILES_ROOT} ${HEADER_FILES_ROOT} ${UI_FILES_ROOT})
 target_link_libraries(${ENGINE_NAME}
     ${OPENGL_LIBRARIES}
-    glad    
-    glfw
+    glad
     zlibstatic
     freetype
+    mimas
 )
 
 if(WIN32)

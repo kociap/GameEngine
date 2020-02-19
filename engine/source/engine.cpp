@@ -46,6 +46,7 @@ namespace anton_engine {
     static rendering::Renderer* renderer = nullptr;
     static ECS* ecs = nullptr;
     static windowing::Window* main_window = nullptr;
+    static windowing::OpenGL_Context* gl_context = nullptr;
     static Resource_Manager<Mesh>* mesh_manager = nullptr;
     static Resource_Manager<Shader>* shader_manager = nullptr;
     static Resource_Manager<Material>* material_manager = nullptr;
@@ -186,13 +187,14 @@ namespace anton_engine {
         windowing::init();
         windowing::enable_vsync(true);
         main_window = windowing::create_window(1280, 720, nullptr, true, true);
+        gl_context = windowing::create_context(4, 5, windowing::OpenGL_Profile::core);
         windowing::set_cursor_pos_callback(main_window, cursor_position_callback);
         windowing::set_mouse_button_callback(main_window, mouse_button_callback);
         windowing::set_key_callback(main_window, keyboard_callback);
         windowing::set_window_resize_callback(main_window, window_resize_callback);
         windowing::set_scroll_callback(main_window, scroll_callback);
         windowing::set_joystick_callback(joystick_config_callback);
-        windowing::make_context_current(main_window);
+        windowing::make_context_current(gl_context, main_window);
         opengl::load();
         rendering::setup_rendering();
         load_builtin_shaders();
