@@ -225,7 +225,7 @@ namespace anton_engine {
         main_window = windowing::create_window(1280, 720, true);
         windowing::Display* primary_display = windowing::get_primary_display();
         // windowing::fullscreen_window(main_window, primary_display);
-        windowing::set_mouse_button_callback(main_window, mouse_button_callback, &is_window_fullscreen);
+        windowing::set_mouse_button_callback(main_window, mouse_button_callback, nullptr);
         windowing::set_cursor_pos_callback(main_window, cursor_pos_callback, nullptr);
         gl_context = windowing::create_context(4, 5, windowing::OpenGL_Profile::core);
         windowing::make_context_current(gl_context, main_window);
