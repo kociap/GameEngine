@@ -35,6 +35,9 @@
 #include <serialization/archives/binary.hpp>
 #include <serialization/serialization.hpp>
 #include <time.hpp>
+#include <stdio.h>
+
+#include <time.hpp>
 
 namespace anton_engine {
     static bool _quit = false;
@@ -56,8 +59,12 @@ namespace anton_engine {
         windowing::poll_events();
         update_time();
 
+        // printf("delta time: %llf\n", get_delta_time());
+
         // ANTON_LOG_INFO(anton_stl::to_string(get_delta_time()));
         {
+            // printf("%d %d %d %d\n", mimas_get_key(MIMAS_KEY_A), mimas_get_key(MIMAS_KEY_NUMPAD_ENTER), mimas_get_key(MIMAS_KEY_SLASH), mimas_get_key(MIMAS_KEY_NUMPAD_DIVIDE));
+
             imgui::Context& ctx = *imgui_context;
             imgui::Input_State imgui_input = imgui::get_input_state(ctx);
             imgui_input.cursor_position = windowing::get_cursor_pos();
@@ -192,14 +199,34 @@ namespace anton_engine {
     // TODO: Forward decl of load_world. Remove (eventually)
     static void load_world();
 
-    static void cursor_pos_callback(windowing::Window* const window, f32 const x, f32 const y, void* const data) {}
-    static void mouse_button_callback(windowing::Window* const window, Key const button, i32 const action, void* const data) {}
+    static void cursor_pos_callback(windowing::Window* const window, f32 const x, f32 const y, void* const data) {
+        // printf("cursor move: %f %f\n", x, y);
+    }
+
+    static void mouse_button_callback(windowing::Window* const window, Key const button, i32 const action, void* const data) {
+        // static bool is_window_fullscreen = true;
+        // if(button == Key::left_mouse_button && action == 1) {
+        //     if(is_window_fullscreen) {
+        //         windowing::fullscreen_window(window, nullptr);
+        //         windowing::set_size(window, {1280.0f, 720.0f});
+        //     } else {
+        //         windowing::Display* display = windowing::get_primary_display();
+        //         windowing::fullscreen_window(window, display);
+        //     }
+
+        //     is_window_fullscreen = !is_window_fullscreen;
+        // }
+    }
 
     static void init() {
         init_time();
         windowing::init();
         windowing::enable_vsync(true);
-        main_window = windowing::create_window(1280, 720, nullptr, true, true);
+        main_window = windowing::create_window(1280, 720, true);
+        windowing::Display* primary_display = windowing::get_primary_display();
+        // windowing::fullscreen_window(main_window, primary_display);
+        windowing::set_mouse_button_callback(main_window, mouse_button_callback, &is_window_fullscreen);
+        windowing::set_cursor_pos_callback(main_window, cursor_pos_callback, nullptr);
         gl_context = windowing::create_context(4, 5, windowing::OpenGL_Profile::core);
         windowing::make_context_current(gl_context, main_window);
         opengl::load();
