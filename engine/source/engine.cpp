@@ -186,7 +186,7 @@ namespace anton_engine {
         init_time();
         windowing::init();
         windowing::enable_vsync(true);
-        main_window = windowing::create_window(1280, 720, nullptr, true, true);
+        main_window = windowing::create_window(1280, 720, true);
         gl_context = windowing::create_context(4, 5, windowing::OpenGL_Profile::core);
         windowing::set_cursor_pos_callback(main_window, cursor_position_callback);
         windowing::set_mouse_button_callback(main_window, mouse_button_callback);
@@ -489,7 +489,7 @@ namespace anton_engine {
         paths::set_executable_directory(exe_directory);
 
         init();
-        while (!should_close(main_window)) {
+        while (!windowing::close_requested(main_window)) {
             loop();
         }
         terminate();

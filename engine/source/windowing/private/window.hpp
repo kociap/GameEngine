@@ -7,17 +7,28 @@
 
 namespace anton_engine::windowing {
     class Window;
+    class Display;
     class OpenGL_Context;
+    class Cursor;
 
-    enum class Cursor_Mode {
-        // Visible and unrestricted
-        normal,
-        // Invisible, but unrestricted
-        hidden,
-        // Confined to the content area of a window
-        captured,
-        // Invisible and locked in place. Provides virtual and unlimited cursor movement
-        locked,
+    class Rect {
+    public:
+        i32 left;
+        i32 top;
+        i32 right;
+        i32 bottom;
+    };
+
+    enum class Standard_Cursor {
+        arrow,
+        resize_right,
+        resize_left,
+        resize_top,
+        resize_bottom,
+        resize_top_left,
+        resize_top_right,
+        resize_bottom_left,
+        resize_bottom_right,
     };
 
     // Returns true if windowing has been successfully initialized.
@@ -25,11 +36,16 @@ namespace anton_engine::windowing {
     void terminate();
     void poll_events();
 
-    Window* create_window(f32 width, f32 height, Window* share, bool create_context, bool decorated);
+    Display* get_primary_display();
+    void fullscreen_window(Window* window, Display* display);
+
+    Window* create_window(f32 width, f32 height, bool decorated);
     void destroy_window(Window*);
 
-    void set_cursor_mode(Window*, Cursor_Mode);
-    Cursor_Mode get_cursor_mode(Window*);
+    void clip_cursor(Window*, Rect const*);
+    void set_cursor(Window* window, Cursor* cursor);
+    Cursor* create_standard_cursor(Standard_Cursor cursor);
+    void destroy_cursor(Cursor* cursor);
 
     using window_resize_function = void (*)(Window*, f32 width, f32 height, void* user_data);
     using window_activate_function = void (*)(Window*, bool activated, void* user_data);
@@ -54,13 +70,12 @@ namespace anton_engine::windowing {
     // Retrieves cursor position.
     Vector2 get_cursor_pos();
 
-    bool should_close(Window*);
+    bool close_requested(Window*);
     void resize(Window*, f32 width, f32 height);
     Vector2 get_window_size(Window*);
     Vector2 get_window_pos(Window*);
     void set_window_pos(Window*, Vector2);
-    void set_opacity(Window*, float);
-    void focus_window(Window*);
+    void set_size(Window* window, Vector2 size);
 
     enum class OpenGL_Profile {
         core,

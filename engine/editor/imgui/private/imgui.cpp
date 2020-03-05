@@ -164,7 +164,7 @@ namespace anton_engine::imgui {
 
     static Viewport* create_viewport(Context& ctx, Vector2 const size, bool const decorated) {
         Viewport* viewport = new Viewport;
-        viewport->native_window = windowing::create_window(size.x, size.y, nullptr, true, false);
+        viewport->native_window = windowing::create_window(size.x, size.y, decorated);
         viewport->layout_root.tile_type = Layout_Tile_Type::root;
         viewport->layout_root.layout_parent = nullptr;
         viewport->layout_root.child = nullptr;
@@ -748,7 +748,7 @@ namespace anton_engine::imgui {
             if (ctx.active_window != -1) {
                 Window& window = ctx.next.windows.at(ctx.active_window);
                 Vector2 const cursor_pos_delta = ctx.input.cursor_position - ctx.prev_input.cursor_position;
-                ANTON_LOG_INFO("cursor_pos_delta: " + anton_stl::to_string(cursor_pos_delta.x) + " " + anton_stl::to_string(cursor_pos_delta.y));
+                // ANTON_LOG_INFO("cursor_pos_delta: " + anton_stl::to_string(cursor_pos_delta.x) + " " + anton_stl::to_string(cursor_pos_delta.y));
                 if (ctx.dragging) {
                     ctx.drag.hot_dockspace = nullptr;
                     for (Dockspace* const dockspace: ctx.dockspaces) {
