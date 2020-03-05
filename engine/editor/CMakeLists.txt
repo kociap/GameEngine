@@ -1,43 +1,43 @@
-set(SOURCE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/editor_window.cpp"
-)
-    
-set(HEADER_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/editor_window.hpp"
+target_sources(anton_engine
+    PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/editor_window.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/editor_window.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/editor.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/editor.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/editor_preferences.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/editor_preferences.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/rendering/imgui_rendering.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/level_editor/gizmo/gizmo_types.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/level_editor/gizmo/gizmo.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/level_editor/gizmo_context.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/level_editor/viewport_camera.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/imgui/imgui.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/content_browser/importers/common.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/content_browser/importers/image.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/content_browser/importers/mesh.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/content_browser/importers/obj.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/content_browser/importers/png.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/content_browser/importers/tga.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/content_browser/importers/common.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/content_browser/importers/obj.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/content_browser/importers/png.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/content_browser/importers/tga.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/content_browser/asset_guid.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/content_browser/asset_importing.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/public/content_browser/asset_guid.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/public/content_browser/asset_importing.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/public/content_browser/postprocess.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/public/imgui/imgui.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/public/level_editor/gizmo/arrow_3d.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/public/level_editor/gizmo/dial_3d.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/public/level_editor/gizmo/gizmo.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/public/level_editor/gizmo_context.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/public/level_editor/viewport_camera.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/public/rendering/builtin_editor_shaders.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/public/rendering/imgui_rendering.hpp"
 )
 
-add_subdirectory(editor/public)
-add_subdirectory(editor/private)
-add_subdirectory(imgui/public)
-add_subdirectory(imgui/private)
-# add_subdirectory(level_editor/public)
-# add_subdirectory(level_editor/private)
-add_subdirectory(content_browser/public)
-add_subdirectory(content_browser/private)
-add_subdirectory(rendering/public)
-add_subdirectory(rendering/private)
-
-set(SOURCE_FILES_ROOT
-    ${SOURCE_FILES_ROOT}
-    ${SOURCE_FILES}
-    PARENT_SCOPE
-)
-
-set(HEADER_FILES_ROOT
-    ${HEADER_FILES_ROOT}
-    ${HEADER_FILES}
-    PARENT_SCOPE
-)
-
-set(PRIVATE_INCLUDE_DIRECTORIES_ROOT
-    ${PRIVATE_INCLUDE_DIRECTORIES_ROOT}
-    ${PRIVATE_INCLUDE_DIRECTORIES}
-    PARENT_SCOPE
-)
-
-set(PUBLIC_INCLUDE_DIRECTORIES_ROOT
-    ${PUBLIC_INCLUDE_DIRECTORIES_ROOT}
-    ${PUBLIC_INCLUDE_DIRECTORIES}
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    PARENT_SCOPE
+target_include_directories(anton_engine
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private"
+    PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}/public"
 )

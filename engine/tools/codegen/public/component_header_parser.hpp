@@ -1,7 +1,7 @@
 #ifndef TOOLS_CODEGEN_COMPONENT_HEADER_PARSER_HPP_INCLUDE
 #define TOOLS_CODEGEN_COMPONENT_HEADER_PARSER_HPP_INCLUDE
 
-#include <anton_stl/vector.hpp>
+#include <core/stl/vector.hpp>
 #include <file.hpp>
 #include <string>
 

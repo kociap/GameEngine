@@ -1,4 +1,4 @@
-#include <anton_stl/vector.hpp>
+#include <core/stl/vector.hpp>
 #include <component_header_parser.hpp>
 #include <file.hpp>
 #include <filesystem>
@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
     }
 
     std::ofstream generated_file(output_file);
-    generated_file << "#include <component_serialization_funcs.hpp>\n#include <ecs/component_container.hpp>\n\n";
+    generated_file << "#include <component_serialization_funcs.hpp>\n#include <engine/ecs/component_container.hpp>\n\n";
     for (auto& [include_directory, name]: components) {
         generated_file << "#include <" << include_directory << ">\n";
     }

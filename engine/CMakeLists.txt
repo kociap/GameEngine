@@ -1,11 +1,3 @@
-add_library(${ENGINE_NAME} SHARED)
-set_target_properties(${ENGINE_NAME}
-    PROPERTIES
-    FOLDER ${ENGINE_FOLDER_NAME}
-    WINDOWS_EXPORT_ALL_SYMBOLS ON
-)
-
-
 find_package(OpenGL REQUIRED)
 
 # Debug Interface Access. Might use it one day for better assert
@@ -26,91 +18,9 @@ if(${ENGINE_WITH_EDITOR})
     add_subdirectory(editor)
 endif()
 
-target_compile_definitions(${ENGINE_NAME} 
-    PRIVATE 
-    ENGINE_API=${ENGINE_DLL_EXPORT} 
-    GAME_API=${ENGINE_DLL_IMPORT} 
-    ANTON_COMPILER_ID=${ENGINE_COMPILER_ID} 
-    ANTON_COMPILER_CLANG=${ENGINE_COMPILER_CLANG} 
-    ANTON_COMPILER_GCC=${ENGINE_COMPILER_GCC} 
-    ANTON_COMPILER_MSVC=${ENGINE_COMPILER_MSVC} 
-    ANTON_COMPILER_UNKNOWN=${ENGINE_COMPILER_UNKNOWN}
-    ANTON_WITH_EDITOR=${ENGINE_WITH_EDITOR}
-    # Use unicode instead of multibyte charset (VS)
-    UNICODE
-    _UNICODE
-)
-
-target_compile_options(${ENGINE_NAME} 
-    PRIVATE ${ENGINE_CXX_FLAGS}
-)
-
-target_include_directories(${ENGINE_NAME} 
-    PUBLIC 
-        ${PUBLIC_INCLUDE_DIRECTORIES_ROOT}
-    PRIVATE 
-        ${PRIVATE_INCLUDE_DIRECTORIES_ROOT}
-        ${DIA_SDK_INCLUDE_DIRECTORY}
-)
-
-target_sources(${ENGINE_NAME} 
-    PRIVATE ${UI_FILES_ROOT}
-    PRIVATE ${SOURCE_FILES_ROOT} 
-    PRIVATE ${HEADER_FILES_ROOT}
-)
-
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCE_FILES_ROOT} ${HEADER_FILES_ROOT} ${UI_FILES_ROOT})
-target_link_libraries(${ENGINE_NAME}
-    ${OPENGL_LIBRARIES}
-    glad
-    zlibstatic
-    freetype
-    mimas
-)
-
-if(WIN32)
-    target_link_libraries(${ENGINE_NAME}
-        DbgHelp
-    )
-endif()
-
-add_library(AntonEngine_lib SHARED IMPORTED GLOBAL)
-target_include_directories(AntonEngine_lib INTERFACE ${PUBLIC_INCLUDE_DIRECTORIES_ROOT})
-target_compile_options(AntonEngine_lib INTERFACE ${ENGINE_CXX_FLAGS})
-# TODO: Linux support
-set_target_properties(AntonEngine_lib 
-    PROPERTIES 
-    IMPORTED_LOCATION "${ENGINE_BINARY_OUTPUT_DIRECTORY}/GameEngine.dll"
-    IMPORTED_LOCATION_DEBUG "${ENGINE_BINARY_OUTPUT_DIRECTORY}/GameEngined.dll"
-    IMPORTED_IMPLIB "${ENGINE_BINARY_OUTPUT_DIRECTORY}/GameEngine.lib"
-    IMPORTED_IMPLIB_DEBUG "${ENGINE_BINARY_OUTPUT_DIRECTORY}/GameEngined.lib"
-)
-
 add_subdirectory(tools)
-target_compile_definitions(Codegen 
-    PRIVATE 
-    ENGINE_API=${ENGINE_DLL_IMPORT} 
-    ANTON_COMPILER_ID=${ENGINE_COMPILER_ID} 
-    ANTON_COMPILER_CLANG=${ENGINE_COMPILER_CLANG} 
-    ANTON_COMPILER_GCC=${ENGINE_COMPILER_GCC} 
-    ANTON_COMPILER_MSVC=${ENGINE_COMPILER_MSVC} 
-    ANTON_COMPILER_UNKNOWN=${ENGINE_COMPILER_UNKNOWN}
-    ANTON_WITH_EDITOR=${ENGINE_WITH_EDITOR}
-    # Use unicode instead of multibyte charset (VS)
-    UNICODE
-    _UNICODE
-)
-target_include_directories(${ENGINE_NAME} 
-    PRIVATE ${PUBLIC_INCLUDE_DIRECTORIES_ROOT}
-    PRIVATE ${PRIVATE_INCLUDE_DIRECTORIES_ROOT}
-)
-set_target_properties(${ENGINE_NAME}
-    PROPERTIES
-    RUNTIME_OUTPUT_NAME_DEBUG "${ENGINE_NAME}d"
-    LIBRARY_OUTPUT_NAME_DEBUG "${ENGINE_NAME}d"
-    ARCHIVE_OUTPUT_NAME_DEBUG "${ENGINE_NAME}d"
-)
-set_target_properties(${ENGINE_NAME} Codegen
+
+set_target_properties(anton_engine anton_engine_loader Codegen
     PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${ENGINE_BINARY_OUTPUT_DIRECTORY}"
     RUNTIME_OUTPUT_DIRECTORY_DEBUG "${ENGINE_BINARY_OUTPUT_DIRECTORY}"
@@ -122,66 +32,3 @@ set_target_properties(${ENGINE_NAME} Codegen
     LIBRARY_OUTPUT_DIRECTORY_DEBUG "${ENGINE_BINARY_OUTPUT_DIRECTORY}"
     LIBRARY_OUTPUT_DIRECTORY_RELEASE "${ENGINE_BINARY_OUTPUT_DIRECTORY}"
 )
-
-if(MSVC)
-    # add_custom_command(
-    #     TARGET ${PROJECT_NAME}
-    #     POST_BUILD
-    #     COMMAND "xcopy" ARGS "\"${CMAKE_SOURCE_DIR}/assets_main\" \"${CMAKE_BINARY_DIR}/bin/assets\" /S /I /Q /Y"
-    # )
-
-    # add_custom_command(
-    #     TARGET ${PROJECT_NAME}
-    #     POST_BUILD
-    #     COMMAND "xcopy" ARGS "\"${CMAKE_SOURCE_DIR}/data\" \"${CMAKE_BINARY_DIR}/bin\" /S /I /Q /Y"
-    # )
-
-    # add_custom_command(
-    #     TARGET ${PROJECT_NAME}
-    #     POST_BUILD
-    #     COMMAND "xcopy" ARGS "\"${CMAKE_SOURCE_DIR}/engine/shaders\" \"${CMAKE_BINARY_DIR}/bin/shaders\" /S /I /Q /Y"
-    # )
-elseif(FALSE)
-    # add linux
-endif()
-
-
-set(ENGINE_LOADER_SOURCE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/source/main.cpp"
-)
-
-add_executable(AntonEngineLoader ${ENGINE_LOADER_SOURCE_FILES})
-target_compile_definitions(AntonEngineLoader 
-    PRIVATE 
-    ENGINE_API=${ENGINE_DLL_IMPORT} 
-    GAME_API=${ENGINE_DLL_IMPORT} 
-    ANTON_COMPILER_ID=${ENGINE_COMPILER_ID} 
-    ANTON_COMPILER_CLANG=${ENGINE_COMPILER_CLANG} 
-    ANTON_COMPILER_GCC=${ENGINE_COMPILER_GCC} 
-    ANTON_COMPILER_MSVC=${ENGINE_COMPILER_MSVC} 
-    ANTON_COMPILER_UNKNOWN=${ENGINE_COMPILER_UNKNOWN}
-    ANTON_WITH_EDITOR=${ENGINE_WITH_EDITOR}
-)
-target_compile_options(AntonEngineLoader PRIVATE ${ENGINE_CXX_FLAGS})
-target_include_directories(AntonEngineLoader 
-    PRIVATE ${PUBLIC_INCLUDE_DIRECTORIES_ROOT}
-    PRIVATE ${PRIVATE_INCLUDE_DIRECTORIES_ROOT}
-)
-set_target_properties(AntonEngineLoader
-    PROPERTIES
-    FOLDER ${ENGINE_FOLDER_NAME}
-    RUNTIME_OUTPUT_DIRECTORY "${ENGINE_BINARY_OUTPUT_DIRECTORY}"
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${ENGINE_BINARY_OUTPUT_DIRECTORY}"
-    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${ENGINE_BINARY_OUTPUT_DIRECTORY}"
-    RUNTIME_OUTPUT_NAME_DEBUG "AntonEngineLoader_d"
-)
-target_link_libraries(AntonEngineLoader ${ENGINE_NAME})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${ENGINE_LOADER_SOURCE_FILES})
-
-# target_link_options(AntonEngineLoader
-#     PRIVATE /PROFILE
-# )
-
-# target_link_options(${ENGINE_NAME}
-#     PRIVATE /PROFILE
-# )
