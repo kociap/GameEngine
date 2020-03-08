@@ -142,6 +142,20 @@ namespace anton_engine::math {
     // popcount
     // Counts the number of set bits in v.
     //
+    constexpr u8 popcount(u8 v) {
+        v = (v & 0x55) + ((v >> 1) & 0x55);
+        v = (v & 0x33) + ((v >> 2) & 0x33);
+        v = (v & 0x0F) + ((v >> 2) & 0x0F);
+        return v;
+    }
+
+    constexpr u16 popcount(u16 v) {
+        v = (v & 0x5555) + ((v >> 1) & 0x5555);
+        v = (v & 0x3333) + ((v >> 2) & 0x3333);
+        v = (v & 0x0F0F) + ((v >> 2) & 0x0F0F);
+        return v * 0x0101 >> 8;
+    }
+
     constexpr u32 popcount(u32 v) {
         v = (v & 0x55555555) + ((v >> 1) & 0x55555555);
         v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
@@ -159,6 +173,21 @@ namespace anton_engine::math {
     // clz
     // Counts leading zeros.
     //
+    constexpr u8 clz(u8 v) {
+        v |= (v >> 1);
+        v |= (v >> 2);
+        v |= (v >> 4);
+        return 8 - popcount(v);
+    }
+    
+    constexpr u16 clz(u16 v) {
+        v |= (v >> 1);
+        v |= (v >> 2);
+        v |= (v >> 4);
+        v |= (v >> 8);
+        return 16 - popcount(v);
+    }
+
     constexpr u32 clz(u32 v) {
         v |= (v >> 1);
         v |= (v >> 2);

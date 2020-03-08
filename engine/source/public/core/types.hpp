@@ -17,6 +17,18 @@ namespace anton_engine {
 
     using isize = i64;
     using usize = u64;
+
+    using char8 = unsigned char;
+    using char16 = char16_t;
+    using char32 = char32_t;
+
+    class Rect {
+    public:
+        i32 left;
+        i32 top;
+        i32 right;
+        i32 bottom;
+    };
 } // namespace anton_engine
 
 #endif // !CORE_TYPES_HPP_INCLUDE

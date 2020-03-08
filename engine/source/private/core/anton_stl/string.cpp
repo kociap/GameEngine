@@ -15,11 +15,12 @@
 
 namespace anton_engine::anton_stl {
     String String::from_utf16(char16_t const* str) {
-        char codepoint_utf8[5] = {};
+        // TODO: Fix this function asap
+        char8 codepoint_utf8[5] = {};
         String string;
         while (*str != char16_t(0)) {
-            int32_t bytes_written = unicode::convert_utf16_to_utf8(str, codepoint_utf8);
-            string.append(String_View(codepoint_utf8, bytes_written));
+            int32_t bytes_written = unicode::convert_single_utf16_to_utf8(str, codepoint_utf8);
+            string.append(String_View(reinterpret_cast<char*>(codepoint_utf8), bytes_written));
             str += (bytes_written < 4 ? 1 : 2);
         }
         return string;
