@@ -30,6 +30,8 @@ namespace anton_engine::anton_stl {
         Fixed_Array(size_type, value_type const&);
         Fixed_Array(Fixed_Array const& original);
         Fixed_Array(Fixed_Array&& from) noexcept;
+        template<typename Input_Iterator>
+        Fixed_Array(Range_Construct_Tag, Input_Iterator first, Input_Iterator last);
         template <typename... Args>
         Fixed_Array(Variadic_Construct_Tag, Args&&...);
         ~Fixed_Array();

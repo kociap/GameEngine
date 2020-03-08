@@ -40,6 +40,8 @@ namespace anton_engine::anton_stl {
         Vector(size_type, value_type const&);
         Vector(Vector const& original);
         Vector(Vector&& from) noexcept;
+        template<typename Input_Iterator>
+        Vector(Range_Construct_Tag, Input_Iterator first, Input_Iterator last);
         template <typename... Args>
         Vector(Variadic_Construct_Tag, Args&&...);
         ~Vector();
@@ -67,6 +69,9 @@ namespace anton_engine::anton_stl {
         // Does nothing if requested_capacity is less than capacity().
         void reserve(size_type n);
         void set_capacity(size_type n);
+        // Changes the size of the vector to n. Useful in situations when the user
+        // writes to the vector via external means.
+        void force_size(size_type n);
 
         template <typename Input_Iterator>
         void assign(Input_Iterator first, Input_Iterator last);

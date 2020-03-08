@@ -15,5 +15,12 @@ namespace anton_engine::anton_stl {
         explicit Variadic_Construct_Tag() = default; // Explicit constructors so that it may not be constructed via {}
     };
     inline constexpr Variadic_Construct_Tag variadic_construct;
+
+    // Range_Construct_Tag
+    // For templated constructor overloads that take a pair of iterators
+    struct Range_Construct_Tag {
+        explicit Range_Construct_Tag() = default; // Explicit constructors so that it may not be constructed via {}
+    };
+    inline constexpr Range_Construct_Tag range_construct;
 } // namespace anton_engine::anton_stl
 #endif // !CORE_ANTON_STL_CONFIG_HPP_INCLUDE

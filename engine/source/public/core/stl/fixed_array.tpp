@@ -7,54 +7,65 @@
 
 namespace anton_engine::anton_stl {
     template <typename T, i64 Capacity>
-    inline Fixed_Array<T, Capacity>::Fixed_Array(): _size(0) {}
+    Fixed_Array<T, Capacity>::Fixed_Array(): _size(0) {}
 
     template <typename T, i64 Capacity>
-    inline Fixed_Array<T, Capacity>::Fixed_Array(size_type const s): _size(s) {
+    Fixed_Array<T, Capacity>::Fixed_Array(size_type const s): _size(s) {
         if (s > Capacity) {
-            throw Invalid_Argument_Exception("Size is greater than capacity");
+            throw Invalid_Argument_Exception("Size is greater than capacity.");
         }
 
         uninitialized_default_construct_n(get_ptr(0), _size);
     }
 
     template <typename T, i64 Capacity>
-    inline Fixed_Array<T, Capacity>::Fixed_Array(size_type const s, value_type const& v): _size(s) {
+    Fixed_Array<T, Capacity>::Fixed_Array(size_type const s, value_type const& v): _size(s) {
         if (s > Capacity) {
-            throw Invalid_Argument_Exception("Size is greater than capacity");
+            throw Invalid_Argument_Exception("Size is greater than capacity.");
         }
 
         uninitialized_fill_n(get_ptr(0), _size, v);
     }
 
     template <typename T, i64 Capacity>
-    inline Fixed_Array<T, Capacity>::Fixed_Array(Fixed_Array const& other): _size(other._size) {
+    Fixed_Array<T, Capacity>::Fixed_Array(Fixed_Array const& other): _size(other._size) {
         uninitialized_copy_n(other.get_ptr(0), _size, get_ptr(0));
     }
 
     template <typename T, i64 Capacity>
-    inline Fixed_Array<T, Capacity>::Fixed_Array(Fixed_Array&& other) noexcept: _size(other._size) {
+    Fixed_Array<T, Capacity>::Fixed_Array(Fixed_Array&& other) noexcept: _size(other._size) {
         uninitialized_move_n(other.get_ptr(0), _size, get_ptr(0));
     }
 
     template <typename T, i64 Capacity>
+    template<typename Input_Iterator>
+    Fixed_Array<T, Capacity>::Fixed_Array(Range_Construct_Tag, Input_Iterator first, Input_Iterator last) {
+        i64 const distance = last - first;
+        if(distance > Capacity) {
+            throw Invalid_Argument_Exception("Distance between last and first is greater than the capacity.");
+        }
+
+        uninitialized_copy(first, last, get_ptr(0));
+    }
+
+    template <typename T, i64 Capacity>
     template <typename... Args>
-    inline Fixed_Array<T, Capacity>::Fixed_Array(Variadic_Construct_Tag, Args&&... args): _size(sizeof...(Args)) {
+    Fixed_Array<T, Capacity>::Fixed_Array(Variadic_Construct_Tag, Args&&... args): _size(sizeof...(Args)) {
         if (sizeof...(Args) > Capacity) {
-            throw Invalid_Argument_Exception("Size is greater than capacity");
+            throw Invalid_Argument_Exception("Size is greater than capacity.");
         }
 
         uninitialized_variadic_construct(get_ptr(0), forward<Args>(args)...);
     }
 
     template <typename T, i64 Capacity>
-    inline Fixed_Array<T, Capacity>::~Fixed_Array() {
+    Fixed_Array<T, Capacity>::~Fixed_Array() {
         destruct_n(get_ptr(0), _size);
     }
 
     // TODO: exception guarantees?
     template <typename T, i64 Capacity>
-    inline Fixed_Array<T, Capacity>& Fixed_Array<T, Capacity>::operator=(Fixed_Array const& other) {
+    Fixed_Array<T, Capacity>& Fixed_Array<T, Capacity>::operator=(Fixed_Array const& other) {
         if (_size >= other._size) {
             copy(other.get_ptr(0), other.get_ptr(other._size), get_ptr(0));
             destruct_n(get_ptr(other._size), _size - other._size);
@@ -69,7 +80,7 @@ namespace anton_engine::anton_stl {
 
     // TODO: exception guarantees?
     template <typename T, i64 Capacity>
-    inline Fixed_Array<T, Capacity>& Fixed_Array<T, Capacity>::operator=(Fixed_Array&& from) noexcept {
+    Fixed_Array<T, Capacity>& Fixed_Array<T, Capacity>::operator=(Fixed_Array&& from) noexcept {
         if (_size >= from._size) {
             move(from.get_ptr(0), from.get_ptr(from._size), get_ptr(0));
             destruct_n(get_ptr(from._size), _size - from._size);
@@ -83,67 +94,67 @@ namespace anton_engine::anton_stl {
     }
 
     template <typename T, i64 Capacity>
-    inline auto Fixed_Array<T, Capacity>::operator[](size_type index) -> reference {
+    auto Fixed_Array<T, Capacity>::operator[](size_type index) -> reference {
         return *get_ptr(index);
     }
 
     template <typename T, i64 Capacity>
-    inline auto Fixed_Array<T, Capacity>::operator[](size_type index) const -> const_reference {
+    auto Fixed_Array<T, Capacity>::operator[](size_type index) const -> const_reference {
         return *get_ptr(index);
     }
 
     template <typename T, i64 Capacity>
-    inline auto Fixed_Array<T, Capacity>::data() -> pointer {
+    auto Fixed_Array<T, Capacity>::data() -> pointer {
         return get_ptr(0);
     }
 
     template <typename T, i64 Capacity>
-    inline auto Fixed_Array<T, Capacity>::data() const -> const_pointer {
+    auto Fixed_Array<T, Capacity>::data() const -> const_pointer {
         return get_ptr(0);
     }
 
     template <typename T, i64 Capacity>
-    inline auto Fixed_Array<T, Capacity>::begin() -> iterator {
+    auto Fixed_Array<T, Capacity>::begin() -> iterator {
         return get_ptr(0);
     }
 
     template <typename T, i64 Capacity>
-    inline auto Fixed_Array<T, Capacity>::end() -> iterator {
+    auto Fixed_Array<T, Capacity>::end() -> iterator {
         return get_ptr(_size);
     }
 
     template <typename T, i64 Capacity>
-    inline auto Fixed_Array<T, Capacity>::begin() const -> const_iterator {
+    auto Fixed_Array<T, Capacity>::begin() const -> const_iterator {
         return get_ptr(0);
     }
 
     template <typename T, i64 Capacity>
-    inline auto Fixed_Array<T, Capacity>::end() const -> const_iterator {
+    auto Fixed_Array<T, Capacity>::end() const -> const_iterator {
         return get_ptr(_size);
     }
 
     template <typename T, i64 Capacity>
-    inline auto Fixed_Array<T, Capacity>::cbegin() const -> const_iterator {
+    auto Fixed_Array<T, Capacity>::cbegin() const -> const_iterator {
         return get_ptr(0);
     }
 
     template <typename T, i64 Capacity>
-    inline auto Fixed_Array<T, Capacity>::cend() const -> const_iterator {
+    auto Fixed_Array<T, Capacity>::cend() const -> const_iterator {
         return get_ptr(_size);
     }
 
     template <typename T, i64 Capacity>
-    inline auto Fixed_Array<T, Capacity>::size() const -> size_type {
+    auto Fixed_Array<T, Capacity>::size() const -> size_type {
         return _size;
     }
 
     template <typename T, i64 Capacity>
-    inline auto Fixed_Array<T, Capacity>::capacity() const -> size_type {
+    auto Fixed_Array<T, Capacity>::capacity() const -> size_type {
         return Capacity;
     }
 
     template <typename T, i64 Capacity>
-    inline void Fixed_Array<T, Capacity>::resize(size_type const s) {
+    void Fixed_Array<T, Capacity>::resize(size_type const s) {
         ANTON_VERIFY(s <= Capacity && s >= 0, "Requested size was outside the range [0, capacity()].");
         if (s >= _size) {
             uninitialized_default_construct_n(get_ptr(_size), s - _size);
@@ -154,7 +165,7 @@ namespace anton_engine::anton_stl {
     }
 
     template <typename T, i64 Capacity>
-    inline void Fixed_Array<T, Capacity>::resize(size_type const s, T const& v) {
+    void Fixed_Array<T, Capacity>::resize(size_type const s, T const& v) {
         ANTON_VERIFY(s <= Capacity && s >= 0, "Requested size was outside the range [0, capacity()].");
         if (s >= _size) {
             uninitialized_fill_n(get_ptr(_size), s - _size);
@@ -165,14 +176,14 @@ namespace anton_engine::anton_stl {
     }
 
     template <typename T, i64 Capacity>
-    inline void Fixed_Array<T, Capacity>::clear() {
+    void Fixed_Array<T, Capacity>::clear() {
         destruct_n(get_ptr(0), _size);
         _size = 0;
     }
 
     template <typename T, i64 Capacity>
     template <typename... Args>
-    inline auto Fixed_Array<T, Capacity>::emplace_back(Args&&... args) -> reference {
+    auto Fixed_Array<T, Capacity>::emplace_back(Args&&... args) -> reference {
         ANTON_VERIFY(_size < Capacity, "Cannot emplace_back element in a full Fixed_Array.");
         T* const elem = get_ptr(_size);
         construct(elem, forward<Args>(args)...);
@@ -181,7 +192,7 @@ namespace anton_engine::anton_stl {
     }
 
     template <typename T, i64 Capacity>
-    inline void Fixed_Array<T, Capacity>::pop_back() {
+    void Fixed_Array<T, Capacity>::pop_back() {
         ANTON_VERIFY(_size > 0, "Trying to pop an element from an empty Fixed_Array");
         T* const elem = get_ptr(_size - 1);
         destruct(elem);
@@ -189,17 +200,17 @@ namespace anton_engine::anton_stl {
     }
 
     template <typename T, i64 Capacity>
-    inline T* Fixed_Array<T, Capacity>::get_ptr(size_type const index) {
+    T* Fixed_Array<T, Capacity>::get_ptr(size_type const index) {
         return std::launder(reinterpret_cast<T*>(_data + index));
     }
 
     template <typename T, i64 Capacity>
-    inline T const* Fixed_Array<T, Capacity>::get_ptr(size_type const index) const {
+    T const* Fixed_Array<T, Capacity>::get_ptr(size_type const index) const {
         return std::launder(reinterpret_cast<T const*>(_data + index));
     }
 
     template <typename... Args>
-    inline void construct(void* ptr, Args&&... args) {
+    void construct(void* ptr, Args&&... args) {
         if constexpr (is_constructible<T, Ctor_Args&&...>) {
             ::new (ptr) T(forward<Ctor_Args>(args)...);
         } else {
