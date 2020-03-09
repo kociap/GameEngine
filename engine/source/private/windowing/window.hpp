@@ -11,14 +11,6 @@ namespace anton_engine::windowing {
     class OpenGL_Context;
     class Cursor;
 
-    class Rect {
-    public:
-        i32 left;
-        i32 top;
-        i32 right;
-        i32 bottom;
-    };
-
     enum class Standard_Cursor {
         arrow,
         resize_right,
