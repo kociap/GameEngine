@@ -232,7 +232,7 @@ namespace anton_engine::anton_stl {
 
     template<typename T, typename Allocator>
     void Vector<T, Allocator>::force_size(size_type n) {
-        ANTON_ASSERT(n < _capacity, "Requested size is greater than capacity.");
+        ANTON_ASSERT(n <= _capacity, "Requested size is greater than capacity.");
         _size = n;
     }
 
