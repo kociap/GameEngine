@@ -11,7 +11,7 @@ namespace anton_engine::unicode {
 
         if (char16 high_surrogate = *buffer_utf16; high_surrogate > 0xD7FF && high_surrogate < 0xE000) {
             // Surrogate pair
-            u16 low_surrogate = *(buffer_utf16 + 1);
+            u16 low_surrogate = buffer_utf16[1];
             char32 codepoint = (((high_surrogate & 0x3FF) >> 10) | (low_surrogate & 0x3FF)) + 0x10000;
             buffer_utf8[0] = 0xF0 | ((codepoint & 0x1C0000) >> 18);
             buffer_utf8[1] = 0x80 | ((codepoint & 0x3F000) >> 12);
@@ -62,7 +62,7 @@ namespace anton_engine::unicode {
             while (true) {
                 if (char16 high_surrogate = *buffer_utf16; high_surrogate > 0xD7FF && high_surrogate < 0xE000) {
                     // Surrogate pair
-                    u16 low_surrogate = *(buffer_utf16 + 1);
+                    u16 low_surrogate = buffer_utf16[1];
                     char32 codepoint = (((high_surrogate & 0x3FF) >> 10) | (low_surrogate & 0x3FF)) + 0x10000;
                     buffer_utf8[0] = 0xF0 | ((codepoint & 0x1C0000) >> 18);
                     buffer_utf8[1] = 0x80 | ((codepoint & 0x3F000) >> 12);
@@ -112,7 +112,7 @@ namespace anton_engine::unicode {
                 u32 const byte_count = math::min((u8)1, math::clz((u8)~first_byte));
                 codepoint_count += 1;
                 if (first_byte == '\0') {
-                    return codepoint_count;
+                    return codepoint_count * sizeof(char32);
                 }
                 buffer_utf8 += byte_count;
             }
@@ -131,7 +131,7 @@ namespace anton_engine::unicode {
                 codepoint_count += 1;
 
                 if (first_byte == '\0') {
-                    return codepoint_count;
+                    return codepoint_count * sizeof(char32);
                 }
                 buffer_utf8 += byte_count;
                 buffer_utf32 += 1;
