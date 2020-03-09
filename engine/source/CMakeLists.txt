@@ -38,14 +38,14 @@ file(GLOB_RECURSE TMPL_IMPL_FILES LIST_DIRECTORIES FALSE "*.tpp")
 
 if(WIN32)
     list(REMOVE_ITEM SOURCE_FILES 
-        "${CMAKE_CURRENT_SOURCE_DIR}/private/core/anton_assert/anton_assert_posix.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/private/core/assert/assert_posix.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/private/engine/time/time_posix.cpp"
         )
 else()
     list(REMOVE_ITEM SOURCE_FILES 
         "${CMAKE_CURRENT_SOURCE_DIR}/private/core/windows/debugging.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/private/core/windows/common.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/private/core/anton_assert/anton_assert_win.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/private/core/assert/assert_win.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/private/engine/time/time_win.cpp"
     )
 
