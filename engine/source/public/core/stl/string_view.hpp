@@ -1,15 +1,13 @@
 #ifndef CORE_ANTON_STL_STRING_VIEW_HPP_INCLUDE
 #define CORE_ANTON_STL_STRING_VIEW_HPP_INCLUDE
 
-#include <core/types.hpp>
+#include <build_config.hpp>
+#include <core/hashing/murmurhash2.hpp>
 #include <core/stl/detail/string_iterators.hpp>
 #include <core/stl/iterators.hpp>
 #include <core/stl/string_utils.hpp>
 #include <core/stl/utility.hpp>
-#include <build_config.hpp>
-#include <core/hashing/murmurhash2.hpp>
-
-#include <functional> // std::hash
+#include <core/types.hpp>
 
 namespace anton_engine::anton_stl {
     class String_View {
@@ -77,9 +75,12 @@ namespace anton_engine::anton_stl {
 } // namespace anton_engine::anton_stl
 
 namespace std {
+    template <typename T>
+    struct hash;
+
     template <>
     struct hash<anton_engine::anton_stl::String_View> {
-        uint64_t operator()(anton_engine::anton_stl::String_View const view) const {
+        anton_engine::u64 operator()(anton_engine::anton_stl::String_View const view) const {
             return anton_engine::anton_stl::hash(view);
         }
     };

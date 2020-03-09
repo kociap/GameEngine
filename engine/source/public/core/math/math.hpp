@@ -67,8 +67,9 @@ namespace anton_engine::math {
         return std::cosf(angle);
     }
 
-    constexpr float abs(float a) {
-        return a < 0.0f ? -a : a;
+    template<typename T>
+    constexpr T abs(T a) {
+        return a < T(0) ? -a : a;
     }
 
     template <typename T>

@@ -1,29 +1,25 @@
 #include <core/stl/string.hpp>
 
-#include <core/stl/detail/utility_common.hpp>
-#include <core/stl/memory.hpp>
-#include <core/stl/string_utils.hpp>
-#include <core/stl/type_traits.hpp>
 #include <build_config.hpp>
 #include <core/math/math.hpp>
 #include <core/serialization/archives/binary.hpp>
 #include <core/serialization/serialization.hpp>
+#include <core/stl/detail/utility_common.hpp>
+#include <core/stl/memory.hpp>
+#include <core/stl/string_utils.hpp>
+#include <core/stl/type_traits.hpp>
 #include <core/unicode/common.hpp>
 
 #include <cstdint>  // uintptr_t
 #include <string.h> // memset
 
 namespace anton_engine::anton_stl {
-    String String::from_utf16(char16_t const* str) {
-        // TODO: Fix this function asap
-        char8 codepoint_utf8[5] = {};
-        String string;
-        while (*str != char16_t(0)) {
-            int32_t bytes_written = unicode::convert_single_utf16_to_utf8(str, codepoint_utf8);
-            string.append(String_View(reinterpret_cast<char*>(codepoint_utf8), bytes_written));
-            str += (bytes_written < 4 ? 1 : 2);
-        }
-        return string;
+    String String::from_utf16(char16 const* str_utf16) {
+        i32 const buffer_size = unicode::convert_utf16_to_utf8(str_utf16, nullptr);
+        String str{anton_stl::reserve, buffer_size};
+        str.force_size(buffer_size);
+        unicode::convert_utf16_to_utf8(str_utf16, str.data());
+        return str;
     }
 
     String::String(): String(allocator_type()) {}
