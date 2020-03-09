@@ -23,16 +23,16 @@ namespace anton_engine::anton_stl {
     //
     class String {
     public:
-        using value_type = char;
+        using value_type = char8;
         using size_type = i64;
         using difference_type = isize;
         using allocator_type = anton_stl::Polymorphic_Allocator;
-        using byte_iterator = char*;
-        using byte_const_iterator = char*;
+        using byte_iterator = char8*;
+        using byte_const_iterator = char8*;
         using char_iterator = UTF8_Char_Iterator;
 
     public:
-        [[nodiscard]] static String from_utf16(char16_t const*);
+        [[nodiscard]] static String from_utf16(char16 const*);
 
     public:
         String();
@@ -137,8 +137,8 @@ namespace anton_engine::anton_stl {
     [[nodiscard]] anton_stl::String operator+(anton_stl::String const& lhs, anton_stl::String const& rhs);
     [[nodiscard]] anton_stl::String operator+(anton_stl::String_View, anton_stl::String const&);
     [[nodiscard]] anton_stl::String operator+(anton_stl::String const&, anton_stl::String_View);
-    [[nodiscard]] anton_stl::String operator+(char const*, anton_stl::String const&);
-    [[nodiscard]] anton_stl::String operator+(anton_stl::String const&, char const*);
+    [[nodiscard]] anton_stl::String operator+(char8 const*, anton_stl::String const&);
+    [[nodiscard]] anton_stl::String operator+(anton_stl::String const&, char8 const*);
 
     // compare
     // Compares two strings.

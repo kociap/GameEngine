@@ -18,7 +18,7 @@ namespace anton_engine {
     using isize = i64;
     using usize = u64;
 
-    using char8 = unsigned char;
+    using char8 = char;
     using char16 = char16_t;
     using char32 = char32_t;
 

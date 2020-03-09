@@ -16,9 +16,9 @@ namespace anton_engine::anton_stl {
     public:
         using size_type = i64;
         using difference_type = isize;
-        using value_type = char;
-        using byte_iterator = char*;
-        using byte_const_iterator = char const*;
+        using value_type = char8;
+        using byte_iterator = char8*;
+        using byte_const_iterator = char8 const*;
         using char_iterator = UTF8_Char_Iterator;
 
     public:

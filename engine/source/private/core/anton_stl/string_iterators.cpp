@@ -12,7 +12,7 @@ namespace anton_engine::anton_stl {
     constexpr u8 leading_byte_3byte = 0b11101111;
     constexpr u8 leading_byte_4byte = 0b11110111;
 
-    UTF8_Char_Iterator::UTF8_Char_Iterator(char const* p): data(p) {}
+    UTF8_Char_Iterator::UTF8_Char_Iterator(char8 const* p): data(p) {}
 
     UTF8_Char_Iterator& UTF8_Char_Iterator::operator++() {
         do {

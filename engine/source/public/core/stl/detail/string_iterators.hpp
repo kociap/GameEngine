@@ -62,9 +62,9 @@ namespace anton_engine::anton_stl {
         }
 
     private:
-        char const* data;
+        char8 const* data;
 
-        UTF8_Char_Iterator(char const*);
+        UTF8_Char_Iterator(char8 const*);
 
         friend class String;
         friend class String_View;
@@ -128,9 +128,9 @@ namespace anton_engine::anton_stl {
 
     class UTF8_Bytes {
     public:
-        using value_type = char;
-        using iterator = char*;
-        using const_iterator = char const*;
+        using value_type = char8;
+        using iterator = char8*;
+        using const_iterator = char8 const*;
 
         UTF8_Bytes(value_type* first, value_type* last);
 
@@ -149,9 +149,9 @@ namespace anton_engine::anton_stl {
 
     class UTF8_Const_Bytes {
     public:
-        using value_type = char;
-        using iterator = char const*;
-        using const_iterator = char const*;
+        using value_type = char8;
+        using iterator = char8 const*;
+        using const_iterator = char8 const*;
 
         UTF8_Const_Bytes(value_type const* first, value_type const* last);
 
@@ -168,7 +168,7 @@ namespace anton_engine::anton_stl {
 
     class UTF8_Chars {
     public:
-        using value_type = char;
+        using value_type = char8;
         using iterator = UTF8_Char_Iterator;
         using const_iterator = UTF8_Char_Iterator;
 
