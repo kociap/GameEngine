@@ -1,12 +1,12 @@
 #include <imgui/imgui.hpp>
 
 #include <core/assert.hpp>
-#include <core/stl/string.hpp>
-#include <core/stl/utility.hpp>
-#include <core/stl/vector.hpp>
 #include <core/hashing/murmurhash2.hpp>
 #include <core/intrinsics.hpp>
 #include <core/math/math.hpp>
+#include <core/stl/string.hpp>
+#include <core/stl/utility.hpp>
+#include <core/stl/vector.hpp>
 #include <windowing/window.hpp>
 
 #include <unordered_map>
@@ -51,6 +51,14 @@ namespace anton_engine::imgui {
         f32 tab_bar_height = 20;
     };
 
+    class Draw_Context {
+    public:
+        Vector2 draw_pos;
+        anton_stl::Vector<Draw_Command> draw_commands;
+        anton_stl::Vector<Vertex> vertex_buffer;
+        anton_stl::Vector<u32> index_buffer;
+    };
+
     class Window {
     public:
         Style style;
@@ -58,19 +66,19 @@ namespace anton_engine::imgui {
         Dockspace* dockspace;
         f32 border_area_width;
         bool enabled;
+        // anton_stl::Vector<Widget> widgets;
+        Draw_Context draw_context;
     };
 
     class Widget {
     public:
-        // Parent window
-        i64 parent_window_id;
-        // Parent widget (index into widgets array in Context)
+        // -1 if window, otherwise index into widgets in Window
         i64 parent;
-        Vector2 position;
+        // Used by text widget
+        anton_stl::String text;
+        Widget_Style style;
+        // Used for layout calculations
         Vector2 size;
-        Style style;
-        bool hovered;
-        bool clicked;
     };
 
     class Viewport {
@@ -90,6 +98,7 @@ namespace anton_engine::imgui {
         i64 active_window = -1;
         // Currently bound window.
         i64 current_window = -1;
+        i64 current_widget = -1;
         Input_State input = {};
         Input_State prev_input = {};
         anton_stl::Vector<Widget> widgets;
@@ -675,6 +684,11 @@ namespace anton_engine::imgui {
         default_theme.background_color = {0.1f, 0.1f, 0.1f};
         default_theme.preview_guides_color = {0.5f, 0.5f, 0.5f};
         default_theme.preview_color = {0.0f, 111.0f / 255.0f, 1.0f, 0.5f};
+        default_theme.widgets.background_color = {0.1f, 0.1f, 0.1f};
+        default_theme.buttons.background_color = {0.2f, 0.2f, 0.2f};
+        default_theme.buttons.border_color = {0.1f, 0.1f, 0.1f};
+        default_theme.buttons.border = {0.0f, 0.0f, 0.0f, 0.0f};
+        default_theme.buttons.padding = {0.0f, 0.0f, 0.0f, 0.0f};
         ctx.default_style = default_theme;
     }
 
@@ -987,7 +1001,7 @@ namespace anton_engine::imgui {
     void end_frame(Context& ctx) {
         ANTON_VERIFY(ctx.current_window == -1, "A window has not been ended prior to call to end_frame.");
 
-        // TODO: handle disabled windows
+        // TODO: handle disabled windows. we have to recalculate layout if we remove dockspaces
 
         // Remove disabled windows from dockspaces and destroy empty dockspaces.
         // for (i64 i = 0; i < ctx.dockspaces.size(); i += 1) {
@@ -1019,12 +1033,12 @@ namespace anton_engine::imgui {
         // generate geometry and indices,
         // and build command list
 
-        // We temporarily ignore the sorting and just render the windows in random order.
-        // TODO: Render windows in correct order (active > previously active > ...), aka reverse of latest active.
+        // TODO: Windows z-order
 
         auto& verts = ctx.vertex_buffer;
         auto& indices = ctx.index_buffer;
         for (Dockspace const* const dockspace: ctx.dockspaces) {
+            anton_stl::Vector<Draw_Command>& draw_cmd_buffer = dockspace->viewport->draw_commands_buffer;
             Vector2 const dockspace_pos = get_dockspace_screen_pos(dockspace);
             Vector2 const dockspace_size = get_dockspace_size(dockspace);
             Vector2 const dockspace_content_pos = get_dockspace_content_screen_pos(dockspace);
@@ -1047,13 +1061,14 @@ namespace anton_engine::imgui {
             tab_bar_cmd.element_count = 6;
             // No texture
             tab_bar_cmd.texture = 0;
-            dockspace->viewport->draw_commands_buffer.emplace_back(tab_bar_cmd);
+            draw_cmd_buffer.emplace_back(tab_bar_cmd);
 
+            // Render tabs
             f32 const tab_width = dockspace_size.x / dockspace->windows.size();
             f32 tab_offset = 0.0f;
             f32 constexpr separator_width = 5;
             for (i64 const id: dockspace->windows) {
-                Window const& window = ctx.next.windows.at(id);
+                Window& window = ctx.next.windows.at(id);
                 Vertex::Color const tab_color = id == ctx.hot_window || id == ctx.active_window
                                                     ? color_to_vertex_color(window.style.background_color * Color(1.5f, 1.5f, 1.5f, 1.0f))
                                                     : color_to_vertex_color(window.style.background_color * Color(1.2f, 1.2f, 1.2f, 1.0f));
@@ -1078,7 +1093,7 @@ namespace anton_engine::imgui {
                 cmd.element_count = 6;
                 // No texture
                 cmd.texture = 0;
-                dockspace->viewport->draw_commands_buffer.emplace_back(cmd);
+                draw_cmd_buffer.emplace_back(cmd);
 
                 // TODO: Temporarily added tab separators.
                 Vertex::Color const separator_color = {50, 50, 50, 255};
@@ -1099,12 +1114,13 @@ namespace anton_engine::imgui {
                 separator_cmd.element_count = 6;
                 // No texture
                 separator_cmd.texture = 0;
-                dockspace->viewport->draw_commands_buffer.emplace_back(separator_cmd);
+                draw_cmd_buffer.emplace_back(separator_cmd);
 
                 tab_offset += tab_width;
             }
 
-            Window const& window = ctx.next.windows.at(dockspace->active_window);
+            // Render window background
+            Window& window = ctx.next.windows.at(dockspace->active_window);
             Draw_Command cmd;
             cmd.vertex_offset = verts.size();
             Vertex::Color const color = color_to_vertex_color(window.style.background_color);
@@ -1123,7 +1139,34 @@ namespace anton_engine::imgui {
             cmd.element_count = 6;
             // TODO: Choose texture.
             cmd.texture = 0;
-            dockspace->viewport->draw_commands_buffer.emplace_back(cmd);
+            draw_cmd_buffer.emplace_back(cmd);
+
+            // Copy window's draw list
+            u32 const index_offset = indices.size();
+            u32 const vertex_offset = verts.size();
+            u32 const cmd_count = draw_cmd_buffer.size();
+            Draw_Context& dc = window.draw_context;
+            // TODO: range insert
+            verts.reserve(verts.size() + dc.vertex_buffer.size());
+            memcpy(verts.data() + verts.size(), dc.vertex_buffer.data(), dc.vertex_buffer.size() * sizeof(Vertex));
+            verts.force_size(verts.size() + dc.vertex_buffer.size());
+            for(i64 i = vertex_offset; i < verts.size(); ++i) {
+                verts[i].position += dockspace_content_pos;
+            }
+            indices.reserve(indices.size() + dc.index_buffer.size());
+            memcpy(indices.data() + indices.size(), dc.index_buffer.data(), dc.index_buffer.size() * sizeof(u32));
+            indices.force_size(indices.size() + dc.index_buffer.size());
+            draw_cmd_buffer.reserve(draw_cmd_buffer.size() + dc.draw_commands.size());
+            memcpy(draw_cmd_buffer.data() + draw_cmd_buffer.size(), dc.draw_commands.data(), dc.draw_commands.size() * sizeof(Draw_Command));
+            draw_cmd_buffer.force_size(draw_cmd_buffer.size() + dc.draw_commands.size());
+            for(i64 i = cmd_count; i < draw_cmd_buffer.size(); ++i) {
+                draw_cmd_buffer[i].vertex_offset += vertex_offset;
+                draw_cmd_buffer[i].index_offset += index_offset;
+            }
+            dc.vertex_buffer.clear();
+            dc.index_buffer.clear();
+            dc.draw_commands.clear();
+            dc.draw_pos = Vector2{0.0f, 0.0f};
         }
 
         // Render dockspce drag preview guides
@@ -1293,53 +1336,86 @@ namespace anton_engine::imgui {
 
     void end_window(Context& ctx) {
         ANTON_VERIFY(ctx.current_window != -1, "Trying to end window, but none has been made current.");
-        ANTON_VERIFY(ctx.widget_stack.size() == 0, "Widget stack not empty. End all child widgets before you attempt to end the window.");
-
+        // ANTON_VERIFY(ctx.widget_stack.size() == 0, "Widget stack not empty. End all child widgets before you attempt to end the window.");
         ctx.current_window = -1;
     }
 
     void begin_widget(Context& ctx) {
         ANTON_VERIFY(ctx.current_window != -1, "Cannot create widget because no window is current.");
 
-        Widget widget;
-        widget.style = ctx.default_style;
-        widget.parent = (ctx.widget_stack.size() != 0 ? ctx.widget_stack[ctx.widget_stack.size() - 1] : -1);
-        widget.parent_window_id = ctx.current_window;
-        ctx.widgets.push_back(widget);
-        i64 const widget_id = ctx.widgets.size() - 1;
-        ctx.widget_stack.push_back(widget_id);
+        // Window& current_window = ctx.next.windows.at(ctx.current_window);
+        // current_window.widgets.emplace_back(ctx.current_widget, anton_stl::String{}, ctx.default_style.widgets, Vector2{});
+        // ctx.current_widget = current_window.widgets.size() - 1;
     }
 
     void end_widget(Context& ctx) {
-        ANTON_VERIFY(ctx.widget_stack.size() != 0, "No widgets are active.");
+        ANTON_VERIFY(ctx.current_widget != -1, "No widgets are active.");
 
-        ctx.widget_stack.pop_back();
+        // Window& current_window = ctx.next.windows.at(ctx.current_window);
+        // ctx.current_widget = current_window.widgets[ctx.current_widget].parent;
+    }
+
+    void text(Context& ctx, anton_stl::String_View text) {
+        ANTON_VERIFY(ctx.current_window != -1, "No current window.");
+    }
+
+    Widget_State button(Context& ctx, anton_stl::String_View text, Button_Style const options, Font_Style const font) {
+        ANTON_VERIFY(ctx.current_window != -1, "No current window.");
+        // TODO: Check window z-order to determine whether this window is top-level
+        Window& window = ctx.next.windows.at(ctx.current_window);
+        Draw_Context& dc = window.draw_context;
+        Draw_Command cmd;
+        cmd.texture = 0;
+        cmd.element_count = 12;
+        cmd.vertex_offset = dc.vertex_buffer.size();
+        Vertex::Color const bg_color = color_to_vertex_color(options.background_color);
+        Vertex::Color const border_color = color_to_vertex_color(options.border_color);
+        Vector2 const draw_pos = dc.draw_pos;
+        Vector2 const button_draw_pos = draw_pos + Vector2{options.border.w, options.border.x};
+        f32 const button_height = math::max(0.0f, options.padding.x) + math::max(0.0f, options.padding.z) + font.font_size * font.v_dpi / 72;
+        // TODO: Computes fake width from number of bytes.
+        f32 const button_width = math::max(0.0f, options.padding.y) + math::max(0.0f, options.padding.w) + text.size_bytes() * font.font_size * font.h_dpi / 72;
+        f32 const border_height = button_height + options.border.x + options.border.z;
+        f32 const border_width = button_width + options.border.y + options.border.w;
+        dc.vertex_buffer.emplace_back(draw_pos, Vector2{0.0f, 1.0f}, border_color);
+        dc.vertex_buffer.emplace_back(draw_pos + Vector2{0.0f, border_height}, Vector2{0.0f, 0.0f}, border_color);
+        dc.vertex_buffer.emplace_back(draw_pos + Vector2{border_width, border_height}, Vector2{1.0f, 0.0f}, border_color);
+        dc.vertex_buffer.emplace_back(draw_pos + Vector2{border_width, 0.0f}, Vector2{1.0f, 1.0f}, border_color);
+        dc.vertex_buffer.emplace_back(button_draw_pos, Vector2{0.0f, 1.0f}, bg_color);
+        dc.vertex_buffer.emplace_back(button_draw_pos + Vector2{0.0f, button_height}, Vector2{0.0f, 0.0f}, bg_color);
+        dc.vertex_buffer.emplace_back(button_draw_pos + Vector2{button_width, button_height}, Vector2{1.0f, 0.0f}, bg_color);
+        dc.vertex_buffer.emplace_back(button_draw_pos + Vector2{button_width, 0.0f}, Vector2{1.0f, 1.0f}, bg_color);
+        cmd.index_offset = dc.index_buffer.size();
+        dc.index_buffer.emplace_back(0);
+        dc.index_buffer.emplace_back(1);
+        dc.index_buffer.emplace_back(2);
+        dc.index_buffer.emplace_back(0);
+        dc.index_buffer.emplace_back(2);
+        dc.index_buffer.emplace_back(3);
+        dc.index_buffer.emplace_back(0 + 4);
+        dc.index_buffer.emplace_back(1 + 4);
+        dc.index_buffer.emplace_back(2 + 4);
+        dc.index_buffer.emplace_back(0 + 4);
+        dc.index_buffer.emplace_back(2 + 4);
+        dc.index_buffer.emplace_back(3 + 4);
+        dc.draw_commands.emplace_back(cmd);
+        return Widget_State::inactive;
     }
 
     // Get style of current widget or window
     Style get_style(Context& ctx) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
-        if (ctx.widget_stack.size() != 0) {
-            i64 const index = ctx.widget_stack[ctx.widget_stack.size() - 1];
-            return ctx.widgets[index].style;
-        } else {
-            Window& window = ctx.next.windows.at(ctx.current_window);
-            return window.style;
-        }
+        Window& window = ctx.next.windows.at(ctx.current_window);
+        return window.style;
     }
 
     // Set style of current widget or window
     void set_style(Context& ctx, Style const style) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
-        if (ctx.widget_stack.size() != 0) {
-            i64 const index = ctx.widget_stack[ctx.widget_stack.size() - 1];
-            ctx.widgets[index].style = style;
-        } else {
-            Window& window = ctx.next.windows.at(ctx.current_window);
-            window.style = style;
-        }
+        Window& window = ctx.next.windows.at(ctx.current_window);
+        window.style = style;
     }
 
     void set_window_border_area(Context& ctx, f32 const width) {

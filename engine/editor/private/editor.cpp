@@ -71,21 +71,34 @@ namespace anton_engine {
             imgui::set_input_state(ctx, imgui_input);
 
             imgui::begin_frame(ctx);
-            imgui::begin_window(ctx, "main_window");
-            imgui::Style main_style = imgui::get_style(ctx);
-            main_style.background_color = {0.953f, 0.322f, 0.125f};
-            // main_style.background_color = {0.7f, 0.2f, 0.2f};
-            // if (imgui::is_window_hot(ctx)) {
-            //     main_style.background_color = {0.6f, 0.4f, 0.4f};
-            //     // ANTON_LOG_INFO("main_window hot");
-            // }
+            {
+                imgui::begin_window(ctx, "main_window");
+                imgui::Button_Style button_style;
+                button_style.background_color = {0.1f, 0.1f, 0.1f};
+                button_style.border_color = {1.0f, 1.0f, 1.0f};
+                button_style.border = {2.0f, 2.0f, 2.0f, 2.0f};
+                button_style.padding = {5.0f, 3.0f, 5.0f, 3.0f};
+                imgui::Font_Style font;
+                font.font_size = 12;
+                font.v_dpi = 96;
+                font.h_dpi = 96;
+                imgui::button(ctx, "button1", button_style, font);
 
-            // if (imgui::is_window_active(ctx)) {
-            //     main_style.background_color = {0.6f, 0.6f, 0.6f};
-            //     // ANTON_LOG_INFO("main_window active");
-            // }
-            imgui::set_style(ctx, main_style);
-            imgui::end_window(ctx);
+                imgui::Style main_style = imgui::get_style(ctx);
+                main_style.background_color = {0.953f, 0.322f, 0.125f};
+                // main_style.background_color = {0.7f, 0.2f, 0.2f};
+                // if (imgui::is_window_hot(ctx)) {
+                //     main_style.background_color = {0.6f, 0.4f, 0.4f};
+                //     // ANTON_LOG_INFO("main_window hot");
+                // }
+
+                // if (imgui::is_window_active(ctx)) {
+                //     main_style.background_color = {0.6f, 0.6f, 0.6f};
+                //     // ANTON_LOG_INFO("main_window active");
+                // }
+                imgui::set_style(ctx, main_style);
+                imgui::end_window(ctx);
+            }
             imgui::begin_window(ctx, "secondary_window");
             imgui::Style secondary_style = imgui::get_style(ctx);
             secondary_style.background_color = {0.51f, 0.74f, 0.4f};

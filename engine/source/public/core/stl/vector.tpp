@@ -95,7 +95,8 @@ namespace anton_engine::anton_stl {
 
     template <typename T, typename Allocator>
     Vector<T, Allocator>& Vector<T, Allocator>::operator=(Vector const& v) {
-        static_assert(std::allocator_traits<Allocator>::propagate_on_container_copy_assignment::value, "Allocator is not copy assignable");
+        // TODO: Get rid of this and move to polymorphic
+        // static_assert(std::allocator_traits<Allocator>::propagate_on_container_copy_assignment::value, "Allocator is not copy assignable");
         _allocator = v._allocator;
         T* new_storage = allocate(v._capacity);
         try {

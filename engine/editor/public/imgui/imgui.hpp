@@ -6,17 +6,41 @@
 #include <core/stl/string_view.hpp>
 #include <core/color.hpp>
 #include <core/math/vector2.hpp>
+#include <core/math/vector4.hpp>
 #include <windowing/window.hpp>
 
 namespace anton_engine::imgui {
     class Context;
     class Viewport;
 
+    class Widget_Style {
+    public:
+        Color background_color;
+    };
+
+    class Font_Style {
+    public:
+        // Font size in points
+        u32 font_size;
+        u32 h_dpi;
+        u32 v_dpi;
+    };
+
+    class Button_Style {
+    public:
+        Color border_color;
+        Color background_color;
+        Vector4 border;
+        Vector4 padding;
+    };
+
     class Style {
     public:
         Color background_color;
         Color preview_guides_color;
         Color preview_color;
+        Widget_Style widgets;
+        Button_Style buttons;
     };
 
     class Settings {
@@ -77,9 +101,16 @@ namespace anton_engine::imgui {
     void begin_window(Context&, anton_stl::String_View, bool new_viewport = false);
     void end_window(Context&);
 
-    // Generic widget to group other widgets into and manage layout.
-    void begin_widget(Context&, anton_stl::String_View);
+    enum class Widget_State {
+        active, hot, inactive
+    };
+
+    // Generic widget to group other widgets and manage layout.
+    void begin_widget(Context&, anton_stl::String_View identifier, Widget_Style options);
     void end_widget(Context&);
+
+    void text(Context&, anton_stl::String_View text);
+    Widget_State button(Context&, anton_stl::String_View text, Button_Style options, Font_Style font);
 
     // Modifiers
 
