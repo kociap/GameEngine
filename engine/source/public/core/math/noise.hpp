@@ -2,7 +2,7 @@
 #define CORE_MATH_NOISE_HPP_INCLUDE
 
 #include <core/types.hpp>
-#include <core/stl/slice.hpp>
+#include <core/atl/slice.hpp>
 #include <core/math/math.hpp>
 #include <core/math/vector2.hpp>
 #include <core/math/vector3.hpp>
@@ -55,7 +55,7 @@ namespace anton_engine::math {
         return 1.4142135f * noise;
     }
 
-    inline float perlin_noise(Vector2 const position, anton_stl::Slice<Vector2 const> const gradients, anton_stl::Slice<i32 const> const permutation_table) {
+    inline float perlin_noise(Vector2 const position, atl::Slice<Vector2 const> const gradients, atl::Slice<i32 const> const permutation_table) {
         i64 const x_int = (position.x < 0.0f ? i64(position.x) - 1 : i64(position.x));
         i64 const y_int = (position.y < 0.0f ? i64(position.y) - 1 : i64(position.y));
 

@@ -60,7 +60,7 @@ namespace anton_engine {
 
         // printf("delta time: %llf\n", get_delta_time());
 
-        // ANTON_LOG_INFO(anton_stl::to_string(get_delta_time()));
+        // ANTON_LOG_INFO(atl::to_string(get_delta_time()));
         {
             // printf("%d %d %d %d\n", mimas_get_key(MIMAS_KEY_A), mimas_get_key(MIMAS_KEY_NUMPAD_ENTER), mimas_get_key(MIMAS_KEY_SLASH), mimas_get_key(MIMAS_KEY_NUMPAD_DIVIDE));
 
@@ -165,20 +165,20 @@ namespace anton_engine {
 
             imgui::end_frame(ctx);
 
-            anton_stl::Slice<imgui::Vertex const> vertices = imgui::get_vertex_data(ctx);
-            anton_stl::Slice<u32 const> indices = imgui::get_index_data(ctx);
+            atl::Slice<imgui::Vertex const> vertices = imgui::get_vertex_data(ctx);
+            atl::Slice<u32 const> indices = imgui::get_index_data(ctx);
             imgui::Draw_Elements_Command cmd = imgui::write_geometry(vertices, indices);
             // TODO: Add textures.
             cmd.instance_count = 1;
             cmd.base_instance = 0;
             Shader& imgui_shader = get_builtin_shader(Builtin_Editor_Shader::imgui);
-            anton_stl::Slice<imgui::Viewport* const> const viewports = imgui::get_viewports(ctx);
+            atl::Slice<imgui::Viewport* const> const viewports = imgui::get_viewports(ctx);
             glDisable(GL_DEPTH_TEST);
             glEnable(GL_BLEND);
             for (imgui::Viewport* viewport: viewports) {
                 windowing::Window* native_window = imgui::get_viewport_native_window(ctx, *viewport);
                 windowing::make_context_current(gl_context, native_window);
-                anton_stl::Slice<imgui::Draw_Command const> draw_commands = imgui::get_viewport_draw_commands(ctx, *viewport);
+                atl::Slice<imgui::Draw_Command const> draw_commands = imgui::get_viewport_draw_commands(ctx, *viewport);
                 for (imgui::Draw_Command draw_command: draw_commands) {
                     imgui::Draw_Elements_Command viewport_cmd = cmd;
                     viewport_cmd.count = draw_command.element_count;
@@ -393,14 +393,14 @@ namespace anton_engine {
 
         // BS code to output anything on the screen
 #ifdef RENDER_CUBES
-        // anton_stl::Vector<Mesh> meshes = assets::load_model("cube.obj");
+        // atl::Vector<Mesh> meshes = assets::load_model("cube.obj");
         auto& container = meshes[0];
         Handle<Material> material_handle = material_manager->add(Material());
 #else
         Mesh container = assets::load_mesh("barrel", 1);
         Material barrel_mat;
         {
-            anton_stl::Vector<uint8_t> pixels;
+            atl::Vector<uint8_t> pixels;
             Texture_Format const format = assets::load_texture_no_mipmaps("barrel_texture", 0, pixels);
             Texture handle;
             void* pix_data = pixels.data();
@@ -418,9 +418,9 @@ namespace anton_engine {
 
         Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
         Handle<Mesh> quad_mesh = mesh_manager->add(generate_plane());
-        Handle<Mesh> boxes1_mesh = mesh_manager->add(anton_stl::move(boxes1_mesh_0));
-        Handle<Mesh> boxes2_mesh = mesh_manager->add(anton_stl::move(boxes1_mesh_1));
-        Handle<Mesh> boxes3_mesh = mesh_manager->add(anton_stl::move(boxes1_mesh_2));
+        Handle<Mesh> boxes1_mesh = mesh_manager->add(atl::move(boxes1_mesh_0));
+        Handle<Mesh> boxes2_mesh = mesh_manager->add(atl::move(boxes1_mesh_1));
+        Handle<Mesh> boxes3_mesh = mesh_manager->add(atl::move(boxes1_mesh_2));
 
 #if DESERIALIZE
         std::filesystem::path serialization_in_path = utils::concat_paths(paths::project_directory(), "ecs.bin");

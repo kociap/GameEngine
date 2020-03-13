@@ -1,7 +1,7 @@
 #include <rendering/framebuffer.hpp>
 
 #include <core/assert.hpp>
-#include <core/stl/utility.hpp>
+#include <core/atl/utility.hpp>
 #include <core/debug_macros.hpp> // CHECK_GL_ERRORS
 #include <rendering/glad.hpp>
 #include <rendering/opengl.hpp>
@@ -156,16 +156,16 @@ namespace anton_engine {
 
     Framebuffer::Framebuffer(Framebuffer&& fbo) noexcept {
         info = fbo.info;
-        anton_stl::swap(framebuffer, fbo.framebuffer);
-        anton_stl::swap(depth_buffer, fbo.depth_buffer);
-        anton_stl::swap(stencil_buffer, fbo.stencil_buffer);
+        atl::swap(framebuffer, fbo.framebuffer);
+        atl::swap(depth_buffer, fbo.depth_buffer);
+        atl::swap(stencil_buffer, fbo.stencil_buffer);
     }
 
     Framebuffer& Framebuffer::operator=(Framebuffer&& fbo) noexcept {
         info = fbo.info;
-        anton_stl::swap(framebuffer, fbo.framebuffer);
-        anton_stl::swap(depth_buffer, fbo.depth_buffer);
-        anton_stl::swap(stencil_buffer, fbo.stencil_buffer);
+        atl::swap(framebuffer, fbo.framebuffer);
+        atl::swap(depth_buffer, fbo.depth_buffer);
+        atl::swap(stencil_buffer, fbo.stencil_buffer);
         return *this;
     }
 
@@ -192,7 +192,7 @@ namespace anton_engine {
         return color_buffers[index];
     }
 
-    anton_stl::Slice<u32 const> Framebuffer::get_color_textures() const {
+    atl::Slice<u32 const> Framebuffer::get_color_textures() const {
         return color_buffers;
     }
 

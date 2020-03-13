@@ -40,7 +40,7 @@ namespace anton_engine {
 
         Lexer();
 
-        anton_stl::Vector<Word> parse(File&);
+        atl::Vector<Word> parse(File&);
 
     private:
         std::tuple<File::iterator, Token, std::string> scan(File::iterator begin, File::iterator end);
@@ -48,8 +48,8 @@ namespace anton_engine {
 
     Lexer::Lexer(): tokens{{"class", Token::keyword_class}, {"{", Token::opening_brace}, {"COMPONENT", Token::macro_component}} {}
 
-    anton_stl::Vector<Word> Lexer::parse(File& file) {
-        anton_stl::Vector<Word> tokens_vec;
+    atl::Vector<Word> Lexer::parse(File& file) {
+        atl::Vector<Word> tokens_vec;
         for (File::iterator current = file.begin(), end = file.end(); current != end;) {
             auto [new_iter, token_type, string] = scan(current, end);
             current = new_iter;
@@ -81,8 +81,8 @@ namespace anton_engine {
         }
     }
 
-    anton_stl::Vector<std::string> parse_component_header(File& file) {
-        anton_stl::Vector<std::string> class_names;
+    atl::Vector<std::string> parse_component_header(File& file) {
+        atl::Vector<std::string> class_names;
         Lexer lexer;
         auto tokens = lexer.parse(file);
         for (int64_t i = 0; i + 2 < tokens.size(); ++i) {

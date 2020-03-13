@@ -1,10 +1,10 @@
 #ifndef RENDERING_FONTS_HPP_INCLUDE
 #define RENDERING_FONTS_HPP_INCLUDE
 
-#include <core/stl/slice.hpp>
+#include <core/atl/slice.hpp>
 #include <core/types.hpp>
-#include <core/stl/string_view.hpp>
-#include <core/stl/vector.hpp>
+#include <core/atl/string_view.hpp>
+#include <core/atl/vector.hpp>
 
 namespace anton_engine::rendering {
     class Font_Face;
@@ -32,7 +32,7 @@ namespace anton_engine::rendering {
         i32 vertAdvance;
 
         u32 bitmap_row_width; // in bytes
-        anton_stl::Vector<u8> bitmap;
+        atl::Vector<u8> bitmap;
     };
 
     void init_font_rendering();
@@ -41,9 +41,9 @@ namespace anton_engine::rendering {
     // Returns:
     // Strongly typed handle that uniquely identifies the face or nullptr if failed to load the face.
     //
-    Font_Face* load_face(anton_stl::Slice<u8 const> file_data, u32 face_index);
+    Font_Face* load_face(atl::Slice<u8 const> file_data, u32 face_index);
     void unload_face(Font_Face* face);
-    anton_stl::Vector<Glyph> render_face(Font_Face* face, Font_Render_Info info, anton_stl::String_View string);
+    atl::Vector<Glyph> render_face(Font_Face* face, Font_Render_Info info, atl::String_View string);
 }
 
 #endif // !RENDERING_FONTS_HPP_INCLUDE

@@ -1,10 +1,10 @@
 #include <windowing/window.hpp>
 
 #include <core/assert.hpp>
-#include <core/stl/vector.hpp>
+#include <core/atl/vector.hpp>
 #include <core/diagnostic_macros.hpp>
 #include <core/exception.hpp>
-#include <core/stl/fixed_array.hpp>
+#include <core/atl/fixed_array.hpp>
 
 #include <mimas/mimas_gl.h>
 
@@ -36,7 +36,7 @@ namespace anton_engine::windowing {
             joystick_function joystick;
             void* joystick_data;
         } callbacks;
-        anton_stl::Vector<Window*> windows;
+        atl::Vector<Window*> windows;
     };
 
     static Windowing windowing;
@@ -83,8 +83,8 @@ namespace anton_engine::windowing {
         }
     }
 
-    static anton_stl::Fixed_Array<Key, 256> create_mimas_to_key_map() {
-        anton_stl::Fixed_Array<Key, 256> key_map(256, Key::none);
+    static atl::Fixed_Array<Key, 256> create_mimas_to_key_map() {
+        atl::Fixed_Array<Key, 256> key_map(256, Key::none);
         key_map[MIMAS_MOUSE_LEFT_BUTTON] = Key::left_mouse_button;
         key_map[MIMAS_MOUSE_RIGHT_BUTTON] = Key::right_mouse_button;
         key_map[MIMAS_MOUSE_MIDDLE_BUTTON] = Key::middle_mouse_button;
@@ -191,8 +191,8 @@ namespace anton_engine::windowing {
         return key_map;
     }
 
-    static anton_stl::Fixed_Array<i32, 256> create_key_to_mimas_map() {
-        anton_stl::Fixed_Array<i32, 256> key_map{256, MIMAS_KEY_UNKNOWN};
+    static atl::Fixed_Array<i32, 256> create_key_to_mimas_map() {
+        atl::Fixed_Array<i32, 256> key_map{256, MIMAS_KEY_UNKNOWN};
         key_map[static_cast<i32>(Key::left_mouse_button)] = MIMAS_MOUSE_LEFT_BUTTON;
         key_map[static_cast<i32>(Key::right_mouse_button)] = MIMAS_MOUSE_RIGHT_BUTTON;
         key_map[static_cast<i32>(Key::middle_mouse_button)] = MIMAS_MOUSE_MIDDLE_BUTTON;
@@ -300,13 +300,13 @@ namespace anton_engine::windowing {
     }
 
     bool get_key(Key const k) {
-        static anton_stl::Fixed_Array<i32, 256> key_map = create_key_to_mimas_map();
+        static atl::Fixed_Array<i32, 256> key_map = create_key_to_mimas_map();
         Mimas_Key key = static_cast<Mimas_Key>(key_map[static_cast<u32>(k)]);
         return mimas_get_key(key);
     }
 
     void _window_key_callback(Mimas_Window* const, Mimas_Key const key, Mimas_Key_Action const action, void* data){
-        static anton_stl::Fixed_Array<Key, 256> key_map = create_mimas_to_key_map();
+        static atl::Fixed_Array<Key, 256> key_map = create_mimas_to_key_map();
         Key const mapped_key = key_map[key];
         Window* const window = reinterpret_cast<Window*>(data);
         if(mapped_key != Key::none && window->callbacks.key) {
@@ -315,7 +315,7 @@ namespace anton_engine::windowing {
     }
 
     void _window_mouse_button_callback(Mimas_Window* const, Mimas_Key key, Mimas_Mouse_Button_Action action, void* data) {
-        static anton_stl::Fixed_Array<Key, 256> key_map = create_mimas_to_key_map();
+        static atl::Fixed_Array<Key, 256> key_map = create_mimas_to_key_map();
         Key const mapped_key = key_map[key];
         Window* const window = reinterpret_cast<Window*>(data);
         if(mapped_key != Key::none && window->callbacks.mouse_button) {

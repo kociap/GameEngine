@@ -1,7 +1,7 @@
 #ifndef EDITOR_ASSET_IMPORTER_IMPORTERS_IMAGE_HPP_INCLUDE
 #define EDITOR_ASSET_IMPORTER_IMPORTERS_IMAGE_HPP_INCLUDE
 
-#include <core/stl/vector.hpp>
+#include <core/atl/vector.hpp>
 #include <cstdint>
 #include <stdexcept>
 
@@ -45,10 +45,10 @@ namespace anton_engine::importers {
         float gamma;
         Image_Pixel_Format pixel_format;
         Image_Color_Space color_space;
-        anton_stl::Vector<uint8_t> data;
+        atl::Vector<uint8_t> data;
 
         Image() {}
-        Image(uint32_t width, uint32_t height, Image_Pixel_Format pixel_format, Image_Color_Space color_space, float gamma, anton_stl::Vector<uint8_t>&& data)
+        Image(uint32_t width, uint32_t height, Image_Pixel_Format pixel_format, Image_Color_Space color_space, float gamma, atl::Vector<uint8_t>&& data)
             : width(width), height(height), gamma(gamma), pixel_format(pixel_format), color_space(color_space), data(std::move(data)) {}
     };
 } // namespace anton_engine::importers

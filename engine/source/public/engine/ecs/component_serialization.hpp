@@ -1,7 +1,7 @@
 #ifndef ENGINE_ECS_COMPONENT_SERIALIZATION_HPP_INCLUDE
 #define ENGINE_ECS_COMPONENT_SERIALIZATION_HPP_INCLUDE
 
-#include <core/stl/vector.hpp>
+#include <core/atl/vector.hpp>
 #include <core/serialization/archives/binary.hpp>
 #include <core/typeid.hpp>
 
@@ -17,7 +17,7 @@ namespace anton_engine {
         deserialize_func deserialize;
     };
 
-    using get_component_serialization_funcs_t = anton_stl::Vector<Component_Serialization_Funcs>& (*)();
+    using get_component_serialization_funcs_t = atl::Vector<Component_Serialization_Funcs>& (*)();
 
     ENGINE_API extern get_component_serialization_funcs_t get_component_serialization_funcs;
 } // namespace anton_engine

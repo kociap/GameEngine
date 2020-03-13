@@ -8,7 +8,7 @@
 #include <engine/mesh.hpp>
 
 namespace anton_engine {
-    anton_stl::Optional<Raycast_Hit> intersect_ray_plane(Ray const ray, Vector3 const plane_normal, float const plane_distance) {
+    atl::Optional<Raycast_Hit> intersect_ray_plane(Ray const ray, Vector3 const plane_normal, float const plane_distance) {
         float const angle_cos = math::dot(ray.direction, plane_normal);
         float const coeff = (plane_distance - math::dot(ray.origin, plane_normal)) / angle_cos;
         if (math::abs(angle_cos) > math::constants::epsilon && coeff >= 0.0f) {
@@ -17,11 +17,11 @@ namespace anton_engine {
             out.hit_point = ray.origin + ray.direction * coeff;
             return out;
         } else {
-            return anton_stl::null_optional;
+            return atl::null_optional;
         }
     }
 
-    anton_stl::Optional<Raycast_Hit> intersect_ray_triangle(Ray const ray, Vector3 const a, Vector3 const b, Vector3 const c) {
+    atl::Optional<Raycast_Hit> intersect_ray_triangle(Ray const ray, Vector3 const a, Vector3 const b, Vector3 const c) {
         Vector3 ao = ray.origin - a;
         Vector3 ab = b - a;
         Vector3 ac = c - a;
@@ -31,16 +31,16 @@ namespace anton_engine {
         float v = result.y;
         float t = result.z;
         if (u < 0 || v < 0 || u + v > 1 || t < 0) {
-            return anton_stl::null_optional;
+            return atl::null_optional;
         }
 
         Vector3 r(a + u * ab + v * ac);
         return Raycast_Hit{r, {u, v, 1 - u - v}, t};
     }
 
-    anton_stl::Optional<Raycast_Hit> intersect_ray_cone(Ray const ray, Vector3 const vertex, Vector3 const direction, float const angle_cos,
+    atl::Optional<Raycast_Hit> intersect_ray_cone(Ray const ray, Vector3 const vertex, Vector3 const direction, float const angle_cos,
                                                         float const height) {
-        anton_stl::Optional<Raycast_Hit> result = anton_stl::null_optional;
+        atl::Optional<Raycast_Hit> result = atl::null_optional;
 
         Vector3 const ray_origin = ray.origin - vertex;
         float const angle_cos_square = angle_cos * angle_cos;
@@ -102,7 +102,7 @@ namespace anton_engine {
             }
         }
 
-        if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_plane({ray_origin, ray.direction}, direction, height);
+        if (atl::Optional<Raycast_Hit> const hit = intersect_ray_plane({ray_origin, ray.direction}, direction, height);
             hit.holds_value() && (!result || hit->distance < result->distance) &&
             (math::length_squared(hit->hit_point - math::dot(hit->hit_point, direction) * direction) * angle_cos_square <= height * height)) {
             result = hit;
@@ -111,8 +111,8 @@ namespace anton_engine {
         return result;
     }
 
-    anton_stl::Optional<Raycast_Hit> intersect_ray_cylinder(Ray const ray, Vector3 const vertex1, Vector3 const vertex2, float const radius) {
-        anton_stl::Optional<Raycast_Hit> result = anton_stl::null_optional;
+    atl::Optional<Raycast_Hit> intersect_ray_cylinder(Ray const ray, Vector3 const vertex1, Vector3 const vertex2, float const radius) {
+        atl::Optional<Raycast_Hit> result = atl::null_optional;
 
         float const radius_squared = radius * radius;
         Vector3 const ray_origin = ray.origin - vertex1;
@@ -199,7 +199,7 @@ namespace anton_engine {
         return false;
     }
 
-    anton_stl::Optional<Raycast_Hit> intersect_ray_mesh(Ray ray, Mesh const& mesh, Matrix4 model_transform) {
+    atl::Optional<Raycast_Hit> intersect_ray_mesh(Ray ray, Mesh const& mesh, Matrix4 model_transform) {
         bool hit_flag = false;
         Raycast_Hit closest_hit;
         closest_hit.distance = math::constants::infinity;
@@ -217,11 +217,11 @@ namespace anton_engine {
         if (hit_flag) {
             return closest_hit;
         } else {
-            return anton_stl::null_optional;
+            return atl::null_optional;
         }
     }
 
-    anton_stl::Optional<Linecast_Hit> intersect_line_plane(Line line, Vector3 normal, float distance) {
+    atl::Optional<Linecast_Hit> intersect_line_plane(Line line, Vector3 normal, float distance) {
         float angle_cos = math::dot(line.direction, normal);
         if (math::abs(angle_cos) > math::constants::epsilon) {
             float coeff = (distance - math::dot(line.origin, normal)) / angle_cos;
@@ -230,7 +230,7 @@ namespace anton_engine {
             out.hit_point = line.origin + line.direction * coeff;
             return out;
         } else {
-            return anton_stl::null_optional;
+            return atl::null_optional;
         }
     }
 } // namespace anton_engine

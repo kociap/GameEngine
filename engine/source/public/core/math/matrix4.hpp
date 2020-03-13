@@ -1,7 +1,7 @@
 #ifndef CORE_MATH_MARTIX4_HPP_INCLUDE
 #define CORE_MATH_MARTIX4_HPP_INCLUDE
 
-#include <core/stl/utility.hpp>
+#include <core/atl/utility.hpp>
 #include <cstdint>
 #include <core/math/vector4.hpp>
 
@@ -107,12 +107,12 @@ namespace anton_engine {
     }
 
     inline Matrix4& Matrix4::transpose() {
-        anton_stl::swap((*this)[0][1], (*this)[1][0]);
-        anton_stl::swap((*this)[0][2], (*this)[2][0]);
-        anton_stl::swap((*this)[0][3], (*this)[3][0]);
-        anton_stl::swap((*this)[1][2], (*this)[2][1]);
-        anton_stl::swap((*this)[1][3], (*this)[3][1]);
-        anton_stl::swap((*this)[2][3], (*this)[3][2]);
+        atl::swap((*this)[0][1], (*this)[1][0]);
+        atl::swap((*this)[0][2], (*this)[2][0]);
+        atl::swap((*this)[0][3], (*this)[3][0]);
+        atl::swap((*this)[1][2], (*this)[2][1]);
+        atl::swap((*this)[1][3], (*this)[3][1]);
+        atl::swap((*this)[2][3], (*this)[3][2]);
         return *this;
     }
 

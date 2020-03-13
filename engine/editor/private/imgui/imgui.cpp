@@ -4,9 +4,9 @@
 #include <core/hashing/murmurhash2.hpp>
 #include <core/intrinsics.hpp>
 #include <core/math/math.hpp>
-#include <core/stl/string.hpp>
-#include <core/stl/utility.hpp>
-#include <core/stl/vector.hpp>
+#include <core/atl/string.hpp>
+#include <core/atl/utility.hpp>
+#include <core/atl/vector.hpp>
 #include <windowing/window.hpp>
 
 #include <unordered_map>
@@ -36,12 +36,12 @@ namespace anton_engine::imgui {
 
     class Layout: public Layout_Tile {
     public:
-        anton_stl::Vector<Layout_Tile*> tiles;
+        atl::Vector<Layout_Tile*> tiles;
     };
 
     class Dockspace: public Layout_Tile {
     public:
-        anton_stl::Vector<i64> windows;
+        atl::Vector<i64> windows;
         i64 active_window = -1;
         Viewport* viewport = nullptr;
         // Vector2 position;
@@ -54,9 +54,9 @@ namespace anton_engine::imgui {
     class Draw_Context {
     public:
         Vector2 draw_pos;
-        anton_stl::Vector<Draw_Command> draw_commands;
-        anton_stl::Vector<Vertex> vertex_buffer;
-        anton_stl::Vector<u32> index_buffer;
+        atl::Vector<Draw_Command> draw_commands;
+        atl::Vector<Vertex> vertex_buffer;
+        atl::Vector<u32> index_buffer;
     };
 
     class Window {
@@ -66,7 +66,7 @@ namespace anton_engine::imgui {
         Dockspace* dockspace;
         f32 border_area_width;
         bool enabled;
-        // anton_stl::Vector<Widget> widgets;
+        // atl::Vector<Widget> widgets;
         Draw_Context draw_context;
     };
 
@@ -75,7 +75,7 @@ namespace anton_engine::imgui {
         // -1 if window, otherwise index into widgets in Window
         i64 parent;
         // Used by text widget
-        anton_stl::String text;
+        atl::String text;
         Widget_Style style;
         // Used for layout calculations
         Vector2 size;
@@ -84,8 +84,8 @@ namespace anton_engine::imgui {
     class Viewport {
     public:
         windowing::Window* native_window = nullptr;
-        anton_stl::Vector<Draw_Command> draw_commands_buffer;
-        anton_stl::Vector<Dockspace*> dockspaces;
+        atl::Vector<Draw_Command> draw_commands_buffer;
+        atl::Vector<Dockspace*> dockspaces;
         Layout_Root layout_root;
     };
 
@@ -101,14 +101,14 @@ namespace anton_engine::imgui {
         i64 current_widget = -1;
         Input_State input = {};
         Input_State prev_input = {};
-        anton_stl::Vector<Widget> widgets;
-        anton_stl::Vector<i64> widget_stack;
+        atl::Vector<Widget> widgets;
+        atl::Vector<i64> widget_stack;
         Style default_style;
         Settings settings;
-        anton_stl::Vector<Vertex> vertex_buffer;
-        anton_stl::Vector<u32> index_buffer;
-        anton_stl::Vector<Viewport*> viewports;
-        anton_stl::Vector<Dockspace*> dockspaces;
+        atl::Vector<Vertex> vertex_buffer;
+        atl::Vector<u32> index_buffer;
+        atl::Vector<Viewport*> viewports;
+        atl::Vector<Dockspace*> dockspaces;
         Viewport* dragged_viewport = nullptr;
         bool dragging = false;
         bool clicked_tab = false;
@@ -762,7 +762,7 @@ namespace anton_engine::imgui {
             if (ctx.active_window != -1) {
                 Window& window = ctx.next.windows.at(ctx.active_window);
                 Vector2 const cursor_pos_delta = ctx.input.cursor_position - ctx.prev_input.cursor_position;
-                // ANTON_LOG_INFO("cursor_pos_delta: " + anton_stl::to_string(cursor_pos_delta.x) + " " + anton_stl::to_string(cursor_pos_delta.y));
+                // ANTON_LOG_INFO("cursor_pos_delta: " + atl::to_string(cursor_pos_delta.x) + " " + atl::to_string(cursor_pos_delta.y));
                 if (ctx.dragging) {
                     ctx.drag.hot_dockspace = nullptr;
                     for (Dockspace* const dockspace: ctx.dockspaces) {
@@ -893,7 +893,7 @@ namespace anton_engine::imgui {
                 //         }
                 //     } else {
                 //         drag_window(ctx, window, cursor_pos_delta);
-                //         ANTON_LOG_INFO(anton_stl::to_string(cursor_pos_delta.x) + " " + anton_stl::to_string(cursor_pos_delta.y));
+                //         ANTON_LOG_INFO(atl::to_string(cursor_pos_delta.x) + " " + atl::to_string(cursor_pos_delta.y));
                 //     }
                 // }
             }
@@ -1038,7 +1038,7 @@ namespace anton_engine::imgui {
         auto& verts = ctx.vertex_buffer;
         auto& indices = ctx.index_buffer;
         for (Dockspace const* const dockspace: ctx.dockspaces) {
-            anton_stl::Vector<Draw_Command>& draw_cmd_buffer = dockspace->viewport->draw_commands_buffer;
+            atl::Vector<Draw_Command>& draw_cmd_buffer = dockspace->viewport->draw_commands_buffer;
             Vector2 const dockspace_pos = get_dockspace_screen_pos(dockspace);
             Vector2 const dockspace_size = get_dockspace_size(dockspace);
             Vector2 const dockspace_content_pos = get_dockspace_content_screen_pos(dockspace);
@@ -1222,15 +1222,15 @@ namespace anton_engine::imgui {
             Draw_Command guides_cmd;
             guides_cmd.vertex_offset = verts.size();
             guides_cmd.index_offset = indices.size();
-            guides_cmd.element_count = anton_stl::size(_indices);
+            guides_cmd.element_count = atl::size(_indices);
             guides_cmd.texture = 0;
             viewport->draw_commands_buffer.emplace_back(guides_cmd);
 
-            for (i64 i = 0; i < (i64)anton_stl::size(_verts); ++i) {
+            for (i64 i = 0; i < (i64)atl::size(_verts); ++i) {
                 verts.emplace_back(_verts[i], Vector2{0, 0}, color);
             }
 
-            for (i64 i = 0; i < (i64)anton_stl::size(_indices); ++i) {
+            for (i64 i = 0; i < (i64)atl::size(_indices); ++i) {
                 indices.emplace_back(_indices[i]);
             }
 
@@ -1288,7 +1288,7 @@ namespace anton_engine::imgui {
         ctx.current = ctx.next;
     }
 
-    anton_stl::Slice<Viewport* const> get_viewports(Context& ctx) {
+    atl::Slice<Viewport* const> get_viewports(Context& ctx) {
         return ctx.viewports;
     }
 
@@ -1296,20 +1296,20 @@ namespace anton_engine::imgui {
         return viewport.native_window;
     }
 
-    anton_stl::Slice<Draw_Command const> get_viewport_draw_commands(Context&, Viewport& viewport) {
+    atl::Slice<Draw_Command const> get_viewport_draw_commands(Context&, Viewport& viewport) {
         return viewport.draw_commands_buffer;
     }
 
-    anton_stl::Slice<Vertex const> get_vertex_data(Context& ctx) {
+    atl::Slice<Vertex const> get_vertex_data(Context& ctx) {
         return ctx.vertex_buffer;
     }
 
-    anton_stl::Slice<u32 const> get_index_data(Context& ctx) {
+    atl::Slice<u32 const> get_index_data(Context& ctx) {
         return ctx.index_buffer;
     }
 
     // TODO: remove new_viewport.
-    void begin_window(Context& ctx, anton_stl::String_View identifier, bool new_viewport) {
+    void begin_window(Context& ctx, atl::String_View identifier, bool new_viewport) {
         ANTON_VERIFY(ctx.current_window == -1, "Cannot create window inside another window.");
 
         i64 const id = murmurhash2_32(identifier.data(), identifier.size_bytes(), hash_seed);
@@ -1344,7 +1344,7 @@ namespace anton_engine::imgui {
         ANTON_VERIFY(ctx.current_window != -1, "Cannot create widget because no window is current.");
 
         // Window& current_window = ctx.next.windows.at(ctx.current_window);
-        // current_window.widgets.emplace_back(ctx.current_widget, anton_stl::String{}, ctx.default_style.widgets, Vector2{});
+        // current_window.widgets.emplace_back(ctx.current_widget, atl::String{}, ctx.default_style.widgets, Vector2{});
         // ctx.current_widget = current_window.widgets.size() - 1;
     }
 
@@ -1355,11 +1355,11 @@ namespace anton_engine::imgui {
         // ctx.current_widget = current_window.widgets[ctx.current_widget].parent;
     }
 
-    void text(Context& ctx, anton_stl::String_View text) {
+    void text(Context& ctx, atl::String_View text) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
     }
 
-    Widget_State button(Context& ctx, anton_stl::String_View text, Button_Style const options, Font_Style const font) {
+    Widget_State button(Context& ctx, atl::String_View text, Button_Style const options, Font_Style const font) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
         // TODO: Check window z-order to determine whether this window is top-level
         Window& window = ctx.next.windows.at(ctx.current_window);

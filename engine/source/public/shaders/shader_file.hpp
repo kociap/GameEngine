@@ -3,7 +3,7 @@
 
 #include <rendering/opengl.hpp>
 
-#include <core/stl/string_view.hpp>
+#include <core/atl/string_view.hpp>
 #include <cstdint>
 
 namespace anton_engine {
@@ -15,7 +15,7 @@ namespace anton_engine {
         Shader_File(Shader_File const&) = delete;
         Shader_File& operator=(Shader_File const&) = delete;
 
-        Shader_File(anton_stl::String_View name, opengl::Shader_Type type, anton_stl::String_View source);
+        Shader_File(atl::String_View name, opengl::Shader_Type type, atl::String_View source);
         Shader_File(Shader_File&& shader) noexcept;
         Shader_File& operator=(Shader_File&& shader) noexcept;
         ~Shader_File();

@@ -103,9 +103,9 @@ namespace anton_engine {
     }
 
     inline Matrix3& Matrix3::transpose() {
-        anton_stl::swap((*this)[0][1], (*this)[1][0]);
-        anton_stl::swap((*this)[0][2], (*this)[2][0]);
-        anton_stl::swap((*this)[1][2], (*this)[2][1]);
+        atl::swap((*this)[0][1], (*this)[1][0]);
+        atl::swap((*this)[0][2], (*this)[2][0]);
+        atl::swap((*this)[1][2], (*this)[2][1]);
         return *this;
     }
 

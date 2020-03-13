@@ -2,7 +2,7 @@
 #define ENGINE_INPUT_INPUT_HPP_INCLUDE
 
 #include <core/types.hpp>
-#include <core/stl/string_view.hpp>
+#include <core/atl/string_view.hpp>
 #include <engine/key.hpp>
 #include <string>
 
@@ -36,8 +36,8 @@ namespace anton_engine::input {
     // raw_value_scale - Scale by which to multiply raw value obtained from input devices.
     // accumulation_speed - How fast to accumulate axis value in units/s.
     // snap - If raw value changes sign, should we reset to 0 or continue from current value?
-    void add_axis(anton_stl::String_View name, Key, f32 raw_value_scale, f32 accumulation_speed, bool snap);
-    void add_action(anton_stl::String_View name, Key);
+    void add_axis(atl::String_View name, Key, f32 raw_value_scale, f32 accumulation_speed, bool snap);
+    void add_action(atl::String_View name, Key);
 
     [[nodiscard]] f32 get_axis(std::string const& axis);
     [[nodiscard]] f32 get_axis_raw(std::string const& axis);

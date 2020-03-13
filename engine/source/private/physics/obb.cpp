@@ -22,7 +22,7 @@ namespace anton_engine {
         return tmax >= 0 && tmax >= tmin;
     }
 
-    anton_stl::Optional<Raycast_Hit> intersect_ray_obb(Ray ray, OBB obb) {
+    atl::Optional<Raycast_Hit> intersect_ray_obb(Ray ray, OBB obb) {
         Matrix4 rotation = Matrix4(Vector4{obb.local_x, 0}, Vector4{obb.local_y, 0}, Vector4{obb.local_z, 0}, Vector4{0, 0, 0, 1});
         // Center OBB at 0
         Matrix4 obb_space = math::transform::translate(-obb.center) * rotation;
@@ -44,7 +44,7 @@ namespace anton_engine {
             out.hit_point = ray.origin + ray.direction * tmax;
             return out;
         } else {
-            return anton_stl::null_optional;
+            return atl::null_optional;
         }
     }
 } // namespace anton_engine

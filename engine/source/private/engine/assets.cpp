@@ -3,7 +3,7 @@
 #include <rendering/glad.hpp>
 
 #include <core/types.hpp>
-#include <core/stl/vector.hpp>
+#include <core/atl/vector.hpp>
 #include <build_config.hpp>
 #include <core/math/vector3.hpp>
 #include <engine/mesh.hpp>
@@ -79,7 +79,7 @@ namespace anton_engine::assets {
     }
 
     // TODO extract writing and reading to one tu to keep them in sync
-    Texture_Format load_texture_no_mipmaps(std::string const& filename, uint64_t const texture_id, anton_stl::Vector<uint8_t>& pixels) {
+    Texture_Format load_texture_no_mipmaps(std::string const& filename, uint64_t const texture_id, atl::Vector<uint8_t>& pixels) {
 #if !GE_BUILD_SHIPPING
         std::filesystem::path const texture_path = utils::concat_paths(paths::assets_directory(), filename + ".getex");
         // TODO texture loading
@@ -124,13 +124,13 @@ namespace anton_engine::assets {
             } else {
                 i64 vertex_count;
                 file.read(reinterpret_cast<char*>(&vertex_count), sizeof(i64));
-                anton_stl::Vector<Vertex> vertices(vertex_count);
+                atl::Vector<Vertex> vertices(vertex_count);
                 file.read(reinterpret_cast<char*>(vertices.data()), vertex_count * sizeof(Vertex));
                 i64 index_count;
                 file.read(reinterpret_cast<char*>(&index_count), sizeof(i64));
-                anton_stl::Vector<u32> indices(index_count);
+                atl::Vector<u32> indices(index_count);
                 file.read(reinterpret_cast<char*>(indices.data()), index_count * sizeof(u32));
-                return {anton_stl::move(vertices), anton_stl::move(indices)};
+                return {atl::move(vertices), atl::move(indices)};
             }
         }
 

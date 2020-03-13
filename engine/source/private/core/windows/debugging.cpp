@@ -7,7 +7,7 @@
 // Windows.h must be included before DbgHelp.h. Otherwise we get undefined identifiers in DbgHelp.h
 #include <DbgHelp.h>
 
-#include <core/stl/string.hpp>
+#include <core/atl/string.hpp>
 #include <core/windows/common.hpp>
 
 #include <new>
@@ -56,7 +56,7 @@ enum UdtKind {
 
 namespace anton_engine::windows::debugging {
 
-    [[nodiscard]] static anton_stl::String process_base_type(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
+    [[nodiscard]] static atl::String process_base_type(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
         ULONG64 length = 0;
         if (!SymGetTypeInfo(process, module_base, index, TI_GET_LENGTH, &length)) {
             [[maybe_unused]] uint64_t const error_code = get_last_error();
@@ -120,9 +120,9 @@ namespace anton_engine::windows::debugging {
         }
     }
 
-    [[nodiscard]] static anton_stl::String process_typedef(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
+    [[nodiscard]] static atl::String process_typedef(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
         if (WCHAR* typedef_name = nullptr; SymGetTypeInfo(process, module_base, index, TI_GET_SYMNAME, &typedef_name)) {
-            anton_stl::String name = anton_stl::String::from_utf16(reinterpret_cast<char16_t*>(typedef_name));
+            atl::String name = atl::String::from_utf16(reinterpret_cast<char16_t*>(typedef_name));
             LocalFree(typedef_name);
             return name;
         } else {
@@ -130,7 +130,7 @@ namespace anton_engine::windows::debugging {
         }
     }
 
-    [[nodiscard]] static anton_stl::String process_pointer_type(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
+    [[nodiscard]] static atl::String process_pointer_type(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
         bool is_reference = false;
         // For some bizzare reason `process` changes after the call to SymGetTypeInfo,
         // so we make a copy of the valid value and use it instead.
@@ -140,7 +140,7 @@ namespace anton_engine::windows::debugging {
         }
 
         if (DWORD type_index = 0; SymGetTypeInfo(prcs, module_base, index, TI_GET_TYPEID, &type_index)) {
-            anton_stl::String subtype = get_type_as_string(prcs, module_base, type_index);
+            atl::String subtype = get_type_as_string(prcs, module_base, type_index);
             if (is_reference) {
                 subtype.append(u8"&");
             } else {
@@ -158,13 +158,13 @@ namespace anton_engine::windows::debugging {
         }
     }
 
-    [[nodiscard]] static anton_stl::String process_function_type(HANDLE const process, ULONG64 const module_base, ULONG64 const index,
+    [[nodiscard]] static atl::String process_function_type(HANDLE const process, ULONG64 const module_base, ULONG64 const index,
                                                                  char const* name = nullptr) {
-        anton_stl::String type_string;
+        atl::String type_string;
 
         // Return type
         if (DWORD return_type_index = 0; SymGetTypeInfo(process, module_base, index, TI_GET_TYPEID, &return_type_index)) {
-            anton_stl::String const return_type = get_type_as_string(process, module_base, return_type_index);
+            atl::String const return_type = get_type_as_string(process, module_base, return_type_index);
             type_string.append(return_type);
         } else {
             [[maybe_unused]] uint64_t const error_code = get_last_error();
@@ -186,7 +186,7 @@ namespace anton_engine::windows::debugging {
             if (SymGetTypeInfo(process, module_base, index, TI_FINDCHILDREN, &children_params)) {
                 type_string.append(u8"(");
                 for (uint64_t i = children_params.Start; i < children_params.Count; ++i) {
-                    anton_stl::String const argument = get_type_as_string(process, module_base, children_params.ChildId[i]);
+                    atl::String const argument = get_type_as_string(process, module_base, children_params.ChildId[i]);
                     type_string.append(argument);
                     if (i + 1 < children_params.Count) {
                         type_string.append(u8", ");
@@ -203,10 +203,10 @@ namespace anton_engine::windows::debugging {
         return type_string;
     }
 
-    [[nodiscard]] static anton_stl::String process_function(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
+    [[nodiscard]] static atl::String process_function(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
         if (DWORD type_index = 0; SymGetTypeInfo(process, module_base, index, TI_GET_TYPEID, &type_index)) {
             if (WCHAR* fn_name_wchar = nullptr; SymGetTypeInfo(process, module_base, index, TI_GET_SYMNAME, &fn_name_wchar)) {
-                anton_stl::String function_name = anton_stl::String::from_utf16(reinterpret_cast<char16_t*>(fn_name_wchar));
+                atl::String function_name = atl::String::from_utf16(reinterpret_cast<char16_t*>(fn_name_wchar));
                 LocalFree(fn_name_wchar);
                 return process_function_type(process, module_base, type_index, function_name.data());
             } else {
@@ -218,7 +218,7 @@ namespace anton_engine::windows::debugging {
         }
     }
 
-    [[nodiscard]] static anton_stl::String process_function_argument(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
+    [[nodiscard]] static atl::String process_function_argument(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
         if (DWORD type_index = 0; SymGetTypeInfo(process, module_base, index, TI_GET_TYPEID, &type_index)) {
             return get_type_as_string(process, module_base, type_index);
         } else {
@@ -227,9 +227,9 @@ namespace anton_engine::windows::debugging {
         }
     }
 
-    [[nodiscard]] static anton_stl::String process_class(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
+    [[nodiscard]] static atl::String process_class(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
         if (WCHAR* name = nullptr; SymGetTypeInfo(process, module_base, index, TI_GET_SYMNAME, &name)) {
-            anton_stl::String class_name = anton_stl::String::from_utf16(reinterpret_cast<char16_t*>(name));
+            atl::String class_name = atl::String::from_utf16(reinterpret_cast<char16_t*>(name));
             LocalFree(name);
             return class_name;
         } else {
@@ -238,7 +238,7 @@ namespace anton_engine::windows::debugging {
         }
     }
 
-    [[nodiscard]] static anton_stl::String process_udt(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
+    [[nodiscard]] static atl::String process_udt(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
         if (DWORD udt_kind = ~0; SymGetTypeInfo(process, module_base, index, TI_GET_UDTKIND, &udt_kind)) {
             switch (udt_kind) {
                 case UdtStruct:
@@ -255,10 +255,10 @@ namespace anton_engine::windows::debugging {
         }
     }
 
-    anton_stl::String get_type_as_string(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
+    atl::String get_type_as_string(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
         DWORD type_tag = 0;
         if (!SymGetTypeInfo(process, module_base, index, TI_GET_SYMTAG, &type_tag)) {
-            [[maybe_unused]] anton_stl::String error_message = get_last_error_message();
+            [[maybe_unused]] atl::String error_message = get_last_error_message();
             return {};
         }
 

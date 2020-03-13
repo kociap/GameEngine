@@ -1,7 +1,7 @@
 #ifndef ENGINE_ECS_ENTITY_HPP_INCLUDE
 #define ENGINE_ECS_ENTITY_HPP_INCLUDE
 
-#include <core/stl/utility.hpp>
+#include <core/atl/utility.hpp>
 #include <cstdint>
 #include <core/serialization/serialization.hpp>
 
@@ -30,7 +30,7 @@ namespace anton_engine {
     }
 
     constexpr void swap(Entity& e1, Entity& e2) {
-        anton_stl::swap(e1.id, e2.id);
+        atl::swap(e1.id, e2.id);
     }
 } // namespace anton_engine
 

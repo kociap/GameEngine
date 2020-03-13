@@ -1,8 +1,8 @@
 #ifndef EDITOR_OUTLINER_OUTLINER_ITEM_HPP_INCLUDE
 #define EDITOR_OUTLINER_OUTLINER_ITEM_HPP_INCLUDE
 
-#include <core/stl/string_view.hpp>
-#include <core/stl/vector.hpp>
+#include <core/atl/string_view.hpp>
+#include <core/atl/vector.hpp>
 #include <engine/ecs/entity.hpp>
 
 #include <core/diagnostic_macros.hpp>
@@ -20,13 +20,13 @@ namespace anton_engine {
         Q_OBJECT
 
     public:
-        explicit Outliner_Item(Entity, anton_stl::String_View, QWidget* parent = nullptr);
+        explicit Outliner_Item(Entity, atl::String_View, QWidget* parent = nullptr);
         Outliner_Item(Outliner_Item&&) noexcept;
         Outliner_Item& operator=(Outliner_Item&&) noexcept;
         ~Outliner_Item() override;
 
         Entity get_associated_entity() const;
-        void set_name(anton_stl::String_View);
+        void set_name(atl::String_View);
 
         void select();
         void deselect();

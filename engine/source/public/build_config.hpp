@@ -23,7 +23,7 @@
 #    define GE_BUILD_SHIPPING GE_BUILD_SHIPPING_DEBUG || GE_BUILD_SHIPPING_RELEASE
 #endif
 
-// anton_stl library
+// atl library
 
 #ifndef ANTON_STRING_VIEW_VERIFY_ENCODING
 #    define ANTON_STRING_VIEW_VERIFY_ENCODING 1

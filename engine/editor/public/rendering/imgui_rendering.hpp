@@ -2,7 +2,7 @@
 #define EDITOR_RENDERING_IMGUI_RENDERING_HPP_INCLUDE
 
 #include <core/types.hpp>
-#include <core/stl/slice.hpp>
+#include <core/atl/slice.hpp>
 #include <imgui/imgui.hpp>
 
 namespace anton_engine::imgui {
@@ -18,7 +18,7 @@ namespace anton_engine::imgui {
     void setup_rendering();
     void bind_buffers();
     // Fills count, base_vertex and first_index
-    Draw_Elements_Command write_geometry(anton_stl::Slice<Vertex const>, anton_stl::Slice<u32 const>);
+    Draw_Elements_Command write_geometry(atl::Slice<Vertex const>, atl::Slice<u32 const>);
     void add_draw_command(Draw_Elements_Command);
     void commit_draw();
 

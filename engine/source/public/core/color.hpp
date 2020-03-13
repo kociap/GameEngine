@@ -1,7 +1,7 @@
 #ifndef CORE_COLOR_HPP_INCLUDE
 #define CORE_COLOR_HPP_INCLUDE
 
-#include <core/stl/utility.hpp>
+#include <core/atl/utility.hpp>
 
 namespace anton_engine {
     class Color {
@@ -50,10 +50,10 @@ namespace anton_engine {
     }
 
     inline void swap(Color& a, Color& b) {
-        anton_stl::swap(a.r, b.r);
-        anton_stl::swap(a.g, b.g);
-        anton_stl::swap(a.b, b.b);
-        anton_stl::swap(a.a, b.a);
+        atl::swap(a.r, b.r);
+        atl::swap(a.g, b.g);
+        atl::swap(a.b, b.b);
+        atl::swap(a.a, b.a);
     }
 } // namespace anton_engine
 

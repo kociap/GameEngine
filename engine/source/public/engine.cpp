@@ -1,7 +1,7 @@
 #include <engine.hpp>
 
 #include <core/types.hpp>
-#include <core/stl/utility.hpp>
+#include <core/atl/utility.hpp>
 #include <engine/assets.hpp>
 #include <engine/ecs/ecs.hpp>
 #include <engine/ecs/entity.hpp>
@@ -61,7 +61,7 @@ namespace anton_engine {
         std::filesystem::path const bindings_file_path(utils::concat_paths(paths::executable_directory(), "input_bindings.config"));
         std::string const config_file = assets::read_file_raw_string(bindings_file_path);
         {
-            auto find_property = [](auto& properties, auto predicate) -> anton_stl::Vector<utils::xml::Tag_Property>::iterator {
+            auto find_property = [](auto& properties, auto predicate) -> atl::Vector<utils::xml::Tag_Property>::iterator {
                 auto end = properties.end();
                 for (auto iter = properties.begin(); iter != end; ++iter) {
                     if (predicate(*iter)) {
@@ -71,7 +71,7 @@ namespace anton_engine {
                 return end;
             };
 
-            anton_stl::Vector<utils::xml::Tag> tags(utils::xml::parse(config_file));
+            atl::Vector<utils::xml::Tag> tags(utils::xml::parse(config_file));
             for (utils::xml::Tag& tag: tags) {
                 if (tag.name != "axis" && tag.name != "action") {
                     ANTON_LOG_INFO("Unknown tag, skipping...");
@@ -150,8 +150,8 @@ namespace anton_engine {
 
     static void joystick_config_callback(i32 const joy, i32 const joy_event, void*) {
         // if (joy_event == GLFW_CONNECTED && glfwJoystickIsGamepad(joy)) {
-        //     anton_stl::String joy_name(glfwGetJoystickName(joy));
-        //     ANTON_LOG_INFO("Gamepad connected: " + joy_name + " " + anton_stl::to_string(joy));
+        //     atl::String joy_name(glfwGetJoystickName(joy));
+        //     ANTON_LOG_INFO("Gamepad connected: " + joy_name + " " + atl::to_string(joy));
         // }
     }
 
@@ -253,8 +253,8 @@ namespace anton_engine {
         Mesh container = assets::load_mesh("barrel", 1);
         Material barrel_mat;
         {
-            anton_stl::Vector<uint8_t> pixels;
-            // auto create_noise_texture = [](anton_stl::Vector<uint8_t>& pixels) {
+            atl::Vector<uint8_t> pixels;
+            // auto create_noise_texture = [](atl::Vector<uint8_t>& pixels) {
             //     i32 const perm_table[] = {
             //         11,  3,   299, 83,  42,  81,  213, 25,  98,  279, 292, 43,  22,  247, 243, 145, 245, 240, 96,  17,  26,  152, 244, 32,  62,  24,  119, 186,
             //         274, 188, 163, 39,  175, 90,  156, 79,  278, 237, 157, 13,  258, 7,   225, 131, 252, 94,  176, 52,  44,  136, 283, 0,   168, 208, 167, 95,
@@ -468,7 +468,7 @@ namespace anton_engine {
                 // TODO: Fix shitcode.
                 render_frame(deferred_framebuffer, postprocess_back, view_mat, inv_view_mat, proj_mat, inv_proj_mat, transform,
                              Vector2(window_dims.x, window_dims.y));
-                anton_stl::swap(postprocess_front, postprocess_back);
+                atl::swap(postprocess_front, postprocess_back);
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 glBindTextureUnit(0, postprocess_front->get_color_texture(0));
                 Shader& gamma_correction_shader = get_builtin_shader(Builtin_Shader::gamma_correction);

@@ -2,7 +2,7 @@
 
 #include <engine/input.hpp>
 
-#include <core/stl/string.hpp>
+#include <core/atl/string.hpp>
 #include <engine/assets.hpp>
 #include <engine.hpp>
 #include <core/logging.hpp>
@@ -19,11 +19,11 @@ namespace anton_engine {
             Shader shader = create_shader(assets::load_shader_file(std::forward<T>(path))...);
             swap(shader_to_reload, shader);
         } catch (Program_Linking_Failed const& e) {
-            ANTON_LOG_ERROR(anton_stl::String(u8"Failed to reload shaders due to linking error: ") + e.what());
+            ANTON_LOG_ERROR(atl::String(u8"Failed to reload shaders due to linking error: ") + e.what());
         } catch (Shader_Compilation_Failed const& e) {
-            ANTON_LOG_ERROR(anton_stl::String(u8"Failed to reload shaders due to compilation error: ") + e.what());
+            ANTON_LOG_ERROR(atl::String(u8"Failed to reload shaders due to compilation error: ") + e.what());
         } catch (std::exception const& e) {
-            ANTON_LOG_ERROR(anton_stl::String(u8"Failed to reload shaders due to unknown error: ") + e.what()); //
+            ANTON_LOG_ERROR(atl::String(u8"Failed to reload shaders due to unknown error: ") + e.what()); //
         }
     }
 

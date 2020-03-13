@@ -1,7 +1,7 @@
 #ifndef GAME_ENGINE_CORE_MATH_MARTIX2_HPP_INCLUDE
 #define GAME_ENGINE_CORE_MATH_MARTIX2_HPP_INCLUDE
 
-#include <core/stl/utility.hpp>
+#include <core/atl/utility.hpp>
 #include <core/math/vector2.hpp>
 
 namespace anton_engine {
@@ -106,7 +106,7 @@ namespace anton_engine {
     }
 
     inline Matrix2& Matrix2::transpose() {
-        anton_stl::swap((*this)[1][0], (*this)[0][1]);
+        atl::swap((*this)[1][0], (*this)[0][1]);
         return *this;
     }
 

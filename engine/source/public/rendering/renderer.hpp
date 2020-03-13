@@ -2,7 +2,7 @@
 #define ENGINE_RENDERER_RENDERER_HPP_INCLUDE
 
 #include <core/types.hpp>
-#include <core/stl/slice.hpp>
+#include <core/atl/slice.hpp>
 #include <engine/components/camera.hpp>
 #include <engine/components/transform.hpp>
 #include <cstdint>
@@ -54,15 +54,15 @@ namespace anton_engine::rendering {
     void update_dynamic_lights();
 
     // Write geometry to gpu buffers. The geometry will eventually be overwritten.
-    [[nodiscard]] Draw_Elements_Command write_geometry(anton_stl::Slice<Vertex const>, anton_stl::Slice<u32 const>);
+    [[nodiscard]] Draw_Elements_Command write_geometry(atl::Slice<Vertex const>, atl::Slice<u32 const>);
 
     // Write matrices and materials to gpu buffers. Data will eventually be overwritten.
     // Returns draw_id offset to be used as base_instance in draw commands.
-    [[nodiscard]] u32 write_matrices_and_materials(anton_stl::Slice<Matrix4 const>, anton_stl::Slice<Material const>);
+    [[nodiscard]] u32 write_matrices_and_materials(atl::Slice<Matrix4 const>, atl::Slice<Material const>);
 
     // Write geometry that will persist across multiple frames. Geometry will not be overwritten.
     // Returns: Handle to the persistent geometry.
-    [[nodiscard]] u64 write_persistent_geometry(anton_stl::Slice<Vertex const>, anton_stl::Slice<u32 const>);
+    [[nodiscard]] u64 write_persistent_geometry(atl::Slice<Vertex const>, atl::Slice<u32 const>);
 
     // Loads base texture and generates mipmaps (since we don't have pregenerated mipmaps yet).
     // pixels is a pointer to an array of pointers to the pixel data.

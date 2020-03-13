@@ -17,14 +17,14 @@ namespace anton_engine::utils {
         return size;
     }
 
-    anton_stl::Vector<uint8_t> read_file_binary(std::filesystem::path const& path) {
+    atl::Vector<uint8_t> read_file_binary(std::filesystem::path const& path) {
         std::ifstream file(path, std::ios::binary);
         if (!file) {
             throw std::runtime_error("Failed to read the file"); // TODO More specific exception that will actually allow
                                                                  //        me to dispaly useful information to the user
         }
         int64_t file_size = utils::get_file_size(file);
-        anton_stl::Vector<uint8_t> file_contents(file_size);
+        atl::Vector<uint8_t> file_contents(file_size);
         file.read(reinterpret_cast<char*>(file_contents.data()), file_size); // TODO reinterpret_cast
         return file_contents;
     }

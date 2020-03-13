@@ -5,7 +5,7 @@
 #    pragma once
 #endif // _MSC_VER
 
-#include <core/stl/string_view.hpp>
+#include <core/atl/string_view.hpp>
 
 namespace anton_engine {
     class Module {
@@ -13,12 +13,12 @@ namespace anton_engine {
         void* handle;
     };
 
-    Module load_module(anton_stl::String_View module_name);
+    Module load_module(atl::String_View module_name);
     void unload_module(Module module);
-    void* get_function_from_module(Module module, anton_stl::String_View name);
+    void* get_function_from_module(Module module, atl::String_View name);
 
     template <typename T>
-    T get_function_from_module(Module module, anton_stl::String_View name) {
+    T get_function_from_module(Module module, atl::String_View name) {
         return reinterpret_cast<T>(get_function_from_module(module, name));
     }
 } // namespace anton_engine

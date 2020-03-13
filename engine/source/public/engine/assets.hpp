@@ -1,7 +1,7 @@
 #ifndef ENGINE_ASSETS_ASSETS_HPP_INCLUDE
 #define ENGINE_ASSETS_ASSETS_HPP_INCLUDE
 
-#include <core/stl/vector.hpp>
+#include <core/atl/vector.hpp>
 #include <shaders/shader_file.hpp>
 #include <rendering/texture_format.hpp>
 
@@ -20,7 +20,7 @@ namespace anton_engine {
         Shader_File load_shader_file(std::filesystem::path const& path);
 
         // Loads texture pixels
-        Texture_Format load_texture_no_mipmaps(std::string const& filename, uint64_t texture_id, anton_stl::Vector<uint8_t>& pixels);
+        Texture_Format load_texture_no_mipmaps(std::string const& filename, uint64_t texture_id, atl::Vector<uint8_t>& pixels);
 
         Mesh load_mesh(std::filesystem::path const& filename, u64 const guid);
     } // namespace assets

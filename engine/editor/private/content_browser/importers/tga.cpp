@@ -1,6 +1,6 @@
 #include <content_browser/importers/tga.hpp>
 
-#include <core/stl/memory.hpp>
+#include <core/atl/memory.hpp>
 #include <core/intrinsics.hpp>
 #include <cstdint>
 #include <content_browser/importers/common.hpp>
@@ -92,14 +92,14 @@ namespace anton_engine::importers {
     }
 
     // TGA2 test
-    bool test_tga(anton_stl::Vector<uint8_t> const& stream) {
+    bool test_tga(atl::Vector<uint8_t> const& stream) {
         int64_t pos = stream.size() - footer_byte_size; // Seek to the end of the file to look for the footer
         TGA_Footer const footer = read_footer(stream.data(), pos);
         return footer.signature1 == tga_signature_0_8 && footer.signature2 == tga_signature_8_16 && footer.reserved_character == '.' &&
                footer.terminator == '\0';
     }
 
-    Image import_tga(anton_stl::Vector<uint8_t> const& tga_data) {
+    Image import_tga(atl::Vector<uint8_t> const& tga_data) {
         uint8_t const* const tga_stream = tga_data.data();
         int64_t pos = 0;
         TGA_Header const header = read_header(tga_stream, pos);
@@ -232,7 +232,7 @@ namespace anton_engine::importers {
                     swap_and_copy_bytes(swapped_pixel, current_pixel, bytes_per_pixel, bytes_per_pixel, is_indexed);
                     img_offset += bytes_per_pixel;
                     for (int32_t j = 1; j < repeat_count; ++j) {
-                        anton_stl::copy(swapped_pixel, swapped_pixel + bytes_per_pixel, image.data.data() + img_offset);
+                        atl::copy(swapped_pixel, swapped_pixel + bytes_per_pixel, image.data.data() + img_offset);
                         img_offset += bytes_per_pixel;
                     }
                     offset += bytes_per_pixel + 1;
@@ -248,7 +248,7 @@ namespace anton_engine::importers {
 
         if (is_indexed) {
             // Deindexing
-            anton_stl::Vector<uint8_t> colors(header.image_width * header.image_height * pixel_width);
+            atl::Vector<uint8_t> colors(header.image_width * header.image_height * pixel_width);
             int32_t const bytes_per_color_map_pixel = static_cast<int32_t>(pixel_width / 8);
             uint8_t* indices_ptr = image.data.data();
             uint8_t* const colors_ptr = colors.data();

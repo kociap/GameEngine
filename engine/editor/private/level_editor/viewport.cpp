@@ -1,6 +1,6 @@
 #include <level_editor/viewport.hpp>
 
-#include <core/stl/vector.hpp>
+#include <core/atl/vector.hpp>
 #include <engine/assets.hpp>
 #include <shaders/builtin_shaders.hpp>
 #include <engine/components/camera.hpp>
@@ -123,7 +123,7 @@ namespace anton_engine {
     }
 
     void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const projection_mat, Matrix4 const inv_view_mat, Matrix4 const inv_projection_mat,
-                                   Transform const camera_transform, anton_stl::Vector<Entity>& selected_entities) {
+                                   Transform const camera_transform, atl::Vector<Entity>& selected_entities) {
         int32_t const window_content_size_x = width();
         int32_t const window_content_size_y = height();
         Vector2 const viewport_size(window_content_size_x, window_content_size_y);
@@ -142,7 +142,7 @@ namespace anton_engine {
                     if (selected_entities.size() != 0 && selected_entity == selected_entities[0]) {
                         already_selected = true;
                     } else {
-                        for (anton_stl::Vector<Entity>::size_type i = 1; i < selected_entities.size(); ++i) {
+                        for (atl::Vector<Entity>::size_type i = 1; i < selected_entities.size(); ++i) {
                             if (selected_entities[i] == selected_entity) {
                                 editor_events::entity_deselected(selected_entity);
                                 break;
@@ -184,7 +184,7 @@ namespace anton_engine {
                         // TODO: Use global object rotation for local gizmos.
                         Matrix4 const base_rotation_x = math::transform::rotate_y(math::constants::half_pi);
                         Matrix4 const rotation_x = compute_rotation(gizmo_ctx.space, base_rotation_x, math::transform::rotate(transform.local_rotation));
-                        if (anton_stl::Optional<float> const arrow_distance =
+                        if (atl::Optional<float> const arrow_distance =
                                 gizmo::intersect_arrow_3d(ray, arrow, rotation_x * translation, vp_mat, viewport_size);
                             arrow_distance && *arrow_distance < distance) {
                             distance = *arrow_distance;
@@ -195,7 +195,7 @@ namespace anton_engine {
 
                         Matrix4 const base_rotation_y = math::transform::rotate_x(-math::constants::half_pi);
                         Matrix4 const rotation_y = compute_rotation(gizmo_ctx.space, base_rotation_y, math::transform::rotate(transform.local_rotation));
-                        if (anton_stl::Optional<float> const arrow_distance =
+                        if (atl::Optional<float> const arrow_distance =
                                 gizmo::intersect_arrow_3d(ray, arrow, rotation_y * translation, vp_mat, viewport_size);
                             arrow_distance && *arrow_distance < distance) {
                             distance = *arrow_distance;
@@ -206,7 +206,7 @@ namespace anton_engine {
 
                         Matrix4 const base_rotation_z = math::transform::rotate_y(math::constants::pi);
                         Matrix4 const rotation_z = compute_rotation(gizmo_ctx.space, base_rotation_z, math::transform::rotate(transform.local_rotation));
-                        if (anton_stl::Optional<float> const arrow_distance =
+                        if (atl::Optional<float> const arrow_distance =
                                 gizmo::intersect_arrow_3d(ray, arrow, rotation_z * translation, vp_mat, viewport_size);
                             arrow_distance && *arrow_distance < distance) {
                             distance = *arrow_distance;
@@ -237,7 +237,7 @@ namespace anton_engine {
                         // TODO: Use global object rotation for local gizmos.
                         Matrix4 const base_rotation_x = math::transform::rotate_y(math::constants::half_pi);
                         Matrix4 const rotation_x = compute_rotation(gizmo_ctx.space, base_rotation_x, math::transform::rotate(transform.local_rotation));
-                        if (anton_stl::Optional<float> const arrow_distance =
+                        if (atl::Optional<float> const arrow_distance =
                                 gizmo::intersect_arrow_3d(ray, arrow, rotation_x * translation, vp_mat, viewport_size);
                             arrow_distance && *arrow_distance < distance) {
                             distance = *arrow_distance;
@@ -248,7 +248,7 @@ namespace anton_engine {
 
                         Matrix4 const base_rotation_y = math::transform::rotate_x(-math::constants::half_pi);
                         Matrix4 const rotation_y = compute_rotation(gizmo_ctx.space, base_rotation_y, math::transform::rotate(transform.local_rotation));
-                        if (anton_stl::Optional<float> const arrow_distance =
+                        if (atl::Optional<float> const arrow_distance =
                                 gizmo::intersect_arrow_3d(ray, arrow, rotation_y * translation, vp_mat, viewport_size);
                             arrow_distance && *arrow_distance < distance) {
                             distance = *arrow_distance;
@@ -259,7 +259,7 @@ namespace anton_engine {
 
                         Matrix4 const base_rotation_z = math::transform::rotate_y(math::constants::pi);
                         Matrix4 const rotation_z = compute_rotation(gizmo_ctx.space, base_rotation_z, math::transform::rotate(transform.local_rotation));
-                        if (anton_stl::Optional<float> const arrow_distance =
+                        if (atl::Optional<float> const arrow_distance =
                                 gizmo::intersect_arrow_3d(ray, arrow, rotation_z * translation, vp_mat, viewport_size);
                             arrow_distance && *arrow_distance < distance) {
                             distance = *arrow_distance;
@@ -315,7 +315,7 @@ namespace anton_engine {
 
     // Renders outline data to framebuffer
     // Leaves the rendered scene with outlines in renderer's front postprocess framebuffer's 1st color attachment
-    static void draw_outlines(rendering::Renderer& renderer, Framebuffer& framebuffer, anton_stl::Vector<Entity> const& selected_entities, Matrix4 const view,
+    static void draw_outlines(rendering::Renderer& renderer, Framebuffer& framebuffer, atl::Vector<Entity> const& selected_entities, Matrix4 const view,
                               Matrix4 const projection, Color const outline_color) {
         Shader& uniform_color_shader = get_builtin_shader(Builtin_Shader::uniform_color_3d);
         uniform_color_shader.use();
@@ -347,7 +347,7 @@ namespace anton_engine {
     }
 
     static void draw_gizmo(Ray const mouse_ray, Vector3 const camera_pos, Matrix4 const vp_mat, Vector2 const viewport_size,
-                           anton_stl::Slice<Entity const> selected_entities) {
+                           atl::Slice<Entity const> selected_entities) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         // gizmo::debug_commit_draw_lines(vp_mat, camera_pos, timing::get_delta_time());
@@ -373,11 +373,11 @@ namespace anton_engine {
 
                 if (!gizmo_ctx.grab.grabbed) {
                     gizmo::Arrow_3D const arrow = {gizmo::Arrow_3D_Style::cone, Color::white, gizmo_settings.size};
-                    anton_stl::Optional<float> const hits[3] = {gizmo::intersect_arrow_3d(mouse_ray, arrow, transforms[0], vp_mat, viewport_size),
+                    atl::Optional<float> const hits[3] = {gizmo::intersect_arrow_3d(mouse_ray, arrow, transforms[0], vp_mat, viewport_size),
                                                                 gizmo::intersect_arrow_3d(mouse_ray, arrow, transforms[1], vp_mat, viewport_size),
                                                                 gizmo::intersect_arrow_3d(mouse_ray, arrow, transforms[2], vp_mat, viewport_size)};
                     if (hits[0] || hits[1] || hits[2]) {
-                        auto value_or_infty = [](anton_stl::Optional<float> const& hit) { return (hit ? hit.value() : math::constants::infinity); };
+                        auto value_or_infty = [](atl::Optional<float> const& hit) { return (hit ? hit.value() : math::constants::infinity); };
                         if (value_or_infty(hits[0]) < value_or_infty(hits[1]) && value_or_infty(hits[0]) < value_or_infty(hits[2])) {
                             axis_colors[0].a = 1.0f;
                         } else if (value_or_infty(hits[1]) < value_or_infty(hits[0]) && value_or_infty(hits[1]) < value_or_infty(hits[2])) {
@@ -404,11 +404,11 @@ namespace anton_engine {
 
                 if (!gizmo_ctx.grab.grabbed) {
                     gizmo::Dial_3D const dial = {Color::white, gizmo_settings.size};
-                    anton_stl::Optional<float> const hits[3] = {gizmo::intersect_dial_3d(mouse_ray, dial, transforms[0], vp_mat, viewport_size),
+                    atl::Optional<float> const hits[3] = {gizmo::intersect_dial_3d(mouse_ray, dial, transforms[0], vp_mat, viewport_size),
                                                                 gizmo::intersect_dial_3d(mouse_ray, dial, transforms[1], vp_mat, viewport_size),
                                                                 gizmo::intersect_dial_3d(mouse_ray, dial, transforms[2], vp_mat, viewport_size)};
                     if (hits[0] || hits[1] || hits[2]) {
-                        auto value_or_infty = [](anton_stl::Optional<float> const& hit) { return (hit ? hit.value() : math::constants::infinity); };
+                        auto value_or_infty = [](atl::Optional<float> const& hit) { return (hit ? hit.value() : math::constants::infinity); };
                         if (value_or_infty(hits[0]) < value_or_infty(hits[1]) && value_or_infty(hits[0]) < value_or_infty(hits[2])) {
                             axis_colors[0].a = 1.0f;
                         } else if (value_or_infty(hits[1]) < value_or_infty(hits[0]) && value_or_infty(hits[1]) < value_or_infty(hits[2])) {
@@ -435,11 +435,11 @@ namespace anton_engine {
 
                 if (!gizmo_ctx.grab.grabbed) {
                     gizmo::Arrow_3D const arrow = {gizmo::Arrow_3D_Style::cube, Color::white, gizmo_settings.size};
-                    anton_stl::Optional<float> const hits[3] = {gizmo::intersect_arrow_3d(mouse_ray, arrow, transforms[0], vp_mat, viewport_size),
+                    atl::Optional<float> const hits[3] = {gizmo::intersect_arrow_3d(mouse_ray, arrow, transforms[0], vp_mat, viewport_size),
                                                                 gizmo::intersect_arrow_3d(mouse_ray, arrow, transforms[1], vp_mat, viewport_size),
                                                                 gizmo::intersect_arrow_3d(mouse_ray, arrow, transforms[2], vp_mat, viewport_size)};
                     if (hits[0] || hits[1] || hits[2]) {
-                        auto value_or_infty = [](anton_stl::Optional<float> const& hit) { return (hit ? hit.value() : math::constants::infinity); };
+                        auto value_or_infty = [](atl::Optional<float> const& hit) { return (hit ? hit.value() : math::constants::infinity); };
                         if (value_or_infty(hits[0]) < value_or_infty(hits[1]) && value_or_infty(hits[0]) < value_or_infty(hits[2])) {
                             axis_colors[0].a = 1.0f;
                         } else if (value_or_infty(hits[1]) < value_or_infty(hits[0]) && value_or_infty(hits[1]) < value_or_infty(hits[2])) {
@@ -526,7 +526,7 @@ namespace anton_engine {
     }
 
     void Viewport::render(Matrix4 const view_mat, Matrix4 const inv_view_mat, Matrix4 const proj_mat, Matrix4 const inv_proj_mat, Camera const camera,
-                          Transform const camera_transform, anton_stl::Slice<Entity const> selected_entities) {
+                          Transform const camera_transform, atl::Slice<Entity const> selected_entities) {
         // TODO: Repeatedly calling makeCurrent kills performance!!
         // if (!context->makeCurrent(windowHandle())) {
         //     ANTON_LOG_WARNING("Could not make context current. Skipping rendering.");
@@ -594,9 +594,9 @@ namespace anton_engine {
             imgui::end_window(ctx);
             imgui::end_frame(ctx);
 
-            anton_stl::Slice<imgui::Vertex const> vertices = imgui::get_vertex_data(ctx);
-            anton_stl::Slice<u32 const> indices = imgui::get_index_data(ctx);
-            anton_stl::Slice<imgui::Draw_Command const> draw_commands = imgui::get_draw_commands(ctx);
+            atl::Slice<imgui::Vertex const> vertices = imgui::get_vertex_data(ctx);
+            atl::Slice<u32 const> indices = imgui::get_index_data(ctx);
+            atl::Slice<imgui::Draw_Command const> draw_commands = imgui::get_draw_commands(ctx);
             imgui::Draw_Elements_Command cmd = imgui::write_geometry(vertices, indices);
             // TODO: Add textures.
             cmd.instance_count = 1;

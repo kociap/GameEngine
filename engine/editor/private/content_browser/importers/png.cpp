@@ -1,8 +1,8 @@
 #include <content_browser/importers/png.hpp>
 
 #include <core/intrinsics.hpp>
-#include <core/stl/type_traits.hpp>
-#include <core/stl/vector.hpp>
+#include <core/atl/type_traits.hpp>
+#include <core/atl/vector.hpp>
 #include <cstdint>
 #include <content_browser/importers/common.hpp>
 #include <core/math/math.hpp>
@@ -136,7 +136,7 @@ namespace anton_engine::importers {
     }
 
     static void extract_adam7_pass(int const pass, uint8_t const*& pixels, int32_t const pixel_width, uint64_t const image_width, uint64_t const image_height,
-                                   anton_stl::Vector<uint8_t>& out_pixels) {
+                                   atl::Vector<uint8_t>& out_pixels) {
         uint32_t const starting_row[7] = {0, 0, 4, 0, 2, 0, 1};
         uint32_t const row_increment[7] = {8, 8, 8, 4, 4, 2, 2};
         uint32_t const starting_column[7] = {0, 4, 0, 2, 0, 1, 0};
@@ -234,12 +234,12 @@ namespace anton_engine::importers {
         }
     }
 
-    bool test_png(anton_stl::Vector<uint8_t> const& image_data) {
+    bool test_png(atl::Vector<uint8_t> const& image_data) {
         uint64_t const header = read_uint64_be(image_data.data());
         return header == png_header;
     }
 
-    Image import_png(anton_stl::Vector<uint8_t> const& png_data) {
+    Image import_png(atl::Vector<uint8_t> const& png_data) {
         // TODO Reduce number of memory allocations
         // TODO Make sure less than 8 bit images are handled correctly
         // TODO Maybe filter/deinterlace on the fly?
@@ -289,7 +289,7 @@ namespace anton_engine::importers {
 
         uint64_t const pixel_width = get_pixel_width(header.color_type, header.bit_depth);
         uint64_t pixels_buffer_size = get_decompression_buffer_size(header.width, header.height, pixel_width, header.interlace_method);
-        anton_stl::Vector<uint8_t> pixels(pixels_buffer_size);
+        atl::Vector<uint8_t> pixels(pixels_buffer_size);
         z_stream stream;
         stream.next_out = pixels.data();
         stream.avail_out = pixels.size();
@@ -308,8 +308,8 @@ namespace anton_engine::importers {
             uint8_t green;
             uint8_t blue;
         };
-        anton_stl::Vector<Indexed_Color> color_palette(1 << 8);
-        anton_stl::Vector<uint8_t> alpha_palette(1 << 8, 255);
+        atl::Vector<Indexed_Color> color_palette(1 << 8);
+        atl::Vector<uint8_t> alpha_palette(1 << 8, 255);
         bool tRNS_present = false;
         float gamma = 2.2f;
         Image_Color_Space color_space = Image_Color_Space::srgb;
@@ -333,7 +333,7 @@ namespace anton_engine::importers {
                         throw Invalid_Image_File("PLTE chunk contains too many entries");
                     }
 
-                    anton_stl::copy(chunk_data.data, chunk_data.data + chunk_data.data_length, reinterpret_cast<uint8_t*>(color_palette.data()));
+                    atl::copy(chunk_data.data, chunk_data.data + chunk_data.data_length, reinterpret_cast<uint8_t*>(color_palette.data()));
                     color_palette.resize(palette_entries);
                     PLTE_present = true;
                     break;
@@ -416,7 +416,7 @@ namespace anton_engine::importers {
                             throw Invalid_Image_File("Too many entries in the alpha palette");
                         }
 
-                        anton_stl::copy(chunk_data.data, chunk_data.data + chunk_data.data_length, alpha_palette.data());
+                        atl::copy(chunk_data.data, chunk_data.data + chunk_data.data_length, alpha_palette.data());
                         alpha_palette.resize(color_palette.size());
                     }
                     tRNS_present = true;
@@ -444,7 +444,7 @@ namespace anton_engine::importers {
             }
         }
 
-        anton_stl::Vector<uint8_t> pixels_unfiltered(header.height * header.width * pixel_width);
+        atl::Vector<uint8_t> pixels_unfiltered(header.height * header.width * pixel_width);
         if (header.interlace_method == 0) {
             uint64_t const scanline_width = header.width * pixel_width;
             reconstruct_scanlines(pixels.data(), pixel_width, scanline_width, header.height, pixels_unfiltered.data());
@@ -481,7 +481,7 @@ namespace anton_engine::importers {
 
         if (header.color_type == color_type_indexed) {
             uint64_t indexed_pixel_width = tRNS_present ? 4 : 3;
-            anton_stl::Vector<uint8_t> deindexed(anton_stl::reserve, header.width * header.height * indexed_pixel_width);
+            atl::Vector<uint8_t> deindexed(atl::reserve, header.width * header.height * indexed_pixel_width);
             if (tRNS_present) {
                 for (uint8_t pixel_index: pixels_unfiltered) {
                     auto color = color_palette[pixel_index];
@@ -543,6 +543,6 @@ namespace anton_engine::importers {
                 ANTON_UNREACHABLE();
         }
         // TODO: Choose color space based on the image loaded
-        return {header.width, header.height, pixel_format, Image_Color_Space::gamma_encoded, gamma, anton_stl::move(pixels_unfiltered)};
+        return {header.width, header.height, pixel_format, Image_Color_Space::gamma_encoded, gamma, atl::move(pixels_unfiltered)};
     }
 } // namespace anton_engine::importers

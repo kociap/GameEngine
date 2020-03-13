@@ -1,8 +1,8 @@
 #ifndef EDITOR_LOG_VIEWER_LOG_VIEWER_HPP_INCLUDE
 #define EDITOR_LOG_VIEWER_LOG_VIEWER_HPP_INCLUDE
 
-#include <core/stl/string_view.hpp>
-#include <core/stl/vector.hpp>
+#include <core/atl/string_view.hpp>
+#include <core/atl/vector.hpp>
 #include <list_widget.hpp>
 #include <core/logging.hpp>
 
@@ -19,7 +19,7 @@ class QResizeEvent;
 namespace anton_engine {
     class Log_Message: public QWidget {
     public:
-        Log_Message(anton_engine::Log_Message_Severity, anton_stl::String_View, QWidget* parent = nullptr);
+        Log_Message(anton_engine::Log_Message_Severity, atl::String_View, QWidget* parent = nullptr);
         Log_Message(Log_Message&&) noexcept;
         Log_Message& operator=(Log_Message&&) noexcept;
         ~Log_Message() override;
@@ -38,7 +38,7 @@ namespace anton_engine {
         Log_Viewer& operator=(Log_Viewer&&) noexcept;
         ~Log_Viewer() override;
 
-        void add_message(anton_engine::Log_Message_Severity, anton_stl::String_View time, anton_stl::String_View message);
+        void add_message(anton_engine::Log_Message_Severity, atl::String_View time, atl::String_View message);
         void remove_all_messages();
 
     private:

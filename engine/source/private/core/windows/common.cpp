@@ -8,7 +8,7 @@ namespace anton_engine::windows {
         return GetLastError();
     }
 
-    anton_stl::String get_last_error_message() {
+    atl::String get_last_error_message() {
         DWORD error_code = GetLastError();
         if (error_code == 0) {
             return {};
@@ -17,7 +17,7 @@ namespace anton_engine::windows {
         LPWSTR message_buffer = nullptr;
         FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, error_code,
                        MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), reinterpret_cast<LPWSTR>(&message_buffer), 0, nullptr);
-        anton_stl::String error_message = anton_stl::String::from_utf16(reinterpret_cast<char16_t*>(message_buffer));
+        atl::String error_message = atl::String::from_utf16(reinterpret_cast<char16_t*>(message_buffer));
         LocalFree(message_buffer);
         return error_message;
     }

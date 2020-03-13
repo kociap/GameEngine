@@ -1,4 +1,4 @@
-#include <core/stl/vector.hpp>
+#include <core/atl/vector.hpp>
 #include <istream>
 #include <string>
 
@@ -13,10 +13,10 @@ namespace anton_engine::utils {
 
         struct Tag {
             std::string name;
-            anton_stl::Vector<Tag_Property> properties;
+            atl::Vector<Tag_Property> properties;
             Tag_Type type;
         };
 
-        anton_stl::Vector<Tag> parse(std::string const&);
+        atl::Vector<Tag> parse(std::string const&);
     } // namespace xml
 } // namespace anton_engine::utils

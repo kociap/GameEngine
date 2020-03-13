@@ -1,14 +1,14 @@
 #ifndef ENGINE_RESOURCE_MANAGER_HPP_INCLUDE
 #define ENGINE_RESOURCE_MANAGER_HPP_INCLUDE
 
-#include <core/stl/vector.hpp>
+#include <core/atl/vector.hpp>
 #include <core/handle.hpp>
 
 namespace anton_engine {
     template <typename T>
     class Resource_Manager {
     public:
-        using iterator = typename anton_stl::Vector<T>::iterator;
+        using iterator = typename atl::Vector<T>::iterator;
 
         iterator begin();
         iterator end();
@@ -19,8 +19,8 @@ namespace anton_engine {
         void remove(Handle<T>);
 
     private:
-        anton_stl::Vector<T> resources;
-        anton_stl::Vector<uint64_t> identifiers;
+        atl::Vector<T> resources;
+        atl::Vector<uint64_t> identifiers;
     };
 } // namespace anton_engine
 

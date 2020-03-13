@@ -2,7 +2,7 @@
 #include <engine/input/input_internal.hpp>
 
 #include <core/assert.hpp>
-#include <core/stl/string.hpp>
+#include <core/atl/string.hpp>
 #include <engine/assets.hpp>
 #include <core/logging.hpp>
 #include <core/math/math.hpp>
@@ -83,16 +83,16 @@ namespace anton_engine::input {
 
     static std::unordered_map<Key, Key_State> key_states;
     // TODO redesign events
-    static anton_stl::Vector<Key> key_events_queue;
-    static anton_stl::Vector<Event> input_event_queue;
-    static anton_stl::Vector<Mouse_Event> mouse_event_queue;
-    static anton_stl::Vector<Gamepad_Event> gamepad_event_queue;
-    static anton_stl::Vector<Gamepad_Event> gamepad_stick_event_queue;
+    static atl::Vector<Key> key_events_queue;
+    static atl::Vector<Event> input_event_queue;
+    static atl::Vector<Mouse_Event> mouse_event_queue;
+    static atl::Vector<Gamepad_Event> gamepad_event_queue;
+    static atl::Vector<Gamepad_Event> gamepad_stick_event_queue;
 
-    static anton_stl::Vector<Axis_Mapping> axis_mappings;
-    static anton_stl::Vector<Action_Mapping> action_mappings;
-    static anton_stl::Vector<Axis> axes;
-    static anton_stl::Vector<Action> actions;
+    static atl::Vector<Axis_Mapping> axis_mappings;
+    static atl::Vector<Action_Mapping> action_mappings;
+    static atl::Vector<Axis> axes;
+    static atl::Vector<Action> actions;
 
     // Use radial dead zone for gamepad sticks?
     // Turned on by default
@@ -122,7 +122,7 @@ namespace anton_engine::input {
         key_events_queue.push_back(k);
     }
 
-    static Action_Mapping const* find_mapping_with_key(anton_stl::Vector<Action_Mapping> const& mappings, std::string const& action, Key key) {
+    static Action_Mapping const* find_mapping_with_key(atl::Vector<Action_Mapping> const& mappings, std::string const& action, Key key) {
         for (auto& mapping: mappings) {
             if (mapping.key == key && mapping.action == action) {
                 return &mapping;
@@ -310,7 +310,7 @@ namespace anton_engine::input {
 
     // PUBLIC INTERFACE
 
-    void add_axis(anton_stl::String_View const name, Key const k, f32 const raw_value_scale, f32 const accumulation_speed, bool const snap) {
+    void add_axis(atl::String_View const name, Key const k, f32 const raw_value_scale, f32 const accumulation_speed, bool const snap) {
         Axis_Mapping const new_binding{name.data(), k, raw_value_scale, accumulation_speed, 0.0f, 0.0f, snap};
         bool duplicate = false;
         for (Axis_Mapping& axis_binding: axis_mappings) {
@@ -331,7 +331,7 @@ namespace anton_engine::input {
         }
     }
 
-    void add_action(anton_stl::String_View const name, Key const k) {
+    void add_action(atl::String_View const name, Key const k) {
         Action_Mapping const new_binding{name.data(), k};
         bool duplicate = false;
         for (Action_Mapping& action_binding: action_mappings) {
@@ -356,7 +356,7 @@ namespace anton_engine::input {
                 return axis.value;
             }
         }
-        ANTON_LOG_WARNING("Unknown axis " + anton_stl::String(axis_name.data()));
+        ANTON_LOG_WARNING("Unknown axis " + atl::String(axis_name.data()));
         return 0;
     }
 
@@ -366,7 +366,7 @@ namespace anton_engine::input {
                 return axis.raw_value;
             }
         }
-        ANTON_LOG_WARNING("Unknown axis " + anton_stl::String(axis_name.data()));
+        ANTON_LOG_WARNING("Unknown axis " + atl::String(axis_name.data()));
         return 0;
     }
 
@@ -376,7 +376,7 @@ namespace anton_engine::input {
                 return {action.down, action.pressed, action.released};
             }
         }
-        ANTON_LOG_WARNING("Unknown action " + anton_stl::String(action_name.data()));
+        ANTON_LOG_WARNING("Unknown action " + atl::String(action_name.data()));
         return {};
     }
 

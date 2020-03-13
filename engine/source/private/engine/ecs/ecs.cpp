@@ -1,8 +1,8 @@
 #include <engine/ecs/ecs.hpp>
 
 #include <core/assert.hpp>
-#include <core/stl/algorithm.hpp>
-#include <core/stl/memory.hpp>
+#include <core/atl/algorithm.hpp>
+#include <core/atl/memory.hpp>
 #include <engine/ecs/component_serialization.hpp>
 
 #include <build_config.hpp>
@@ -16,7 +16,7 @@
 namespace anton_engine {
     ECS::~ECS() {
         for (auto& container_data: containers) {
-            anton_stl::destruct(container_data.container);
+            atl::destruct(container_data.container);
             container_data.container = nullptr;
         }
     }
@@ -29,7 +29,7 @@ namespace anton_engine {
     static void serialize_component_container(u64 identifier, serialization::Binary_Output_Archive& archive, Component_Container_Base const* container) {
         ANTON_ASSERT(get_component_serialization_funcs != nullptr, "Function get_component_serialization_funcs has not been loaded");
         auto& serialization_funcs = get_component_serialization_funcs();
-        auto iter = anton_stl::find_if(serialization_funcs.begin(), serialization_funcs.end(),
+        auto iter = atl::find_if(serialization_funcs.begin(), serialization_funcs.end(),
                                        [identifier](Component_Serialization_Funcs const& funcs) { return funcs.identifier == identifier; });
         ANTON_ASSERT(iter != serialization_funcs.end(), "Identifier was not found in the component registry");
         iter->serialize(archive, container);
@@ -38,7 +38,7 @@ namespace anton_engine {
     static void deserialize_component_container(u64 identifier, serialization::Binary_Input_Archive& archive, Component_Container_Base*& container) {
         ANTON_ASSERT(get_component_serialization_funcs != nullptr, "Function get_component_serialization_funcs has not been loaded");
         auto& serialization_funcs = get_component_serialization_funcs();
-        auto iter = anton_stl::find_if(serialization_funcs.begin(), serialization_funcs.end(),
+        auto iter = atl::find_if(serialization_funcs.begin(), serialization_funcs.end(),
                                        [identifier](Component_Serialization_Funcs const& funcs) { return funcs.identifier == identifier; });
         ANTON_ASSERT(iter != serialization_funcs.end(), "Identifier was not found in the component registry");
         iter->deserialize(archive, container);

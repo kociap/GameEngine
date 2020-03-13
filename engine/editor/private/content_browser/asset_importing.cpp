@@ -1,7 +1,7 @@
 #include <content_browser/asset_importing.hpp>
 
-#include <core/stl/string.hpp>
-#include <core/stl/vector.hpp>
+#include <core/atl/string.hpp>
+#include <core/atl/vector.hpp>
 #include <content_browser/importers/image.hpp>
 #include <content_browser/importers/mesh.hpp>
 #include <content_browser/importers/obj.hpp>
@@ -97,7 +97,7 @@ namespace anton_engine::asset_importing {
         // TODO support files with multiple images
         // TODO generate mipmaps and save them to the file (if asked to do so)
 
-        anton_stl::Vector<uint8_t> const file = utils::read_file_binary(path);
+        atl::Vector<uint8_t> const file = utils::read_file_binary(path);
         if (importers::test_png(file)) {
             importers::Image decoded_image = importers::import_png(file);
             write_texture(paths::assets_directory(), path, decoded_image);
@@ -128,8 +128,8 @@ namespace anton_engine::asset_importing {
     }
 
     static Mesh process_mesh(importers::Mesh const& imported_mesh) {
-        anton_stl::Vector<Vertex> vertices(imported_mesh.vertices.size());
-        anton_stl::Vector<u32> indices;
+        atl::Vector<Vertex> vertices(imported_mesh.vertices.size());
+        atl::Vector<u32> indices;
         if (imported_mesh.texture_coordinates.size() != 0) {
             for (isize i = 0; i < imported_mesh.vertices.size(); ++i) {
                 vertices[i].position = imported_mesh.vertices[i];
@@ -157,10 +157,10 @@ namespace anton_engine::asset_importing {
     }
 
     Imported_Meshes import_mesh(std::filesystem::path const& path) {
-        anton_stl::Vector<u8> const file = utils::read_file_binary(path);
+        atl::Vector<u8> const file = utils::read_file_binary(path);
         std::string const extension = path.extension().generic_string();
         if (importers::test_obj(extension.data(), file)) {
-            anton_stl::Vector<importers::Mesh> meshes = importers::import_obj(file);
+            atl::Vector<importers::Mesh> meshes = importers::import_obj(file);
 
             Imported_Meshes imported_meshes;
             imported_meshes.hierarchy.resize(meshes.size(), -1);
@@ -174,8 +174,8 @@ namespace anton_engine::asset_importing {
         throw std::runtime_error("Unsupported file format");
     }
 
-    void save_meshes(anton_stl::String_View filename, anton_stl::Slice<u64 const> const guids, anton_stl::Slice<Mesh const> meshes) {
-        anton_stl::String file_name_with_ext(filename);
+    void save_meshes(atl::String_View filename, atl::Slice<u64 const> const guids, atl::Slice<Mesh const> meshes) {
+        atl::String file_name_with_ext(filename);
         file_name_with_ext.append(u8".mesh");
         std::filesystem::path path = utils::concat_paths(paths::assets_directory(), std::filesystem::path(file_name_with_ext.data()));
         std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc);

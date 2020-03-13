@@ -3,7 +3,7 @@
 #include <rendering/glad.hpp>
 
 #include <core/assert.hpp>
-#include <core/stl/string.hpp>
+#include <core/atl/string.hpp>
 #include <core/debug_macros.hpp> // CHECK_GL_ERRORS
 #include <core/logging.hpp>
 #include <stdexcept>
@@ -100,8 +100,8 @@ namespace anton_engine::opengl {
             }
         };
 
-        anton_stl::String stringified_message =
-            anton_stl::String(stringify_severity(severity)) + " " + stringify_source(source) + " (" + stringify_type(type) + "): " + message;
+        atl::String stringified_message =
+            atl::String(stringify_severity(severity)) + " " + stringify_source(source) + " (" + stringify_type(type) + "): " + message;
         log_message(Log_Message_Severity::warning, stringified_message);
         if (severity == GL_DEBUG_SEVERITY_HIGH || severity == GL_DEBUG_SEVERITY_MEDIUM) {
             DebugBreak();

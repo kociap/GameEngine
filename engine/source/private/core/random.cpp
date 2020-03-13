@@ -1,7 +1,7 @@
 #include <core/random.hpp>
 
 #include <core/assert.hpp>
-#include <core/stl/type_traits.hpp>
+#include <core/atl/type_traits.hpp>
 
 #include <random>
 
@@ -9,8 +9,8 @@ namespace anton_engine {
     static std::mt19937_64 mersenne_engine(278432434351ULL);
 
     template <typename T>
-    auto subtract_as_unsigned(T x, T y) -> anton_stl::make_unsigned<T> {
-        if constexpr (anton_stl::is_unsigned<T>) {
+    auto subtract_as_unsigned(T x, T y) -> atl::make_unsigned<T> {
+        if constexpr (atl::is_unsigned<T>) {
             return x - y;
         } else {
             if (x >= 0 && y < 0) {

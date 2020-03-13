@@ -28,10 +28,10 @@ namespace anton_engine {
             iterator(std::tuple<Component_Container<Components>*...> c, underlying_iterator_t b, underlying_iterator_t e): containers(c), begin(b), end(e) {}
 
         public:
-            using value_type = typename anton_stl::Iterator_Traits<underlying_iterator_t>::value_type;
-            using reference = typename anton_stl::Iterator_Traits<underlying_iterator_t>::reference;
-            using pointer = typename anton_stl::Iterator_Traits<underlying_iterator_t>::pointer;
-            using difference_type = typename anton_stl::Iterator_Traits<underlying_iterator_t>::difference_type;
+            using value_type = typename atl::Iterator_Traits<underlying_iterator_t>::value_type;
+            using reference = typename atl::Iterator_Traits<underlying_iterator_t>::reference;
+            using pointer = typename atl::Iterator_Traits<underlying_iterator_t>::pointer;
+            using difference_type = typename atl::Iterator_Traits<underlying_iterator_t>::difference_type;
             using iterator_category = std::forward_iterator_tag;
 
             iterator& operator++() {

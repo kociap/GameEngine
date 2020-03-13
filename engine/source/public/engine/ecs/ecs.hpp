@@ -1,9 +1,9 @@
 #ifndef ENGINE_ENTITY_COMPONENT_SYSTEM_HPP_INCLUDE
 #define ENGINE_ENTITY_COMPONENT_SYSTEM_HPP_INCLUDE
 
-#include <core/stl/algorithm.hpp>
-#include <core/stl/type_traits.hpp>
-#include <core/stl/vector.hpp>
+#include <core/atl/algorithm.hpp>
+#include <core/atl/type_traits.hpp>
+#include <core/atl/vector.hpp>
 #include <engine/ecs/component_container.hpp>
 #include <engine/ecs/component_view.hpp>
 #include <engine/ecs/entity.hpp>
@@ -59,8 +59,8 @@ namespace anton_engine {
         template <typename... Ts>
         ECS snapshot() const;
 
-        anton_stl::Vector<Entity> const& get_entities() const;
-        anton_stl::Vector<Entity> const& get_entities_to_remove() const;
+        atl::Vector<Entity> const& get_entities() const;
+        atl::Vector<Entity> const& get_entities_to_remove() const;
 
         void remove_requested_entities();
 
@@ -75,13 +75,13 @@ namespace anton_engine {
             Component_Container_Base* (*make_snapshot)(Component_Container_Base const&);
         };
 
-        anton_stl::Vector<Entity> _entities;
-        anton_stl::Vector<Entity> entities_to_remove;
-        anton_stl::Vector<Components_Container_Data> containers;
+        atl::Vector<Entity> _entities;
+        atl::Vector<Entity> entities_to_remove;
+        atl::Vector<Components_Container_Data> containers;
         Integer_Sequence_Generator id_generator;
 
         template <typename... Container_Data>
-        ECS(anton_stl::Vector<Entity> const&, anton_stl::Vector<Entity> const&, Integer_Sequence_Generator, Container_Data...);
+        ECS(atl::Vector<Entity> const&, atl::Vector<Entity> const&, Integer_Sequence_Generator, Container_Data...);
 
         template <typename T>
         Component_Container<T>* ensure_container();
@@ -107,8 +107,8 @@ namespace anton_engine {
     }
 
     inline ECS::ECS(ECS&& other)
-        : _entities(anton_stl::move(other._entities)), entities_to_remove(anton_stl::move(other.entities_to_remove)),
-          containers(anton_stl::move(other.containers)), id_generator(other.id_generator) {}
+        : _entities(atl::move(other._entities)), entities_to_remove(atl::move(other.entities_to_remove)),
+          containers(atl::move(other.containers)), id_generator(other.id_generator) {}
 
     template <typename Component>
     [[nodiscard]] inline Entity const* ECS::entities() const {
@@ -194,11 +194,11 @@ namespace anton_engine {
         return ECS(_entities, entities_to_remove, id_generator, *find_container_data<Ts>()...);
     }
 
-    inline anton_stl::Vector<Entity> const& ECS::get_entities() const {
+    inline atl::Vector<Entity> const& ECS::get_entities() const {
         return _entities;
     }
 
-    inline anton_stl::Vector<Entity> const& ECS::get_entities_to_remove() const {
+    inline atl::Vector<Entity> const& ECS::get_entities_to_remove() const {
         return entities_to_remove;
     }
 
@@ -212,7 +212,7 @@ namespace anton_engine {
         }
 
         for (Entity const entity: entities_to_remove) {
-            auto iter = anton_stl::find(_entities.begin(), _entities.end(), entity);
+            auto iter = atl::find(_entities.begin(), _entities.end(), entity);
             _entities.erase_unsorted(iter);
         }
 
@@ -220,9 +220,9 @@ namespace anton_engine {
     }
 
     template <typename... Container_Data>
-    inline ECS::ECS(anton_stl::Vector<Entity> const& e, anton_stl::Vector<Entity> const& er, Integer_Sequence_Generator g, Container_Data... data)
-        : _entities(e), entities_to_remove(er), containers(anton_stl::reserve, sizeof...(Container_Data)), id_generator(g) {
-        static_assert((... && anton_stl::is_same<Container_Data, Components_Container_Data>),
+    inline ECS::ECS(atl::Vector<Entity> const& e, atl::Vector<Entity> const& er, Integer_Sequence_Generator g, Container_Data... data)
+        : _entities(e), entities_to_remove(er), containers(atl::reserve, sizeof...(Container_Data)), id_generator(g) {
+        static_assert((... && atl::is_same<Container_Data, Components_Container_Data>),
                       "Template argument Container_Data is not Components_Container_Data.");
         (..., containers.emplace_back(data.family, data.make_snapshot(*data.container), data.remove, data.make_snapshot));
     }

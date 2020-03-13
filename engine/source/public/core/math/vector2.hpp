@@ -1,7 +1,7 @@
 #ifndef CORE_MATH_VECTOR2_HPP_INCLUDE
 #define CORE_MATH_VECTOR2_HPP_INCLUDE
 
-#include <core/stl/utility.hpp>
+#include <core/atl/utility.hpp>
 #include <cmath>
 #include <core/math/math.hpp>
 
@@ -202,8 +202,8 @@ namespace anton_engine {
     }
 
     inline void swap(Vector2& a, Vector2& b) {
-        anton_stl::swap(a.x, b.x);
-        anton_stl::swap(a.y, b.y);
+        atl::swap(a.x, b.x);
+        atl::swap(a.y, b.y);
     }
 
     namespace math {
@@ -326,8 +326,8 @@ namespace anton_engine {
     }
 
     inline void swap(IVector2& v1, IVector2& v2) {
-        anton_stl::swap(v1.x, v2.x);
-        anton_stl::swap(v1.y, v2.y);
+        atl::swap(v1.x, v2.x);
+        atl::swap(v1.y, v2.y);
     }
 
     namespace math {

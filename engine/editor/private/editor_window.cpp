@@ -1,6 +1,6 @@
 #include <editor_window.hpp>
 
-#include <core/stl/string.hpp>
+#include <core/atl/string.hpp>
 #include <shaders/builtin_shaders.hpp>
 #include <engine/components/camera.hpp>
 #include <engine/components/transform.hpp>

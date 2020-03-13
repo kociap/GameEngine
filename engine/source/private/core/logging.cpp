@@ -10,7 +10,7 @@
 #include <stdio.h> // TODO: Replace with format
 
 namespace anton_engine {
-    void log_message(Log_Message_Severity severity, anton_stl::String_View message) {
+    void log_message(Log_Message_Severity severity, atl::String_View message) {
         // Higly advanced and complex logging code.
 #if ANTON_WITH_EDITOR
         System_Time sys_time = get_local_system_time();

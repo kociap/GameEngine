@@ -2,8 +2,8 @@
 #define EDITOR_IMGUI_IMGUI_HPP_INCLUDE
 
 #include <core/types.hpp>
-#include <core/stl/slice.hpp>
-#include <core/stl/string_view.hpp>
+#include <core/atl/slice.hpp>
+#include <core/atl/string_view.hpp>
 #include <core/color.hpp>
 #include <core/math/vector2.hpp>
 #include <core/math/vector4.hpp>
@@ -91,14 +91,14 @@ namespace anton_engine::imgui {
         u32 texture;
     };
 
-    anton_stl::Slice<Viewport* const> get_viewports(Context&);
+    atl::Slice<Viewport* const> get_viewports(Context&);
     windowing::Window* get_viewport_native_window(Context&, Viewport&);
-    anton_stl::Slice<Draw_Command const> get_viewport_draw_commands(Context&, Viewport&);
+    atl::Slice<Draw_Command const> get_viewport_draw_commands(Context&, Viewport&);
 
-    anton_stl::Slice<Vertex const> get_vertex_data(Context&);
-    anton_stl::Slice<u32 const> get_index_data(Context&);
+    atl::Slice<Vertex const> get_vertex_data(Context&);
+    atl::Slice<u32 const> get_index_data(Context&);
 
-    void begin_window(Context&, anton_stl::String_View, bool new_viewport = false);
+    void begin_window(Context&, atl::String_View, bool new_viewport = false);
     void end_window(Context&);
 
     enum class Widget_State {
@@ -106,11 +106,11 @@ namespace anton_engine::imgui {
     };
 
     // Generic widget to group other widgets and manage layout.
-    void begin_widget(Context&, anton_stl::String_View identifier, Widget_Style options);
+    void begin_widget(Context&, atl::String_View identifier, Widget_Style options);
     void end_widget(Context&);
 
-    void text(Context&, anton_stl::String_View text);
-    Widget_State button(Context&, anton_stl::String_View text, Button_Style options, Font_Style font);
+    void text(Context&, atl::String_View text);
+    Widget_State button(Context&, atl::String_View text, Button_Style options, Font_Style font);
 
     // Modifiers
 

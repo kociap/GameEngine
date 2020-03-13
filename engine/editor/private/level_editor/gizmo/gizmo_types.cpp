@@ -2,7 +2,7 @@
 #include <level_editor/gizmo/dial_3d.hpp>
 // #include <level_editor/gizmo/primitive_3d.hpp>
 
-#include <core/stl/vector.hpp>
+#include <core/atl/vector.hpp>
 #include <shaders/builtin_shaders.hpp>
 #include <level_editor/gizmo/gizmo.hpp>
 #include <rendering/glad.hpp>
@@ -192,7 +192,7 @@ namespace anton_engine::gizmo {
         float time;
     };
 
-    static anton_stl::Vector<Line_Segment> line_segments;
+    static atl::Vector<Line_Segment> line_segments;
 
     void debug_draw_line(Vector3 f, Vector3 l, float time) {
         line_segments.push_back({f, l, time});
@@ -361,12 +361,12 @@ namespace anton_engine::gizmo {
         }
     }
 
-    anton_stl::Optional<float> intersect_arrow_3d(Ray const ray, Arrow_3D const arrow, Matrix4 const world_transform, Matrix4 const view_projection_matrix,
+    atl::Optional<float> intersect_arrow_3d(Ray const ray, Arrow_3D const arrow, Matrix4 const world_transform, Matrix4 const view_projection_matrix,
                                                   Vector2 const viewport_size) {
         float const scale = compute_scale(world_transform, arrow.size, view_projection_matrix, viewport_size);
         switch (arrow.draw_style) {
             case Arrow_3D_Style::cone: {
-                anton_stl::Optional<float> result = anton_stl::null_optional;
+                atl::Optional<float> result = atl::null_optional;
 
                 // OBB line_bounding_vol;
                 // line_bounding_vol.local_x = Vector3(Vector4(Vector3::right, 0.0f) * world_transform);
@@ -374,13 +374,13 @@ namespace anton_engine::gizmo {
                 // line_bounding_vol.local_z = Vector3(Vector4(Vector3::forward, 0.0f) * world_transform);
                 // line_bounding_vol.halfwidths = {0.05f * scale, 0.05f * scale, 0.4f * scale};
                 // line_bounding_vol.center = math::transform::get_translation(world_transform) + line_bounding_vol.local_z * 0.4f * scale;
-                // if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, line_bounding_vol); hit.holds_value()) {
+                // if (atl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, line_bounding_vol); hit.holds_value()) {
                 //     result = hit->distance;
                 // }
 
                 Vector3 const vertex1 = Vector3(Vector4(0, 0, 0, 1) * world_transform);
                 Vector3 const vertex2 = Vector3(Vector4(0, 0, -0.8f * scale, 1) * world_transform);
-                if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_cylinder(ray, vertex1, vertex2, 0.05f * scale);
+                if (atl::Optional<Raycast_Hit> const hit = intersect_ray_cylinder(ray, vertex1, vertex2, 0.05f * scale);
                     hit.holds_value() && (!result || hit->distance < *result)) {
                     result = hit->distance;
                 }
@@ -390,7 +390,7 @@ namespace anton_engine::gizmo {
                 // 0.2 height, 0.05 radius
                 float const angle_cos = 0.970143f;
                 float const height = 0.3f * scale;
-                if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_cone(ray, vertex, direction, angle_cos, height);
+                if (atl::Optional<Raycast_Hit> const hit = intersect_ray_cone(ray, vertex, direction, angle_cos, height);
                     hit.holds_value() && (!result || hit->distance < *result)) {
                     result = hit->distance;
                 }
@@ -398,7 +398,7 @@ namespace anton_engine::gizmo {
                 return result;
             }
             case Arrow_3D_Style::cube: {
-                anton_stl::Optional<float> result = anton_stl::null_optional;
+                atl::Optional<float> result = atl::null_optional;
 
                 // OBB line_bounding_vol;
                 // line_bounding_vol.local_x = Vector3(Vector4(Vector3::right, 0.0f) * world_transform);
@@ -406,13 +406,13 @@ namespace anton_engine::gizmo {
                 // line_bounding_vol.local_z = Vector3(Vector4(Vector3::forward, 0.0f) * world_transform);
                 // line_bounding_vol.halfwidths = {0.05f * scale, 0.05f * scale, 0.425f * scale};
                 // line_bounding_vol.center = math::transform::get_translation(world_transform) + line_bounding_vol.local_z * 0.425f * scale;
-                // if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, line_bounding_vol); hit.holds_value()) {
+                // if (atl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, line_bounding_vol); hit.holds_value()) {
                 //     result = hit->distance;
                 // }
 
                 Vector3 const vertex1 = Vector3(Vector4(0, 0, 0, 1) * world_transform);
                 Vector3 const vertex2 = Vector3(Vector4(0, 0, -0.8f * scale, 1) * world_transform);
-                if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_cylinder(ray, vertex1, vertex2, 0.05f * scale);
+                if (atl::Optional<Raycast_Hit> const hit = intersect_ray_cylinder(ray, vertex1, vertex2, 0.05f * scale);
                     hit.holds_value() && (!result || hit->distance < *result)) {
                     result = hit->distance;
                 }
@@ -423,7 +423,7 @@ namespace anton_engine::gizmo {
                 cube_bounding_vol.local_z = Vector3(Vector4(Vector3::forward, 0.0f) * world_transform);
                 cube_bounding_vol.halfwidths = {0.1f * scale, 0.1f * scale, 0.1f * scale};
                 cube_bounding_vol.center = math::transform::get_translation(world_transform) + cube_bounding_vol.local_z * 0.95f * scale;
-                if (anton_stl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, cube_bounding_vol);
+                if (atl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, cube_bounding_vol);
                     hit.holds_value() && (!result || hit->distance < *result)) {
                     result = hit->distance;
                 }
@@ -455,7 +455,7 @@ namespace anton_engine::gizmo {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 2 * dial_vertex_count + 2);
     }
 
-    anton_stl::Optional<float> intersect_dial_3d(Ray, Dial_3D, Matrix4 world_transform, Matrix4 view_projection_matrix, Vector2 viewport_size) {
-        return anton_stl::null_optional;
+    atl::Optional<float> intersect_dial_3d(Ray, Dial_3D, Matrix4 world_transform, Matrix4 view_projection_matrix, Vector2 viewport_size) {
+        return atl::null_optional;
     }
 } // namespace anton_engine::gizmo

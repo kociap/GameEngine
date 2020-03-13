@@ -1,7 +1,7 @@
 #include <outliner_item.hpp>
 
-#include <core/stl/type_traits.hpp>
-#include <core/stl/utility.hpp>
+#include <core/atl/type_traits.hpp>
+#include <core/atl/utility.hpp>
 #include <editor_events.hpp>
 
 ANTON_DISABLE_WARNINGS();
@@ -15,7 +15,7 @@ ANTON_DISABLE_WARNINGS();
 ANTON_RESTORE_WARNINGS();
 
 namespace anton_engine {
-    Outliner_Item::Outliner_Item(Entity e, anton_stl::String_View str, QWidget* parent): QWidget(parent), entity(e) {
+    Outliner_Item::Outliner_Item(Entity e, atl::String_View str, QWidget* parent): QWidget(parent), entity(e) {
         setAutoFillBackground(true);
         setMinimumHeight(32);
         label = new QLabel(QString::fromUtf8(str.data()), this);
@@ -44,7 +44,7 @@ namespace anton_engine {
     }
 
     Outliner_Item& Outliner_Item::operator=(Outliner_Item&& other) noexcept {
-        using anton_stl::swap;
+        using atl::swap;
         swap(label, other.label);
         label->setParent(this);
         other.label->setParent(&other);
@@ -70,7 +70,7 @@ namespace anton_engine {
         return entity;
     }
 
-    void Outliner_Item::set_name(anton_stl::String_View name) {
+    void Outliner_Item::set_name(atl::String_View name) {
         label->setText(QString::fromUtf8(name.data()));
     }
 

@@ -1,10 +1,10 @@
 #include <rendering/renderer.hpp>
 
 #include <core/types.hpp>
-#include <core/stl/algorithm.hpp>
-#include <core/stl/string.hpp>
-#include <core/stl/utility.hpp>
-#include <core/stl/vector.hpp>
+#include <core/atl/algorithm.hpp>
+#include <core/atl/string.hpp>
+#include <core/atl/utility.hpp>
+#include <core/atl/vector.hpp>
 #include <engine/assets.hpp>
 #include <build_config.hpp>
 #include <shaders/builtin_shaders.hpp>
@@ -145,15 +145,15 @@ namespace anton_engine::rendering {
     };
 
     struct Array_Texture_Storage {
-        anton_stl::Vector<uint32_t> free_list;
+        atl::Vector<uint32_t> free_list;
         i32 size = 0;
     };
 
-    static anton_stl::Vector<Array_Texture> textures(64, Array_Texture{});
-    static anton_stl::Vector<Array_Texture_Storage> textures_storage(64, Array_Texture_Storage());
+    static atl::Vector<Array_Texture> textures(64, Array_Texture{});
+    static atl::Vector<Array_Texture_Storage> textures_storage(64, Array_Texture_Storage());
 
     // Draw commands buffer
-    static anton_stl::Vector<Draw_Elements_Command> draw_elements_commands;
+    static atl::Vector<Draw_Elements_Command> draw_elements_commands;
 
     static std::unordered_map<u64, Draw_Elements_Command> persistent_draw_commands_map;
 
@@ -232,7 +232,7 @@ namespace anton_engine::rendering {
         gpu_draw_data_buffer.mapped = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, gpu_draw_data_buffer.size, buffer_flags);
         draw_id_buffer.size = matrix_buffer.size = material_buffer.size = gpu_draw_data_buffer.size / (sizeof(u32) + sizeof(Matrix4) + sizeof(Material));
         draw_id_buffer.buffer = draw_id_buffer.head = reinterpret_cast<u32*>(gpu_draw_data_buffer.mapped);
-        anton_stl::iota(draw_id_buffer.buffer, draw_id_buffer.buffer + draw_id_buffer.size, 0);
+        atl::iota(draw_id_buffer.buffer, draw_id_buffer.buffer + draw_id_buffer.size, 0);
         matrix_buffer.buffer = matrix_buffer.head = reinterpret_cast<Matrix4*>(draw_id_buffer.buffer + draw_id_buffer.size);
         material_buffer.buffer = material_buffer.head = reinterpret_cast<Material*>(matrix_buffer.buffer + matrix_buffer.size);
 
@@ -431,7 +431,7 @@ namespace anton_engine::rendering {
         glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
     }
 
-    Draw_Elements_Command write_geometry(anton_stl::Slice<Vertex const> const vertices, anton_stl::Slice<u32 const> const indices) {
+    Draw_Elements_Command write_geometry(atl::Slice<Vertex const> const vertices, atl::Slice<u32 const> const indices) {
         Draw_Elements_Command cmd = {};
 
         i64 vert_head_offset = vertex_buffer.head - vertex_buffer.buffer;
@@ -456,7 +456,7 @@ namespace anton_engine::rendering {
         return cmd;
     }
 
-    u32 write_matrices_and_materials(anton_stl::Slice<Matrix4 const> const matrices, anton_stl::Slice<Material const> const materials) {
+    u32 write_matrices_and_materials(atl::Slice<Matrix4 const> const matrices, atl::Slice<Material const> const materials) {
         i64 material_head_offset = material_buffer.head - material_buffer.buffer;
         if (material_buffer.size - material_head_offset < materials.size()) {
             material_buffer.head = material_buffer.buffer;
@@ -476,7 +476,7 @@ namespace anton_engine::rendering {
         return matrix_head_offset;
     }
 
-    u64 write_persistent_geometry(anton_stl::Slice<Vertex const> const vertices, anton_stl::Slice<u32 const> const indices) {
+    u64 write_persistent_geometry(atl::Slice<Vertex const> const vertices, atl::Slice<u32 const> const indices) {
         // TODO: Checks, safety, fencing, anything? Right now I'm pretty sure I'll not overwrite,
         //       but we'll need all of that in the future.
         i64 const index_offset = persistent_element_buffer.head - persistent_element_buffer.buffer;
@@ -694,7 +694,7 @@ namespace anton_engine::rendering {
     }
 
     void Renderer::swap_postprocess_buffers() {
-        anton_stl::swap(postprocess_front_buffer, postprocess_back_buffer);
+        atl::swap(postprocess_front_buffer, postprocess_back_buffer);
     }
 
     void Renderer::render_frame(Matrix4 const view_mat, Matrix4 const projection_mat, Transform const camera_transform, Vector2 const viewport_size) {

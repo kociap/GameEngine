@@ -2,8 +2,8 @@
 #define SHADERS_SHADER_HPP_INCLUDE
 
 #include <core/types.hpp>
-#include <core/stl/string_view.hpp>
-#include <core/stl/type_traits.hpp>
+#include <core/atl/string_view.hpp>
+#include <core/atl/type_traits.hpp>
 #include <core/math/vector2.hpp>
 #include <core/math/vector3.hpp>
 #include <string>
@@ -29,14 +29,14 @@ namespace anton_engine {
         void use();
         void detach(Shader_File const&);
 
-        void set_int(anton_stl::String_View, i32);
-        void set_uint(anton_stl::String_View, u32);
-        void set_float(anton_stl::String_View, float);
-        void set_vec2(anton_stl::String_View, Vector2);
-        void set_vec3(anton_stl::String_View, Vector3);
-        void set_vec3(anton_stl::String_View, Color);
-        void set_vec4(anton_stl::String_View, Color);
-        void set_matrix4(anton_stl::String_View, Matrix4 const&);
+        void set_int(atl::String_View, i32);
+        void set_uint(atl::String_View, u32);
+        void set_float(atl::String_View, float);
+        void set_vec2(atl::String_View, Vector2);
+        void set_vec3(atl::String_View, Vector3);
+        void set_vec3(atl::String_View, Color);
+        void set_vec4(atl::String_View, Color);
+        void set_matrix4(atl::String_View, Matrix4 const&);
 
         uint32_t get_shader_native_handle() const {
             return program;
@@ -53,7 +53,7 @@ namespace anton_engine {
 
     template <typename... Ts>
     auto create_shader(Ts const&... shaders) {
-        static_assert((... && anton_stl::is_same<Shader_File, anton_stl::decay<Ts>>), "Passed arguments are not of Shader_File type");
+        static_assert((... && atl::is_same<Shader_File, atl::decay<Ts>>), "Passed arguments are not of Shader_File type");
         Shader shader;
         (shader.attach(shaders), ...);
         shader.link();

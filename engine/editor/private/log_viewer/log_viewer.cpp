@@ -1,7 +1,7 @@
 #include <log_viewer.hpp>
 
-#include <core/stl/string.hpp>
-#include <core/stl/utility.hpp>
+#include <core/atl/string.hpp>
+#include <core/atl/utility.hpp>
 #include <iostream>
 ANTON_DISABLE_WARNINGS();
 #include <QHBoxLayout>
@@ -12,7 +12,7 @@ ANTON_DISABLE_WARNINGS();
 ANTON_RESTORE_WARNINGS();
 
 namespace anton_engine {
-    Log_Message::Log_Message(anton_engine::Log_Message_Severity severity, anton_stl::String_View str, QWidget* parent): QWidget(parent) {
+    Log_Message::Log_Message(anton_engine::Log_Message_Severity severity, atl::String_View str, QWidget* parent): QWidget(parent) {
         setMinimumHeight(32);
         message = new QLabel(str.data(), this);
         message->show();
@@ -31,7 +31,7 @@ namespace anton_engine {
     }
 
     Log_Message& Log_Message::operator=(Log_Message&& other) noexcept {
-        using anton_stl::swap;
+        using atl::swap;
         swap(message, other.message);
         message->setParent(this);
         other.message->setParent(&other);
@@ -74,8 +74,8 @@ namespace anton_engine {
     // TODO: Implement
     Log_Viewer::~Log_Viewer() {}
 
-    void Log_Viewer::add_message(anton_engine::Log_Message_Severity severity, anton_stl::String_View date, anton_stl::String_View message) {
-        anton_stl::String str(anton_stl::reserve, date.size_bytes() + message.size_bytes() + 12); // 2 brackets, 2 spaces, strlen("warning"), colon
+    void Log_Viewer::add_message(anton_engine::Log_Message_Severity severity, atl::String_View date, atl::String_View message) {
+        atl::String str(atl::reserve, date.size_bytes() + message.size_bytes() + 12); // 2 brackets, 2 spaces, strlen("warning"), colon
         str.append(u8"[");
         str.append(date);
         str.append(u8"] ");

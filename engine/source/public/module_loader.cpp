@@ -1,7 +1,7 @@
 #include <module_loader.hpp>
 
 #include <core/exception.hpp>
-#include <core/stl/string.hpp>
+#include <core/atl/string.hpp>
 
 #ifdef _MSC_VER
 #    define WIN32_LEAN_AND_MEAN
@@ -11,7 +11,7 @@
 #endif // _MSC_VER
 
 namespace anton_engine {
-    Module load_module(anton_stl::String_View module_name) {
+    Module load_module(atl::String_View module_name) {
         Module module;
 #ifdef _MSC_VER
         module.handle = LoadLibraryA(module_name.data());
@@ -19,12 +19,12 @@ namespace anton_engine {
         module.handle = dlopen(module_name.data(), RTLD_LAZY)
 #endif
         if (!module.handle) {
-            throw Exception(anton_stl::String("Could not load module ") + module_name);
+            throw Exception(atl::String("Could not load module ") + module_name);
         }
         return module;
     }
 
-    void* get_function_from_module(Module module, anton_stl::String_View name) {
+    void* get_function_from_module(Module module, atl::String_View name) {
 #ifdef _MSC_VER
         // Since GetProcAddress returns a function pointer we reinterpret_cast to void* to silence -Wmicrosoft-cast.
         void* func_ptr = reinterpret_cast<void*>(GetProcAddress(static_cast<HMODULE>(module.handle), name.data()));
@@ -33,7 +33,7 @@ namespace anton_engine {
 #endif
 
         if (!func_ptr) {
-            throw Exception(anton_stl::String("Could not load function ") + name);
+            throw Exception(atl::String("Could not load function ") + name);
         }
         return func_ptr;
     }
