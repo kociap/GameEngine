@@ -66,7 +66,8 @@ namespace anton_engine::imgui {
         Dockspace* dockspace;
         f32 border_area_width;
         bool enabled;
-        // atl::Vector<Widget> widgets;
+        // TODO: Rename to make multi-purpose.
+        std::unordered_map<i64, Button_State> button_state;
         Draw_Context draw_context;
     };
 
@@ -91,6 +92,7 @@ namespace anton_engine::imgui {
 
     class Context {
     public:
+        // TODO: Remove current and next.
         struct {
             std::unordered_map<i64, Window> windows;
         } current, next;
@@ -121,9 +123,6 @@ namespace anton_engine::imgui {
         } drag;
     };
 
-    // TODO: Better seed.
-    static constexpr u32 hash_seed = 123456;
-
     static Vertex::Color color_to_vertex_color(Color const c) {
         return {(u8)math::clamp(255.0f * c.r, 0.0f, 255.0f), (u8)math::clamp(255.0f * c.g, 0.0f, 255.0f), (u8)math::clamp(255.0f * c.b, 0.0f, 255.0f),
                 (u8)math::clamp(255.0f * c.a, 0.0f, 255.0f)};
@@ -139,6 +138,11 @@ namespace anton_engine::imgui {
         bool const in_box_x = point.x >= position.x && point.x < position.x + size.x;
         bool const in_box_y = point.y >= position.y && point.y < position.y + size.y;
         return in_box_x && in_box_y;
+    }
+
+    static i64 hash_string(atl::String_View string) {
+        // TODO: Choose better seed. Currently random prime.
+        return murmurhash2_32(string.data(), string.size_bytes(), 758943349);
     }
 
     Context* create_context() {
@@ -1312,7 +1316,7 @@ namespace anton_engine::imgui {
     void begin_window(Context& ctx, atl::String_View identifier, bool new_viewport) {
         ANTON_VERIFY(ctx.current_window == -1, "Cannot create window inside another window.");
 
-        i64 const id = murmurhash2_32(identifier.data(), identifier.size_bytes(), hash_seed);
+        i64 const id = hash_string(identifier);
         auto const iter = ctx.next.windows.find(id);
         if (iter == ctx.next.windows.end()) {
             Window window;
@@ -1359,24 +1363,45 @@ namespace anton_engine::imgui {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
     }
 
-    Widget_State button(Context& ctx, atl::String_View text, Button_Style const options, Font_Style const font) {
+    Button_State button(Context& ctx, atl::String_View text, Button_Style const inactive_style, Button_Style const hot_style, Button_Style const active_style, Font_Style const font) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
         // TODO: Check window z-order to determine whether this window is top-level
         Window& window = ctx.next.windows.at(ctx.current_window);
+        i64 const hash = hash_string(text);
+        Button_State& state = window.button_state[hash];
+        Button_Style style;
+        switch(state) {
+            case Button_State::inactive: {
+                style = inactive_style;
+            } break;
+
+            case Button_State::hot: {
+                style = hot_style;
+            } break;
+
+            case Button_State::clicked: {
+                style = active_style;
+            } break;
+        }
+        Vertex::Color const bg_color = color_to_vertex_color(style.background_color);
+        Vertex::Color const border_color = color_to_vertex_color(style.border_color);
+        f32 const button_height = math::max(0.0f, style.padding.x) + math::max(0.0f, style.padding.z) + font.font_size * font.v_dpi / 72;
+        // TODO: Computes fake width from number of bytes.
+        f32 const button_width = math::max(0.0f, style.padding.y) + math::max(0.0f, style.padding.w) + text.size_bytes() * font.font_size * font.h_dpi / 72;
+        f32 const border_height = button_height + style.border.x + style.border.z;
+        f32 const border_width = button_width + style.border.y + style.border.w;
+        
+        Vector2 const dockspace_pos = get_dockspace_content_screen_pos(window.dockspace);
+        Vector2 const cursor = ctx.input.cursor_position;
+        // TODO: Update style.
+
         Draw_Context& dc = window.draw_context;
         Draw_Command cmd;
         cmd.texture = 0;
         cmd.element_count = 12;
         cmd.vertex_offset = dc.vertex_buffer.size();
-        Vertex::Color const bg_color = color_to_vertex_color(options.background_color);
-        Vertex::Color const border_color = color_to_vertex_color(options.border_color);
         Vector2 const draw_pos = dc.draw_pos;
-        Vector2 const button_draw_pos = draw_pos + Vector2{options.border.w, options.border.x};
-        f32 const button_height = math::max(0.0f, options.padding.x) + math::max(0.0f, options.padding.z) + font.font_size * font.v_dpi / 72;
-        // TODO: Computes fake width from number of bytes.
-        f32 const button_width = math::max(0.0f, options.padding.y) + math::max(0.0f, options.padding.w) + text.size_bytes() * font.font_size * font.h_dpi / 72;
-        f32 const border_height = button_height + options.border.x + options.border.z;
-        f32 const border_width = button_width + options.border.y + options.border.w;
+        Vector2 const button_draw_pos = draw_pos + Vector2{style.border.w, style.border.x};
         dc.vertex_buffer.emplace_back(draw_pos, Vector2{0.0f, 1.0f}, border_color);
         dc.vertex_buffer.emplace_back(draw_pos + Vector2{0.0f, border_height}, Vector2{0.0f, 0.0f}, border_color);
         dc.vertex_buffer.emplace_back(draw_pos + Vector2{border_width, border_height}, Vector2{1.0f, 0.0f}, border_color);
@@ -1399,7 +1424,7 @@ namespace anton_engine::imgui {
         dc.index_buffer.emplace_back(2 + 4);
         dc.index_buffer.emplace_back(3 + 4);
         dc.draw_commands.emplace_back(cmd);
-        return Widget_State::inactive;
+        return Button_State::inactive;
     }
 
     // Get style of current widget or window

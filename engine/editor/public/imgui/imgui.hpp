@@ -101,8 +101,8 @@ namespace anton_engine::imgui {
     void begin_window(Context&, atl::String_View, bool new_viewport = false);
     void end_window(Context&);
 
-    enum class Widget_State {
-        active, hot, inactive
+    enum class Button_State {
+        inactive, hot, clicked,
     };
 
     // Generic widget to group other widgets and manage layout.
@@ -110,7 +110,7 @@ namespace anton_engine::imgui {
     void end_widget(Context&);
 
     void text(Context&, atl::String_View text);
-    Widget_State button(Context&, atl::String_View text, Button_Style options, Font_Style font);
+    Button_State button(Context&, atl::String_View text, Button_Style style, Button_Style hovered_style, Button_Style active_style, Font_Style font);
 
     // Modifiers
 

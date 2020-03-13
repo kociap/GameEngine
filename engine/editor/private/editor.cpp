@@ -82,7 +82,7 @@ namespace anton_engine {
                 font.font_size = 12;
                 font.v_dpi = 96;
                 font.h_dpi = 96;
-                imgui::button(ctx, "button1", button_style, font);
+                imgui::button(ctx, "button1", button_style, button_style, button_style, font);
 
                 imgui::Style main_style = imgui::get_style(ctx);
                 main_style.background_color = {0.953f, 0.322f, 0.125f};
