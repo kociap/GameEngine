@@ -14,13 +14,14 @@
 #include <core/serialization/serialization.hpp>
 
 #include <stdexcept> // includes std::allocator
-#include <type_traits>
 
 namespace anton_engine::atl {
+    // Move constructor of T must not throw any exceptions.
+    //
     template <typename T, typename Allocator = atl::Allocator>
     class Vector {
-        static_assert(std::is_nothrow_move_constructible_v<T> || std::is_copy_constructible_v<T> || std::is_trivially_copy_constructible_v<T>,
-                      "Type is neither nothrow move constructible nor copy constructible");
+        static_assert(atl::is_move_constructible<T> || atl::is_copy_constructible<T> || atl::is_trivially_copy_constructible<T>,
+                      "Type is neither move constructible nor copy constructible");
 
     public:
         using value_type = T;
@@ -76,6 +77,8 @@ namespace anton_engine::atl {
         template <typename Input_Iterator>
         void assign(Input_Iterator first, Input_Iterator last);
         void insert(size_type position, value_type const&);
+        template<typename Input_Iterator>
+        void insert(size_type position, Input_Iterator first, Input_Iterator last);
         // void insert(const_iterator position, value_type const& value);
         void insert_unsorted(const_iterator position, value_type const& value);
         void push_back(value_type const&);

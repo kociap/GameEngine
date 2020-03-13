@@ -1150,19 +1150,12 @@ namespace anton_engine::imgui {
             u32 const vertex_offset = verts.size();
             u32 const cmd_count = draw_cmd_buffer.size();
             Draw_Context& dc = window.draw_context;
-            // TODO: range insert
-            verts.reserve(verts.size() + dc.vertex_buffer.size());
-            memcpy(verts.data() + verts.size(), dc.vertex_buffer.data(), dc.vertex_buffer.size() * sizeof(Vertex));
-            verts.force_size(verts.size() + dc.vertex_buffer.size());
+            verts.insert(verts.size(), dc.vertex_buffer.begin(), dc.vertex_buffer.end());
             for(i64 i = vertex_offset; i < verts.size(); ++i) {
                 verts[i].position += dockspace_content_pos;
             }
-            indices.reserve(indices.size() + dc.index_buffer.size());
-            memcpy(indices.data() + indices.size(), dc.index_buffer.data(), dc.index_buffer.size() * sizeof(u32));
-            indices.force_size(indices.size() + dc.index_buffer.size());
-            draw_cmd_buffer.reserve(draw_cmd_buffer.size() + dc.draw_commands.size());
-            memcpy(draw_cmd_buffer.data() + draw_cmd_buffer.size(), dc.draw_commands.data(), dc.draw_commands.size() * sizeof(Draw_Command));
-            draw_cmd_buffer.force_size(draw_cmd_buffer.size() + dc.draw_commands.size());
+            indices.insert(indices.size(), dc.index_buffer.begin(), dc.index_buffer.end());
+            draw_cmd_buffer.insert(draw_cmd_buffer.size(), dc.draw_commands.begin(), dc.draw_commands.end());
             for(i64 i = cmd_count; i < draw_cmd_buffer.size(); ++i) {
                 draw_cmd_buffer[i].vertex_offset += vertex_offset;
                 draw_cmd_buffer[i].index_offset += index_offset;

@@ -50,7 +50,7 @@ namespace anton_engine::atl {
     }
 
     template <typename T, typename Allocator>
-    Vector<T, Allocator>::Vector(Vector&& v) noexcept: _allocator(std::move(v._allocator)), _capacity(v._capacity), _size(v._size), _data(v._data) {
+    Vector<T, Allocator>::Vector(Vector&& v) noexcept: _allocator(atl::move(v._allocator)), _capacity(v._capacity), _size(v._size), _data(v._data) {
         v._data = nullptr;
         v._capacity = 0;
         v._size = 0;
@@ -217,7 +217,7 @@ namespace anton_engine::atl {
             T* new_data = allocate(new_capacity);
             try {
                 // TODO: More reallocation options
-                if constexpr (std::is_nothrow_move_constructible_v<T>) {
+                if constexpr (atl::is_move_constructible<T>) {
                     atl::uninitialized_move_n(_data, math::min(new_capacity, _size), new_data);
                 } else {
                     atl::uninitialized_copy_n(_data, math::min(new_capacity, _size), new_data);
@@ -266,7 +266,7 @@ namespace anton_engine::atl {
                     moved = position;
                     attempt_construct(new_data + position, value);
                     moved += 1;
-                    atl::move(get_ptr(position), get_ptr(_size), new_data + position + 1);
+                    atl::move(get_ptr(position), get_ptr(_size), new_data + moved);
                 } catch (...) {
                     atl::destruct_n(new_data, moved);
                     deallocate(new_data, new_capacity);
@@ -286,6 +286,50 @@ namespace anton_engine::atl {
     }
 
     template <typename T, typename Allocator>
+    template<typename Input_Iterator>
+    void Vector<T, Allocator>::insert(size_type position, Input_Iterator first, Input_Iterator last) {
+        if constexpr (ANTON_ITERATOR_DEBUG) {
+            ANTON_FAIL(position <= _size && position >= 0, "Index out of bounds.");
+        }
+
+        // TODO: Distance
+        // TODO: Non-movable types.
+        // TODO: Fix this thing because I copy-pasted the above which isn't 100% correct
+        i64 const dist = last - first;
+        if (_size + dist > _capacity || position != _size) {
+            if (_size + dist <= _capacity) {
+                atl::move_backward(get_ptr(position), get_ptr(_size), get_ptr(_size + dist));
+                atl::copy(first, last, get_ptr(position));
+                _size += dist;
+            } else {
+                i64 const new_capacity = _capacity * 2;
+                T* const new_data = allocate(new_capacity);
+                i64 moved = 0;
+                try {
+                    atl::move(get_ptr(0), get_ptr(position), new_data);
+                    moved = position;
+                    atl::copy(first, last, new_data + moved);
+                    moved += dist;
+                    atl::move(get_ptr(position), get_ptr(_size), new_data + moved);
+                } catch (...) {
+                    atl::destruct_n(new_data, moved);
+                    deallocate(new_data, new_capacity);
+                    throw;
+                }
+                atl::destruct_n(_data, _size);
+                deallocate(_data, _capacity);
+                _capacity = new_capacity;
+                _data = new_data;
+                _size += dist;
+            }
+        } else {
+            // Quick path when position points to end and we have room for one more element.
+            atl::copy(first, last, get_ptr(_size));
+            _size += dist;
+        }
+    }
+
+    template <typename T, typename Allocator>
     void Vector<T, Allocator>::insert_unsorted(const_iterator position, value_type const& value) {
         if constexpr (ANTON_ITERATOR_DEBUG) {
             ANTON_FAIL(position < _size && position >= 0, "Index out of bounds.");
@@ -298,7 +342,7 @@ namespace anton_engine::atl {
             ++_size;
         } else {
             T* elem_ptr = get_ptr(offset);
-            if constexpr (std::is_nothrow_move_constructible_v<T>) {
+            if constexpr (atl::is_move_constructible<T>) {
                 attempt_move(elem_ptr, get_ptr(_size));
             } else {
                 attempt_copy(elem_ptr, get_ptr(_size));
@@ -321,7 +365,7 @@ namespace anton_engine::atl {
     void Vector<T, Allocator>::push_back(value_type&& val) {
         ensure_capacity(_size + 1);
         T* elem_ptr = get_ptr(_size);
-        attempt_construct(elem_ptr, std::move(val));
+        attempt_construct(elem_ptr, atl::move(val));
         ++_size;
     }
 
@@ -330,7 +374,7 @@ namespace anton_engine::atl {
     auto Vector<T, Allocator>::emplace_back(CtorArgs&&... args) -> reference {
         ensure_capacity(_size + 1);
         T* elem_ptr = get_ptr(_size);
-        attempt_construct(elem_ptr, std::forward<CtorArgs>(args)...);
+        attempt_construct(elem_ptr, atl::forward<CtorArgs>(args)...);
         ++_size;
         return *elem_ptr;
     }
@@ -424,16 +468,16 @@ namespace anton_engine::atl {
 
     template <typename T, typename Allocator>
     void Vector<T, Allocator>::attempt_move(T* from, T* to) {
-        ::new (to) T(std::move(*from));
+        ::new (to) T(atl::move(*from));
     }
 
     template <typename T, typename Allocator>
     template <typename... Ctor_Args>
     void Vector<T, Allocator>::attempt_construct(T* in, Ctor_Args&&... args) {
-        if constexpr (std::is_constructible_v<T, Ctor_Args&&...>) {
-            ::new (in) T(std::forward<Ctor_Args>(args)...);
+        if constexpr (atl::is_constructible<T, Ctor_Args&&...>) {
+            ::new (in) T(atl::forward<Ctor_Args>(args)...);
         } else {
-            ::new (in) T{std::forward<Ctor_Args>(args)...};
+            ::new (in) T{atl::forward<Ctor_Args>(args)...};
         }
     }
 
@@ -469,7 +513,7 @@ namespace anton_engine::atl {
             T* new_data = allocate(new_capacity);
             try {
                 // TODO: More reallocation options
-                if constexpr (std::is_nothrow_move_constructible_v<T>) {
+                if constexpr (atl::is_move_constructible<T>) {
                     atl::uninitialized_move(_data, _data + _size, new_data);
                 } else {
                     atl::uninitialized_copy(_data, _data + _size, new_data);
@@ -506,7 +550,7 @@ namespace anton_engine {
         in.read(size);
         vec.clear();
         vec.set_capacity(capacity);
-        if constexpr (std::is_default_constructible_v<T>) {
+        if constexpr (atl::is_default_constructible<T>) {
             vec.resize(size);
             try {
                 for (T& elem: vec) {
@@ -522,7 +566,7 @@ namespace anton_engine {
             try {
                 for (; n > 0; --n) {
                     Stack_Allocate<T> elem;
-                    vec.push_back(std::move(elem.reference()));
+                    vec.push_back(atl::move(elem.reference()));
                     deserialize(in, vec.back());
                 }
                 vec._size = size;
