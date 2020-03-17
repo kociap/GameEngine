@@ -44,6 +44,6 @@ namespace anton_engine::input {
     [[nodiscard]] Action_State get_action(std::string const& action);
     [[nodiscard]] Key_State get_key_state(Key);
     // [[nodiscard]] Any_Key_State get_any_key_state();
-}; // namespace anton_engine::input
+} // namespace anton_engine::input
 
 #endif // !ENGINE_INPUT_INPUT_HPP_INCLUDE

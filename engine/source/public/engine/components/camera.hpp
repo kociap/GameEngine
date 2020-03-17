@@ -67,6 +67,6 @@ namespace anton_engine {
     // }
 } // namespace anton_engine
 
-ANTON_DEFAULT_SERIALIZABLE(anton_engine::Camera);
+ANTON_DEFAULT_SERIALIZABLE(anton_engine::Camera)
 
 #endif // !ENGINE_COMPONENTS_CAMERA_HPP_INCLUDE

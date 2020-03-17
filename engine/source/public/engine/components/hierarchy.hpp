@@ -15,6 +15,6 @@ namespace anton_engine {
     };
 } // namespace anton_engine
 
-ANTON_DEFAULT_SERIALIZABLE(anton_engine::Hierarchy);
+ANTON_DEFAULT_SERIALIZABLE(anton_engine::Hierarchy)
 
 #endif // !ENGINE_COMPONENTS_HIERARCHY_HPP_INCLUDE

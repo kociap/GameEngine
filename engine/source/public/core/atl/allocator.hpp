@@ -82,36 +82,36 @@ namespace anton_engine::atl {
     // Stack_Allocator
     // The effective size of the buffer is smaller due to.
     //
-    template <usize size, usize alignment>
-    class Stack_Allocator: public Memory_Allocator {
-    public:
-        [[nodiscard]] ANTON_DECLSPEC_ALLOCATOR void* allocate(isize size, isize alignment) override {}
+    // template <usize Size, usize Alignment>
+    // class Stack_Allocator: public Memory_Allocator {
+    // public:
+    //     [[nodiscard]] ANTON_DECLSPEC_ALLOCATOR void* allocate(isize size, isize alignment) override {}
 
-        void deallocate(void*, isize size, isize alignment) override {}
+    //     void deallocate(void*, isize size, isize alignment) override {}
 
-        [[nodiscard]] bool is_equal(Memory_Allocator const& other) const override {
-            return false; // TODO: A way to compare allocators.
-        }
+    //     [[nodiscard]] bool is_equal(Memory_Allocator const& other) const override {
+    //         return false; // TODO: A way to compare allocators.
+    //     }
 
-    private:
-        struct Block_Data {
-            void* previous_block;
-            void* next_block;
-            bool free;
-        };
+    // private:
+    //     struct Block_Data {
+    //         void* previous_block;
+    //         void* next_block;
+    //         bool free;
+    //     };
 
-        Aligned_Buffer<size, alignment> stack;
-    };
+    //     Aligned_Buffer<Size, Alignment> stack;
+    // };
 
-    template <usize S1, usize A1, usize S2, usize A2>
-    [[nodiscard]] constexpr bool operator==(Stack_Allocator<S1, A1> const&, Stack_Allocator<S2, A2> const&) {
-        return S1 == S2 && A1 == A2;
-    }
+    // template <usize S1, usize A1, usize S2, usize A2>
+    // [[nodiscard]] constexpr bool operator==(Stack_Allocator<S1, A1> const&, Stack_Allocator<S2, A2> const&) {
+    //     return S1 == S2 && A1 == A2;
+    // }
 
-    template <usize S1, usize A1, usize S2, usize A2>
-    [[nodiscard]] constexpr bool operator!=(Stack_Allocator<S1, A1> const&, Stack_Allocator<S2, A2> const&) {
-        return S1 != S2 || A1 != A2;
-    }
+    // template <usize S1, usize A1, usize S2, usize A2>
+    // [[nodiscard]] constexpr bool operator!=(Stack_Allocator<S1, A1> const&, Stack_Allocator<S2, A2> const&) {
+    //     return S1 != S2 || A1 != A2;
+    // }
 
     // Polymorphic_Allocator
     // A wrapper around Memory_Allocator to allow any custom allocator to be used with any

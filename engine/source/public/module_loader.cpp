@@ -16,7 +16,7 @@ namespace anton_engine {
 #ifdef _MSC_VER
         module.handle = LoadLibraryA(module_name.data());
 #else
-        module.handle = dlopen(module_name.data(), RTLD_LAZY)
+        module.handle = dlopen(module_name.data(), RTLD_LAZY);
 #endif
         if (!module.handle) {
             throw Exception(atl::String("Could not load module ") + module_name);

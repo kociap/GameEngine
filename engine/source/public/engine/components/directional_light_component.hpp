@@ -16,6 +16,6 @@ namespace anton_engine {
     };
 } // namespace anton_engine
 
-ANTON_DEFAULT_SERIALIZABLE(::anton_engine::Directional_Light_Component);
+ANTON_DEFAULT_SERIALIZABLE(::anton_engine::Directional_Light_Component)
 
 #endif // !ENGINE_COMPONENTS_DIRECITONAL_LIGHT_COMPONENT_HPP_INCLUDE

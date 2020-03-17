@@ -51,7 +51,7 @@ namespace anton_engine::atl {
     // Buffer Allocator
 
     static char* adjust_to_alignment(char* address, usize alignment) {
-        uintptr_t misalignment = (reinterpret_cast<uintptr_t>(address) & (alignment - 1));
+        usize misalignment = (reinterpret_cast<usize>(address) & (alignment - 1));
         address += (misalignment != 0 ? alignment - misalignment : 0);
         return address;
     }

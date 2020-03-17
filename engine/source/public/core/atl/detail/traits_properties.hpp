@@ -1,6 +1,7 @@
 #ifndef CORE_ATL_DETAIL_TRAITS_PROPERTIES_HPP_INCLUDE
 #define CORE_ATL_DETAIL_TRAITS_PROPERTIES_HPP_INCLUDE
 
+#include <build_config.hpp>
 #include <core/types.hpp>
 #include <core/atl/detail/traits_base.hpp>
 #include <core/atl/detail/traits_common.hpp>
@@ -148,11 +149,11 @@ namespace anton_engine::atl {
         template <typename T>
         struct Is_Complete {
         private:
-            template <typename T, usize = sizeof(T)>
+            template <typename U, usize = sizeof(U)>
             static atl::True_Type test(int);
 
-            template <typename T>
-            static conditional<is_function<T>, atl::True_Type, atl::False_Type> test(...);
+            template <typename U>
+            static conditional<is_function<U>, atl::True_Type, atl::False_Type> test(...);
 
         public:
             using type = decltype(test<T>(0));
@@ -353,7 +354,8 @@ namespace anton_engine::atl {
 
     // Is_Convertible
     //
-#if ANTON_COMPILER_ID == ANTON_COMPILER_CLANG || ANTON_COMPILER_ID == ANTON_COMPILER_MSVC
+
+#if ANTON_COMPILER_CLANG || ANTON_COMPILER_MSVC
     // Both Clang and MSVC support __is_convertible_to
 
     template <typename From, typename To>
@@ -398,13 +400,15 @@ namespace anton_engine::atl {
 
     template <typename From, typename To>
     struct Is_Convertible: detail::Is_Convertible_Helper<From, To>::type {
-        static_assert(disjunction<Is_Complete_Type<T>, Is_Void<T>, Is_Unbounded_Array<T>>,
-                      "Template argument must be a complete type, void or an unbounded array.");
+        static_assert(disjunction<Is_Complete_Type<From>, Is_Void<From>, Is_Unbounded_Array<From>>,
+                      "From template argument must be a complete type, void or an unbounded array.");
+        static_assert(disjunction<Is_Complete_Type<To>, Is_Void<To>, Is_Unbounded_Array<To>>,
+                      "To template argument must be a complete type, void or an unbounded array.");
     };
 
     template <typename From, typename To>
     constexpr bool is_convertible = Is_Convertible<From, To>::value;
-#endif // ANTON_COMPILER_ID == ANTON_COMPILER_CLANG || ANTON_COMPILER_ID == ANTON_COMPILER_MSVC
+#endif // ANTON_COMPILER_CLANG || ANTON_COMPILER_MSVC
 
     namespace detail {
         // If T is a function, void or an array of unknown bound, return false.
@@ -443,7 +447,7 @@ namespace anton_engine::atl {
 
     // Is_Trivially_Destructible
     //
-#if ANTON_COMPILER_ID == ANTON_COMPILER_CLANG || ANTON_COMPILER_ID == ANTON_COMPILER_MSVC
+#if ANTON_COMPILER_CLANG || ANTON_COMPILER_MSVC
     template <typename T>
     struct Is_Trivially_Destructible: Bool_Constant<__is_trivially_destructible(T)> {
         static_assert(disjunction<Is_Complete_Type<T>, Is_Void<T>, Is_Unbounded_Array<T>>,
@@ -463,7 +467,7 @@ namespace anton_engine::atl {
 
     template <typename T>
     constexpr bool is_trivially_destructible = Is_Trivially_Destructible<T>::value;
-#endif // ANTON_COMPILER_ID == ANTON_COMPILER_CLANG || ANTON_COMPILER_ID == ANTON_COMPILER_MSVC
+#endif // ANTON_COMPILER_CLANG || ANTON_COMPILER_MSVC
 
     namespace detail {
         template <typename T>

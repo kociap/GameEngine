@@ -18,6 +18,6 @@ namespace anton_engine {
     };
 } // namespace anton_engine
 
-ANTON_DEFAULT_SERIALIZABLE(::anton_engine::Static_Mesh_Component);
+ANTON_DEFAULT_SERIALIZABLE(::anton_engine::Static_Mesh_Component)
 
 #endif // !ENGINE_COMPONENTS_STATIC_MESH_COMPONENT_HPP_INCLUDE

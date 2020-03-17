@@ -2,7 +2,7 @@
 #define CORE_MATH_MATH_HPP_INCLUDE
 
 #include <core/types.hpp>
-#include <cmath>
+#include <math.h>
 #include <core/intrinsics.hpp>
 #include <limits>
 
@@ -60,11 +60,11 @@ namespace anton_engine::math {
     }
 
     inline float sin(float angle) {
-        return std::sinf(angle);
+        return ::sinf(angle);
     }
 
     inline float cos(float angle) {
-        return std::cosf(angle);
+        return ::cosf(angle);
     }
 
     template<typename T>

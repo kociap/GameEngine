@@ -1,6 +1,7 @@
-#include <engine/time/time_internal.hpp>
+#include <engine/time_internal.hpp>
 
 #include <engine/time.hpp>
+#include <mimas/mimas.h>
 
 namespace anton_engine {
     // The number of frames since the start of the game
@@ -35,6 +36,20 @@ namespace anton_engine {
         delta_time = unscaled_delta_time * time_scale;
         previous_frame_time = frame_time;
         frame_time += delta_time;
+    }
+
+    double get_time() {
+        return mimas_get_time();
+    }
+
+    System_Time get_utc_system_time() {
+        Mimas_System_Time t = mimas_get_utc_system_time();
+        return {t.year, t.month, t.day, t.day_of_week, t.hour, t.minutes, t.seconds, t.milliseconds};
+    }
+
+    System_Time get_local_system_time() {
+        Mimas_System_Time t = mimas_get_local_system_time();
+        return {t.year, t.month, t.day, t.day_of_week, t.hour, t.minutes, t.seconds, t.milliseconds};
     }
 
     double get_delta_time() {

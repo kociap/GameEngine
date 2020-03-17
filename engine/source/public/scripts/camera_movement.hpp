@@ -16,6 +16,6 @@ namespace anton_engine {
     };
 } // namespace anton_engine
 
-ANTON_DEFAULT_SERIALIZABLE(anton_engine::Camera_Movement);
+ANTON_DEFAULT_SERIALIZABLE(anton_engine::Camera_Movement)
 
 #endif // !SCRIPTS_CAMERA_MOVEMENT_HPP_INCLUDE

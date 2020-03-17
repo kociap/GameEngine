@@ -7,6 +7,30 @@
 #    define ANTON_DEBUG 1
 #endif
 
+#ifndef ANTON_COMPILER_CLANG
+#    define ANTON_COMPILER_CLANG 0
+#else
+#    define ANTON_COMPILER_CLANG 1
+#endif
+
+#ifndef ANTON_COMPILER_GCC
+#    define ANTON_COMPILER_GCC 0
+#else
+#    define ANTON_COMPILER_GCC 1
+#endif
+
+#ifndef ANTON_COMPILER_MSVC
+#    define ANTON_COMPILER_MSVC 0
+#else
+#    define ANTON_COMPILER_MSVC 1
+#endif
+
+#ifndef ANTON_COMPILER_UNKNOWN
+#    define ANTON_COMPILER_UNKNOWN 0
+#else
+#    define ANTON_COMPILER_UNKNOWN 1
+#endif
+
 #ifndef ANTON_WITH_EDITOR
 #    define ANTON_WITH_EDITOR 0
 #endif

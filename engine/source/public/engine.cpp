@@ -11,7 +11,7 @@
 #include <engine/mesh.hpp>
 #include <core/paths_internal.hpp>
 #include <engine/resource_manager.hpp>
-#include <engine/time/time_internal.hpp>
+#include <engine/time_internal.hpp>
 #include <core/utils/filesystem.hpp>
 #include <windowing/window.hpp>
 

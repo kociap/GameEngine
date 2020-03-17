@@ -2,8 +2,8 @@
 #define RENDERER_GLAD_HPP_INCLUDE
 
 #include <core/diagnostic_macros.hpp>
-ANTON_DISABLE_WARNINGS();
+ANTON_DISABLE_WARNINGS()
 #include <glad/glad.h>
-ANTON_RESTORE_WARNINGS();
+ANTON_RESTORE_WARNINGS()
 
 #endif // !RENDERER_GLAD_HPP_INCLUDE

@@ -24,7 +24,7 @@ namespace anton_engine {
     i64 random_i64(i64 min, i64 max) {
         u64 const engine_range = subtract_as_unsigned<u64>(mersenne_engine.max(), mersenne_engine.min());
         u64 const range = subtract_as_unsigned<i64>(max, min);
-        ANTON_ASSERT(range >= 0, "max < min");
+        ANTON_ASSERT(max >= min, "max < min");
 
         if (range == 0) {
             return min;

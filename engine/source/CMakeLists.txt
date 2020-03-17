@@ -12,20 +12,29 @@ target_compile_definitions(anton_engine
     PRIVATE 
     ENGINE_API=${ENGINE_DLL_EXPORT} 
     GAME_API=${ENGINE_DLL_IMPORT} 
-    ANTON_COMPILER_ID=${ENGINE_COMPILER_ID} 
-    ANTON_COMPILER_CLANG=${ENGINE_COMPILER_CLANG} 
-    ANTON_COMPILER_GCC=${ENGINE_COMPILER_GCC} 
-    ANTON_COMPILER_MSVC=${ENGINE_COMPILER_MSVC} 
-    ANTON_COMPILER_UNKNOWN=${ENGINE_COMPILER_UNKNOWN}
     ANTON_WITH_EDITOR=${ENGINE_WITH_EDITOR}
     # Use unicode instead of multibyte charset (VS)
     UNICODE
     _UNICODE
 )
 
-target_compile_options(anton_engine
-    PRIVATE ${ENGINE_CXX_FLAGS}
-)
+if(ENGINE_COMPILER_CLANG)
+    target_compile_definitions(anton_engine PRIVATE ANTON_COMPILER_CLANG)
+endif()
+
+if(ENGINE_COMPILER_GCC)
+    target_compile_definitions(anton_engine PRIVATE ANTON_COMPILER_GCC)
+endif()
+
+if(ENGINE_COMPILER_MSVC)
+    target_compile_definitions(anton_engine PRIVATE ANTON_COMPILER_MSVC)
+endif()
+
+if(ENGINE_COMPILER_UNKNOWN)
+    target_compile_definitions(anton_engine PRIVATE ANTON_COMPILER_UNKNOWN)
+endif()
+
+target_compile_options(anton_engine PRIVATE ${ENGINE_CXX_FLAGS})
 
 target_include_directories(anton_engine 
     PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}/public"
@@ -38,15 +47,15 @@ file(GLOB_RECURSE TMPL_IMPL_FILES LIST_DIRECTORIES FALSE "*.tpp")
 
 if(WIN32)
     list(REMOVE_ITEM SOURCE_FILES 
+        "${CMAKE_CURRENT_SOURCE_DIR}/private/core/unix/debug_break.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/private/core/assert/assert_posix.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/private/engine/time/time_posix.cpp"
-        )
+    )
 else()
     list(REMOVE_ITEM SOURCE_FILES 
+        "${CMAKE_CURRENT_SOURCE_DIR}/private/core/windows/debug_break.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/private/core/windows/debugging.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/private/core/windows/common.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/private/core/assert/assert_win.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/private/engine/time/time_win.cpp"
     )
 
     list(REMOVE_ITEM HEADER_FILES 
@@ -61,10 +70,15 @@ target_sources(anton_engine
 
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCE_FILES} ${HEADER_FILES} ${TMPL_IMPL_FILES})
 
+if(UNIX)
+    set(ENGINE_LINK_LIBS ${ENGINE_LINK_LIBS} dl)
+endif()
+
 target_link_libraries(anton_engine
     ${OPENGL_LIBRARIES}
+    ${ENGINE_LINK_LIBS}
     glad
-    zlibstatic
+    zlib
     freetype
     mimas
 )
@@ -90,13 +104,24 @@ target_compile_definitions(anton_engine_loader
     PRIVATE 
     ENGINE_API=${ENGINE_DLL_IMPORT} 
     GAME_API=${ENGINE_DLL_IMPORT} 
-    ANTON_COMPILER_ID=${ENGINE_COMPILER_ID} 
-    ANTON_COMPILER_CLANG=${ENGINE_COMPILER_CLANG} 
-    ANTON_COMPILER_GCC=${ENGINE_COMPILER_GCC} 
-    ANTON_COMPILER_MSVC=${ENGINE_COMPILER_MSVC} 
-    ANTON_COMPILER_UNKNOWN=${ENGINE_COMPILER_UNKNOWN}
     ANTON_WITH_EDITOR=${ENGINE_WITH_EDITOR}
 )
+
+if(ENGINE_COMPILER_CLANG)
+    target_compile_definitions(anton_engine_loader PRIVATE ANTON_COMPILER_CLANG)
+endif()
+
+if(ENGINE_COMPILER_GCC)
+    target_compile_definitions(anton_engine_loader PRIVATE ANTON_COMPILER_GCC)
+endif()
+
+if(ENGINE_COMPILER_MSVC)
+    target_compile_definitions(anton_engine_loader PRIVATE ANTON_COMPILER_MSVC)
+endif()
+
+if(ENGINE_COMPILER_UNKNOWN)
+    target_compile_definitions(anton_engine_loader PRIVATE ANTON_COMPILER_UNKNOWN)
+endif()
 
 target_compile_options(anton_engine_loader PRIVATE ${ENGINE_CXX_FLAGS})
 

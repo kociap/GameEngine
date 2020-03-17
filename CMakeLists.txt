@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
 project(anton_engine)
 
 enable_language(CXX)
@@ -16,25 +16,27 @@ set(ENGINE_WITH_EDITOR 1)
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     set(ENGINE_CXX_FLAGS
-        -ferror-limit=512 # Lemme see dem errors
         -Wall -Wextra -pedantic
         # Useful warnings that are included in -Weverything
         # -Wsign-conversion
         # -Wshorten-64-to-32
         # -Wimplicit-int-conversion
         # -Wfloat-conversion
-
         # -Wno-c++98-compat -Wno-c++98-compat-pedantic # Both are useless
         # -Wno-float-equal # Not important yet
         # -Wno-global-constructors # Suppress static variables initialization warning spam. Not important, but might be worth turning on to identify startup performance issues
         # -Wno-exit-time-destructors # Suppress static variables destruction warning spam.
         # -Wno-shadow-field-in-constructor
         # -Wno-missing-prototypes
-        -Wnewline-eof
         -Wnon-virtual-dtor
+        -Wno-implicit-fallthrough # there's implicit falthrough in murmurhash2.hpp
         -Wno-error=unused-const-variable 
         -Wno-error=unused-parameter
         -Wno-error=unused-variable
+    )
+
+    set(ENGINE_LINK_LIBS
+        stdc++fs
     )
 
     set(ENGINE_CXX_DEPENDENCIES_FLAGS -Wno-everything)
@@ -64,6 +66,8 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT MSVC)
         -Wno-error=unused-variable
     )
 
+    set(ENGINE_LINK_LIBS)
+
     set(ENGINE_CXX_DEPENDENCIES_FLAGS -Wno-everything)
     
     if(NOT WIN32)
@@ -88,25 +92,27 @@ elseif(MSVC)
         )
     endif()
 
+    set(ENGINE_LINK_LIBS)
+
     set(ENGINE_CXX_DEPENDENCIES_FLAGS /W0)
     set(ENGINE_DLL_EXPORT "__declspec(dllexport)")
     set(ENGINE_DLL_IMPORT "__declspec(dllimport)")
 endif()
 
-# Compiler IDs
-set(ENGINE_COMPILER_UNKNOWN 0)
-set(ENGINE_COMPILER_CLANG 1)
-set(ENGINE_COMPILER_GCC 2)
-set(ENGINE_COMPILER_MSVC 3)
+# Compilers
+set(ENGINE_COMPILER_UNKNOWN FALSE)
+set(ENGINE_COMPILER_CLANG FALSE)
+set(ENGINE_COMPILER_GCC FALSE)
+set(ENGINE_COMPILER_MSVC FALSE)
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    set(ENGINE_COMPILER_ID ${ENGINE_COMPILER_CLANG})
+    set(ENGINE_COMPILER_CLANG TRUE)
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-    set(ENGINE_COMPILER_ID ${ENGINE_COMPILER_GCC})
+    set(ENGINE_COMPILER_GCC TRUE)
 elseif(MSVC)
-    set(ENGINE_COMPILER_ID ${ENGINE_COMPILER_MSVC})
+    set(ENGINE_COMPILER_MSVC TRUE)
 else()
-    set(ENGINE_COMPILER_ID ${ENGINE_COMPILER_UNKNOWN})
+    set(ENGINE_COMPILER_UNKNOWN TRUE)
 endif()
 
 add_subdirectory(engine)

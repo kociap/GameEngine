@@ -13,6 +13,6 @@ namespace anton_engine {
     };
 } // namespace anton_engine
 
-ANTON_DEFAULT_SERIALIZABLE(anton_engine::Debug_Hotkeys);
+ANTON_DEFAULT_SERIALIZABLE(anton_engine::Debug_Hotkeys)
 
 #endif // !SCRIPTS_DEBUG_HOTKEYS_HPP_INCLUDE

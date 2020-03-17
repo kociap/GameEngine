@@ -9,6 +9,10 @@ namespace anton_engine {
     public:
         Exception(atl::String_View message): _message(message) {}
 
+        atl::String_View get_message() const {
+            return _message;
+        }
+
     private:
         atl::String _message;
     };

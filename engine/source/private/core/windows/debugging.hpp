@@ -5,7 +5,6 @@
 #include <cstdint>
 
 namespace anton_engine::windows::debugging {
-
     [[nodiscard]] atl::String get_type_as_string(void* process_handle, uint64_t module_base, uint64_t index);
 } // namespace anton_engine::windows::debugging
 

@@ -53,7 +53,7 @@ namespace anton_engine::atl {
     };
 
     // Compares bytes
-    [[nodiscard]] constexpr bool operator==(String_View const& lhs, String_View const& rhs) {
+    [[nodiscard]] inline bool operator==(String_View const& lhs, String_View const& rhs) {
         if (lhs.size_bytes() != rhs.size_bytes()) {
             return false;
         }
@@ -62,7 +62,7 @@ namespace anton_engine::atl {
     }
 
     // Compares bytes
-    [[nodiscard]] constexpr bool operator!=(String_View const& lhs, String_View const& rhs) {
+    [[nodiscard]] inline bool operator!=(String_View const& lhs, String_View const& rhs) {
         return !(lhs == rhs);
     }
 
@@ -87,7 +87,6 @@ namespace std {
 } // namespace std
 
 namespace anton_engine::atl {
-
     constexpr String_View::String_View(): _begin(nullptr), _end(nullptr) {}
 
     constexpr String_View::String_View(value_type const* s, size_type n): _begin(s), _end(s + n) {

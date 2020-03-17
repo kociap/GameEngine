@@ -16,7 +16,7 @@ namespace anton_engine::atl {
     }
 
     template <typename Forward_Iterator>
-    void destruct(Forward_Iterator first, Forward_Iterator last) {
+    void destruct([[maybe_unused]] Forward_Iterator first, [[maybe_unused]] Forward_Iterator last) {
         using value_type = typename atl::Iterator_Traits<Forward_Iterator>::value_type;
         if constexpr (!atl::is_trivially_destructible<value_type>) {
             for (; first != last; ++first) {
@@ -26,7 +26,7 @@ namespace anton_engine::atl {
     }
 
     template <typename Forward_Iterator, typename Count>
-    void destruct_n(Forward_Iterator first, Count n) {
+    void destruct_n([[maybe_unused]] Forward_Iterator first, [[maybe_unused]] Count n) {
         using value_type = typename atl::Iterator_Traits<Forward_Iterator>::value_type;
         if constexpr (!atl::is_trivially_destructible<value_type>) {
             for (; n > 0; --n, ++first) {

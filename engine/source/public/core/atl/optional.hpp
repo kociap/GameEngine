@@ -50,7 +50,7 @@ namespace anton_engine::atl {
             Optional_Destruct_Base(Variadic_Construct_Tag, Args&&... args): _value(atl::forward<Args>(args)...), _holds_value(true) {}
 
             ~Optional_Destruct_Base() {
-                if (holds_value) {
+                if (_holds_value) {
                     _value.~T();
                 }
             }
@@ -96,7 +96,7 @@ namespace anton_engine::atl {
 
             template <typename... Args>
             void construct(Args&&... args) {
-                ANTON_ASSERT(!has_value(), "construct called on empty Optional.");
+                ANTON_ASSERT(!holds_value(), "construct called on empty Optional.");
                 ::new (atl::addressof(this->_value)) T(atl::forward<Args>(args)...);
                 this->_holds_value = true;
             }
@@ -106,7 +106,7 @@ namespace anton_engine::atl {
                     if (opt.holds_value()) {
                         this->_value = opt.get();
                     } else {
-                        destruct();
+                        this->destruct();
                     }
                 } else {
                     if (opt.holds_value()) {
@@ -121,7 +121,7 @@ namespace anton_engine::atl {
                         this->_value = atl::move(opt).get();
                         opt.destruct();
                     } else {
-                        destruct();
+                        this->destruct();
                     }
                 } else {
                     if (opt.holds_value()) {

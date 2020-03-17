@@ -20,7 +20,7 @@
 #include <rendering/renderer.hpp>
 #include <engine/resource_manager.hpp>
 #include <shaders/shader.hpp>
-#include <engine/time/time_internal.hpp>
+#include <engine/time_internal.hpp>
 #include <core/utils/filesystem.hpp>
 #include <windowing/window.hpp>
 

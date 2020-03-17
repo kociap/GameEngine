@@ -26,8 +26,8 @@ namespace anton_engine {
         // axis to rotate about
         // angle in radians
         void rotate(Vector3 axis, float angle) {
-            float half_angle_sin = std::sinf(angle / 2);
-            Quaternion q(axis.x * half_angle_sin, axis.y * half_angle_sin, axis.z * half_angle_sin, std::cosf(angle / 2));
+            float half_angle_sin = math::sin(angle / 2);
+            Quaternion q(axis.x * half_angle_sin, axis.y * half_angle_sin, axis.z * half_angle_sin, math::cos(angle / 2));
             local_rotation = q * local_rotation;
         }
 
@@ -43,6 +43,6 @@ namespace anton_engine {
     }
 } // namespace anton_engine
 
-ANTON_DEFAULT_SERIALIZABLE(anton_engine::Transform);
+ANTON_DEFAULT_SERIALIZABLE(anton_engine::Transform)
 
 #endif // !ENGINE_COMPONENTS_TRANSFORM_COMPONENT_HPP_INCLUDE

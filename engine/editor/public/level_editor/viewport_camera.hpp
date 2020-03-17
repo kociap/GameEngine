@@ -19,6 +19,6 @@ namespace anton_engine {
     };
 } // namespace anton_engine
 
-ANTON_DEFAULT_SERIALIZABLE(anton_engine::Viewport_Camera);
+ANTON_DEFAULT_SERIALIZABLE(anton_engine::Viewport_Camera)
 
 #endif // !EDITOR_LEVEL_EDITOR_VIEWPORT_CAMERA_HPP_INCLUDE

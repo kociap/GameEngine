@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
         serach_for_components(components_search_directory, components);
     }
 
-    std::ofstream generated_file(output_file);
+    std::ofstream generated_file(output_file.data());
     generated_file << "#include <component_serialization_funcs.hpp>\n#include <engine/ecs/component_container.hpp>\n\n";
     for (auto& [include_directory, name]: components) {
         generated_file << "#include <" << include_directory << ">\n";

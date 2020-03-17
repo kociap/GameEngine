@@ -16,14 +16,14 @@ namespace anton_engine {
     template <typename... T>
     void reload_shader(Shader& shader_to_reload, T&&... path) {
         try {
-            Shader shader = create_shader(assets::load_shader_file(std::forward<T>(path))...);
+            Shader shader = create_shader(assets::load_shader_file(atl::forward<T>(path))...);
             swap(shader_to_reload, shader);
         } catch (Program_Linking_Failed const& e) {
-            ANTON_LOG_ERROR(atl::String(u8"Failed to reload shaders due to linking error: ") + e.what());
+            ANTON_LOG_ERROR(atl::String(u8"Failed to reload shaders due to linking error: ") + e.get_message());
         } catch (Shader_Compilation_Failed const& e) {
-            ANTON_LOG_ERROR(atl::String(u8"Failed to reload shaders due to compilation error: ") + e.what());
-        } catch (std::exception const& e) {
-            ANTON_LOG_ERROR(atl::String(u8"Failed to reload shaders due to unknown error: ") + e.what()); //
+            ANTON_LOG_ERROR(atl::String(u8"Failed to reload shaders due to compilation error: ") + e.get_message());
+        } catch (Exception const& e) {
+            ANTON_LOG_ERROR(atl::String(u8"Failed to reload shaders due to unknown error: ") + e.get_message()); //
         }
     }
 

@@ -7,6 +7,7 @@
 #include <engine/ecs/component_container_iterator.hpp>
 #include <engine/ecs/entity.hpp>
 #include <core/serialization/archives/binary.hpp>
+#include <core/atl/algorithm.hpp>
 
 #include <type_traits>
 

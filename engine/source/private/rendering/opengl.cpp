@@ -8,6 +8,7 @@
 #include <core/logging.hpp>
 #include <stdexcept>
 #include <core/utils/enum.hpp>
+#include <core/debug_break.hpp>
 
 namespace anton_engine::opengl {
     static i32 max_combined_texture_units = 0;
@@ -104,7 +105,7 @@ namespace anton_engine::opengl {
             atl::String(stringify_severity(severity)) + " " + stringify_source(source) + " (" + stringify_type(type) + "): " + message;
         log_message(Log_Message_Severity::warning, stringified_message);
         if (severity == GL_DEBUG_SEVERITY_HIGH || severity == GL_DEBUG_SEVERITY_MEDIUM) {
-            DebugBreak();
+            debug_break();
         }
     }
 

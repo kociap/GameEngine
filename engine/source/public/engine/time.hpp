@@ -43,6 +43,6 @@ namespace anton_engine {
 
     // The number of frames since the start of the game
     u64 get_frame_count();
-}; // namespace anton_engine
+} // namespace anton_engine
 
 #endif // !ENGINE_TIME_HPP_INCLUDE

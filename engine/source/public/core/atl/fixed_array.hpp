@@ -5,8 +5,14 @@
 #include <core/atl/tags.hpp>
 #include <core/exception.hpp>
 #include <core/memory/aligned_buffer.hpp>
+#include <core/memory/stack_allocate.hpp>
 #include <core/serialization/archives/binary.hpp>
 #include <core/serialization/serialization.hpp>
+#include <core/assert.hpp>
+#include <core/atl/memory.hpp>
+#include <core/atl/type_traits.hpp>
+
+#include <new> // std::launder
 
 namespace anton_engine::atl {
     template <typename T, i64 Capacity>
@@ -69,9 +75,55 @@ namespace anton_engine::atl {
         template <typename... Args>
         void construct(void* ptr, Args&&... args);
 
-        friend void deserialize(serialization::Binary_Input_Archive&, atl::Fixed_Array<T, Capacity>&);
-        friend void serialize(serialization::Binary_Output_Archive&, atl::Fixed_Array<T, Capacity> const&);
-        friend void swap(Fixed_Array<T, Capacity>&, Fixed_Array<T, Capacity>&);
+        friend void swap(Fixed_Array& a1, Fixed_Array& a2) {
+            Fixed_Array tmp = move(a1);
+            a1 = move(a2);
+            a2 = move(tmp);
+        }
+
+        friend void deserialize(serialization::Binary_Input_Archive& in, Fixed_Array& array) {
+            using size_type = typename Fixed_Array::size_type;
+            size_type capacity, size;
+            in.read(capacity);
+            in.read(size);
+            array.clear();
+            if constexpr (std::is_default_constructible_v<T>) {
+                array.resize(size);
+                try {
+                    for (T& elem: array) {
+                        deserialize(in, elem);
+                    }
+                } catch (...) {
+                    // TODO move stream backward to maintain weak guarantee
+                    atl::destruct_n(array.data(), size);
+                    throw;
+                }
+            } else {
+                size_type n = size;
+                try {
+                    for (; n > 0; --n) {
+                        Stack_Allocate<T> elem;
+                        array.push_back(std::move(elem.reference()));
+                        deserialize(in, array.back());
+                    }
+                    array._size = size;
+                } catch (...) {
+                    // TODO move stream backward to maintain weak guarantee
+                    atl::destruct_n(array.data(), size - n);
+                    throw;
+                }
+            }
+        }
+
+        friend void serialize(serialization::Binary_Output_Archive& out, Fixed_Array const& array) {
+            using size_type = typename Fixed_Array::size_type;
+            size_type const capacity = array.capacity(), size = array.size();
+            out.write(capacity);
+            out.write(size);
+            for (T const& elem: array) {
+                serialize(out, elem);
+            }
+        }
     };
 } // namespace anton_engine::atl
 
