@@ -11,6 +11,7 @@ namespace anton_engine {
         mouse_x,
         mouse_y,
         mouse_scroll,
+        mouse_horiz_scroll,
         left_mouse_button,
         right_mouse_button,
         middle_mouse_button,

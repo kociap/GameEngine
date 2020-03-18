@@ -90,6 +90,8 @@ namespace anton_engine::windowing {
         key_map[MIMAS_MOUSE_MIDDLE_BUTTON] = Key::middle_mouse_button;
         key_map[MIMAS_MOUSE_THUMB_BUTTON_1] = Key::thumb_mouse_button_1;
         key_map[MIMAS_MOUSE_THUMB_BUTTON_2] = Key::thumb_mouse_button_2;
+        key_map[MIMAS_MOUSE_WHEEL] = Key::mouse_scroll;
+        key_map[MIMAS_MOUSE_HORIZ_WHEEL] = Key::mouse_horiz_scroll;
         key_map[MIMAS_KEY_0] = Key::zero;
         key_map[MIMAS_KEY_1] = Key::one;
         key_map[MIMAS_KEY_2] = Key::two;
@@ -198,6 +200,8 @@ namespace anton_engine::windowing {
         key_map[static_cast<i32>(Key::middle_mouse_button)] = MIMAS_MOUSE_MIDDLE_BUTTON;
         key_map[static_cast<i32>(Key::thumb_mouse_button_1)] = MIMAS_MOUSE_THUMB_BUTTON_1;
         key_map[static_cast<i32>(Key::thumb_mouse_button_2)] = MIMAS_MOUSE_THUMB_BUTTON_2;
+        key_map[static_cast<i32>(Key::mouse_scroll)] = MIMAS_MOUSE_SCROLL;
+        key_map[static_cast<i32>(Key::mouse_horiz_scroll)] = MIMAS_MOUSE_HORIZ_SCROLL;
         key_map[static_cast<i32>(Key::zero)] = MIMAS_KEY_0;
         key_map[static_cast<i32>(Key::one)] = MIMAS_KEY_1;
         key_map[static_cast<i32>(Key::two)] = MIMAS_KEY_2;
@@ -323,6 +327,13 @@ namespace anton_engine::windowing {
         }
     }
 
+    void _window_scroll_callback(Mimas_Window* const, mimas_i32 const d_x, mimas_i32 const d_y, void* user_data) {
+        Window* const window = reinterpret_cast<Window*>(data);
+        if(window->callbacks.scroll) {
+            window->callbacks.scroll(window, d_x, d_y, window->callbacks.scroll_data);
+        }
+    }
+
     void _cursor_callback(Mimas_Window* const, mimas_i32 const x, mimas_i32 const y, void* data){
         Window* const window = reinterpret_cast<Window*>(data);
         if(window->callbacks.cursor_pos) {
@@ -348,6 +359,7 @@ namespace anton_engine::windowing {
             mimas_set_window_key_callback(mimas_window, _window_key_callback, window);
             mimas_set_window_cursor_pos_callback(mimas_window, _cursor_callback, window);
             mimas_set_window_mouse_button_callback(mimas_window, _window_mouse_button_callback, window);
+            mimas_set_window_wheel_callback(mimas_window, _window_scroll_callback, window);
             return window;
         } else {
             return nullptr;
