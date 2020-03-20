@@ -18,9 +18,9 @@ int main(int argc, char** argv) {
     using namespace anton_engine;
 
 #if ANTON_DEBUG
-    char const* game_module_name = "GameEngine_Gamed.dll";
+    char const* game_module_name = "anton_engine_game_d.dll";
 #else
-    char const* game_module_name = "GameEngine_Game.dll";
+    char const* game_module_name = "anton_engine_game.dll";
 #endif // ANTON_DEBUG
     Module game_module = load_module(game_module_name);
     get_component_serialization_funcs = get_function_from_module<get_component_serialization_funcs_t>(game_module, "get_component_serialization_functions");
