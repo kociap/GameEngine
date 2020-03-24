@@ -9,6 +9,8 @@
 #include <core/math/vector4.hpp>
 #include <windowing/window.hpp>
 
+#include <rendering/fonts.hpp> // because of Font_Face;
+
 namespace anton_engine::imgui {
     class Context;
     class Viewport;
@@ -20,8 +22,9 @@ namespace anton_engine::imgui {
 
     class Font_Style {
     public:
+        rendering::Font_Face* face;
         // Font size in points
-        u32 font_size;
+        u32 size;
         u32 h_dpi;
         u32 v_dpi;
     };
@@ -32,6 +35,7 @@ namespace anton_engine::imgui {
         Color background_color;
         Vector4 border;
         Vector4 padding;
+        Font_Style font;
     };
 
     class Style {
@@ -88,6 +92,7 @@ namespace anton_engine::imgui {
         u32 element_count;
         u32 vertex_offset;
         u32 index_offset;
+        // texture 0 means no texture is associated with this draw command
         u32 texture;
     };
 
@@ -109,8 +114,8 @@ namespace anton_engine::imgui {
     void begin_widget(Context&, atl::String_View identifier, Widget_Style options);
     void end_widget(Context&);
 
-    void text(Context&, atl::String_View text);
-    Button_State button(Context&, atl::String_View text, Button_Style style, Button_Style hovered_style, Button_Style active_style, Font_Style font);
+    void text(Context&, atl::String_View text, Font_Style font);
+    Button_State button(Context&, atl::String_View text, Button_Style style, Button_Style hovered_style, Button_Style active_style);
 
     // Modifiers
 

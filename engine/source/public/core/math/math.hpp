@@ -146,14 +146,14 @@ namespace anton_engine::math {
     constexpr u8 popcount(u8 v) {
         v = (v & 0x55) + ((v >> 1) & 0x55);
         v = (v & 0x33) + ((v >> 2) & 0x33);
-        v = (v & 0x0F) + ((v >> 2) & 0x0F);
+        v = (v & 0x0F) + ((v >> 4) & 0x0F);
         return v;
     }
 
     constexpr u16 popcount(u16 v) {
         v = (v & 0x5555) + ((v >> 1) & 0x5555);
         v = (v & 0x3333) + ((v >> 2) & 0x3333);
-        v = (v & 0x0F0F) + ((v >> 2) & 0x0F0F);
+        v = (v & 0x0F0F) + ((v >> 4) & 0x0F0F);
         return v * 0x0101 >> 8;
     }
 

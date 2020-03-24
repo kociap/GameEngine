@@ -8,6 +8,7 @@
 #include <core/atl/utility.hpp>
 #include <core/atl/vector.hpp>
 #include <windowing/window.hpp>
+#include <rendering/fonts.hpp>
 
 #include <unordered_map>
 
@@ -995,11 +996,30 @@ namespace anton_engine::imgui {
             viewport->draw_commands_buffer.clear();
         }
 
-        for (auto entry: ctx.next.windows) {
-            entry.second.enabled = false;
+        for (auto [_, window]: ctx.next.windows) {
+            window.enabled = false;
+            window.draw_context.draw_pos = Vector2{0.0f, 0.0f};
+            window.draw_context.index_buffer.clear();
+            window.draw_context.vertex_buffer.clear();
+            window.draw_context.draw_commands.clear();
         }
 
         process_input(ctx);
+    }
+
+    // From top-left counterclockwise order of vertices.
+    static void add_quad(atl::Vector<Vertex>& verts, atl::Vector<u32>& indices, Vertex v1, Vertex v2, Vertex v3, Vertex v4,
+                         u32 inx1, u32 inx2, u32 inx3, u32 inx4, u32 inx5, u32 inx6) {
+        verts.emplace_back(v1);
+        verts.emplace_back(v2);
+        verts.emplace_back(v3);
+        verts.emplace_back(v4);
+        indices.emplace_back(inx1);
+        indices.emplace_back(inx2);
+        indices.emplace_back(inx3);
+        indices.emplace_back(inx4);
+        indices.emplace_back(inx5);
+        indices.emplace_back(inx6);
     }
 
     void end_frame(Context& ctx) {
@@ -1047,6 +1067,8 @@ namespace anton_engine::imgui {
             Vector2 const dockspace_size = get_dockspace_size(dockspace);
             Vector2 const dockspace_content_pos = get_dockspace_content_screen_pos(dockspace);
             Vector2 const dockspace_content_size = get_dockspace_content_size(dockspace);
+
+            // Tab bar background
             Draw_Command tab_bar_cmd;
             tab_bar_cmd.vertex_offset = verts.size();
             // TODO: Make color customizable.
@@ -1352,11 +1374,11 @@ namespace anton_engine::imgui {
         // ctx.current_widget = current_window.widgets[ctx.current_widget].parent;
     }
 
-    void text(Context& ctx, atl::String_View text) {
+    void text(Context& ctx, atl::String_View text, Font_Style font) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
     }
 
-    Button_State button(Context& ctx, atl::String_View text, Button_Style const inactive_style, Button_Style const hot_style, Button_Style const active_style, Font_Style const font) {
+    Button_State button(Context& ctx, atl::String_View text, Button_Style const inactive_style, Button_Style const hot_style, Button_Style const active_style) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
         // TODO: Check window z-order to determine whether this window is top-level
         Window& window = ctx.next.windows.at(ctx.current_window);
@@ -1376,48 +1398,94 @@ namespace anton_engine::imgui {
                 style = active_style;
             } break;
         }
-        Vertex::Color const bg_color = color_to_vertex_color(style.background_color);
-        Vertex::Color const border_color = color_to_vertex_color(style.border_color);
-        f32 const button_height = math::max(0.0f, style.padding.x) + math::max(0.0f, style.padding.z) + font.font_size * font.v_dpi / 72;
-        // TODO: Computes fake width from number of bytes.
-        f32 const button_width = math::max(0.0f, style.padding.y) + math::max(0.0f, style.padding.w) + text.size_bytes() * font.font_size * font.h_dpi / 72;
-        f32 const border_height = button_height + style.border.x + style.border.z;
-        f32 const border_width = button_width + style.border.y + style.border.w;
-        
-        Vector2 const dockspace_pos = get_dockspace_content_screen_pos(window.dockspace);
-        Vector2 const cursor = ctx.input.cursor_position;
-        // TODO: Update style.
+
+        // TODO: Text wrap
+
+        rendering::Text_Metrics metrics = rendering::compute_text_dimensions(style.font.face, {style.font.size, style.font.h_dpi, style.font.v_dpi}, text);
+        f32 button_height = math::max(0.0f, style.padding[0]) + math::max(0.0f, style.padding[2]) + metrics.height;
+        f32 button_width = math::max(0.0f, style.padding[1]) + math::max(0.0f, style.padding[3]) + metrics.width;
+        f32 border_height = button_height + style.border[0] + style.border[2];
+        f32 border_width = button_width + style.border[1] + style.border[3];
 
         Draw_Context& dc = window.draw_context;
-        Draw_Command cmd;
-        cmd.texture = 0;
-        cmd.element_count = 12;
-        cmd.vertex_offset = dc.vertex_buffer.size();
-        Vector2 const draw_pos = dc.draw_pos;
-        Vector2 const button_draw_pos = draw_pos + Vector2{style.border.w, style.border.x};
-        dc.vertex_buffer.emplace_back(draw_pos, Vector2{0.0f, 1.0f}, border_color);
-        dc.vertex_buffer.emplace_back(draw_pos + Vector2{0.0f, border_height}, Vector2{0.0f, 0.0f}, border_color);
-        dc.vertex_buffer.emplace_back(draw_pos + Vector2{border_width, border_height}, Vector2{1.0f, 0.0f}, border_color);
-        dc.vertex_buffer.emplace_back(draw_pos + Vector2{border_width, 0.0f}, Vector2{1.0f, 1.0f}, border_color);
-        dc.vertex_buffer.emplace_back(button_draw_pos, Vector2{0.0f, 1.0f}, bg_color);
-        dc.vertex_buffer.emplace_back(button_draw_pos + Vector2{0.0f, button_height}, Vector2{0.0f, 0.0f}, bg_color);
-        dc.vertex_buffer.emplace_back(button_draw_pos + Vector2{button_width, button_height}, Vector2{1.0f, 0.0f}, bg_color);
-        dc.vertex_buffer.emplace_back(button_draw_pos + Vector2{button_width, 0.0f}, Vector2{1.0f, 1.0f}, bg_color);
-        cmd.index_offset = dc.index_buffer.size();
-        dc.index_buffer.emplace_back(0);
-        dc.index_buffer.emplace_back(1);
-        dc.index_buffer.emplace_back(2);
-        dc.index_buffer.emplace_back(0);
-        dc.index_buffer.emplace_back(2);
-        dc.index_buffer.emplace_back(3);
-        dc.index_buffer.emplace_back(0 + 4);
-        dc.index_buffer.emplace_back(1 + 4);
-        dc.index_buffer.emplace_back(2 + 4);
-        dc.index_buffer.emplace_back(0 + 4);
-        dc.index_buffer.emplace_back(2 + 4);
-        dc.index_buffer.emplace_back(3 + 4);
-        dc.draw_commands.emplace_back(cmd);
-        return Button_State::inactive;
+        Vector2 const border_draw_pos = dc.draw_pos;
+        Vector2 const dockspace_pos = get_dockspace_content_screen_pos(window.dockspace);
+        Vector2 const cursor = ctx.input.cursor_position;
+        bool const lmb = ctx.input.left_mouse_button;
+        if(test_point_in_box(cursor, dockspace_pos + border_draw_pos, Vector2{border_width, border_height})) {
+            if(lmb) {
+                state = Button_State::clicked;
+                style = active_style;
+            } else {
+                state = Button_State::hot;
+                style = hot_style;
+            }
+        } else {
+            state = Button_State::inactive;
+            style = inactive_style;
+        }
+
+        metrics = rendering::compute_text_dimensions(style.font.face, {style.font.size, style.font.h_dpi, style.font.v_dpi}, text);
+        button_height = math::max(0.0f, style.padding[0]) + math::max(0.0f, style.padding[2]) + metrics.height;
+        button_width = math::max(0.0f, style.padding[1]) + math::max(0.0f, style.padding[3]) + metrics.width;
+        border_height = button_height + style.border[0] + style.border[2];
+        border_width = button_width + style.border[1] + style.border[3];
+
+        Vector2 const button_draw_pos = border_draw_pos + Vector2{style.border[3], style.border[0]};
+        Vertex::Color const bg_color = color_to_vertex_color(style.background_color);
+        Vertex::Color const border_color = color_to_vertex_color(style.border_color);
+        {
+            Draw_Command cmd;
+            cmd.texture = 0;
+            cmd.element_count = 12;
+            cmd.vertex_offset = dc.vertex_buffer.size();
+            cmd.index_offset = dc.index_buffer.size();
+            dc.vertex_buffer.emplace_back(border_draw_pos, Vector2{0.0f, 1.0f}, border_color);
+            dc.vertex_buffer.emplace_back(border_draw_pos + Vector2{0.0f, border_height}, Vector2{0.0f, 0.0f}, border_color);
+            dc.vertex_buffer.emplace_back(border_draw_pos + Vector2{border_width, border_height}, Vector2{1.0f, 0.0f}, border_color);
+            dc.vertex_buffer.emplace_back(border_draw_pos + Vector2{border_width, 0.0f}, Vector2{1.0f, 1.0f}, border_color);
+            dc.vertex_buffer.emplace_back(button_draw_pos, Vector2{0.0f, 1.0f}, bg_color);
+            dc.vertex_buffer.emplace_back(button_draw_pos + Vector2{0.0f, button_height}, Vector2{0.0f, 0.0f}, bg_color);
+            dc.vertex_buffer.emplace_back(button_draw_pos + Vector2{button_width, button_height}, Vector2{1.0f, 0.0f}, bg_color);
+            dc.vertex_buffer.emplace_back(button_draw_pos + Vector2{button_width, 0.0f}, Vector2{1.0f, 1.0f}, bg_color);
+            dc.index_buffer.emplace_back(0);
+            dc.index_buffer.emplace_back(1);
+            dc.index_buffer.emplace_back(2);
+            dc.index_buffer.emplace_back(0);
+            dc.index_buffer.emplace_back(2);
+            dc.index_buffer.emplace_back(3);
+            dc.index_buffer.emplace_back(0 + 4);
+            dc.index_buffer.emplace_back(1 + 4);
+            dc.index_buffer.emplace_back(2 + 4);
+            dc.index_buffer.emplace_back(0 + 4);
+            dc.index_buffer.emplace_back(2 + 4);
+            dc.index_buffer.emplace_back(3 + 4);
+            dc.draw_commands.emplace_back(cmd);
+        }
+        dc.draw_pos += Vector2{0.0f, border_height};
+
+        Vector2 const text_draw_pos = button_draw_pos + Vector2{style.padding[3], style.padding[0]};
+        {
+            rendering::Font_Render_Info fri = {style.font.size, style.font.h_dpi, style.font.v_dpi};
+            rendering::Text_Image text_img = rendering::render_text(style.font.face, fri, text);
+            Draw_Command text_cmd;
+            text_cmd.texture = text_img.texture;
+            text_cmd.element_count = 6;
+            text_cmd.vertex_offset = dc.vertex_buffer.size();
+            text_cmd.index_offset = dc.index_buffer.size();
+            dc.vertex_buffer.emplace_back(text_draw_pos, Vector2{0.0f, 1.0f}, Vertex::Color{0, 0, 0, 0});
+            dc.vertex_buffer.emplace_back(text_draw_pos + Vector2{0.0f, (f32)text_img.height}, Vector2{0.0f, 0.0f}, Vertex::Color{0, 0, 0, 0});
+            dc.vertex_buffer.emplace_back(text_draw_pos + Vector2{(f32)text_img.width, (f32)text_img.height}, Vector2{1.0f, 0.0f}, Vertex::Color{0, 0, 0, 0});
+            dc.vertex_buffer.emplace_back(text_draw_pos + Vector2{(f32)text_img.width, 0.0f}, Vector2{1.0f, 1.0f}, Vertex::Color{0, 0, 0, 0});
+            dc.index_buffer.emplace_back(0);
+            dc.index_buffer.emplace_back(1);
+            dc.index_buffer.emplace_back(2);
+            dc.index_buffer.emplace_back(0);
+            dc.index_buffer.emplace_back(2);
+            dc.index_buffer.emplace_back(3);
+            dc.draw_commands.emplace_back(text_cmd);
+        }
+        return state;
     }
 
     // Get style of current widget or window

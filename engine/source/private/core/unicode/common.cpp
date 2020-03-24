@@ -109,7 +109,8 @@ namespace anton_engine::unicode {
             i32 codepoint_count = 0;
             while (true) {
                 u8 const first_byte = *buffer_utf8;
-                u32 const byte_count = math::min((u8)1, math::clz((u8)~first_byte));
+                u8 const leading_zeros = math::clz((u8)~first_byte);
+                u32 const byte_count = math::max((u8)1, leading_zeros);
                 codepoint_count += 1;
                 if (first_byte == '\0') {
                     return codepoint_count * sizeof(char32);
@@ -121,7 +122,7 @@ namespace anton_engine::unicode {
             while (true) {
                 u8 const first_byte = *buffer_utf8;
                 u32 const leading_zeros = math::clz((u8)~first_byte);
-                u32 const byte_count = math::min((u32)1, leading_zeros);
+                u32 const byte_count = math::max((u32)1, leading_zeros);
                 char32 codepoint = first_byte & (0xFF >> (leading_zeros + 1));
                 for (u32 i = 1; i < byte_count; ++i) {
                     codepoint <<= 6;

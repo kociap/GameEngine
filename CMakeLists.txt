@@ -13,6 +13,7 @@ set(ENGINE_DEPENDENCIES_FOLDER "Dependencies")
 set(ENGINE_TOOLS_FOLDER "Tools")
 
 set(ENGINE_WITH_EDITOR 1)
+set(ANTON_BUILD_WITH_ASAN FALSE)
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     set(ENGINE_CXX_FLAGS
@@ -65,6 +66,20 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT MSVC)
         -Wno-error=unused-parameter
         -Wno-error=unused-variable
     )
+
+    # if(ANTON_BUILD_WITH_ASAN)
+    #     set(ENGINE_CXX_FLAGS ${ENGINE_CXX_FLAGS}
+    #         -fsanitize=address
+    #         -fsanitize-address-use-after-scope
+    #         -O1
+    #         -fno-omit-frame-pointer
+    #         -fno-optimize-sibling-calls
+    #     )
+
+    #     set(ANTON_LINK_FLAGS
+    #         "/LIBPATH:C:\\llvm\\lib\\clang\\9.0.1\\lib\\windows" /MD
+    #     )
+    # endif()
 
     set(ENGINE_LINK_LIBS)
 

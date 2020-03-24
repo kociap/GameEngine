@@ -10,6 +10,13 @@
 // TODO alloc_aligned
 
 namespace anton_engine::atl {
+    template <class T>
+    [[nodiscard]] constexpr T* launder(T* ptr) noexcept {
+        static_assert(!is_function<T> && !is_void<T>,
+            "N4727 21.6.4 [ptr.launder]/3: The program is ill-formed if T is a function type or void const.");
+        return __builtin_launder(ptr);
+    }
+
     template <typename T>
     void destruct(T* elem) {
         elem->~T();

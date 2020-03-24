@@ -417,7 +417,7 @@ namespace anton_engine::windowing {
 
     void set_scroll_callback(Window* const window, scroll_function const cb, void* user_data) {
         window->callbacks.scroll =  cb;
-        window->callbacks.scroll_data= user_data;
+        window->callbacks.scroll_data = user_data;
     }
 
     void set_key_callback(Window* const window, key_function const cb, void* user_data) {

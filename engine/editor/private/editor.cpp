@@ -48,7 +48,9 @@ namespace anton_engine {
     static Resource_Manager<Shader>* shader_manager = nullptr;
     static Resource_Manager<Material>* material_manager = nullptr;
     static ECS* ecs = nullptr;
-    static imgui::Context* imgui_context;
+    static imgui::Context* imgui_context = nullptr;
+    static rendering::Font_Face* comic_sans_face = nullptr;
+    static rendering::Font_Face* french_script_regular_face = nullptr;
 
     void quit() {
         _quit = true;
@@ -77,12 +79,26 @@ namespace anton_engine {
                 button_style.background_color = {0.1f, 0.1f, 0.1f};
                 button_style.border_color = {1.0f, 1.0f, 1.0f};
                 button_style.border = {2.0f, 2.0f, 2.0f, 2.0f};
-                button_style.padding = {5.0f, 3.0f, 5.0f, 3.0f};
-                imgui::Font_Style font;
-                font.font_size = 12;
-                font.v_dpi = 96;
-                font.h_dpi = 96;
-                imgui::button(ctx, "button1", button_style, button_style, button_style, font);
+                button_style.padding = {5.0f, 10.0f, 5.0f, 10.0f};
+                button_style.font.face = comic_sans_face;
+                button_style.font.size = 12;
+                button_style.font.v_dpi = 96;
+                button_style.font.h_dpi = 96;
+                imgui::Button_Style hot_style = button_style;
+                hot_style.background_color = {0.2f, 0.5f, 0.8f};
+                hot_style.border_color = {1.0f, 0.0f, 0.0f};
+                hot_style.font.face = french_script_regular_face;
+                hot_style.font.size = 16;
+                imgui::Button_State state = imgui::button(ctx, "Confirm", button_style, hot_style, button_style);
+                switch(state) {
+                    case imgui::Button_State::hot: {
+                        imgui::button(ctx, "DoctorExpress Deluxe", button_style, hot_style, button_style);
+                    } break;
+
+                    case imgui::Button_State::clicked: {
+                        imgui::button(ctx, "Pengu's Button", button_style, hot_style, button_style);
+                    } break;
+                }
 
                 imgui::Style main_style = imgui::get_style(ctx);
                 main_style.background_color = {0.953f, 0.322f, 0.125f};
@@ -175,18 +191,11 @@ namespace anton_engine {
             atl::Slice<imgui::Viewport* const> const viewports = imgui::get_viewports(ctx);
             glDisable(GL_DEPTH_TEST);
             glEnable(GL_BLEND);
+            imgui_shader.use();
+            imgui::bind_buffers();
             for (imgui::Viewport* viewport: viewports) {
                 windowing::Window* native_window = imgui::get_viewport_native_window(ctx, *viewport);
                 windowing::make_context_current(gl_context, native_window);
-                atl::Slice<imgui::Draw_Command const> draw_commands = imgui::get_viewport_draw_commands(ctx, *viewport);
-                for (imgui::Draw_Command draw_command: draw_commands) {
-                    imgui::Draw_Elements_Command viewport_cmd = cmd;
-                    viewport_cmd.count = draw_command.element_count;
-                    viewport_cmd.base_vertex += draw_command.vertex_offset;
-                    viewport_cmd.first_index += draw_command.index_offset;
-                    imgui::add_draw_command(viewport_cmd);
-                }
-
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 Vector2 const window_size = windowing::get_window_size(native_window);
                 Vector2 const window_pos = windowing::get_window_pos(native_window);
@@ -195,9 +204,24 @@ namespace anton_engine {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 Matrix4 const imgui_projection =
                     math::transform::orthographic(window_pos.x, window_pos.x + window_size.x, window_pos.y + window_size.y, window_pos.y, 1.0f, -1.0f);
-                imgui_shader.use();
                 imgui_shader.set_matrix4("proj_mat", imgui_projection);
-                imgui::bind_buffers();
+
+                atl::Slice<imgui::Draw_Command const> draw_commands = imgui::get_viewport_draw_commands(ctx, *viewport);
+                imgui_shader.set_int("texture_bound", 0);
+                u32 last_bound_texture = 0;
+                for (imgui::Draw_Command draw_command: draw_commands) {
+                    if(last_bound_texture != draw_command.texture) {
+                        imgui::commit_draw();
+                        glBindTextureUnit(0, draw_command.texture);
+                        imgui_shader.set_int("texture_bound", draw_command.texture != 0);
+                        last_bound_texture = draw_command.texture;
+                    }
+                    imgui::Draw_Elements_Command viewport_cmd = cmd;
+                    viewport_cmd.count = draw_command.element_count;
+                    viewport_cmd.base_vertex += draw_command.vertex_offset;
+                    viewport_cmd.first_index += draw_command.index_offset;
+                    imgui::add_draw_command(viewport_cmd);
+                }
                 imgui::commit_draw();
                 windowing::swap_buffers(native_window);
             }
@@ -243,6 +267,13 @@ namespace anton_engine {
         windowing::make_context_current(gl_context, main_window);
         opengl::load();
         rendering::setup_rendering();
+        rendering::init_font_rendering();
+        atl::String comic_path = paths::assets_directory().generic_string().data();
+        comic_path.append(u8"/fonts/comic.ttf");
+        comic_sans_face = rendering::load_face_from_file(comic_path, 0);
+        atl::String french_script_regular = paths::assets_directory().generic_string().data();
+        french_script_regular.append(u8"/fonts/french_script_regular.ttf");
+        french_script_regular_face = rendering::load_face_from_file(french_script_regular, 0);
         load_builtin_shaders();
 
         mesh_manager = new Resource_Manager<Mesh>();
@@ -292,6 +323,7 @@ namespace anton_engine {
         serialization::Binary_Output_Archive out_archive(file);
         serialize(out_archive, Engine::get_ecs());
 #endif
+        rendering::terminate_font_rendering();
         windowing::terminate();
     }
 
