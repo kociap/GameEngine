@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
-    <!-- anton_engine::anton_stl::String -->
-    <Type Name="anton_engine::anton_stl::String">
+    <!-- anton_engine::atl::String -->
+    <Type Name="anton_engine::atl::String">
         <DisplayString>{_data, s8}</DisplayString>
         <StringView>_data, s8</StringView>
         <Expand>
@@ -15,8 +15,8 @@
         </Expand>
     </Type>
 
-    <!-- anton_engine::anton_stl::String_View -->
-    <Type Name="anton_engine::anton_stl::String_View">
+    <!-- anton_engine::atl::String_View -->
+    <Type Name="anton_engine::atl::String_View">
         <DisplayString>{_begin, s8}</DisplayString>
         <StringView>_begin, s8</StringView>
         <Expand>
@@ -28,19 +28,19 @@
         </Expand>
     </Type>
 
-    <!-- anton_engine::anton_stl::Static_Vector<T, Capacity> -->
-    <Type Name="anton_engine::anton_stl::Static_Vector&lt;*,*&gt;">
+    <!-- anton_engine::atl::Fixed_Array<T, Capacity> -->
+    <Type Name="anton_engine::atl::Fixed_Array&lt;*,*&gt;">
         <DisplayString>{{ size = {_size}, capacity = {(uint64_t)$T2} }}</DisplayString>
         <Expand>
             <ArrayItems>
                 <Size>_size</Size>
-                <ValuePointer>($T1*)storage</ValuePointer>
+                <ValuePointer>($T1*)_data</ValuePointer>
             </ArrayItems>
         </Expand>
     </Type>
 
-    <!-- anton_engine::anton_stl::Vector<T, Allocator> -->
-    <Type Name="anton_engine::anton_stl::Vector&lt;*,*&gt;">
+    <!-- anton_engine::atl::Vector<T, Allocator> -->
+    <Type Name="anton_engine::atl::Vector&lt;*,*&gt;">
         <DisplayString>{{ size = {_size}, capacity = {_capacity} }}</DisplayString>
         <Expand>
             <ArrayItems>
@@ -50,8 +50,8 @@
         </Expand>
     </Type>
 
-    <!-- anton_engine::anton_stl::Optional<T> -->
-    <Type Name="anton_engine::anton_stl::Optional&lt;*&gt;">
+    <!-- anton_engine::atl::Optional<T> -->
+    <Type Name="anton_engine::atl::Optional&lt;*&gt;">
         <DisplayString Condition="_holds_value">{_value}</DisplayString>
         <DisplayString Condition="!_holds_value">{{ Null }}</DisplayString>
         <Expand>
