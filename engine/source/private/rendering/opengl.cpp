@@ -4,9 +4,8 @@
 
 #include <core/assert.hpp>
 #include <core/atl/string.hpp>
-#include <core/debug_macros.hpp> // CHECK_GL_ERRORS
 #include <core/logging.hpp>
-#include <stdexcept>
+#include <core/exception.hpp>
 #include <core/utils/enum.hpp>
 #include <core/debug_break.hpp>
 
@@ -27,7 +26,7 @@ namespace anton_engine::opengl {
 
     void load_functions() {
         if (!gladLoadGL()) {
-            std::runtime_error("OpenGL not loaded");
+            throw Exception(u8"OpenGL not loaded");
         }
     }
 
@@ -113,7 +112,7 @@ namespace anton_engine::opengl {
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(debug_callback, nullptr);
-        CHECK_GL_ERRORS();
+        ANTON_CHECK_GL_ERRORS();
     }
 
     i32 get_max_texture_image_units() {
@@ -142,5 +141,25 @@ namespace anton_engine::opengl {
 
     i32 get_min_map_buffer_alignment() {
         return min_map_buffer_alignment;
+    }
+
+    void _check_gl_errors() {
+        GLenum error = glGetError();
+        switch (error) {
+            case GL_INVALID_ENUM:
+                throw Exception(u8"GL_INVALID_ENUM");
+            case GL_INVALID_VALUE:
+                throw Exception(u8"GL_INVALID_VALUE");
+            case GL_INVALID_OPERATION:
+                throw Exception(u8"GL_INVALID_OPERATION");
+            case GL_INVALID_FRAMEBUFFER_OPERATION:
+                throw Exception(u8"GL_INVALID_FRAMEBUFFER_OPERATION");
+            case GL_OUT_OF_MEMORY:
+                throw Exception(u8"GL_OUT_OF_MEMORY");
+            case GL_STACK_UNDERFLOW:
+                throw Exception(u8"GL_STACK_UNDERFLOW");
+            case GL_STACK_OVERFLOW:
+                throw Exception(u8"GL_STACK_OVERFLOW");
+        }
     }
 } // namespace anton_engine::opengl

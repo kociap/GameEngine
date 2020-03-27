@@ -1,6 +1,7 @@
 #ifndef RENDERER_OPENGL_HPP_INCLUDE
 #define RENDERER_OPENGL_HPP_INCLUDE
 
+#include <build_config.hpp>
 #include <core/types.hpp>
 #include <core/color.hpp>
 #include <rendering/opengl_enums_defs.hpp>
@@ -158,6 +159,13 @@ namespace anton_engine::opengl {
     void load_functions();
     void load_constants();
     void install_debug_callback();
+
+#if ANTON_DEBUG
+    void _check_gl_errors();
+#   define ANTON_CHECK_GL_ERRORS() ::anton_engine::opengl::_check_gl_errors()
+#else
+#   define ANTON_CHECK_GL_ERRORS() ((void)0)
+#endif // ANTON_DEBUG
 
     // Notes:
     // - Base internal format uses unsigned normalized type. Size of the obtained texture is driver dependent.

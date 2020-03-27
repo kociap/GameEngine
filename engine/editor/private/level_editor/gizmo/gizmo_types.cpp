@@ -14,8 +14,6 @@
 #include <core/math/vector3.hpp>
 #include <physics/obb.hpp>
 
-#include <core/debug_macros.hpp> // CHECK_GL_ERRORS
-
 namespace anton_engine::gizmo {
     constexpr i32 cone_base_point_count = 16;
     constexpr i32 cone_vertex_count = 2 * (cone_base_point_count + 2); // 2 * (circle with 1 duplicate + tip)

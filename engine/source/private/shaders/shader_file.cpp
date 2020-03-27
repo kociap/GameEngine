@@ -1,7 +1,6 @@
 #include <shaders/shader_file.hpp>
 
 #include <core/atl/vector.hpp>
-#include <core/debug_macros.hpp> // CHECK_GL_ERRORS
 #include <rendering/glad.hpp>
 #include <iostream>
 #include <rendering/opengl.hpp>
@@ -11,7 +10,6 @@
 namespace anton_engine {
     static void compile_shader(uint32_t shader, atl::String_View name = "Unnamed Shader") {
         glCompileShader(shader);
-        CHECK_GL_ERRORS();
         GLint compilation_status;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &compilation_status);
         if (compilation_status == GL_FALSE) {
@@ -24,7 +22,6 @@ namespace anton_engine {
             glGetShaderInfoLog(shader, log_length, &log_length, log.data() + log.size_bytes());
             throw Shader_Compilation_Failed(log);
         }
-        CHECK_GL_ERRORS();
     }
 
     static void set_shader_source(uint32_t shader, atl::String_View source) {
@@ -53,7 +50,6 @@ namespace anton_engine {
     Shader_File::~Shader_File() {
         if (shader != 0) {
             glDeleteShader(shader);
-            CHECK_GL_ERRORS();
         }
     }
 } // namespace anton_engine

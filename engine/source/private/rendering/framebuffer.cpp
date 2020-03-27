@@ -2,24 +2,15 @@
 
 #include <core/assert.hpp>
 #include <core/atl/utility.hpp>
-#include <core/debug_macros.hpp> // CHECK_GL_ERRORS
 #include <rendering/glad.hpp>
 #include <rendering/opengl.hpp>
-
-#include <stdexcept>
-#include <string> // std::to_string
+#include <core/exception.hpp>
 
 namespace anton_engine {
     void Framebuffer::create_framebuffer() {
-        if (info.width > opengl::get_max_renderbuffer_size() || info.height > opengl::get_max_renderbuffer_size()) {
-            throw std::invalid_argument("Too big buffer size");
-        }
-
-        if (info.width <= 0 || info.height <= 0) {
-            throw std::invalid_argument("One or both dimensions are less than or equal 0");
-        }
-
-        ANTON_ASSERT(!info.multisampled || info.samples > 0, "Multisampled framebuffer must have more than 0 samples");
+        ANTON_VERIFY(info.width > opengl::get_max_renderbuffer_size() || info.height > opengl::get_max_renderbuffer_size(), u8"Too big buffer size");
+        ANTON_VERIFY(info.width <= 0 || info.height <= 0, u8"One or both dimensions are less than or equal 0");
+        ANTON_VERIFY(!info.multisampled || info.samples > 0, u8"Multisampled framebuffer must have more than 0 samples");
 
         glGenFramebuffers(1, &framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -110,24 +101,24 @@ namespace anton_engine {
         GLenum const le_fremebuffere_statouse = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         switch (le_fremebuffere_statouse) {
             case GL_FRAMEBUFFER_UNDEFINED:
-                throw std::runtime_error("Framebuffer undefined");
+                throw Exception(u8"Framebuffer undefined");
             case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                throw std::runtime_error("Framebuffer incomplete attachment");
+                throw Exception(u8"Framebuffer incomplete attachment");
             case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                throw std::runtime_error("Framebuffer incomplete, missing attachment");
+                throw Exception(u8"Framebuffer incomplete, missing attachment");
             case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-                throw std::runtime_error("Framebuffer incomplete, missing draw buffer");
+                throw Exception(u8"Framebuffer incomplete, missing draw buffer");
             case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-                throw std::runtime_error("Framebuffer incomplete, read buffer without color attachment");
+                throw Exception(u8"Framebuffer incomplete, read buffer without color attachment");
             case GL_FRAMEBUFFER_UNSUPPORTED:
-                throw std::runtime_error(
-                    "Framebuffer unsupported: combination of internal formats of the attached images violates an implementation-dependent set of restrictions");
+                throw Exception(
+                    u8"Framebuffer unsupported: combination of internal formats of the attached images violates an implementation-dependent set of restrictions");
             case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-                throw std::runtime_error("Framebuffer incomplete multisample");
+                throw Exception(u8"Framebuffer incomplete multisample");
             case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-                throw std::runtime_error("Framebuffer incomplete layer targets");
+                throw Exception(u8"Framebuffer incomplete layer targets");
             case 0:
-                CHECK_GL_ERRORS();
+                ANTON_CHECK_GL_ERRORS();
         }
     }
 
@@ -174,19 +165,22 @@ namespace anton_engine {
     }
 
     void Framebuffer::resize(i32 const width, i32 const height) {
-        delete_framebuffer();
-        info.width = width;
-        info.height = height;
-        create_framebuffer();
+        if(width != info.width || height != info.height) {
+            delete_framebuffer();
+            info.width = width;
+            info.height = height;
+            create_framebuffer();
+        }
     }
 
     Vector2 Framebuffer::size() const {
-        return {static_cast<float>(info.width), static_cast<float>(info.height)};
+        return {(f32)info.width, (f32)info.height};
     }
 
     u32 Framebuffer::get_color_texture(i32 const index) const {
         if (index >= active_color_buffers || index < 0) {
-            throw std::runtime_error("Color buffer with index " + std::to_string(index) + " is not bound.");
+            atl::String inx = atl::to_string(index);
+            throw Exception(u8"Color buffer with index " + inx + u8" is not bound.");
         }
 
         return color_buffers[index];
@@ -198,11 +192,11 @@ namespace anton_engine {
 
     u32 Framebuffer::get_depth_texture() const {
         if (info.depth_buffer.buffer_type == Buffer_Type::renderbuffer) {
-            throw std::runtime_error("Framebuffer uses renderbuffer as depth buffer. Unable to get texture.");
+            throw Exception(u8"Framebuffer uses renderbuffer as depth buffer. Unable to get texture.");
         }
 
         if (!info.depth_buffer.enabled) {
-            throw std::runtime_error("No depth buffer bound.");
+            throw Exception(u8"No depth buffer bound.");
         }
 
         return depth_buffer;
