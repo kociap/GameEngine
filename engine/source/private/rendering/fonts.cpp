@@ -206,9 +206,11 @@ namespace anton_engine::rendering {
 
             i64 const vert_offset = height_above_baseline - glyph.hori_bearing_y / 64;
             i64 const bitmap_height = glyph.bitmap.size() / glyph.bitmap_row_width;
-            for(i64 i = 0; i < bitmap_height; ++i) {
+            for(i64 i = 0; i < bitmap_height; i += 1) {
                 i64 const offset = buffer_width * (i + vert_offset) + pen_position;
-                memcpy(tex_data.data() + offset, glyph.bitmap.data() + i * glyph.bitmap_row_width, glyph.bitmap_row_width);
+                for(i64 j = 0; j < glyph.bitmap_row_width; j += 1) {
+                    tex_data[offset + j] = math::min((u64)tex_data[offset + j] + (u64)glyph.bitmap[i * glyph.bitmap_row_width + j], (u64)255);
+                }
             }
             pen_position += glyph.hori_advance / 64;
         }
