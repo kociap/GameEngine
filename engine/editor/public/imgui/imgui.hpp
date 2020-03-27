@@ -44,7 +44,9 @@ namespace anton_engine::imgui {
         Color preview_guides_color;
         Color preview_color;
         Widget_Style widgets;
-        Button_Style buttons;
+        Button_Style button;
+        Button_Style hot_button;
+        Button_Style active_button;
     };
 
     class Settings {
@@ -52,12 +54,13 @@ namespace anton_engine::imgui {
         f32 window_drop_area_width;
     };
 
-    Context* create_context();
+    Context* create_context(Font_Style default_font);
     void destroy_context(Context*);
 
     // Main viewport's native window is not owned by imgui.
     void set_main_viewport_native_window(Context&, windowing::Window*);
 
+    void set_default_font(Context&, Font_Style);
     void set_default_style_default_dark(Context&);
     void set_default_style(Context&, Style);
     Style get_default_style(Context&);
@@ -115,6 +118,7 @@ namespace anton_engine::imgui {
     void end_widget(Context&);
 
     void text(Context&, atl::String_View text, Font_Style font);
+    Button_State button(Context&, atl::String_View text);
     Button_State button(Context&, atl::String_View text, Button_Style style, Button_Style hovered_style, Button_Style active_style);
 
     // Modifiers

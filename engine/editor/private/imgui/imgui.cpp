@@ -107,6 +107,7 @@ namespace anton_engine::imgui {
         atl::Vector<Widget> widgets;
         atl::Vector<i64> widget_stack;
         Style default_style;
+        Font_Style default_font_style;
         Settings settings;
         atl::Vector<Vertex> vertex_buffer;
         atl::Vector<u32> index_buffer;
@@ -146,8 +147,9 @@ namespace anton_engine::imgui {
         return murmurhash2_32(string.data(), string.size_bytes(), 758943349);
     }
 
-    Context* create_context() {
+    Context* create_context(Font_Style font_style) {
         Context* ctx = new Context;
+        ctx->default_font_style = font_style;
         set_default_style_default_dark(*ctx);
         ctx->settings.window_drop_area_width = 0.5f;
         Viewport* main_viewport = new Viewport;
@@ -684,16 +686,25 @@ namespace anton_engine::imgui {
         recalculate_sublayout_size(&main_viewport->layout_root);
     }
 
+    void set_default_font(Context& ctx, Font_Style style) {
+        ctx.default_font_style = style;
+    }
+
     void set_default_style_default_dark(Context& ctx) {
         Style default_theme;
         default_theme.background_color = {0.1f, 0.1f, 0.1f};
         default_theme.preview_guides_color = {0.5f, 0.5f, 0.5f};
         default_theme.preview_color = {0.0f, 111.0f / 255.0f, 1.0f, 0.5f};
         default_theme.widgets.background_color = {0.1f, 0.1f, 0.1f};
-        default_theme.buttons.background_color = {0.2f, 0.2f, 0.2f};
-        default_theme.buttons.border_color = {0.1f, 0.1f, 0.1f};
-        default_theme.buttons.border = {0.0f, 0.0f, 0.0f, 0.0f};
-        default_theme.buttons.padding = {0.0f, 0.0f, 0.0f, 0.0f};
+        default_theme.button.background_color = {0.1f, 0.1f, 0.1f};
+        default_theme.button.border_color = {0.1f, 0.1f, 0.1f};
+        default_theme.button.border = {0.0f, 0.0f, 0.0f, 0.0f};
+        default_theme.button.padding = {0.0f, 0.0f, 0.0f, 0.0f};
+        default_theme.button.font = ctx.default_font_style;
+        default_theme.hot_button = default_theme.button;
+        default_theme.hot_button.background_color = {0.25f, 0.25f, 0.25f};
+        default_theme.active_button = default_theme.hot_button;
+        default_theme.active_button.background_color = {0.4f, 0.4f, 0.4f};
         ctx.default_style = default_theme;
     }
 
@@ -1376,6 +1387,10 @@ namespace anton_engine::imgui {
 
     void text(Context& ctx, atl::String_View text, Font_Style font) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
+    }
+
+    Button_State button(Context& ctx, atl::String_View text) {
+        return button(ctx, text, ctx.default_style.button, ctx.default_style.hot_button, ctx.default_style.active_button);
     }
 
     Button_State button(Context& ctx, atl::String_View text, Button_Style const inactive_style, Button_Style const hot_style, Button_Style const active_style) {

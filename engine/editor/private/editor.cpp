@@ -115,7 +115,9 @@ namespace anton_engine {
                 imgui::set_style(ctx, main_style);
                 imgui::end_window(ctx);
             }
+
             imgui::begin_window(ctx, "secondary_window");
+            imgui::button(ctx, "Another Window");
             imgui::Style secondary_style = imgui::get_style(ctx);
             secondary_style.background_color = {0.51f, 0.74f, 0.4f};
             // secondary_style.background_color = {112.0f / 255.0f, 0.0f, 1.0f};
@@ -281,9 +283,16 @@ namespace anton_engine {
         material_manager = new Resource_Manager<Material>();
         ecs = new ECS();
 
-        imgui::setup_rendering();
-        imgui_context = imgui::create_context();
-        imgui::set_main_viewport_native_window(*imgui_context, main_window);
+        {
+            imgui::setup_rendering();
+            imgui::Font_Style font_style;
+            font_style.face = comic_sans_face;
+            font_style.size = 12;
+            font_style.h_dpi = 96;
+            font_style.v_dpi = 96;
+            imgui_context = imgui::create_context(font_style);
+            imgui::set_main_viewport_native_window(*imgui_context, main_window);
+        }
 
         imgui::Context& ctx = *imgui_context;
         imgui::begin_frame(ctx);
