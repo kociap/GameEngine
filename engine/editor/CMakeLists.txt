@@ -11,6 +11,7 @@ target_sources(anton_engine
     "${CMAKE_CURRENT_SOURCE_DIR}/private/level_editor/gizmo/gizmo.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/private/level_editor/gizmo_context.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/private/level_editor/viewport_camera.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/private/level_editor/viewport.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/private/imgui/imgui.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/private/content_browser/importers/common.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/private/content_browser/importers/image.hpp"
@@ -33,6 +34,7 @@ target_sources(anton_engine
     "${CMAKE_CURRENT_SOURCE_DIR}/public/level_editor/gizmo/gizmo.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/public/level_editor/gizmo_context.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/public/level_editor/viewport_camera.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/public/level_editor/viewport.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/public/rendering/builtin_editor_shaders.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/public/rendering/imgui_rendering.hpp"
 )

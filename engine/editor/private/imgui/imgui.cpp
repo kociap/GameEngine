@@ -1428,6 +1428,7 @@ namespace anton_engine::imgui {
         Vector2 const cursor = ctx.input.cursor_position;
         bool const lmb = ctx.input.left_mouse_button;
         if(test_point_in_box(cursor, dockspace_pos + border_draw_pos, Vector2{border_width, border_height})) {
+            // TODO: Will report click even when the cursor hovers the button with lmb already pressed.
             if(lmb) {
                 state = Button_State::clicked;
                 style = active_style;
@@ -1503,6 +1504,39 @@ namespace anton_engine::imgui {
         return state;
     }
 
+    void image(Context& ctx, u64 const texture, Vector2 const size, Vector2 const uv_top_left, Vector2 const uv_bottom_right) {
+        ANTON_VERIFY(ctx.current_window != -1, "No current window.");
+        Window& window = ctx.next.windows.at(ctx.current_window);
+        Vector2 const window_size = get_dockspace_content_size(window.dockspace);
+        Draw_Context& dc = window.draw_context;
+        Vector2 const draw_pos = dc.draw_pos;
+        Vector2 const window_space = window_size - draw_pos;
+        Vector2 const clipped_size = {math::min(window_space.x, size.x), math::min(window_space.y, size.y)};
+        Vector2 const uv_diff = uv_bottom_right - uv_top_left;
+        Vector2 const scale_fac = {clipped_size.x / size.x, clipped_size.y / size.y};
+        Vector2 const uv_br = uv_top_left + math::multiply_componentwise(uv_diff, scale_fac);
+        Vector2 const uv_tl = uv_top_left;
+
+        Draw_Command cmd;
+        cmd.texture = texture;
+        cmd.element_count = 6;
+        cmd.vertex_offset = dc.vertex_buffer.size();
+        cmd.index_offset = dc.index_buffer.size();
+        dc.vertex_buffer.emplace_back(draw_pos, uv_tl, Vertex::Color{0, 0, 0, 0});
+        dc.vertex_buffer.emplace_back(draw_pos + Vector2{0.0f, clipped_size.y}, Vector2{uv_tl.x, uv_br.y}, Vertex::Color{0, 0, 0, 0});
+        dc.vertex_buffer.emplace_back(draw_pos + clipped_size, uv_br, Vertex::Color{0, 0, 0, 0});
+        dc.vertex_buffer.emplace_back(draw_pos + Vector2{clipped_size.x, 0.0f}, Vector2{uv_br.x, uv_tl.y}, Vertex::Color{0, 0, 0, 0});
+        dc.index_buffer.emplace_back(0);
+        dc.index_buffer.emplace_back(1);
+        dc.index_buffer.emplace_back(2);
+        dc.index_buffer.emplace_back(0);
+        dc.index_buffer.emplace_back(2);
+        dc.index_buffer.emplace_back(3);
+        dc.draw_commands.emplace_back(cmd);
+        
+        dc.draw_pos += Vector2{0.0f, clipped_size.y};
+    }
+
     // Get style of current widget or window
     Style get_style(Context& ctx) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
@@ -1554,6 +1588,16 @@ namespace anton_engine::imgui {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
         return ctx.active_window == ctx.current_window;
+    }
+
+    Vector2 get_window_dimensions(Context& ctx) {
+        ANTON_VERIFY(ctx.current_window != -1, "No current window.");
+        Window& window = ctx.next.windows.at(ctx.current_window);
+        return get_dockspace_content_size(window.dockspace);
+    }
+
+    Vector2 get_cursor_position(Context& ctx) {
+        return ctx.input.cursor_position;
     }
 
     // bool hovered(Context& ctx) {

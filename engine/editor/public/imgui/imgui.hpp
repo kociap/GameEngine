@@ -96,7 +96,7 @@ namespace anton_engine::imgui {
         u32 vertex_offset;
         u32 index_offset;
         // texture 0 means no texture is associated with this draw command
-        u32 texture;
+        u64 texture;
     };
 
     atl::Slice<Viewport* const> get_viewports(Context&);
@@ -120,6 +120,7 @@ namespace anton_engine::imgui {
     void text(Context&, atl::String_View text, Font_Style font);
     Button_State button(Context&, atl::String_View text);
     Button_State button(Context&, atl::String_View text, Button_Style style, Button_Style hovered_style, Button_Style active_style);
+    void image(Context&, u64 texture, Vector2 size, Vector2 uv_top_left, Vector2 uv_bottom_right);
 
     // Modifiers
 
@@ -137,6 +138,8 @@ namespace anton_engine::imgui {
 
     void set_width(Context&, f32 width);
     void set_height(Context&, f32 height);
+    Vector2 get_window_dimensions(Context&);
+    Vector2 get_cursor_position(Context&);
 
     // State queries
 

@@ -10,36 +10,34 @@
 #include <level_editor/gizmo_context.hpp>
 #include <core/math/matrix4.hpp>
 #include <core/math/vector3.hpp>
+#include <core/types.hpp>
 
 namespace anton_engine {
     class Framebuffer;
-    namespace rendering {
-        class Renderer;
-    }
-
     namespace imgui {
         class Context;
     }
 
     class Viewport {
     public:
-        explicit Viewport(int32_t viewport_index);
+        explicit Viewport(i32 viewport_index, i64 width, i64 height, imgui::Context&);
         ~Viewport();
 
-        void process_actions(Matrix4 view_mat, Matrix4 projection_mat, Matrix4 inv_view_mat, Matrix4 inv_projection_mat, Transform camera_transform,
-                             atl::Vector<Entity>& selected_entities);
-        void render(Matrix4 view_mat, Matrix4 inv_view_mat, Matrix4 projection_mat, Matrix4 inv_projection_mat, Camera, Transform camera_transform,
-                    atl::Slice<Entity const>);
-        void resize(int32_t w, int32_t h);
+        void process_actions(imgui::Context&, Matrix4 view_mat, Matrix4 proj_mat, Matrix4 inv_view_mat, Matrix4 inv_proj_mat, 
+                             Transform camera_transform, atl::Vector<Entity>& selected_entities);
+        void render(imgui::Context&, Matrix4 view_mat, Matrix4 inv_view_mat, Matrix4 proj_mat, Matrix4 inv_proj_mat, 
+                    Camera camera, Transform camera_transform, atl::Slice<Entity const> selected_entities);
+        void resize(i32 width, i32 height);
 
     private:
         Framebuffer* framebuffer = nullptr;
         Framebuffer* multisampled_framebuffer = nullptr;
         Framebuffer* deferred_framebuffer = nullptr;
-        imgui::Context* imgui_context;
+        Framebuffer* front_framebuffer = nullptr;
+        Framebuffer* back_framebuffer = nullptr;
 
         Entity viewport_entity = null_entity;
-        int32_t index;
+        i32 index;
     };
 } // namespace anton_engine
 

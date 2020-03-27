@@ -28,6 +28,7 @@
 #include <rendering/glad.hpp>
 #include <imgui/imgui.hpp>
 #include <rendering/imgui_rendering.hpp>
+#include <level_editor/viewport.hpp>
 
 // TODO: Remove
 #include <core/logging.hpp>
@@ -37,6 +38,8 @@
 #include <stdio.h>
 
 #include <engine/time.hpp>
+
+#include <mimas/mimas.h>
 
 namespace anton_engine {
     static bool _quit = false;
@@ -48,6 +51,7 @@ namespace anton_engine {
     static Resource_Manager<Shader>* shader_manager = nullptr;
     static Resource_Manager<Material>* material_manager = nullptr;
     static ECS* ecs = nullptr;
+    static atl::Vector<Viewport*> viewports;
     static imgui::Context* imgui_context = nullptr;
     static rendering::Font_Face* comic_sans_face = nullptr;
     static rendering::Font_Face* french_script_regular_face = nullptr;
@@ -74,112 +78,123 @@ namespace anton_engine {
 
             imgui::begin_frame(ctx);
             {
-                imgui::begin_window(ctx, "main_window");
-                imgui::Button_Style button_style;
-                button_style.background_color = {0.1f, 0.1f, 0.1f};
-                button_style.border_color = {1.0f, 1.0f, 1.0f};
-                button_style.border = {2.0f, 2.0f, 2.0f, 2.0f};
-                button_style.padding = {5.0f, 10.0f, 5.0f, 10.0f};
-                button_style.font.face = comic_sans_face;
-                button_style.font.size = 12;
-                button_style.font.v_dpi = 96;
-                button_style.font.h_dpi = 96;
-                imgui::Button_Style hot_style = button_style;
-                hot_style.background_color = {0.2f, 0.5f, 0.8f};
-                hot_style.border_color = {1.0f, 0.0f, 0.0f};
-                hot_style.font.face = french_script_regular_face;
-                hot_style.font.size = 16;
-                imgui::Button_State state = imgui::button(ctx, "Confirm", button_style, hot_style, button_style);
-                switch(state) {
-                    case imgui::Button_State::hot: {
-                        imgui::button(ctx, "DoctorExpress Deluxe", button_style, hot_style, button_style);
-                    } break;
+                {
+                    imgui::begin_window(ctx, "main_window");
+                    imgui::Button_Style button_style;
+                    button_style.background_color = {0.1f, 0.1f, 0.1f};
+                    button_style.border_color = {1.0f, 1.0f, 1.0f};
+                    button_style.border = {2.0f, 2.0f, 2.0f, 2.0f};
+                    button_style.padding = {5.0f, 10.0f, 5.0f, 10.0f};
+                    button_style.font.face = comic_sans_face;
+                    button_style.font.size = 12;
+                    button_style.font.v_dpi = 96;
+                    button_style.font.h_dpi = 96;
+                    imgui::Button_Style hot_style = button_style;
+                    hot_style.background_color = {0.2f, 0.5f, 0.8f};
+                    hot_style.border_color = {1.0f, 0.0f, 0.0f};
+                    hot_style.font.face = french_script_regular_face;
+                    hot_style.font.size = 16;
+                    imgui::Button_State state = imgui::button(ctx, "Confirm", button_style, hot_style, button_style);
+                    switch(state) {
+                        case imgui::Button_State::clicked: {
+                            Mimas_File_Filter filters[] = {{"name", "*.dll"}};
+                            Mimas_File_Dialog_Flags flags = (Mimas_File_Dialog_Flags)(MIMAS_FILE_DIALOG_PICK_FILES);
+                            char* str = mimas_open_file_dialog(MIMAS_FILE_DIALOG_OPEN, flags, filters, 1, "C:\\Users\\lapinozz\\Documents");
+                            printf("%s\n", str);
+                        } break;
+                    }
 
-                    case imgui::Button_State::clicked: {
-                        imgui::button(ctx, "Pengu's Button", button_style, hot_style, button_style);
-                    } break;
+                    imgui::Style main_style = imgui::get_style(ctx);
+                    main_style.background_color = {0.953f, 0.322f, 0.125f};
+                    // main_style.background_color = {0.7f, 0.2f, 0.2f};
+                    // if (imgui::is_window_hot(ctx)) {
+                    //     main_style.background_color = {0.6f, 0.4f, 0.4f};
+                    //     // ANTON_LOG_INFO("main_window hot");
+                    // }
+
+                    // if (imgui::is_window_active(ctx)) {
+                    //     main_style.background_color = {0.6f, 0.6f, 0.6f};
+                    //     // ANTON_LOG_INFO("main_window active");
+                    // }
+                    imgui::set_style(ctx, main_style);
+                    imgui::end_window(ctx);
                 }
 
-                imgui::Style main_style = imgui::get_style(ctx);
-                main_style.background_color = {0.953f, 0.322f, 0.125f};
-                // main_style.background_color = {0.7f, 0.2f, 0.2f};
+                imgui::begin_window(ctx, "secondary_window");
+                imgui::button(ctx, "Another Window");
+                imgui::Style secondary_style = imgui::get_style(ctx);
+                secondary_style.background_color = {0.51f, 0.74f, 0.4f};
+                // secondary_style.background_color = {112.0f / 255.0f, 0.0f, 1.0f};
                 // if (imgui::is_window_hot(ctx)) {
-                //     main_style.background_color = {0.6f, 0.4f, 0.4f};
-                //     // ANTON_LOG_INFO("main_window hot");
+                //     secondary_style.background_color = {146.0f / 255.0f, 56.0f / 255.0f, 1.0f};
+                //     // ANTON_LOG_INFO("secondary_window hot");
                 // }
 
                 // if (imgui::is_window_active(ctx)) {
-                //     main_style.background_color = {0.6f, 0.6f, 0.6f};
-                //     // ANTON_LOG_INFO("main_window active");
+                //     secondary_style.background_color = {175.0f / 255.0f, 110.0f / 255.0f, 1.0f};
+                //     // ANTON_LOG_INFO("secondary_window active");
                 // }
-                imgui::set_style(ctx, main_style);
+                imgui::set_style(ctx, secondary_style);
                 imgui::end_window(ctx);
-            }
 
-            imgui::begin_window(ctx, "secondary_window");
-            imgui::button(ctx, "Another Window");
-            imgui::Style secondary_style = imgui::get_style(ctx);
-            secondary_style.background_color = {0.51f, 0.74f, 0.4f};
-            // secondary_style.background_color = {112.0f / 255.0f, 0.0f, 1.0f};
-            // if (imgui::is_window_hot(ctx)) {
-            //     secondary_style.background_color = {146.0f / 255.0f, 56.0f / 255.0f, 1.0f};
-            //     // ANTON_LOG_INFO("secondary_window hot");
-            // }
-
-            // if (imgui::is_window_active(ctx)) {
-            //     secondary_style.background_color = {175.0f / 255.0f, 110.0f / 255.0f, 1.0f};
-            //     // ANTON_LOG_INFO("secondary_window active");
-            // }
-            imgui::set_style(ctx, secondary_style);
-            imgui::end_window(ctx);
-
-            imgui::begin_window(ctx, "third_window");
-            imgui::Style third_style = imgui::get_style(ctx);
-            third_style.background_color = {0.0f, 0.659f, 0.941f};
-            // third_style.background_color = {96.0f / 255.0f, 214.0f / 255.0f, 0.0f};
-            // if (imgui::is_window_hot(ctx)) {
-            //     third_style.background_color = {115.0f / 255.0f, 1.0f, 0.0f};
-            // }
-
-            // if (imgui::is_window_active(ctx)) {
-            //     third_style.background_color = {144.0f / 255.0f, 1.0f, 77.0f / 255.0f};
-            // }
-            imgui::set_style(ctx, third_style);
-            imgui::end_window(ctx);
-
-            {
-                imgui::begin_window(ctx, "window4");
-                imgui::Style style = imgui::get_style(ctx);
-                style.background_color = {1.0f, 0.733f, 0.008f};
-                // style.background_color = {0.2f, 0.2f, 0.2f};
+                imgui::begin_window(ctx, "third_window");
+                imgui::Style third_style = imgui::get_style(ctx);
+                third_style.background_color = {0.0f, 0.659f, 0.941f};
+                // third_style.background_color = {96.0f / 255.0f, 214.0f / 255.0f, 0.0f};
                 // if (imgui::is_window_hot(ctx)) {
-                //     style.background_color = {0.4f, 0.4f, 0.4f};
+                //     third_style.background_color = {115.0f / 255.0f, 1.0f, 0.0f};
                 // }
-                imgui::set_style(ctx, style);
-                imgui::end_window(ctx);
-            }
-            {
-                imgui::begin_window(ctx, "window5");
-                imgui::Style style = imgui::get_style(ctx);
-                style.background_color = {0.7f, 0.933f, 0.008f};
-                // style.background_color = {0.2f, 0.2f, 0.2f};
-                // if (imgui::is_window_hot(ctx)) {
-                //     style.background_color = {0.4f, 0.4f, 0.4f};
+
+                // if (imgui::is_window_active(ctx)) {
+                //     third_style.background_color = {144.0f / 255.0f, 1.0f, 77.0f / 255.0f};
                 // }
-                imgui::set_style(ctx, style);
+                imgui::set_style(ctx, third_style);
                 imgui::end_window(ctx);
+
+                {
+                    imgui::begin_window(ctx, "window4");
+                    imgui::Style style = imgui::get_style(ctx);
+                    style.background_color = {1.0f, 0.733f, 0.008f};
+                    // style.background_color = {0.2f, 0.2f, 0.2f};
+                    // if (imgui::is_window_hot(ctx)) {
+                    //     style.background_color = {0.4f, 0.4f, 0.4f};
+                    // }
+                    imgui::set_style(ctx, style);
+                    imgui::end_window(ctx);
+                }
+                {
+                    imgui::begin_window(ctx, "window5");
+                    imgui::Style style = imgui::get_style(ctx);
+                    style.background_color = {0.7f, 0.933f, 0.008f};
+                    // style.background_color = {0.2f, 0.2f, 0.2f};
+                    // if (imgui::is_window_hot(ctx)) {
+                    //     style.background_color = {0.4f, 0.4f, 0.4f};
+                    // }
+                    imgui::set_style(ctx, style);
+                    imgui::end_window(ctx);
+                }
+                {
+                    imgui::begin_window(ctx, "window6");
+                    imgui::Style style = imgui::get_style(ctx);
+                    style.background_color = {1.0f, 0.533f, 0.308f};
+                    // style.background_color = {0.2f, 0.2f, 0.2f};
+                    // if (imgui::is_window_hot(ctx)) {
+                    //     style.background_color = {0.4f, 0.4f, 0.4f};
+                    // }
+                    imgui::set_style(ctx, style);
+                    imgui::end_window(ctx);
+                }
             }
-            {
-                imgui::begin_window(ctx, "window6");
-                imgui::Style style = imgui::get_style(ctx);
-                style.background_color = {1.0f, 0.533f, 0.308f};
-                // style.background_color = {0.2f, 0.2f, 0.2f};
-                // if (imgui::is_window_hot(ctx)) {
-                //     style.background_color = {0.4f, 0.4f, 0.4f};
-                // }
-                imgui::set_style(ctx, style);
-                imgui::end_window(ctx);
-            }
+
+            ECS& ecs = Editor::get_ecs();
+            // for(auto [])
+            // for(Viewport* viewport: viewports) {
+            //     viewport->process_actions();
+            // }
+
+            // for(Viewport* viewport: viewports) {
+            //     viewport->render();
+            // }
 
             imgui::end_frame(ctx);
 
@@ -320,6 +335,10 @@ namespace anton_engine {
         imgui::set_window_size(ctx, {200, 200});
         imgui::set_window_pos(ctx, {370, 650});
         imgui::end_window(ctx);
+        // Viewport* const viewport0 = new Viewport(0, 1280, 720, ctx);
+        // Viewport* const viewport1 = new Viewport(1, 1280, 720, ctx);
+        // viewports.emplace_back(viewport0);
+        // viewports.emplace_back(viewport1);
         imgui::end_frame(ctx);
 
         load_world();
