@@ -6,7 +6,7 @@
 
 namespace anton_engine::atl {
     template <typename T>
-    inline constexpr enable_if<is_move_constructible<T> && is_move_assignable<T>, void> swap(T& a, T& b) {
+    inline constexpr void swap(T& a, T& b) {
         T tmp(atl::move(a));
         a = atl::move(b);
         b = atl::move(tmp);
