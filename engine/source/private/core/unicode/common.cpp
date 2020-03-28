@@ -46,11 +46,13 @@ namespace anton_engine::unicode {
             while (true) {
                 if (char16 high_surrogate = *buffer_utf16; high_surrogate > 0xD7FF && high_surrogate < 0xE000) {
                     bytes += 4;
+                    buffer_utf16 += 2;
                 } else {
                     char16 codepoint = *buffer_utf16;
                     // If codepoint is less than 0x7FF, it's 2 bytes in UTF-8. If it's less than 0x7F, it's 1 byte in UTF-8.
                     // Otherwise it's 3 bytes.
                     bytes += 3 - (codepoint <= 0x7FF) - (codepoint <= 0x7F);
+                    buffer_utf16 += 1;
                     if (codepoint == '\0') {
                         break;
                     }
