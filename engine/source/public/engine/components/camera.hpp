@@ -48,6 +48,14 @@ namespace anton_engine {
         // return math::transform::orthographic(-size * aspect_ratio, size * aspect_ratio, -size, size, near_plane, far_plane);
     }
 
+    inline Matrix4 get_camera_projection_matrix(Camera const camera, Vector2 const viewport_size) {
+        f32 const aspect_ratio = viewport_size.x / viewport_size.y;
+        return math::transform::perspective(math::radians(camera.fov), aspect_ratio, camera.near_plane, camera.far_plane);
+
+        // Ortographic camera stuff
+        // return math::transform::orthographic(-size * aspect_ratio, size * aspect_ratio, -size, size, near_plane, far_plane);
+    }
+
     // inline Vector3 screen_to_world_point(Matrix4 const inv_view, Matrix4 const inv_projection, int32_t const screen_width, int32_t const screen_height,
     //                               Vector2 const point) {
     //     // Transform screen point to normalized -1..1 coordinates
