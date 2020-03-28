@@ -8,9 +8,9 @@
 
 namespace anton_engine {
     void Framebuffer::create_framebuffer() {
-        ANTON_VERIFY(info.width > opengl::get_max_renderbuffer_size() || info.height > opengl::get_max_renderbuffer_size(), u8"Too big buffer size");
-        ANTON_VERIFY(info.width <= 0 || info.height <= 0, u8"One or both dimensions are less than or equal 0");
-        ANTON_VERIFY(!info.multisampled || info.samples > 0, u8"Multisampled framebuffer must have more than 0 samples");
+        ANTON_VERIFY(info.width < opengl::get_max_renderbuffer_size() && info.height < opengl::get_max_renderbuffer_size(), u8"Too big buffer size");
+        ANTON_VERIFY(info.width > 0 && info.height > 0, u8"One or both dimensions are less than or equal 0");
+        ANTON_VERIFY(!info.multisampled || info.multisampled && info.samples > 0, u8"Multisampled framebuffer must have more than 0 samples");
 
         glGenFramebuffers(1, &framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
