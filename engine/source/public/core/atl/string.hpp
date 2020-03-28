@@ -105,6 +105,7 @@ namespace anton_engine::atl {
         void force_size(size_type n);
 
         void clear();
+        void append(char8);
         void append(String_View);
         // template <typename Input_Iterator>
         // iterator insert(const_iterator pos, Input_Iterator first, Input_Iterator last);

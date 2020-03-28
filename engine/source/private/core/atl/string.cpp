@@ -207,10 +207,16 @@ namespace anton_engine::atl {
         _size = 0;
     }
 
+    void String::append(char8 const c) {
+        ensure_capacity(_size + 1);
+        _data[_size] = c;
+        _size += 1;
+    }
+
     void String::append(String_View str) {
         ensure_capacity(_size + str.size_bytes() + 1);
         atl::copy(str.bytes_begin(), str.bytes_end(), _data + _size);
-        _size = _size + str.size_bytes();
+        _size += str.size_bytes();
     }
 
     auto String::data() -> value_type* {
