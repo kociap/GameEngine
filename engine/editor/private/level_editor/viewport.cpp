@@ -36,7 +36,7 @@
 #include <tuple>
 
 namespace anton_engine {
-    Viewport::Viewport(i32 vindex, i64 width, i64 height, imgui::Context& ctx): index(vindex) {
+    Viewport::Viewport(i32 vindex, i32 const width, i32 const height, imgui::Context* imgui_context): index(vindex), ctx(imgui_context) {
         Framebuffer::Construct_Info construct_info;
         construct_info.color_buffers.resize(1);
         construct_info.color_buffers[0].internal_format = Framebuffer::Internal_Format::rgba8;
@@ -83,9 +83,9 @@ namespace anton_engine {
 
         atl::String window_id{u8"viewport_window"};
         window_id.append(atl::to_string(index));
-        imgui::begin_window(ctx, window_id);
-        imgui::set_window_size(ctx, {200, 200});
-        imgui::end_window(ctx);
+        imgui::begin_window(*ctx, window_id);
+        imgui::set_window_size(*ctx, {(f32)width, (f32)height});
+        imgui::end_window(*ctx);
     }
 
     Viewport::~Viewport() {
@@ -104,6 +104,15 @@ namespace anton_engine {
         deferred_framebuffer->resize(w, h);
         front_framebuffer->resize(w, h);
         back_framebuffer->resize(w, h);
+    }
+
+    Vector2 Viewport::get_size() const {
+        atl::String window_id{u8"viewport_window"};
+        window_id.append(atl::to_string(index));
+        imgui::begin_window(*ctx, window_id);
+        Vector2 const viewport_size = imgui::get_window_dimensions(*ctx);
+        imgui::end_window(*ctx);
+        return viewport_size;
     }
 
     static Entity pick_object(Ray const ray) {
@@ -137,19 +146,19 @@ namespace anton_engine {
         }
     }
 
-    void Viewport::process_actions(imgui::Context& ctx, Matrix4 const view_mat, Matrix4 const proj_mat, Matrix4 const inv_view_mat, 
+    void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const inv_view_mat, Matrix4 const proj_mat,
                                    Matrix4 const inv_proj_mat, Transform const camera_transform, atl::Vector<Entity>& selected_entities) {
         atl::String window_id{u8"viewport_window"};
         window_id.append(atl::to_string(index));
-        imgui::begin_window(ctx, window_id);
+        imgui::begin_window(*ctx, window_id);
         
-        Vector2 const viewport_size = imgui::get_window_dimensions(ctx);
-        Vector2 const _cursor_pos = imgui::get_cursor_position(ctx);
+        Vector2 const viewport_size = imgui::get_window_dimensions(*ctx);
+        Vector2 const _cursor_pos = imgui::get_cursor_position(*ctx);
         // Transform from top-left to bottom-left (screen coordinates).
         Vector2 const cursor_pos = {_cursor_pos.x, viewport_size.y - _cursor_pos.y};
         Ray const cursor_ray = screen_to_ray(inv_view_mat, inv_proj_mat, viewport_size.x, viewport_size.y, cursor_pos);
 
-        imgui::end_window(ctx);
+        imgui::end_window(*ctx);
 
         auto const state = input::get_key_state(Key::right_mouse_button);
         auto const shift_state = input::get_key_state(Key::left_shift);
@@ -544,16 +553,16 @@ namespace anton_engine {
         glEnable(GL_CULL_FACE);
     }
 
-    void Viewport::render(imgui::Context& ctx, Matrix4 const view_mat, Matrix4 const inv_view_mat, Matrix4 const proj_mat, Matrix4 const inv_proj_mat, 
+    void Viewport::render(Matrix4 const view_mat, Matrix4 const inv_view_mat, Matrix4 const proj_mat, Matrix4 const inv_proj_mat, 
                           Camera const camera, Transform const camera_transform, atl::Slice<Entity const> const selected_entities) {
         // TODO: Mist instead of sudden clip
 
         atl::String window_id{u8"viewport_window"};
         window_id.append(atl::to_string(index));
-        imgui::begin_window(ctx, window_id);
+        imgui::begin_window(*ctx, window_id);
 
-        Vector2 const viewport_size = imgui::get_window_dimensions(ctx);
-        Vector2 const _cursor_pos = imgui::get_cursor_position(ctx);
+        Vector2 const viewport_size = imgui::get_window_dimensions(*ctx);
+        Vector2 const _cursor_pos = imgui::get_cursor_position(*ctx);
         // Transform from top-left to bottom-left (screen coordinates).
         Vector2 const cursor_pos = {_cursor_pos.x, viewport_size.y - _cursor_pos.y};
         Ray const cursor_ray = screen_to_ray(inv_view_mat, inv_proj_mat, viewport_size.x, viewport_size.y, cursor_pos);
@@ -603,7 +612,7 @@ namespace anton_engine {
 
         atl::swap(front_framebuffer, back_framebuffer);
 
-        imgui::image(ctx, front_framebuffer->get_color_texture(0), front_framebuffer->size(), Vector2{0.0f, 1.0f}, Vector2{1.0f, 0.0f});
-        imgui::end_window(ctx);
+        imgui::image(*ctx, front_framebuffer->get_color_texture(0), front_framebuffer->size(), Vector2{0.0f, 1.0f}, Vector2{1.0f, 0.0f});
+        imgui::end_window(*ctx);
     }
 } // namespace anton_engine

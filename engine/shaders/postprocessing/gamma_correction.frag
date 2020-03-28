@@ -8,4 +8,5 @@ uniform float gamma;
 
 void main() {
     frag_color.rgb = pow(texture(scene_texture, tex_coords).rgb, vec3(gamma));
+    frag_color.a = 1.0;
 }

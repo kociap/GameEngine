@@ -20,14 +20,15 @@ namespace anton_engine {
 
     class Viewport {
     public:
-        explicit Viewport(i32 viewport_index, i64 width, i64 height, imgui::Context&);
+        explicit Viewport(i32 viewport_index, i32 width, i32 height, imgui::Context*);
         ~Viewport();
 
-        void process_actions(imgui::Context&, Matrix4 view_mat, Matrix4 proj_mat, Matrix4 inv_view_mat, Matrix4 inv_proj_mat, 
+        void process_actions(Matrix4 view_mat, Matrix4 inv_view_mat, Matrix4 proj_mat, Matrix4 inv_proj_mat,
                              Transform camera_transform, atl::Vector<Entity>& selected_entities);
-        void render(imgui::Context&, Matrix4 view_mat, Matrix4 inv_view_mat, Matrix4 proj_mat, Matrix4 inv_proj_mat, 
+        void render(Matrix4 view_mat, Matrix4 inv_view_mat, Matrix4 proj_mat, Matrix4 inv_proj_mat, 
                     Camera camera, Transform camera_transform, atl::Slice<Entity const> selected_entities);
         void resize(i32 width, i32 height);
+        Vector2 get_size() const;
 
     private:
         Framebuffer* framebuffer = nullptr;
@@ -35,6 +36,7 @@ namespace anton_engine {
         Framebuffer* deferred_framebuffer = nullptr;
         Framebuffer* front_framebuffer = nullptr;
         Framebuffer* back_framebuffer = nullptr;
+        imgui::Context* ctx;
 
         Entity viewport_entity = null_entity;
         i32 index;

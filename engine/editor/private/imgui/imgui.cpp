@@ -218,7 +218,7 @@ namespace anton_engine::imgui {
     }
 
     static void set_viewport_size(Viewport* const viewport, Vector2 const size) {
-        windowing::resize(viewport->native_window, size.x, size.y);
+        windowing::set_size(viewport->native_window, size);
         viewport->layout_root.size = size;
     }
 
@@ -1564,8 +1564,14 @@ namespace anton_engine::imgui {
     void set_window_size(Context& ctx, Vector2 const size) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
-        // Window& window = ctx.next.windows.at(ctx.current_window);
-        // window.dockspace->content_size = size;
+        Window& window = ctx.next.windows.at(ctx.current_window);
+        Dockspace* dockspace = window.dockspace;
+        if(dockspace->layout_parent->tile_type == Layout_Tile_Type::root && dockspace->windows.size() == 1) {
+            Vector2 const tab_size = get_dockspace_tab_bar_size(dockspace);
+            Vector2 const new_size = size + Vector2{0.0f, tab_size.y};
+            set_viewport_size(dockspace->viewport, new_size);
+            recalculate_sublayout_size(window.dockspace->layout_parent);
+        }
     }
 
     void set_window_pos(Context& ctx, Vector2 const pos) {
@@ -1573,9 +1579,9 @@ namespace anton_engine::imgui {
 
         Window& window = ctx.next.windows.at(ctx.current_window);
         Dockspace* const dockspace = window.dockspace;
-        set_viewport_screen_pos(dockspace->viewport, pos);
-        // TODO: Old dockspace position
-        // dockspace->position = pos - Vector2{0.0f, dockspace->tab_bar_height};
+        if(dockspace->layout_parent->tile_type == Layout_Tile_Type::root && dockspace->windows.size() == 1) {
+            set_viewport_screen_pos(dockspace->viewport, pos);
+        }
     }
 
     bool is_window_hot(Context& ctx) {
@@ -1599,32 +1605,4 @@ namespace anton_engine::imgui {
     Vector2 get_cursor_position(Context& ctx) {
         return ctx.input.cursor_position;
     }
-
-    // bool hovered(Context& ctx) {
-    //     if (ctx.current_window == -1) {
-    //         throw Exception("No current window.");
-    //     }
-
-    //     if (ctx.widget_stack.size() != 0) {
-    //         Widget& widget = ctx.widgets[ctx.widget_stack.back()];
-    //         return widget.hovered;
-    //     } else {
-    //         Window& window = get_current_window(ctx);
-    //         return window.hovered;
-    //     }
-    // }
-
-    // bool clicked(Context& ctx) {
-    //     if (ctx.current_window == -1) {
-    //         throw Exception("No current window.");
-    //     }
-
-    //     if (ctx.widget_stack.size() != 0) {
-    //         Widget& widget = ctx.widgets[ctx.widget_stack.back()];
-    //         return widget.clicked;
-    //     } else {
-    //         Window& window = get_current_window(ctx);
-    //         return window.clicked;
-    //     }
-    // }
 } // namespace anton_engine::imgui

@@ -131,10 +131,19 @@ namespace anton_engine::imgui {
 
     void set_window_border_area(Context&, f32);
 
-    void set_window_size(Context&, Vector2);
+    // Sets the content size of the current window.
+    // This function has any effect only when the current window is the only one in
+    // a viewport, in which case both the window and the viewport are resized.
+    // Otherwise this function has no effect.
+    //
+    void set_window_size(Context&, Vector2 size);
 
-    // Relative to window's viewport.
-    void set_window_pos(Context&, Vector2);
+    // Sets the screen position of the current window.
+    // This function has any effect only when the current window is the only one in
+    // a viewport, in which case both the window and the viewport are repositioned.
+    // Otherwise this function has no effect.
+    //
+    void set_window_pos(Context&, Vector2 screen_pos);
 
     void set_width(Context&, f32 width);
     void set_height(Context&, f32 height);
@@ -145,9 +154,6 @@ namespace anton_engine::imgui {
 
     bool is_window_hot(Context&);
     bool is_window_active(Context&);
-
-    // bool hovered(Context&);
-    // bool clicked(Context&);
 } // namespace anton_engine::imgui
 
 #endif // !EDITOR_IMGUI_IMGUI_HPP_INCLUDE

@@ -9,7 +9,6 @@
 #include <scripts/debug_hotkeys.hpp>
 #include <core/diagnostic_macros.hpp>
 #include <engine/ecs/ecs.hpp>
-#include <editor_window.hpp>
 #include <engine/input.hpp>
 #include <engine/input/input_internal.hpp>
 #include <engine/material.hpp>
@@ -29,6 +28,12 @@
 #include <imgui/imgui.hpp>
 #include <rendering/imgui_rendering.hpp>
 #include <level_editor/viewport.hpp>
+#include <level_editor/viewport_camera.hpp>
+
+#include <engine/input.hpp>
+#include <engine/input/input_internal.hpp>
+#include <core/utils/simple_xml_parser.hpp>
+#include <engine/assets.hpp>
 
 // TODO: Remove
 #include <core/logging.hpp>
@@ -44,6 +49,11 @@
 namespace anton_engine {
     static bool _quit = false;
 
+    class Editor_Shared_State {
+    public:
+        atl::Vector<Entity> selected_entities;
+    };
+
     // TODO: Temporarily
     static windowing::Window* main_window = nullptr;
     static windowing::OpenGL_Context* gl_context;
@@ -55,6 +65,7 @@ namespace anton_engine {
     static imgui::Context* imgui_context = nullptr;
     static rendering::Font_Face* comic_sans_face = nullptr;
     static rendering::Font_Face* french_script_regular_face = nullptr;
+    static Editor_Shared_State* shared_state;
 
     void quit() {
         _quit = true;
@@ -63,6 +74,7 @@ namespace anton_engine {
     static void loop() {
         windowing::poll_events();
         update_time();
+        input::process_events();
 
         // printf("delta time: %llf\n", get_delta_time());
 
@@ -77,124 +89,41 @@ namespace anton_engine {
             imgui::set_input_state(ctx, imgui_input);
 
             imgui::begin_frame(ctx);
+
+            ECS& ecs = Editor::get_ecs();
             {
-                {
-                    imgui::begin_window(ctx, "main_window");
-                    imgui::Button_Style button_style;
-                    button_style.background_color = {0.1f, 0.1f, 0.1f};
-                    button_style.border_color = {1.0f, 1.0f, 1.0f};
-                    button_style.border = {2.0f, 2.0f, 2.0f, 2.0f};
-                    button_style.padding = {5.0f, 10.0f, 5.0f, 10.0f};
-                    button_style.font.face = comic_sans_face;
-                    button_style.font.size = 12;
-                    button_style.font.v_dpi = 96;
-                    button_style.font.h_dpi = 96;
-                    imgui::Button_Style hot_style = button_style;
-                    hot_style.background_color = {0.2f, 0.5f, 0.8f};
-                    hot_style.border_color = {1.0f, 0.0f, 0.0f};
-                    hot_style.font.face = french_script_regular_face;
-                    hot_style.font.size = 16;
-                    imgui::Button_State state = imgui::button(ctx, "Confirm", button_style, hot_style, button_style);
-                    switch(state) {
-                        case imgui::Button_State::clicked: {
-                            Mimas_File_Filter filters[] = {{"name", "*.dll"}};
-                            Mimas_File_Dialog_Flags flags = (Mimas_File_Dialog_Flags)(MIMAS_FILE_DIALOG_PICK_FILES);
-                            char* str = mimas_open_file_dialog(MIMAS_FILE_DIALOG_OPEN, flags, filters, 1, "C:\\Users\\lapinozz\\Documents");
-                            printf("%s\n", str);
-                        } break;
+                auto viewport_camera_view = Editor::get_ecs().view<Viewport_Camera, Camera, Transform>();
+                for (Entity const entity: viewport_camera_view) {
+                    auto [viewport_camera, camera, transform] = viewport_camera_view.get<Viewport_Camera, Camera, Transform>(entity);
+                    auto viewport = viewports[viewport_camera.viewport_index];
+                    if (viewport) {
+                        Viewport_Camera::update(viewport_camera, transform);
+                        Matrix4 const view_mat = get_camera_view_matrix(transform);
+
+                        Matrix4 const projection_mat = get_camera_projection_matrix(camera, viewport->get_size());
+                        Matrix4 const inv_projection_mat = math::inverse(projection_mat);
+                        Matrix4 const inv_view_mat = math::inverse(view_mat);
+                        viewport->process_actions(view_mat, inv_view_mat, projection_mat, inv_projection_mat, transform, shared_state->selected_entities);
                     }
-
-                    imgui::Style main_style = imgui::get_style(ctx);
-                    main_style.background_color = {0.953f, 0.322f, 0.125f};
-                    // main_style.background_color = {0.7f, 0.2f, 0.2f};
-                    // if (imgui::is_window_hot(ctx)) {
-                    //     main_style.background_color = {0.6f, 0.4f, 0.4f};
-                    //     // ANTON_LOG_INFO("main_window hot");
-                    // }
-
-                    // if (imgui::is_window_active(ctx)) {
-                    //     main_style.background_color = {0.6f, 0.6f, 0.6f};
-                    //     // ANTON_LOG_INFO("main_window active");
-                    // }
-                    imgui::set_style(ctx, main_style);
-                    imgui::end_window(ctx);
-                }
-
-                imgui::begin_window(ctx, "secondary_window");
-                imgui::button(ctx, "Another Window");
-                imgui::Style secondary_style = imgui::get_style(ctx);
-                secondary_style.background_color = {0.51f, 0.74f, 0.4f};
-                // secondary_style.background_color = {112.0f / 255.0f, 0.0f, 1.0f};
-                // if (imgui::is_window_hot(ctx)) {
-                //     secondary_style.background_color = {146.0f / 255.0f, 56.0f / 255.0f, 1.0f};
-                //     // ANTON_LOG_INFO("secondary_window hot");
-                // }
-
-                // if (imgui::is_window_active(ctx)) {
-                //     secondary_style.background_color = {175.0f / 255.0f, 110.0f / 255.0f, 1.0f};
-                //     // ANTON_LOG_INFO("secondary_window active");
-                // }
-                imgui::set_style(ctx, secondary_style);
-                imgui::end_window(ctx);
-
-                imgui::begin_window(ctx, "third_window");
-                imgui::Style third_style = imgui::get_style(ctx);
-                third_style.background_color = {0.0f, 0.659f, 0.941f};
-                // third_style.background_color = {96.0f / 255.0f, 214.0f / 255.0f, 0.0f};
-                // if (imgui::is_window_hot(ctx)) {
-                //     third_style.background_color = {115.0f / 255.0f, 1.0f, 0.0f};
-                // }
-
-                // if (imgui::is_window_active(ctx)) {
-                //     third_style.background_color = {144.0f / 255.0f, 1.0f, 77.0f / 255.0f};
-                // }
-                imgui::set_style(ctx, third_style);
-                imgui::end_window(ctx);
-
-                {
-                    imgui::begin_window(ctx, "window4");
-                    imgui::Style style = imgui::get_style(ctx);
-                    style.background_color = {1.0f, 0.733f, 0.008f};
-                    // style.background_color = {0.2f, 0.2f, 0.2f};
-                    // if (imgui::is_window_hot(ctx)) {
-                    //     style.background_color = {0.4f, 0.4f, 0.4f};
-                    // }
-                    imgui::set_style(ctx, style);
-                    imgui::end_window(ctx);
-                }
-                {
-                    imgui::begin_window(ctx, "window5");
-                    imgui::Style style = imgui::get_style(ctx);
-                    style.background_color = {0.7f, 0.933f, 0.008f};
-                    // style.background_color = {0.2f, 0.2f, 0.2f};
-                    // if (imgui::is_window_hot(ctx)) {
-                    //     style.background_color = {0.4f, 0.4f, 0.4f};
-                    // }
-                    imgui::set_style(ctx, style);
-                    imgui::end_window(ctx);
-                }
-                {
-                    imgui::begin_window(ctx, "window6");
-                    imgui::Style style = imgui::get_style(ctx);
-                    style.background_color = {1.0f, 0.533f, 0.308f};
-                    // style.background_color = {0.2f, 0.2f, 0.2f};
-                    // if (imgui::is_window_hot(ctx)) {
-                    //     style.background_color = {0.4f, 0.4f, 0.4f};
-                    // }
-                    imgui::set_style(ctx, style);
-                    imgui::end_window(ctx);
                 }
             }
 
-            ECS& ecs = Editor::get_ecs();
-            // for(auto [])
-            // for(Viewport* viewport: viewports) {
-            //     viewport->process_actions();
-            // }
+            rendering::update_dynamic_lights();
 
-            // for(Viewport* viewport: viewports) {
-            //     viewport->render();
-            // }
+            {
+                auto viewport_camera_view = Editor::get_ecs().view<Viewport_Camera, Camera, Transform>();
+                for (Entity const entity: viewport_camera_view) {
+                    auto [viewport_camera, camera, transform] = viewport_camera_view.get<Viewport_Camera, Camera, Transform>(entity);
+                    auto viewport = viewports[viewport_camera.viewport_index];
+                    if (viewport) {
+                        Matrix4 const view_mat = get_camera_view_matrix(transform);
+                        Matrix4 const projection_mat = get_camera_projection_matrix(camera, viewport->get_size());
+                        Matrix4 const inv_projection_mat = math::inverse(projection_mat);
+                        Matrix4 const inv_view_mat = math::inverse(view_mat);
+                        viewport->render(view_mat, inv_view_mat, projection_mat, inv_projection_mat, camera, transform, shared_state->selected_entities);
+                    }
+                }
+            }
 
             imgui::end_frame(ctx);
 
@@ -211,6 +140,11 @@ namespace anton_engine {
             imgui_shader.use();
             imgui::bind_buffers();
             for (imgui::Viewport* viewport: viewports) {
+                atl::Slice<imgui::Draw_Command const> draw_commands = imgui::get_viewport_draw_commands(ctx, *viewport);
+                if(draw_commands.size() == 0) {
+                    continue;
+                }
+
                 windowing::Window* native_window = imgui::get_viewport_native_window(ctx, *viewport);
                 windowing::make_context_current(gl_context, native_window);
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -223,7 +157,6 @@ namespace anton_engine {
                     math::transform::orthographic(window_pos.x, window_pos.x + window_size.x, window_pos.y + window_size.y, window_pos.y, 1.0f, -1.0f);
                 imgui_shader.set_matrix4("proj_mat", imgui_projection);
 
-                atl::Slice<imgui::Draw_Command const> draw_commands = imgui::get_viewport_draw_commands(ctx, *viewport);
                 imgui_shader.set_int("texture_bound", 0);
                 u32 last_bound_texture = 0;
                 for (imgui::Draw_Command draw_command: draw_commands) {
@@ -271,15 +204,81 @@ namespace anton_engine {
         // }
     }
 
+    static void keyboard_callback(windowing::Window* const, Key const key, int const action, void*) {
+        if (action != 2) {
+            float value = static_cast<float>(action); // press is 1, release is 0
+            input::add_event(key, value);
+        }
+    }
+
+    // TODO: Rework.
+    static void load_input_bindings() {
+        // TODO uses engine exe dir
+        std::filesystem::path const bindings_file_path(utils::concat_paths(paths::executable_directory(), "input_bindings.config"));
+        std::string const config_file(assets::read_file_raw_string(bindings_file_path).data());
+        {
+            auto find_property = [](auto& properties, auto predicate) -> atl::Vector<utils::xml::Tag_Property>::iterator {
+                auto end = properties.end();
+                for (auto iter = properties.begin(); iter != end; ++iter) {
+                    if (predicate(*iter)) {
+                        return iter;
+                    }
+                }
+                return end;
+            };
+
+            atl::Vector<utils::xml::Tag> tags(utils::xml::parse(config_file));
+            for (utils::xml::Tag& tag: tags) {
+                if (tag.name != "axis" && tag.name != "action") {
+                    ANTON_LOG_INFO("Unknown tag, skipping...");
+                    continue;
+                }
+
+                auto axis_prop = find_property(tag.properties, [](auto& property) { return property.name == "axis"; });
+                auto action_prop = find_property(tag.properties, [](auto& property) { return property.name == "action"; });
+                auto key_prop = find_property(tag.properties, [](auto& property) { return property.name == "key"; });
+                auto accumulation_speed_prop = find_property(tag.properties, [](auto& property) { return property.name == "scale"; });
+                auto sensitivity_prop = find_property(tag.properties, [](auto& property) { return property.name == "sensitivity"; });
+
+                if (axis_prop == tag.properties.end() && action_prop == tag.properties.end()) {
+                    ANTON_LOG_INFO("Missing action/axis property, skipping...");
+                    continue;
+                }
+                if (key_prop == tag.properties.end()) {
+                    ANTON_LOG_INFO("Missing key property, skipping...");
+                    continue;
+                }
+
+                if (axis_prop != tag.properties.end()) {
+                    if (sensitivity_prop == tag.properties.end()) {
+                        ANTON_LOG_INFO("Missing sensitivity property, skipping...");
+                        continue;
+                    }
+                    if (accumulation_speed_prop == tag.properties.end()) {
+                        ANTON_LOG_INFO("Missing scale property, skipping...");
+                        continue;
+                    }
+                    input::add_axis(axis_prop->value.data(), key_from_string(key_prop->value), std::stof(sensitivity_prop->value),
+                                    std::stof(accumulation_speed_prop->value), false);
+                } else {
+                    input::add_action(action_prop->value.data(), key_from_string(key_prop->value));
+                }
+            }
+        }
+    }
+
     static void init() {
         init_time();
-        windowing::init();
+        if(!windowing::init()) {
+            throw Exception("Windowing could not be initialized.");
+        }
         windowing::enable_vsync(true);
         main_window = windowing::create_window(1280, 720, true);
         windowing::Display* primary_display = windowing::get_primary_display();
         // windowing::fullscreen_window(main_window, primary_display);
         windowing::set_mouse_button_callback(main_window, mouse_button_callback, nullptr);
         windowing::set_cursor_pos_callback(main_window, cursor_pos_callback, nullptr);
+        windowing::set_key_callback(main_window, keyboard_callback, nullptr);
         gl_context = windowing::create_context(4, 5, windowing::OpenGL_Profile::core);
         windowing::make_context_current(gl_context, main_window);
         opengl::load();
@@ -293,10 +292,13 @@ namespace anton_engine {
         french_script_regular_face = rendering::load_face_from_file(french_script_regular, 0);
         load_builtin_shaders();
 
+        load_input_bindings();
+
         mesh_manager = new Resource_Manager<Mesh>();
         shader_manager = new Resource_Manager<Shader>();
         material_manager = new Resource_Manager<Material>();
         ecs = new ECS();
+        shared_state = new Editor_Shared_State;
 
         {
             imgui::setup_rendering();
@@ -309,37 +311,12 @@ namespace anton_engine {
             imgui::set_main_viewport_native_window(*imgui_context, main_window);
         }
 
-        imgui::Context& ctx = *imgui_context;
-        imgui::begin_frame(ctx);
-        imgui::begin_window(ctx, "main_window");
-        imgui::set_window_size(ctx, {200, 200});
-        imgui::set_window_pos(ctx, {150, 150});
-        imgui::end_window(ctx);
-        imgui::begin_window(ctx, "secondary_window");
-        imgui::set_window_size(ctx, {200, 200});
-        imgui::set_window_pos(ctx, {370, 150});
-        imgui::end_window(ctx);
-        imgui::begin_window(ctx, "third_window");
-        imgui::set_window_size(ctx, {200, 200});
-        imgui::set_window_pos(ctx, {150, 400});
-        imgui::end_window(ctx);
-        imgui::begin_window(ctx, "window4");
-        imgui::set_window_size(ctx, {200, 200});
-        imgui::set_window_pos(ctx, {370, 400});
-        imgui::end_window(ctx);
-        imgui::begin_window(ctx, "window5");
-        imgui::set_window_size(ctx, {200, 200});
-        imgui::set_window_pos(ctx, {150, 650});
-        imgui::end_window(ctx);
-        imgui::begin_window(ctx, "window6");
-        imgui::set_window_size(ctx, {200, 200});
-        imgui::set_window_pos(ctx, {370, 650});
-        imgui::end_window(ctx);
-        // Viewport* const viewport0 = new Viewport(0, 1280, 720, ctx);
-        // Viewport* const viewport1 = new Viewport(1, 1280, 720, ctx);
-        // viewports.emplace_back(viewport0);
-        // viewports.emplace_back(viewport1);
-        imgui::end_frame(ctx);
+        imgui::begin_frame(*imgui_context);
+        Viewport* const viewport0 = new Viewport(0, 1280, 720, imgui_context);
+        Viewport* const viewport1 = new Viewport(1, 1280, 720, imgui_context);
+        viewports.emplace_back(viewport0);
+        viewports.emplace_back(viewport1);
+        imgui::end_frame(*imgui_context);
 
         load_world();
     }
