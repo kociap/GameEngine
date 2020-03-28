@@ -13,10 +13,11 @@ set(ENGINE_DEPENDENCIES_FOLDER "Dependencies")
 set(ENGINE_TOOLS_FOLDER "Tools")
 
 set(ENGINE_WITH_EDITOR 1)
-set(ANTON_BUILD_WITH_ASAN FALSE)
+set(ANTON_BUILD_WITH_ASAN TRUE)
+set(ANTON_BUILD_TOOLS FALSE)
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-    set(ENGINE_CXX_FLAGS
+    set(ANTON_COMPILE_FLAGS
         -Wall -Wextra -pedantic
         # Useful warnings that are included in -Weverything
         # -Wsign-conversion
@@ -40,12 +41,12 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
         stdc++fs
     )
 
-    set(ENGINE_CXX_DEPENDENCIES_FLAGS -Wno-everything)
+    set(ANTON_DEPENDENCIES_COMPILE_FLAGS -Wno-everything)
     set(ENGINE_DLL_EXPORT "")
     set(ENGINE_DLL_IMPORT "")
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT MSVC)
     # Compiling with Clang not simulating MSVC
-    set(ENGINE_CXX_FLAGS
+    set(ANTON_COMPILE_FLAGS
         -ferror-limit=512 # Lemme see dem errors
         -Wall -Wextra -pedantic
         # Useful warnings that are included in -Weverything
@@ -67,23 +68,23 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT MSVC)
         -Wno-error=unused-variable
     )
 
-    # if(ANTON_BUILD_WITH_ASAN)
-    #     set(ENGINE_CXX_FLAGS ${ENGINE_CXX_FLAGS}
-    #         -fsanitize=address
-    #         -fsanitize-address-use-after-scope
-    #         -O1
-    #         -fno-omit-frame-pointer
-    #         -fno-optimize-sibling-calls
-    #     )
+    set(ANTON_DEPENDENCIES_COMPILE_FLAGS -Wno-everything)
 
-    #     set(ANTON_LINK_FLAGS
-    #         "/LIBPATH:C:\\llvm\\lib\\clang\\9.0.1\\lib\\windows" /MD
-    #     )
-    # endif()
+    if(ANTON_BUILD_WITH_ASAN)
+        set(ANTON_COMPILE_FLAGS ${ANTON_COMPILE_FLAGS}
+            -fsanitize=address
+            -fsanitize-address-use-after-scope
+            -O0
+            -g3
+            -fno-omit-frame-pointer
+            -fno-optimize-sibling-calls
+        )
+        set(ANTON_LINK_FLAGS "-fsanitize=address" "-shared-libasan")
 
-    set(ENGINE_LINK_LIBS)
+        set(ANTON_DEPENDENCIES_COMPILE_FLAGS ${ANTON_DEPENDENCIES_COMPILE_FLAGS} "-fsanitize=address")
+        set(ANTON_DEPENDENCIES_LINK_FLAGS "-fsanitize=address" "-shared-libasan")
+    endif()
 
-    set(ENGINE_CXX_DEPENDENCIES_FLAGS -Wno-everything)
     
     if(NOT WIN32)
         set(ENGINE_DLL_EXPORT "")
@@ -93,15 +94,15 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT MSVC)
         set(ENGINE_DLL_IMPORT "__declspec(dllimport)")
     endif()
 elseif(MSVC)
-    set(ENGINE_CXX_FLAGS 
+    set(ANTON_COMPILE_FLAGS 
         /W4
         /diagnostics:caret # Extended diagnostics include the column where the issue was found and places a caret (^) under the location
         /permissive-
     )
 
     if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-        set(ENGINE_CXX_FLAGS
-            ${ENGINE_CXX_FLAGS}
+        set(ANTON_COMPILE_FLAGS
+            ${ANTON_COMPILE_FLAGS}
             -Wnewline-eof
             -Wnon-virtual-dtor
         )
@@ -109,7 +110,7 @@ elseif(MSVC)
 
     set(ENGINE_LINK_LIBS)
 
-    set(ENGINE_CXX_DEPENDENCIES_FLAGS /W0)
+    set(ANTON_DEPENDENCIES_COMPILE_FLAGS /W0)
     set(ENGINE_DLL_EXPORT "__declspec(dllexport)")
     set(ENGINE_DLL_IMPORT "__declspec(dllimport)")
 endif()

@@ -35,7 +35,7 @@ if(ENGINE_COMPILER_UNKNOWN)
     target_compile_definitions(anton_engine PRIVATE ANTON_COMPILER_UNKNOWN)
 endif()
 
-target_compile_options(anton_engine PRIVATE ${ENGINE_CXX_FLAGS})
+target_compile_options(anton_engine PRIVATE ${ANTON_COMPILE_FLAGS})
 
 target_include_directories(anton_engine 
     PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}/public"
@@ -127,7 +127,7 @@ if(ENGINE_COMPILER_UNKNOWN)
     target_compile_definitions(anton_engine_loader PRIVATE ANTON_COMPILER_UNKNOWN)
 endif()
 
-target_compile_options(anton_engine_loader PRIVATE ${ENGINE_CXX_FLAGS})
+target_compile_options(anton_engine_loader PRIVATE ${ANTON_COMPILE_FLAGS})
 
 target_include_directories(anton_engine_loader 
     PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}/public"
@@ -142,10 +142,5 @@ set_target_properties(anton_engine_loader
 
 target_link_libraries(anton_engine_loader anton_engine)
 
-# target_link_options(anton_engine_loader
-#     PRIVATE ${ANTON_LINK_FLAGS} "clang_rt.asan-x86_64.lib"
-# )
-
-# target_link_options(anton_engine
-#     PRIVATE ${ANTON_LINK_FLAGS} "clang_rt.asan_dll_thunk-x86_64.lib"
-# )
+target_link_options(anton_engine_loader PRIVATE ${ANTON_LINK_FLAGS})
+target_link_options(anton_engine PRIVATE ${ANTON_LINK_FLAGS})

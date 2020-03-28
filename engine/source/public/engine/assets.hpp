@@ -13,7 +13,7 @@ namespace anton_engine {
 
     namespace assets {
         // Reads file as a string of chars without interpreting it
-        std::string read_file_raw_string(std::filesystem::path const& filename);
+        atl::String read_file_raw_string(std::filesystem::path const& filename);
 
         opengl::Shader_Type shader_type_from_filename(std::filesystem::path const& filename);
 

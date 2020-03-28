@@ -1,7 +1,5 @@
 target_sources(anton_engine
     PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/private/editor_window.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/private/editor_window.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/private/editor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/private/editor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/private/editor_preferences.hpp"

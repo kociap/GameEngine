@@ -18,9 +18,11 @@ if(${ENGINE_WITH_EDITOR})
     add_subdirectory(editor)
 endif()
 
-add_subdirectory(tools)
+if(${ANTON_BUILD_TOOLS})
+    add_subdirectory(tools)
+endif()
 
-set_target_properties(anton_engine anton_engine_loader Codegen
+set_target_properties(anton_engine anton_engine_loader
     PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${ENGINE_BINARY_OUTPUT_DIRECTORY}"
     RUNTIME_OUTPUT_DIRECTORY_DEBUG "${ENGINE_BINARY_OUTPUT_DIRECTORY}"

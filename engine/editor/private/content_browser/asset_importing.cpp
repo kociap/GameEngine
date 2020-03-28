@@ -14,15 +14,14 @@
 #include <rendering/texture_format.hpp>
 #include <core/utils/filesystem.hpp>
 
-#include <cstdint>
-#include <stdexcept>
+#include <stdio.h>
 #include <string>
 
 namespace anton_engine::asset_importing {
     struct Matching_Format {
         opengl::Format format;
         opengl::Sized_Internal_Format internal_format;
-        int32_t swizzle_mask[4];
+        i32 swizzle_mask[4];
     };
 
     [[nodiscard]] static Matching_Format get_matching_texture_format(importers::Image const& image) {
@@ -54,9 +53,9 @@ namespace anton_engine::asset_importing {
         }
     }
 
-    [[nodiscard]] static int32_t compute_number_of_mipmaps(uint32_t const width, uint32_t const height) {
-        int32_t mipmap_levels = 0;
-        uint32_t max_dim = math::max(width, height);
+    [[nodiscard]] static i32 compute_number_of_mipmaps(u32 const width, u32 const height) {
+        i32 mipmap_levels = 0;
+        u32 max_dim = math::max(width, height);
         while (max_dim > 1) {
             max_dim /= 2;
             mipmap_levels += 1;
@@ -66,7 +65,7 @@ namespace anton_engine::asset_importing {
 
     // TODO: Preprocess textures to limit the number of possible texture formats
     static void write_texture(std::filesystem::path const& output_directory, std::filesystem::path const& file_original_path, importers::Image const& image) {
-        uint64_t identifier = 0; // TODO generate identifier
+        u64 identifier = 0; // TODO generate identifier
         Texture_Format format;
         format.width = image.width;
         format.height = image.height;
@@ -78,16 +77,18 @@ namespace anton_engine::asset_importing {
         // TODO: Hardcoded values. Should be customizable.
         format.pixel_type = GL_UNSIGNED_BYTE;
         format.filter = GL_NEAREST_MIPMAP_NEAREST;
-        int64_t const image_bytes = image.data.size();
-        int64_t const texture_chunk_size = static_cast<int64_t>(sizeof(Texture_Format)) + 8 + image_bytes;
+        i64 const image_bytes = image.data.size();
+        i64 const texture_chunk_size = static_cast<i64>(sizeof(Texture_Format)) + 8 + image_bytes;
 
-        std::filesystem::path const out_file_path = utils::concat_paths(output_directory, file_original_path.stem().generic_string() + ".getex");
-        std::ofstream file(out_file_path, std::ios::binary | std::ios::trunc);
-        file.write(reinterpret_cast<char const*>(&texture_chunk_size), 8); // Allows to skip the entire texture chunk without parsing it
-        file.write(reinterpret_cast<char const*>(&identifier), 8);
-        file.write(reinterpret_cast<char const*>(&format), sizeof(Texture_Format));
-        file.write(reinterpret_cast<char const*>(&image_bytes), 8); // Prefix the image with its size in bytes because that will simplify mipmap access
-        file.write(reinterpret_cast<char const*>(image.data.data()), image_bytes);
+        std::string const out_file_path = utils::concat_paths(output_directory, file_original_path.stem().generic_string() + ".getex").generic_string();
+        FILE* file = fopen(out_file_path.data(), "wb");
+        if(!file) { throw Exception(u8"Could not open file for writing"); }
+        fwrite(reinterpret_cast<char const*>(&texture_chunk_size), 8, 1, file); // Allows to skip the entire texture chunk without parsing it
+        fwrite(reinterpret_cast<char const*>(&identifier), 8, 1, file);
+        fwrite(reinterpret_cast<char const*>(&format), sizeof(Texture_Format), 1, file);
+        fwrite(reinterpret_cast<char const*>(&image_bytes), 8, 1, file); // Prefix the image with its size in bytes because that will simplify mipmap access
+        fwrite(reinterpret_cast<char const*>(image.data.data()), image_bytes, 1, file);
+        fclose(file);
     }
 
     void import_image(std::filesystem::path const& path) {
@@ -110,7 +111,7 @@ namespace anton_engine::asset_importing {
             return;
         }
 
-        throw std::runtime_error("Unsupported file format");
+        throw Exception(u8"Unsupported file format");
     }
 
     static void compute_tangents(Vertex& vert1, Vertex& vert2, Vertex& vert3) {
@@ -153,7 +154,7 @@ namespace anton_engine::asset_importing {
             compute_tangents(vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]);
         }
 
-        return {std::move(vertices), std::move(indices)};
+        return {atl::move(vertices), atl::move(indices)};
     }
 
     Imported_Meshes import_mesh(std::filesystem::path const& path) {
@@ -167,26 +168,27 @@ namespace anton_engine::asset_importing {
             for (importers::Mesh const& mesh: meshes) {
                 imported_meshes.meshes.push_back(process_mesh(mesh));
             }
-
             return imported_meshes;
         }
 
-        throw std::runtime_error("Unsupported file format");
+        throw Exception(u8"Unsupported file format");
     }
 
     void save_meshes(atl::String_View filename, atl::Slice<u64 const> const guids, atl::Slice<Mesh const> meshes) {
         atl::String file_name_with_ext(filename);
         file_name_with_ext.append(u8".mesh");
-        std::filesystem::path path = utils::concat_paths(paths::assets_directory(), std::filesystem::path(file_name_with_ext.data()));
-        std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc);
+        std::string path = utils::concat_paths(paths::assets_directory(), std::filesystem::path(file_name_with_ext.data())).generic_string();
+        FILE* out = fopen(path.data(), "wb");
+        if(!out) { throw Exception(u8"Could not open file for writing"); }
         for (isize i = 0; i < guids.size(); ++i) {
-            out.write(reinterpret_cast<char const*>(&guids[i]), sizeof(u64));
+            fwrite(reinterpret_cast<char const*>(&guids[i]), sizeof(u64), 1, out);
             i64 const vertex_count = meshes[i].vertices.size();
-            out.write(reinterpret_cast<char const*>(&vertex_count), sizeof(i64));
-            out.write(reinterpret_cast<char const*>(meshes[i].vertices.data()), vertex_count * sizeof(Vertex));
+            fwrite(reinterpret_cast<char const*>(&vertex_count), sizeof(i64), 1, out);
+            fwrite(reinterpret_cast<char const*>(meshes[i].vertices.data()), vertex_count * sizeof(Vertex), 1, out);
             i64 const index_count = meshes[i].indices.size();
-            out.write(reinterpret_cast<char const*>(&index_count), sizeof(i64));
-            out.write(reinterpret_cast<char const*>(meshes[i].indices.data()), index_count * sizeof(u32));
+            fwrite(reinterpret_cast<char const*>(&index_count), sizeof(i64), 1, out);
+            fwrite(reinterpret_cast<char const*>(meshes[i].indices.data()), index_count * sizeof(u32), 1, out);
         }
+        fclose(out);
     }
 } // namespace anton_engine::asset_importing

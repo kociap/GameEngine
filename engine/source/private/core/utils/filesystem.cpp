@@ -1,6 +1,6 @@
 #include <core/utils/filesystem.hpp>
 
-#include <stdexcept>
+#include <stdio.h>
 
 namespace anton_engine::utils {
     std::filesystem::path concat_paths(std::filesystem::path const& a, std::filesystem::path const& b) {
@@ -9,23 +9,21 @@ namespace anton_engine::utils {
         return copy;
     }
 
-    int64_t get_file_size(std::ifstream& file) {
-        auto pos = file.tellg();
-        file.seekg(0, std::ios::end);
-        int64_t size = file.tellg();
-        file.seekg(pos);
-        return size;
-    }
-
-    atl::Vector<uint8_t> read_file_binary(std::filesystem::path const& path) {
-        std::ifstream file(path, std::ios::binary);
+    atl::Vector<u8> read_file_binary(std::filesystem::path const& _path) {
+        std::string path = _path.generic_string();
+        FILE* file = fopen(path.data(), "rb");
         if (!file) {
-            throw std::runtime_error("Failed to read the file"); // TODO More specific exception that will actually allow
-                                                                 //        me to dispaly useful information to the user
+            // TODO: More specific exception that will actually allow
+            //       me to dispaly useful information to the user.
+            throw Exception(u8"Failed to read the file"); 
         }
-        int64_t file_size = utils::get_file_size(file);
-        atl::Vector<uint8_t> file_contents(file_size);
-        file.read(reinterpret_cast<char*>(file_contents.data()), file_size); // TODO reinterpret_cast
+
+        fseek(file, 0, SEEK_END);
+        i64 const file_size = ftell(file);
+        fseek(file, 0, SEEK_SET);
+        atl::Vector<u8> file_contents(file_size);
+        fread(reinterpret_cast<char*>(file_contents.data()), file_size, 1, file);
+        fclose(file);
         return file_contents;
     }
 } // namespace anton_engine::utils

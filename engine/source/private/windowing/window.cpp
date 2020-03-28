@@ -362,7 +362,7 @@ namespace anton_engine::windowing {
             mimas_set_window_scroll_callback(mimas_window, _window_scroll_callback, window);
             return window;
         } else {
-            return nullptr;
+            throw Exception("Could not create window.");
         }
     }
 

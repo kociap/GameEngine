@@ -13,7 +13,6 @@ namespace anton_engine::utils {
 
     // File utility functions
 
-    int64_t get_file_size(std::ifstream&);
     atl::Vector<uint8_t> read_file_binary(std::filesystem::path const& path);
 } // namespace anton_engine::utils
 

@@ -59,7 +59,7 @@ namespace anton_engine {
     static void load_input_bindings() {
         // TODO uses engine exe dir
         std::filesystem::path const bindings_file_path(utils::concat_paths(paths::executable_directory(), "input_bindings.config"));
-        std::string const config_file = assets::read_file_raw_string(bindings_file_path);
+        std::string const config_file(assets::read_file_raw_string(bindings_file_path).data());
         {
             auto find_property = [](auto& properties, auto predicate) -> atl::Vector<utils::xml::Tag_Property>::iterator {
                 auto end = properties.end();
