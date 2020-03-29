@@ -4,7 +4,6 @@
 #include <core/types.hpp>
 #include <core/atl/string_view.hpp>
 #include <engine/key.hpp>
-#include <string>
 
 namespace anton_engine::input {
     struct Key_State {
@@ -39,9 +38,9 @@ namespace anton_engine::input {
     void add_axis(atl::String_View name, Key, f32 raw_value_scale, f32 accumulation_speed, bool snap);
     void add_action(atl::String_View name, Key);
 
-    [[nodiscard]] f32 get_axis(std::string const& axis);
-    [[nodiscard]] f32 get_axis_raw(std::string const& axis);
-    [[nodiscard]] Action_State get_action(std::string const& action);
+    [[nodiscard]] f32 get_axis(atl::String_View axis);
+    [[nodiscard]] f32 get_axis_raw(atl::String_View axis);
+    [[nodiscard]] Action_State get_action(atl::String_View action);
     [[nodiscard]] Key_State get_key_state(Key);
     // [[nodiscard]] Any_Key_State get_any_key_state();
 } // namespace anton_engine::input

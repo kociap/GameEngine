@@ -81,7 +81,7 @@ namespace anton_engine {
                 add_entity(entity);
                 return _components;
             } else {
-                _components.emplace_back(std::forward<Args>(args)...);
+                _components.emplace_back(atl::forward<Args>(args)...);
                 add_entity(entity);
                 return _components[_components.size() - 1];
             }
@@ -203,9 +203,9 @@ namespace anton_engine {
         static_assert(std::is_invocable_r_v<bool, Predicate, Entity const, Entity const> ||
                           std::is_invocable_r_v<bool, Predicate, Component const, Component const>,
                       "Predicate is not invocable with either Entity or Component as the parameter");
-        atl::Vector<int64_t> indices(_entities.size());
+        atl::Vector<i64> indices(_entities.size());
         atl::iota(indices.begin(), indices.end(), 0);
-        sort(indices.begin(), indices.end(), [&, cmp = predicate](int64_t const lhs, int64_t const rhs) -> bool {
+        sort(indices.begin(), indices.end(), [&, cmp = predicate](i64 const lhs, i64 const rhs) -> bool {
             if constexpr (std::is_invocable_r_v<bool, Predicate, Entity const, Entity const>) {
                 return cmp(atl::as_const(_entities[lhs]), atl::as_const(_entities[rhs]));
             } else {
@@ -214,8 +214,8 @@ namespace anton_engine {
         });
 
         using atl::swap;
-        for (int64_t i = 0; i < indices.size(); ++i) {
-            int64_t const sorted_index = indices[i];
+        for (i64 i = 0; i < indices.size(); ++i) {
+            i64 const sorted_index = indices[i];
             if (i != sorted_index) {
                 swap(components[i], components[sorted_index]);
                 swap(_indirect[indirect_index(_entities[i])], _indirect[indirect_index(_entities[sorted_index])]);
@@ -236,7 +236,7 @@ namespace anton_engine {
 
     inline void deserialize(serialization::Binary_Input_Archive& archive, Component_Container_Base& container) {
         deserialize(archive, container._entities);
-        for (int64_t i = 0; i < container._entities.size(); i += 1) {
+        for (i64 i = 0; i < container._entities.size(); i += 1) {
             auto index = container.indirect_index(container._entities[i]);
             container.ensure(index);
             container._indirect[index] = i;

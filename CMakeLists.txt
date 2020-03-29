@@ -66,7 +66,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT MSVC)
         -Wno-error=unused-const-variable 
         -Wno-error=unused-parameter
         -Wno-error=unused-variable
-        -ftime-trace
+        # -ftime-trace
     )
 
     set(ANTON_DEPENDENCIES_COMPILE_FLAGS -Wno-everything)

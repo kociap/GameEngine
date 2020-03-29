@@ -36,14 +36,14 @@ namespace anton_engine {
                 for (auto& name: classes_found) {
                     std::string str = current_path.generic_string(); // Because windows uses retarded wstring and \ as the directory separator
                     std::string_view include_dir = extract_include_directory(str);
-                    out.push_back(Component{std::string(include_dir.data(), include_dir.size()), std::move(name)});
+                    out.push_back(Component{std::string(include_dir.data(), include_dir.size()), atl::move(name)});
                 }
             }
         }
     }
 
     struct Indent {
-        uint32_t indent_level;
+        u32 indent_level;
     };
 
     std::ostream& operator<<(std::ostream& out, Indent i) {
@@ -54,7 +54,7 @@ namespace anton_engine {
         return out;
     }
 
-    Indent indent(uint32_t indent_level) {
+    Indent indent(u32 indent_level) {
         return {indent_level};
     }
 } // namespace anton_engine
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
     std::string_view output_file(argv[1]);
 
     atl::Vector<Component> components;
-    for (int32_t i = 2; i < argc; ++i) {
+    for (i32 i = 2; i < argc; ++i) {
         std::string_view components_search_directory(argv[i]);
         serach_for_components(components_search_directory, components);
     }
@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
                    << "namespace anton_engine {\n"
                    << indent(1) << "atl::Vector<Component_Serialization_Funcs>& get_component_serialization_functions() {\n"
                    << indent(2) << "static atl::Vector<Component_Serialization_Funcs> serialization_funcs{atl::variadic_construct,\n";
-    int32_t component_index = 1;
+    i32 component_index = 1;
     for (auto& [include_directory, name]: components) {
         generated_file << indent(3) << "Component_Serialization_Funcs{Type_Family::family_id<" << name << ">(), &Component_Container<" << name
                        << ">::serialize, &Component_Container<" << name << ">::deserialize}";

@@ -1,7 +1,7 @@
 #ifndef CORE_ATL_ALGORITHM_HPP_INCLUDE
 #define CORE_ATL_ALGORITHM_HPP_INCLUDE
 
-#include <stdexcept>
+#include <core/exception.hpp>
 
 namespace anton_engine::atl {
     // iota
@@ -19,12 +19,12 @@ namespace anton_engine::atl {
     //
     // Returns: A reference to an element at index.
     //
-    // Throws: std::out_of_range if index is out of bounds.
+    // Throws: Exception if index is out of bounds.
     //
     template <typename T>
     [[nodiscard]] inline typename T::reference at(T& container, typename T::size_type index) {
         if (index >= container.size() || index < typename T::size_type(0)) {
-            throw std::out_of_range("Index out of range");
+            throw Exception(u8"Index out of range");
         }
         return container[index];
     }
@@ -34,12 +34,12 @@ namespace anton_engine::atl {
     //
     // Returns: A reference to a const element at index.
     //
-    // Throws: std::out_of_range if index is out of bounds.
+    // Throws: Exception if index is out of bounds.
     //
     template <typename T>
     [[nodiscard]] inline typename T::const_reference at(T const& container, typename T::size_type index) {
         if (index >= container.size() || index < typename T::size_type(0)) {
-            throw std::out_of_range("Index out of range");
+            throw Exception(u8"Index out of range");
         }
         return container[index];
     }

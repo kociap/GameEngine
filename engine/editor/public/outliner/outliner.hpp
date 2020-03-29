@@ -2,7 +2,7 @@
 #define EDITOR_OUTLINER_OUTLINER_HPP_INCLUDE
 
 #include <core/atl/vector.hpp>
-#include <cstdint>
+#include <core/types.hpp>
 #include <core/diagnostic_macros.hpp>
 #include <engine/ecs/entity.hpp>
 #include <outliner_item.hpp>
@@ -29,8 +29,8 @@ namespace anton_engine {
         void select_entity(Entity);
         void deselect_entity(Entity);
 
-        int32_t indentation() const;
-        void set_indentation(int32_t);
+        i32 indentation() const;
+        void set_indentation(i32);
 
         void sort_entities_by_name_ascending();
         void sort_entities_by_name_descending();

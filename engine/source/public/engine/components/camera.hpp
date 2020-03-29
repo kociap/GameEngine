@@ -9,7 +9,7 @@
 #include <core/math/vector3.hpp>
 #include <core/serialization/serialization.hpp>
 
-#include <cstdint>
+#include <core/types.hpp>
 
 namespace anton_engine {
     class COMPONENT Camera {
@@ -40,7 +40,7 @@ namespace anton_engine {
         return math::inverse(camera_matrix);
     }
 
-    inline Matrix4 get_camera_projection_matrix(Camera& camera, int32_t viewport_width, int32_t viewport_height) {
+    inline Matrix4 get_camera_projection_matrix(Camera& camera, i32 viewport_width, i32 viewport_height) {
         float aspect_ratio = static_cast<float>(viewport_width) / static_cast<float>(viewport_height);
         return math::transform::perspective(math::radians(camera.fov), aspect_ratio, camera.near_plane, camera.far_plane);
 
@@ -56,7 +56,7 @@ namespace anton_engine {
         // return math::transform::orthographic(-size * aspect_ratio, size * aspect_ratio, -size, size, near_plane, far_plane);
     }
 
-    // inline Vector3 screen_to_world_point(Matrix4 const inv_view, Matrix4 const inv_projection, int32_t const screen_width, int32_t const screen_height,
+    // inline Vector3 screen_to_world_point(Matrix4 const inv_view, Matrix4 const inv_projection, i32 const screen_width, i32 const screen_height,
     //                               Vector2 const point) {
     //     // Transform screen point to normalized -1..1 coordinates
     //     float const normalized_x = 2.0f * point.x / static_cast<float>(screen_width) - 1.0f;

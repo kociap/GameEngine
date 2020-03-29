@@ -69,8 +69,8 @@ namespace anton_engine {
             Shader_File uniform_color_vert = assets::load_shader_file("uniform_color.vert");
             Shader_File uniform_color_frag = assets::load_shader_file("uniform_color.frag");
             builtin_shaders[0] = create_shader(uniform_color_vert, uniform_color_frag);
-        } catch (std::runtime_error const& error) {
-            atl::String error_message = atl::String(error.what()) + u8"\nContinuing without reloading uniform_color shader\n-";
+        } catch (Exception const& error) {
+            atl::String error_message = atl::String(error.get_message()) + u8"\nContinuing without reloading uniform_color shader\n-";
             ANTON_LOG_ERROR(error_message);
         }
 
@@ -78,8 +78,8 @@ namespace anton_engine {
             Shader_File uniform_color_line_vert = assets::load_shader_file("uniform_color_line.vert");
             Shader_File uniform_color_frag = assets::load_shader_file("uniform_color.frag");
             builtin_shaders[1] = create_shader(uniform_color_line_vert, uniform_color_frag);
-        } catch (std::runtime_error const& error) {
-            atl::String error_message = atl::String(error.what()) + u8"\nContinuing without reloading uniform_color_line shader\n-";
+        } catch (Exception const& error) {
+            atl::String error_message = atl::String(error.get_message()) + u8"\nContinuing without reloading uniform_color_line shader\n-";
             ANTON_LOG_ERROR(error_message);
         }
 
@@ -87,8 +87,8 @@ namespace anton_engine {
             auto postprocess_vert = assets::load_shader_file("postprocessing/postprocess_vertex.vert");
             auto deferred_frag = assets::load_shader_file("deferred_shading.frag");
             builtin_shaders[2] = create_shader(deferred_frag, postprocess_vert);
-        } catch (std::runtime_error const& error) {
-            atl::String error_message = atl::String(error.what()) + u8"\nContinuing without reloading deferred_shading shader\n-";
+        } catch (Exception const& error) {
+            atl::String error_message = atl::String(error.get_message()) + u8"\nContinuing without reloading deferred_shading shader\n-";
             ANTON_LOG_ERROR(error_message);
         }
 
@@ -96,8 +96,8 @@ namespace anton_engine {
             auto skybox_vert = assets::load_shader_file("skybox.vert");
             auto skybox_frag = assets::load_shader_file("skybox.frag");
             builtin_shaders[3] = create_shader(skybox_vert, skybox_frag);
-        } catch (std::runtime_error const& error) {
-            atl::String error_message = atl::String(error.what()) + u8"\nContinuing without reloading skybox shader\n-";
+        } catch (Exception const& error) {
+            atl::String error_message = atl::String(error.get_message()) + u8"\nContinuing without reloading skybox shader\n-";
             ANTON_LOG_ERROR(error_message);
         }
 
@@ -105,8 +105,8 @@ namespace anton_engine {
             auto postprocess_vert = assets::load_shader_file("postprocessing/postprocess_vertex.vert");
             auto gamma_correction = assets::load_shader_file("postprocessing/gamma_correction.frag");
             builtin_shaders[4] = create_shader(postprocess_vert, gamma_correction);
-        } catch (std::runtime_error const& error) {
-            atl::String error_message = atl::String(error.what()) + u8"\nContinuing without reloading postprocessing/gamma_correction shader\n-";
+        } catch (Exception const& error) {
+            atl::String error_message = atl::String(error.get_message()) + u8"\nContinuing without reloading postprocessing/gamma_correction shader\n-";
             ANTON_LOG_ERROR(error_message);
         }
 
@@ -114,8 +114,8 @@ namespace anton_engine {
             auto quad_vert = assets::load_shader_file("quad.vert");
             auto quad_frag = assets::load_shader_file("quad.frag");
             builtin_shaders[5] = create_shader(quad_vert, quad_frag);
-        } catch (std::runtime_error const& error) {
-            atl::String error_message = atl::String(error.what()) + u8"\nContinuing without reloading quad shader\n-";
+        } catch (Exception const& error) {
+            atl::String error_message = atl::String(error.get_message()) + u8"\nContinuing without reloading quad shader\n-";
             ANTON_LOG_ERROR(error_message);
         }
 
@@ -124,8 +124,8 @@ namespace anton_engine {
             auto postprocess_vert = assets::load_shader_file("postprocessing/postprocess_vertex.vert");
             Shader_File outline_mix_file = assets::load_shader_file("editor/outline_mix.frag");
             builtin_editor_shaders[0] = create_shader(outline_mix_file, postprocess_vert);
-        } catch (std::runtime_error const& error) {
-            atl::String error_message = atl::String(error.what()) + u8"\nContinuing without reloading editor/outline_mix shader\n-";
+        } catch (Exception const& error) {
+            atl::String error_message = atl::String(error.get_message()) + u8"\nContinuing without reloading editor/outline_mix shader\n-";
             ANTON_LOG_ERROR(error_message);
         }
 
@@ -133,8 +133,8 @@ namespace anton_engine {
             Shader_File grid_vert = assets::load_shader_file("editor/grid.vert");
             Shader_File grid_frag = assets::load_shader_file("editor/grid.frag");
             builtin_editor_shaders[1] = create_shader(grid_vert, grid_frag);
-        } catch (std::runtime_error const& error) {
-            atl::String error_message = atl::String(error.what()) + u8"\nContinuing without reloading editor/grid shader\n-";
+        } catch (Exception const& error) {
+            atl::String error_message = atl::String(error.get_message()) + u8"\nContinuing without reloading editor/grid shader\n-";
             ANTON_LOG_ERROR(error_message);
         }
 
@@ -142,8 +142,8 @@ namespace anton_engine {
             Shader_File imgui_vert = assets::load_shader_file("editor/imgui.vert");
             Shader_File imgui_frag = assets::load_shader_file("editor/imgui.frag");
             builtin_editor_shaders[2] = create_shader(imgui_vert, imgui_frag);
-        } catch (std::runtime_error const& error) {
-            atl::String error_message = atl::String(error.what()) + u8"\nContinuing without reloading editor/imgui shader\n-";
+        } catch (Exception const& error) {
+            atl::String error_message = atl::String(error.get_message()) + u8"\nContinuing without reloading editor/imgui shader\n-";
             ANTON_LOG_ERROR(error_message);
         }
 

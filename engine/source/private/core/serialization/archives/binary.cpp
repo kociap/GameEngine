@@ -1,5 +1,7 @@
 #include <core/serialization/archives/binary.hpp>
 
+#include <fstream>
+
 namespace anton_engine::serialization {
     void Binary_Input_Archive::read_binary(void* p, isize bytes) {
         char* ptr = reinterpret_cast<char*>(p);

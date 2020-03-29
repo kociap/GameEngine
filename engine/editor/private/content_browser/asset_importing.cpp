@@ -100,7 +100,7 @@ namespace anton_engine::asset_importing {
         // TODO support files with multiple images
         // TODO generate mipmaps and save them to the file (if asked to do so)
 
-        atl::Vector<uint8_t> const file = utils::read_file_binary(path);
+        atl::Vector<u8> const file = utils::read_file_binary(path);
         if (importers::test_png(file)) {
             importers::Image decoded_image = importers::import_png(file);
             write_texture(paths::assets_directory(), path, decoded_image);

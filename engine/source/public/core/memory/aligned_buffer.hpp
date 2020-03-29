@@ -1,10 +1,10 @@
 #ifndef CORE_MEMORY_ALIGNED_BUFFER_HPP_INCLUDE
 #define CORE_MEMORY_ALIGNED_BUFFER_HPP_INCLUDE
 
-#include <cstdint>
+#include <core/types.hpp>
 
 namespace anton_engine {
-    template <uint64_t size, uint64_t alignment>
+    template <u64 size, u64 alignment>
     struct Aligned_Buffer {
         alignas(alignment) char buffer[size];
     };

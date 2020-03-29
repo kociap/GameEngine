@@ -1,7 +1,7 @@
 #include <physics/ray.hpp>
 
 namespace anton_engine {
-    Ray screen_to_ray(Matrix4 inv_view, Matrix4 inv_projection, int32_t screen_width, int32_t screen_height, Vector2 point) {
+    Ray screen_to_ray(Matrix4 inv_view, Matrix4 inv_projection, i32 screen_width, i32 screen_height, Vector2 point) {
         // Transform screen point to normalized -1..1 coordinates
         float const normalized_x = 2.0f * point.x / static_cast<float>(screen_width) - 1.0f;
         float const normalized_y = 2.0f * point.y / static_cast<float>(screen_height) - 1.0f;
@@ -32,7 +32,7 @@ namespace anton_engine {
         return {ray_start_world_space, ray_direction_world_space};
     }
 
-    Ray screen_to_ray(Matrix4 inv_view_projection_matrix, int32_t screen_width, int32_t screen_height, Vector2 point) {
+    Ray screen_to_ray(Matrix4 inv_view_projection_matrix, i32 screen_width, i32 screen_height, Vector2 point) {
         // Transform screen point to normalized -1..1 coordinates
         float const normalized_x = 2.0f * point.x / static_cast<float>(screen_width) - 1.0f;
         float const normalized_y = 2.0f * point.y / static_cast<float>(screen_height) - 1.0f;

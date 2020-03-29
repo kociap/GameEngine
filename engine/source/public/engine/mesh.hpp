@@ -24,7 +24,7 @@ namespace anton_engine {
     class Mesh {
     public:
         Mesh(atl::Vector<Vertex> const& vertices, atl::Vector<u32> const& indices): vertices(vertices), indices(indices) {}
-        Mesh(atl::Vector<Vertex>&& vertices, atl::Vector<u32>&& indices): vertices(std::move(vertices)), indices(std::move(indices)) {}
+        Mesh(atl::Vector<Vertex>&& vertices, atl::Vector<u32>&& indices): vertices(atl::move(vertices)), indices(atl::move(indices)) {}
 
         atl::Vector<Vertex> vertices;
         atl::Vector<u32> indices;

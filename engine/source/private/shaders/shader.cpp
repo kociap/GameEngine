@@ -11,9 +11,6 @@
 #include <shaders/shader_exceptions.hpp>
 #include <shaders/shader_file.hpp>
 
-#include <fstream>
-#include <string>
-
 namespace anton_engine {
     Shader::Shader(bool create) {
         if (create) {
@@ -44,18 +41,18 @@ namespace anton_engine {
         glAttachShader(program, shader.shader);
     }
 
-    static void build_shader_uniform_cache(uint32_t program, std::unordered_map<std::string, int32_t>& uniform_cache) {
-        int32_t active_uniforms;
+    static void build_shader_uniform_cache(u32 program, std::unordered_map<u64, i32>& uniform_cache) {
+        i32 active_uniforms;
         glGetProgramInterfaceiv(program, GL_UNIFORM, GL_ACTIVE_RESOURCES, &active_uniforms);
-        int32_t uniform_max_name_length;
+        i32 uniform_max_name_length;
         glGetProgramInterfaceiv(program, GL_UNIFORM, GL_MAX_NAME_LENGTH, &uniform_max_name_length);
         atl::Vector<char> name(uniform_max_name_length);
-        for (int32_t uniform_index = 0; uniform_index < active_uniforms; ++uniform_index) {
-            int32_t name_length;
-            glGetActiveUniformName(program, static_cast<uint32_t>(uniform_index), uniform_max_name_length, &name_length, &name[0]);
-            int32_t location = glGetUniformLocation(program, &name[0]);
-            atl::String_View name_str = atl::String_View(&name[0], name_length);
-            uniform_cache.emplace(std::string(name_str.data()), location);
+        for (i32 uniform_index = 0; uniform_index < active_uniforms; ++uniform_index) {
+            i32 name_length;
+            glGetActiveUniformName(program, static_cast<u32>(uniform_index), uniform_max_name_length, &name_length, &name[0]);
+            i32 const location = glGetUniformLocation(program, &name[0]);
+            atl::String_View const name_str = atl::String_View(&name[0], name_length);
+            uniform_cache.emplace(atl::hash(name_str), location);
         }
     }
 
@@ -83,64 +80,64 @@ namespace anton_engine {
     }
 
     void Shader::set_int(atl::String_View const name, i32 const a) {
-        std::string n(name.data());
-        auto iter = uniform_cache.find(n);
+        u64 const h = atl::hash(name);
+        auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
             glUniform1i(iter->second, a);
         }
     }
 
     void Shader::set_uint(atl::String_View const name, u32 const a) {
-        std::string n(name.data());
-        auto iter = uniform_cache.find(n);
+        u64 const h = atl::hash(name);
+        auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
             glUniform1ui(iter->second, a);
         }
     }
 
     void Shader::set_float(atl::String_View const name, float const a) {
-        std::string n(name.data());
-        auto iter = uniform_cache.find(n);
+        u64 const h = atl::hash(name);
+        auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
             glUniform1f(iter->second, a);
         }
     }
 
     void Shader::set_vec2(atl::String_View const name, Vector2 const vec) {
-        std::string n(name.data());
-        auto iter = uniform_cache.find(n);
+        u64 const h = atl::hash(name);
+        auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
             glUniform2fv(iter->second, 1, &vec.x);
         }
     }
 
     void Shader::set_vec3(atl::String_View const name, Vector3 const vec) {
-        std::string n(name.data());
-        auto iter = uniform_cache.find(n);
+        u64 const h = atl::hash(name);
+        auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
             glUniform3fv(iter->second, 1, &vec.x);
         }
     }
 
     void Shader::set_vec3(atl::String_View const name, Color const c) {
-        std::string n(name.data());
-        auto iter = uniform_cache.find(n);
+        u64 const h = atl::hash(name);
+        auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
             glUniform3fv(iter->second, 1, &c.r);
         }
     }
 
     void Shader::set_vec4(atl::String_View const name, Color const c) {
-        std::string n(name.data());
-        auto iter = uniform_cache.find(n);
+        u64 const h = atl::hash(name);
+        auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
             glUniform4fv(iter->second, 1, &c.r);
         }
     }
 
     void Shader::set_matrix4(atl::String_View const name, Matrix4 const& mat) {
-        std::string n(name.data());
-        auto iter = uniform_cache.find(n);
+        u64 const h = atl::hash(name);
+        auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
             glUniformMatrix4fv(iter->second, 1, GL_FALSE, mat.get_raw());
         }

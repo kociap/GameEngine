@@ -2,22 +2,22 @@
 #define ENGINE_ECS_ENTITY_HPP_INCLUDE
 
 #include <core/atl/utility.hpp>
-#include <cstdint>
+#include <core/types.hpp>
 #include <core/serialization/serialization.hpp>
 
 namespace anton_engine {
     class Entity {
     public:
-        uint64_t id;
+        u64 id;
     };
 
-    constexpr Entity null_entity{static_cast<uint64_t>(-1)};
+    constexpr Entity null_entity{static_cast<u64>(-1)};
 
-    [[nodiscard]] constexpr uint64_t entity_index(Entity const entity) {
+    [[nodiscard]] constexpr u64 entity_index(Entity const entity) {
         return entity.id & 0xFFFFFFFF;
     }
 
-    [[nodiscard]] constexpr uint64_t entity_generation(Entity const entity) {
+    [[nodiscard]] constexpr u64 entity_generation(Entity const entity) {
         return (entity.id >> 32) & 0xFFFFFFFF;
     }
 

@@ -2,7 +2,7 @@
 #define CORE_MEMORY_STACK_ALLOCATE_HPP_INCLUDE
 
 #include <core/memory/aligned_buffer.hpp>
-#include <new>
+#include <core/atl/memory.hpp>
 
 namespace anton_engine {
     template <typename T>
@@ -13,7 +13,7 @@ namespace anton_engine {
         }
 
         T* pointer() {
-            return reinterpret_cast<T*>(std::launder(&buffer));
+            return reinterpret_cast<T*>(atl::launder(&buffer));
         }
 
         Aligned_Buffer<sizeof(T), alignof(T)> buffer;

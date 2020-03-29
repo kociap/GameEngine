@@ -12,16 +12,16 @@ namespace anton_engine::importers {
         }
     }
 
-    using stream_iterator = atl::Vector<uint8_t>::const_iterator;
+    using stream_iterator = atl::Vector<u8>::const_iterator;
 
     struct Face_Internal {
-        atl::Vector<uint32_t> vertex_indices;
-        atl::Vector<uint32_t> texture_coordinate_indices;
-        atl::Vector<uint32_t> normal_indices;
+        atl::Vector<u32> vertex_indices;
+        atl::Vector<u32> texture_coordinate_indices;
+        atl::Vector<u32> normal_indices;
     };
 
     struct Mesh_Internal {
-        std::string name;
+        atl::String name;
         atl::Vector<Face_Internal> faces;
     };
 
@@ -70,21 +70,21 @@ namespace anton_engine::importers {
         return sign * number;
     }
 
-    static int64_t read_int64(stream_iterator& iter) {
+    static i64 read_int64(stream_iterator& iter) {
         while (std::isspace(*iter) && *iter != '\n') {
             ++iter;
         }
 
-        int64_t sign = 1;
+        i64 sign = 1;
         if (*iter == '-') {
             sign = -1;
             ++iter;
         }
 
-        int64_t number = 0;
+        i64 number = 0;
         while (std::isdigit(*iter)) {
             number *= 10;
-            number += static_cast<int64_t>(*iter - 48);
+            number += static_cast<i64>(*iter - 48);
             ++iter;
         }
 
@@ -134,12 +134,12 @@ namespace anton_engine::importers {
                 // Note: reference numbers in obj may be negative (relative to current position)...
                 Face_Internal face;
                 while (true) {
-                    int64_t pos_index = read_int64(obj_it);
+                    i64 pos_index = read_int64(obj_it);
                     if (pos_index == 0) {
                         break;
                     } else {
                         if (pos_index < 0) {
-                            pos_index = static_cast<int64_t>(vertices.size()) + pos_index;
+                            pos_index = static_cast<i64>(vertices.size()) + pos_index;
                         } else {
                             pos_index -= 1; // OBJ uses 1 based arrays, thus subtract 1
                         }
@@ -148,10 +148,10 @@ namespace anton_engine::importers {
 
                     if (*obj_it == '/') {
                         ++obj_it;
-                        int64_t uv_index = read_int64(obj_it);
+                        i64 uv_index = read_int64(obj_it);
                         if (uv_index != 0) {
                             if (uv_index < 0) {
-                                uv_index = static_cast<int64_t>(texture_coordinates.size()) + uv_index;
+                                uv_index = static_cast<i64>(texture_coordinates.size()) + uv_index;
                             } else {
                                 uv_index -= 1; // OBJ uses 1 based arrays, thus subtract 1
                             }
@@ -161,16 +161,16 @@ namespace anton_engine::importers {
 
                     if (*obj_it == '/') {
                         ++obj_it;
-                        int64_t normal_index = read_int64(obj_it);
+                        i64 normal_index = read_int64(obj_it);
                         if (normal_index < 0) {
-                            normal_index = static_cast<int64_t>(normals.size()) + normal_index;
+                            normal_index = static_cast<i64>(normals.size()) + normal_index;
                         } else {
                             normal_index -= 1; // OBJ uses 1 based arrays, thus subtract 1
                         }
                         face.normal_indices.push_back(normal_index);
                     }
                 }
-                current_mesh->faces.push_back(std::move(face));
+                current_mesh->faces.push_back(atl::move(face));
                 seek(obj_it, '\n');
                 ++obj_it;
             } else if (c1 == 'o') {
@@ -189,7 +189,7 @@ namespace anton_engine::importers {
                     }
                     meshes_internal.emplace_back();
                     current_mesh = &meshes_internal[meshes_internal.size() - 1];
-                    current_mesh->name = std::string(begin, obj_it);
+                    current_mesh->name = atl::String((char8*)begin, obj_it - begin);
                     seek(obj_it, '\n');
                     ++obj_it;
                 }
@@ -201,7 +201,7 @@ namespace anton_engine::importers {
         }
     }
 
-    atl::Vector<Mesh> import_obj(atl::Vector<uint8_t> const& obj_data) {
+    atl::Vector<Mesh> import_obj(atl::Vector<u8> const& obj_data) {
         // TODO face triangulation
         atl::Vector<Vector3> vertices;
         atl::Vector<Vector3> normals;
@@ -212,18 +212,18 @@ namespace anton_engine::importers {
         atl::Vector<Mesh> meshes(atl::reserve, meshes_internal.size());
         for (Mesh_Internal const& mesh_internal: meshes_internal) {
             Mesh mesh;
-            mesh.name = std::move(mesh_internal.name);
+            mesh.name = atl::move(mesh_internal.name);
             atl::Vector<Face> faces(atl::reserve, mesh_internal.faces.size());
             for (Face_Internal const& face_internal: mesh_internal.faces) {
                 Face face;
-                for (uint32_t const index: face_internal.vertex_indices) {
+                for (u32 const index: face_internal.vertex_indices) {
                     mesh.vertices.push_back(vertices[index]);
-                    uint32_t new_index = mesh.vertices.size() - 1;
+                    u32 new_index = mesh.vertices.size() - 1;
                     face.indices.push_back(new_index);
                 }
 
                 if (face_internal.normal_indices.size() != 0) {
-                    for (uint32_t const index: face_internal.normal_indices) {
+                    for (u32 const index: face_internal.normal_indices) {
                         mesh.normals.push_back(normals[index]);
                     }
                 } else {
@@ -231,15 +231,15 @@ namespace anton_engine::importers {
                 }
 
                 if (face_internal.texture_coordinate_indices.size() != 0) {
-                    for (uint32_t const index: face_internal.texture_coordinate_indices) {
+                    for (u32 const index: face_internal.texture_coordinate_indices) {
                         mesh.texture_coordinates.push_back(texture_coordinates[index]);
                     }
                 }
 
-                faces.push_back(std::move(face));
+                faces.push_back(atl::move(face));
             }
-            mesh.faces = std::move(faces);
-            meshes.push_back(std::move(mesh));
+            mesh.faces = atl::move(faces);
+            meshes.push_back(atl::move(mesh));
         }
         return meshes;
     }

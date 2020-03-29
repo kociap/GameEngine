@@ -38,7 +38,7 @@ namespace anton_engine {
                 return (++begin != end && !has_all_components(*begin)) ? ++(*this) : *this;
             }
 
-            iterator& operator+=(int64_t rhs) {
+            iterator& operator+=(i64 rhs) {
                 ANTON_VERIFY(rhs >= 0, "Forward iterator may not be moved backwards.");
                 for (; rhs > 0; --rhs) {
                     ++(*this);
@@ -54,7 +54,7 @@ namespace anton_engine {
                 return *begin;
             }
 
-            [[nodiscard]] friend iterator operator+(iterator lhs, int64_t const rhs) {
+            [[nodiscard]] friend iterator operator+(iterator lhs, i64 const rhs) {
                 lhs += rhs;
                 return lhs;
             }

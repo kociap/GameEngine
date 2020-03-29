@@ -4,7 +4,7 @@
 #include <Windows.h>
 
 namespace anton_engine::windows {
-    uint64_t get_last_error() {
+    u64 get_last_error() {
         return GetLastError();
     }
 

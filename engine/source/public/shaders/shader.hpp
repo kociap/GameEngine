@@ -6,7 +6,6 @@
 #include <core/atl/type_traits.hpp>
 #include <core/math/vector2.hpp>
 #include <core/math/vector3.hpp>
-#include <string>
 #include <unordered_map>
 
 namespace anton_engine {
@@ -31,14 +30,14 @@ namespace anton_engine {
 
         void set_int(atl::String_View, i32);
         void set_uint(atl::String_View, u32);
-        void set_float(atl::String_View, float);
+        void set_float(atl::String_View, f32);
         void set_vec2(atl::String_View, Vector2);
         void set_vec3(atl::String_View, Vector3);
         void set_vec3(atl::String_View, Color);
         void set_vec4(atl::String_View, Color);
         void set_matrix4(atl::String_View, Matrix4 const&);
 
-        uint32_t get_shader_native_handle() const {
+        u32 get_shader_native_handle() const {
             return program;
         }
 
@@ -46,9 +45,8 @@ namespace anton_engine {
         friend void delete_shader(Shader&);
 
     private:
-        // TODO: String_View
-        std::unordered_map<std::string, int32_t> uniform_cache;
-        uint32_t program = 0;
+        std::unordered_map<u64, i32> uniform_cache;
+        u32 program = 0;
     };
 
     template <typename... Ts>

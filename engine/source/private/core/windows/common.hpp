@@ -2,10 +2,10 @@
 #define CORE_WINDOWS_COMMON_HPP_INCLUDE
 
 #include <core/atl/string.hpp>
-#include <cstdint>
+#include <core/types.hpp>
 
 namespace anton_engine::windows {
-    [[nodiscard]] uint64_t get_last_error();
+    [[nodiscard]] u64 get_last_error();
     [[nodiscard]] atl::String get_last_error_message();
 } // namespace anton_engine::windows
 

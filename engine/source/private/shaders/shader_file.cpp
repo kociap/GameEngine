@@ -2,13 +2,11 @@
 
 #include <core/atl/vector.hpp>
 #include <rendering/glad.hpp>
-#include <iostream>
 #include <rendering/opengl.hpp>
 #include <shaders/shader_exceptions.hpp>
-#include <string_view>
 
 namespace anton_engine {
-    static void compile_shader(uint32_t shader, atl::String_View name = "Unnamed Shader") {
+    static void compile_shader(u32 shader, atl::String_View name = "Unnamed Shader") {
         glCompileShader(shader);
         GLint compilation_status;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &compilation_status);
@@ -24,7 +22,7 @@ namespace anton_engine {
         }
     }
 
-    static void set_shader_source(uint32_t shader, atl::String_View source) {
+    static void set_shader_source(u32 shader, atl::String_View source) {
         char const* src = source.data();
         glShaderSource(shader, 1, &src, nullptr);
     }
@@ -43,7 +41,7 @@ namespace anton_engine {
     }
 
     Shader_File& Shader_File::operator=(Shader_File&& s) noexcept {
-        std::swap(shader, s.shader);
+        atl::swap(shader, s.shader);
         return *this;
     }
 

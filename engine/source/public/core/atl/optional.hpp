@@ -8,8 +8,6 @@
 #include <core/atl/type_traits.hpp>
 #include <core/intrinsics.hpp>
 
-#include <new> // std::launder
-
 namespace anton_engine::atl {
     struct Null_Optional_Tag {
         explicit Null_Optional_Tag() = default;

@@ -4,7 +4,6 @@
 #include <core/types.hpp>
 #include <math.h>
 #include <core/intrinsics.hpp>
-#include <limits>
 
 // Safety measures
 #undef max
@@ -22,8 +21,9 @@ namespace anton_engine::math {
         // Largest negative representable value
         constexpr float min = -3.402823466e+38F;
         // Smallest number such that 1.0 + epsilon != 1.0
-        constexpr float epsilon = std::numeric_limits<float>::epsilon();
-        constexpr float infinity = std::numeric_limits<float>::infinity();
+        constexpr float epsilon = 1.192092896e-07F;
+        // __builtin_huge_valf is supported by all major compilers.
+        constexpr float infinity = __builtin_huge_valf();
     } // namespace constants
 
     namespace constantsd {
@@ -31,8 +31,9 @@ namespace anton_engine::math {
         constexpr double deg_to_rad = pi / 180.0;
         constexpr double rad_to_deg = 180.0 / pi;
         // Smallest number such that 1.0 + epsilon != 1.0
-        constexpr double epsilon = std::numeric_limits<double>::epsilon();
-        constexpr double infinity = std::numeric_limits<double>::infinity();
+        constexpr double epsilon = 2.2204460492503131e-016;
+        // __builtin_huge_val is supported by all major compilers.
+        constexpr double infinity = __builtin_huge_val();
     } // namespace constantsd
 
     constexpr float radians(float degrees) {

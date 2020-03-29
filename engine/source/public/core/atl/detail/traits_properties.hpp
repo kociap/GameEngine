@@ -177,6 +177,24 @@ namespace anton_engine::atl {
     template <typename T>
     constexpr bool is_empty = Is_Empty<T>::value;
 
+    // Is_Enum
+    //
+    template <typename T>
+    struct Is_Enum: public Bool_Constant<__is_enum(T)> {};
+
+    template <typename T>
+    constexpr bool is_enum = Is_Enum<T>::value;
+
+    // Underlying_Type
+    //
+    template <typename T>
+    struct Underlying_Type {
+        using type = __underlying_type(T);
+    };
+
+    template <typename T>
+    using underlying_type = typename Underlying_Type<T>::type;
+
     // Is_Trivial
     //
     template <typename T>

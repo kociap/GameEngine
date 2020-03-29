@@ -16,8 +16,6 @@
 
 #include <stdio.h>
 
-#include <stdexcept>
-
 namespace anton_engine::assets {
     atl::String read_file_raw_string(atl::String_View const path) {
         FILE* const file = fopen(path.data(), "r");
@@ -62,7 +60,7 @@ namespace anton_engine::assets {
         return Shader_File(path, type, shader_source);
     }
 
-    static uint8_t read_uint8(FILE* stream) {
+    static u8 read_uint8(FILE* stream) {
         return fgetc(stream);
     }
 

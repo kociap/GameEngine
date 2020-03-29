@@ -10,7 +10,7 @@ namespace anton_engine::gizmo {
     struct Dial_3D {
         Color color;
         // size in pixels
-        uint32_t size;
+        u32 size;
     };
 
     void draw_dial_3d(Dial_3D, Matrix4 world_transform, Matrix4 view_projection, Vector3 camera_pos, Vector2 viewport_size);

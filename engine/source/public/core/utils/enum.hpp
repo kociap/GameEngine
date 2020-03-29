@@ -1,12 +1,12 @@
 #ifndef CORE_UTILS_ENUM_HPP_INCLUDE
 #define CORE_UTILS_ENUM_HPP_INCLUDE
 
-#include <type_traits>
+#include <core/atl/type_traits.hpp>
 
 namespace anton_engine::utils {
     template <typename T>
-    constexpr std::underlying_type_t<T> enum_to_value(T v) {
-        return static_cast<std::underlying_type_t<T>>(v);
+    constexpr atl::underlying_type<T> enum_to_value(T v) {
+        return static_cast<atl::underlying_type<T>>(v);
     }
 
     template <typename T>
@@ -17,16 +17,15 @@ namespace anton_engine::utils {
 
     template <typename T>
     struct enable_enum_bitwise_or {};
-
 } // namespace anton_engine::utils
 
 template <typename T, bool = anton_engine::utils::enable_enum_add_operator<T>::value>
-constexpr T operator+(T a, std::underlying_type_t<T> b) {
+constexpr T operator+(T a, anton_engine::atl::underlying_type<T> b) {
     return static_cast<T>(anton_engine::utils::enum_to_value(a) + b);
 }
 
 template <typename T, bool = anton_engine::utils::enable_enum_add_operator<T>::value>
-constexpr T operator+(std::underlying_type_t<T> a, T b) {
+constexpr T operator+(anton_engine::atl::underlying_type<T> a, T b) {
     return static_cast<T>(a + anton_engine::utils::enum_to_value(b));
 }
 

@@ -1,5 +1,6 @@
 #include <rendering/renderer.hpp>
 
+#include <core/exception.hpp>
 #include <core/types.hpp>
 #include <core/atl/algorithm.hpp>
 #include <core/atl/string.hpp>
@@ -144,7 +145,7 @@ namespace anton_engine::rendering {
     };
 
     struct Array_Texture_Storage {
-        atl::Vector<uint32_t> free_list;
+        atl::Vector<u32> free_list;
         i32 size = 0;
     };
 
@@ -170,7 +171,7 @@ namespace anton_engine::rendering {
         return size + (misalignment != 0 ? alignment - misalignment : 0);
     }
 
-    // static uint64_t align_size(uint64_t const size, uint64_t const alignment) {
+    // static u64 align_size(u64 const size, u64 const alignment) {
     //     return (size + alignment - 1) / alignment * alignment;
     // }
 
@@ -348,8 +349,8 @@ namespace anton_engine::rendering {
         glBindVertexArray(mesh_vao);
     }
 
-    [[nodiscard]] static int32_t find_texture_with_format(Texture_Format const format) {
-        for (int32_t i = 0; i < textures.size(); ++i) {
+    [[nodiscard]] static i32 find_texture_with_format(Texture_Format const format) {
+        for (i32 i = 0; i < textures.size(); ++i) {
             if (textures[i].format == format) {
                 return i;
             }
@@ -358,14 +359,14 @@ namespace anton_engine::rendering {
         return -1;
     }
 
-    [[nodiscard]] static int32_t find_unused_texture() {
-        for (int32_t i = 0; i < textures.size(); ++i) {
+    [[nodiscard]] static i32 find_unused_texture() {
+        for (i32 i = 0; i < textures.size(); ++i) {
             if (textures[i].handle == 0) {
                 return i;
             }
         }
 
-        int32_t unused = textures.size();
+        i32 unused = textures.size();
         textures.resize(textures.size() * 2);
         return unused;
     }
@@ -481,7 +482,7 @@ namespace anton_engine::rendering {
         i64 const index_offset = persistent_element_buffer.head - persistent_element_buffer.buffer;
         i64 const vertex_offset = persistent_vertex_buffer.head - persistent_vertex_buffer.buffer;
         if (index_offset + indices.size() > persistent_element_buffer.size || vertex_offset + vertices.size() > persistent_vertex_buffer.size) {
-            throw std::runtime_error("Out of memory");
+            throw Exception(u8"Out of memory.");
         }
 
         memcpy(persistent_vertex_buffer.head, vertices.data(), vertices.size() * sizeof(Vertex));
@@ -502,17 +503,17 @@ namespace anton_engine::rendering {
         glBindTextureUnit(unit, textures[handle.index].handle);
     }
 
-    // void unload_texture(uint64_t const handle) {
-    //     uint32_t const texture_index = handle >> 32;
-    //     uint32_t const level = handle & 0xFFFFFFFF;
+    // void unload_texture(u64 const handle) {
+    //     u32 const texture_index = handle >> 32;
+    //     u32 const level = handle & 0xFFFFFFFF;
     //     ANTON_ASSERT(texture_index < textures.size(), "Invalid texture index.");
     //     ANTON_ASSERT(level < textures[texture_index].size(), "Invalid texture level.");
     //     textures[texture_index].free_list.append(level);
     // }
 
-    // void unload_textures(int32_t handle_count, uint64_t const* handles) {
+    // void unload_textures(i32 handle_count, u64 const* handles) {
     //     ANTON_ASSERT(handle_count >= 0, "Handle count may not be less than 0.");
-    //     for (int32_t i = 0; i < handle_count; ++i) {}
+    //     for (i32 i = 0; i < handle_count; ++i) {}
     // }
 
     void add_draw_command(Draw_Elements_Command const command) {
@@ -652,7 +653,7 @@ namespace anton_engine::rendering {
         commit_draw();
     }
 
-    Renderer::Renderer(int32_t width, int32_t height) {
+    Renderer::Renderer(i32 width, i32 height) {
         build_framebuffers(width, height);
     }
 
@@ -660,7 +661,7 @@ namespace anton_engine::rendering {
         delete_framebuffers();
     }
 
-    void Renderer::build_framebuffers(int32_t width, int32_t height) {
+    void Renderer::build_framebuffers(i32 width, i32 height) {
         Framebuffer::Construct_Info framebuffer_info;
         framebuffer_info.width = width;
         framebuffer_info.height = height;
@@ -687,7 +688,7 @@ namespace anton_engine::rendering {
         delete postprocess_front_buffer;
     }
 
-    void Renderer::resize(int32_t width, int32_t height) {
+    void Renderer::resize(i32 width, i32 height) {
         delete_framebuffers();
         build_framebuffers(width, height);
     }

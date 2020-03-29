@@ -2,11 +2,11 @@
 #define EDITOR_ASSET_IMPORTER_IMPORTERS_IMAGE_HPP_INCLUDE
 
 #include <core/atl/vector.hpp>
-#include <cstdint>
+#include <core/types.hpp>
 #include <stdexcept>
 
 namespace anton_engine::importers {
-    constexpr uint64_t jpeg_header = 0xFFD8;
+    constexpr u64 jpeg_header = 0xFFD8;
 
     class Unknown_Critical_Chunk: public std::runtime_error {
     public:
@@ -40,16 +40,16 @@ namespace anton_engine::importers {
 
     class Image {
     public:
-        uint32_t width;
-        uint32_t height;
+        u32 width;
+        u32 height;
         float gamma;
         Image_Pixel_Format pixel_format;
         Image_Color_Space color_space;
-        atl::Vector<uint8_t> data;
+        atl::Vector<u8> data;
 
         Image() {}
-        Image(uint32_t width, uint32_t height, Image_Pixel_Format pixel_format, Image_Color_Space color_space, float gamma, atl::Vector<uint8_t>&& data)
-            : width(width), height(height), gamma(gamma), pixel_format(pixel_format), color_space(color_space), data(std::move(data)) {}
+        Image(u32 width, u32 height, Image_Pixel_Format pixel_format, Image_Color_Space color_space, float gamma, atl::Vector<u8>&& data)
+            : width(width), height(height), gamma(gamma), pixel_format(pixel_format), color_space(color_space), data(atl::move(data)) {}
     };
 } // namespace anton_engine::importers
 

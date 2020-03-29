@@ -19,12 +19,12 @@
 
 namespace anton_engine::input {
     struct Action_Mapping {
-        std::string action;
+        atl::String action;
         Key key;
     };
 
     struct Axis_Mapping {
-        std::string axis;
+        atl::String axis;
         Key key;
         // Scale by which to multiply raw value
         f32 raw_value_scale;
@@ -62,15 +62,15 @@ namespace anton_engine::input {
     };
 
     struct Axis {
-        std::string axis;
+        atl::String axis;
         float value = 0.0f;
         float raw_value = 0.0f;
 
-        Axis(std::string const& a): axis(a) {}
+        Axis(atl::String_View const a): axis(a) {}
     };
 
     struct Action {
-        std::string action;
+        atl::String action;
         Key captured_key = Key::none;
         bool down = false;
         bool pressed = false;
@@ -78,7 +78,7 @@ namespace anton_engine::input {
         bool bind_press_event = true;
         bool bind_release_event = true;
 
-        Action(std::string const& a): action(a) {}
+        Action(atl::String_View const a): action(a) {}
     };
 
     static std::unordered_map<Key, Key_State> key_states;
@@ -122,7 +122,7 @@ namespace anton_engine::input {
         key_events_queue.push_back(k);
     }
 
-    static Action_Mapping const* find_mapping_with_key(atl::Vector<Action_Mapping> const& mappings, std::string const& action, Key key) {
+    static Action_Mapping const* find_mapping_with_key(atl::Vector<Action_Mapping> const& mappings, atl::String_View const action, Key key) {
         for (auto& mapping: mappings) {
             if (mapping.key == key && mapping.action == action) {
                 return &mapping;
@@ -350,7 +350,7 @@ namespace anton_engine::input {
         }
     }
 
-    f32 get_axis(std::string const& axis_name) {
+    f32 get_axis(atl::String_View const axis_name) {
         for (Axis& axis: axes) {
             if (axis_name == axis.axis) {
                 return axis.value;
@@ -360,7 +360,7 @@ namespace anton_engine::input {
         return 0;
     }
 
-    f32 get_axis_raw(std::string const& axis_name) {
+    f32 get_axis_raw(atl::String_View const axis_name) {
         for (Axis& axis: axes) {
             if (axis_name == axis.axis) {
                 return axis.raw_value;
@@ -370,7 +370,7 @@ namespace anton_engine::input {
         return 0;
     }
 
-    Action_State get_action(std::string const& action_name) {
+    Action_State get_action(atl::String_View const action_name) {
         for (Action& action: actions) {
             if (action_name == action.action) {
                 return {action.down, action.pressed, action.released};

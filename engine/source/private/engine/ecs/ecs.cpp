@@ -55,7 +55,7 @@ namespace anton_engine {
 
     void deserialize(serialization::Binary_Input_Archive& archive, ECS& ecs) {
         deserialize(archive, ecs._entities);
-        int64_t containers_count;
+        i64 containers_count;
         archive.read(containers_count);
         ecs.containers.resize(containers_count);
         for (auto& data: ecs.containers) {

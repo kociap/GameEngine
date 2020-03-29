@@ -2,8 +2,7 @@
 #define CORE_SERIALIZATION_ACHIVES_BINARY_HPP_INCLUDE
 
 #include <core/types.hpp>
-#include <fstream>
-#include <new>
+#include <iosfwd>
 
 namespace anton_engine::serialization {
     class Binary_Input_Archive {
@@ -13,8 +12,8 @@ namespace anton_engine::serialization {
         template <typename T>
         void read(T& v) {
             constexpr usize data_size = sizeof(T);
-            char* data = reinterpret_cast<char*>(&v);
-            file.read(data, data_size);
+            void* out = reinterpret_cast<void*>(&v);
+            read_binary(out, data_size);
         }
 
         void read_binary(void*, isize bytes);
@@ -30,8 +29,8 @@ namespace anton_engine::serialization {
         template <typename T>
         void write(T const& v) {
             constexpr usize data_size = sizeof(T);
-            char const* data = reinterpret_cast<char const*>(&v);
-            file.write(data, data_size);
+            void const* data = reinterpret_cast<void const*>(&v);
+            write_binary(data, data_size);
         }
 
         void write_binary(void const*, isize bytes);

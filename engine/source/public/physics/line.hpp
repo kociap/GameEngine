@@ -3,7 +3,6 @@
 
 #include <core/math/vector2.hpp>
 #include <core/math/vector3.hpp>
-#include <utility>
 
 namespace anton_engine {
     class Line {

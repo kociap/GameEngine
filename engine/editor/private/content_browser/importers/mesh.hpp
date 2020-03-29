@@ -2,19 +2,20 @@
 #define EDITOR_ASSET_IMPORTER_IMPORTERS_MESH_HPP_INCLUDE
 
 #include <core/atl/vector.hpp>
-#include <cstdint>
+#include <core/types.hpp>
 #include <core/math/vector2.hpp>
 #include <core/math/vector3.hpp>
+#include <core/atl/string.hpp>
 
 namespace anton_engine::importers {
     class Face {
     public:
-        atl::Vector<uint32_t> indices;
+        atl::Vector<u32> indices;
     };
 
     class Mesh {
     public:
-        std::string name;
+        atl::String name;
         atl::Vector<Face> faces;
         atl::Vector<Vector3> vertices;
         atl::Vector<Vector3> normals;

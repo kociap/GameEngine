@@ -5,7 +5,7 @@
 #include <core/atl/slice.hpp>
 #include <engine/components/camera.hpp>
 #include <engine/components/transform.hpp>
-#include <cstdint>
+#include <core/types.hpp>
 #include <engine/ecs/ecs.hpp>
 #include <engine/material.hpp>
 #include <core/math/matrix4.hpp>
@@ -77,8 +77,8 @@ namespace anton_engine::rendering {
     void bind_texture(u32 unit, Texture handle);
 
     // TODO: Texture unloading.
-    // void unload_texture(uint64_t handle);
-    // void unload_textures(int32_t handle_count, uint64_t const* handles);
+    // void unload_texture(u64 handle);
+    // void unload_textures(i32 handle_count, u64 const* handles);
 
     void add_draw_command(Draw_Elements_Command);
     void add_draw_command(Draw_Persistent_Geometry_Command);
@@ -95,15 +95,15 @@ namespace anton_engine::rendering {
     // Ugly thing
     class Renderer {
     public:
-        Renderer(int32_t width, int32_t height);
+        Renderer(i32 width, i32 height);
         ~Renderer();
 
-        void resize(int32_t width, int32_t height);
+        void resize(i32 width, i32 height);
         void render_frame(Matrix4 view_mat, Matrix4 proj_mat, Transform camera_transform, Vector2 viewport_size);
         void swap_postprocess_buffers();
 
     private:
-        void build_framebuffers(int32_t width, int32_t height);
+        void build_framebuffers(i32 width, i32 height);
         void delete_framebuffers();
 
     public:

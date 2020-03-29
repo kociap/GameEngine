@@ -243,18 +243,18 @@ namespace anton_engine {
         auto basic_frag = assets::load_shader_file("basicfrag.frag");
         auto basic_vert = assets::load_shader_file("basicvertex.vert");
         Shader default_shader = create_shader(basic_vert, basic_frag);
-        Handle<Shader> default_shader_handle = shader_manager->add(std::move(default_shader));
+        Handle<Shader> default_shader_handle = shader_manager->add(atl::move(default_shader));
 
         auto unlit_vert = assets::load_shader_file("unlit_default.vert");
         auto unlit_frag = assets::load_shader_file("unlit_default.frag");
         Shader unlit_default_shader = create_shader(unlit_vert, unlit_frag);
-        /* Handle<Shader> unlit_default_shader_handle = */ shader_manager->add(std::move(unlit_default_shader));
+        /* Handle<Shader> unlit_default_shader_handle = */ shader_manager->add(atl::move(unlit_default_shader));
 
         Mesh container = assets::load_mesh("barrel", 1);
         Material barrel_mat;
         {
-            atl::Vector<uint8_t> pixels;
-            // auto create_noise_texture = [](atl::Vector<uint8_t>& pixels) {
+            atl::Vector<u8> pixels;
+            // auto create_noise_texture = [](atl::Vector<u8>& pixels) {
             //     i32 const perm_table[] = {
             //         11,  3,   299, 83,  42,  81,  213, 25,  98,  279, 292, 43,  22,  247, 243, 145, 245, 240, 96,  17,  26,  152, 244, 32,  62,  24,  119, 186,
             //         274, 188, 163, 39,  175, 90,  156, 79,  278, 237, 157, 13,  258, 7,   225, 131, 252, 94,  176, 52,  44,  136, 283, 0,   168, 208, 167, 95,
@@ -311,8 +311,8 @@ namespace anton_engine {
             barrel_mat.specular_texture = Texture::default_black;
             barrel_mat.normal_map = Texture::default_normal_map;
         }
-        Handle<Material> const material_handle = material_manager->add(std::move(barrel_mat));
-        Handle<Mesh> const box_handle = mesh_manager->add(std::move(container));
+        Handle<Material> const material_handle = material_manager->add(atl::move(barrel_mat));
+        Handle<Mesh> const box_handle = mesh_manager->add(atl::move(container));
 
         Handle<Mesh> const quad_mesh = mesh_manager->add(generate_plane());
 

@@ -423,12 +423,12 @@ namespace anton_engine {
 #endif
         auto basic_vert = assets::load_shader_file("basicvertex.vert");
         Shader default_shader = create_shader(basic_vert, basic_frag);
-        Handle<Shader> default_shader_handle = shader_manager->add(std::move(default_shader));
+        Handle<Shader> default_shader_handle = shader_manager->add(atl::move(default_shader));
 
         auto unlit_vert = assets::load_shader_file("unlit_default.vert");
         auto unlit_frag = assets::load_shader_file("unlit_default.frag");
         Shader unlit_default_shader = create_shader(unlit_vert, unlit_frag);
-        [[maybe_unused]] Handle<Shader> unlit_default_shader_handle = shader_manager->add(std::move(unlit_default_shader));
+        [[maybe_unused]] Handle<Shader> unlit_default_shader_handle = shader_manager->add(atl::move(unlit_default_shader));
 
         // BS code to output anything on the screen
 #ifdef RENDER_CUBES
@@ -439,7 +439,7 @@ namespace anton_engine {
         Mesh container = assets::load_mesh("barrel", 1);
         Material barrel_mat;
         {
-            atl::Vector<uint8_t> pixels;
+            atl::Vector<u8> pixels;
             Texture_Format const format = assets::load_texture_no_mipmaps("barrel_texture", 0, pixels);
             Texture handle;
             void* pix_data = pixels.data();
@@ -448,14 +448,14 @@ namespace anton_engine {
             barrel_mat.specular_texture = Texture::default_black;
             barrel_mat.normal_map = Texture::default_normal_map;
         }
-        Handle<Material> const material_handle = material_manager->add(std::move(barrel_mat));
+        Handle<Material> const material_handle = material_manager->add(atl::move(barrel_mat));
 #endif
 
         Mesh boxes1_mesh_0 = assets::load_mesh("boxes1", 2);
         Mesh boxes1_mesh_1 = assets::load_mesh("boxes1", 3);
         Mesh boxes1_mesh_2 = assets::load_mesh("boxes1", 4);
 
-        Handle<Mesh> box_handle = mesh_manager->add(std::move(container));
+        Handle<Mesh> box_handle = mesh_manager->add(atl::move(container));
         Handle<Mesh> quad_mesh = mesh_manager->add(generate_plane());
         Handle<Mesh> boxes1_mesh = mesh_manager->add(atl::move(boxes1_mesh_0));
         Handle<Mesh> boxes2_mesh = mesh_manager->add(atl::move(boxes1_mesh_1));
@@ -509,8 +509,8 @@ namespace anton_engine {
 
         // Plane floor_mesh;
         // floor_mesh.material.diffuse_texture.handle = assets::load_srgb_texture("wood_floor.png", false);
-        // Handle<Mesh> floor_handle = mesh_manager->add(std::move(floor_mesh));
-        // for (uint32_t i = 0; i < 121; ++i) {
+        // Handle<Mesh> floor_handle = mesh_manager->add(atl::move(floor_mesh));
+        // for (u32 i = 0; i < 121; ++i) {
         //     Entity floor = Entity::instantiate();
         //     Transform& floor_t = add_component<Transform>(floor);
         //     Static_Mesh_Component& floor_sm = add_component<Static_Mesh_Component>(floor);

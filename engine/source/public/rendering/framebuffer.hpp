@@ -12,7 +12,7 @@
 namespace anton_engine {
     class Framebuffer {
     public:
-        static constexpr uint64_t max_color_attachments = opengl::min_color_attachments;
+        static constexpr u64 max_color_attachments = opengl::min_color_attachments;
 
         using Internal_Format = opengl::Sized_Internal_Format;
 

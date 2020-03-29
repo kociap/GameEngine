@@ -1,10 +1,9 @@
 #ifndef SHADERS_SHADER_FILE_HPP_INCLUDE
 #define SHADERS_SHADER_FILE_HPP_INCLUDE
 
-#include <rendering/opengl.hpp>
-
+#include <core/types.hpp>
 #include <core/atl/string_view.hpp>
-#include <cstdint>
+#include <rendering/opengl.hpp>
 
 namespace anton_engine {
     class Shader;
@@ -24,7 +23,7 @@ namespace anton_engine {
         friend class Shader;
 
         opengl::Shader_Type type;
-        uint32_t shader;
+        u32 shader;
     };
 } // namespace anton_engine
 

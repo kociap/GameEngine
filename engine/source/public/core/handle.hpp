@@ -1,13 +1,13 @@
 #ifndef CORE_HANDLE_HPP_INCLUDE
 #define CORE_HANDLE_HPP_INCLUDE
 
-#include <cstdint>
+#include <core/types.hpp>
 
 namespace anton_engine {
     template <typename T>
     class Handle {
     public:
-        uint64_t value = static_cast<uint64_t>(-1);
+        u64 value = static_cast<u64>(-1);
     };
 
     template <typename T>

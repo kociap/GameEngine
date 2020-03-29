@@ -2,7 +2,7 @@
 #define CORE_MATH_MARTIX4_HPP_INCLUDE
 
 #include <core/atl/utility.hpp>
-#include <cstdint>
+#include <core/types.hpp>
 #include <core/math/vector4.hpp>
 
 namespace anton_engine {

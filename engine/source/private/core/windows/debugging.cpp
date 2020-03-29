@@ -59,13 +59,13 @@ namespace anton_engine::windows::debugging {
     [[nodiscard]] static atl::String process_base_type(HANDLE const process, ULONG64 const module_base, ULONG64 const index) {
         ULONG64 length = 0;
         if (!SymGetTypeInfo(process, module_base, index, TI_GET_LENGTH, &length)) {
-            [[maybe_unused]] uint64_t const error_code = get_last_error();
+            [[maybe_unused]] u64 const error_code = get_last_error();
             return {u8"unknown_type"};
         }
 
         DWORD base_type = 0;
         if (!SymGetTypeInfo(process, module_base, index, TI_GET_BASETYPE, &base_type)) {
-            [[maybe_unused]] uint64_t const error_code = get_last_error();
+            [[maybe_unused]] u64 const error_code = get_last_error();
             return {u8"unknown_type"};
         }
 
@@ -136,7 +136,7 @@ namespace anton_engine::windows::debugging {
         // so we make a copy of the valid value and use it instead.
         HANDLE const prcs = process;
         if (!SymGetTypeInfo(process, module_base, index, TI_GET_IS_REFERENCE, &is_reference)) {
-            [[maybe_unused]] uint64_t error_code = get_last_error();
+            [[maybe_unused]] u64 error_code = get_last_error();
         }
 
         if (DWORD type_index = 0; SymGetTypeInfo(prcs, module_base, index, TI_GET_TYPEID, &type_index)) {
@@ -148,7 +148,7 @@ namespace anton_engine::windows::debugging {
             }
             return subtype;
         } else {
-            //[[maybe_unused]] uint64_t error_code = get_last_error();
+            //[[maybe_unused]] u64 error_code = get_last_error();
             auto const error_message = get_last_error_message();
             if (is_reference) {
                 return {u8"unknown_type&"};
@@ -167,7 +167,7 @@ namespace anton_engine::windows::debugging {
             atl::String const return_type = get_type_as_string(process, module_base, return_type_index);
             type_string.append(return_type);
         } else {
-            [[maybe_unused]] uint64_t const error_code = get_last_error();
+            [[maybe_unused]] u64 const error_code = get_last_error();
             type_string.append(u8"unknown_type");
         }
 
@@ -178,14 +178,14 @@ namespace anton_engine::windows::debugging {
 
         // Parameters
         if (DWORD parameters_count = 0; SymGetTypeInfo(process, module_base, index, TI_GET_CHILDRENCOUNT, &parameters_count)) {
-            uint64_t alloc_size = sizeof(TI_FINDCHILDREN_PARAMS) + sizeof(ULONG) * parameters_count;
+            u64 alloc_size = sizeof(TI_FINDCHILDREN_PARAMS) + sizeof(ULONG) * parameters_count;
             TI_FINDCHILDREN_PARAMS& children_params =
                 *reinterpret_cast<TI_FINDCHILDREN_PARAMS*>(::operator new(alloc_size, static_cast<std::align_val_t>(alignof(TI_FINDCHILDREN_PARAMS))));
             memset(&children_params, 0, alloc_size);
             children_params.Count = parameters_count;
             if (SymGetTypeInfo(process, module_base, index, TI_FINDCHILDREN, &children_params)) {
                 type_string.append(u8"(");
-                for (uint64_t i = children_params.Start; i < children_params.Count; ++i) {
+                for (u64 i = children_params.Start; i < children_params.Count; ++i) {
                     atl::String const argument = get_type_as_string(process, module_base, children_params.ChildId[i]);
                     type_string.append(argument);
                     if (i + 1 < children_params.Count) {
@@ -194,10 +194,10 @@ namespace anton_engine::windows::debugging {
                 }
                 type_string.append(u8")");
             } else {
-                [[maybe_unused]] uint64_t const error_code = get_last_error();
+                [[maybe_unused]] u64 const error_code = get_last_error();
             }
         } else {
-            [[maybe_unused]] uint64_t const error_code = get_last_error();
+            [[maybe_unused]] u64 const error_code = get_last_error();
         }
 
         return type_string;
@@ -210,7 +210,7 @@ namespace anton_engine::windows::debugging {
                 LocalFree(fn_name_wchar);
                 return process_function_type(process, module_base, type_index, function_name.data());
             } else {
-                [[maybe_unused]] uint64_t const error_code = get_last_error();
+                [[maybe_unused]] u64 const error_code = get_last_error();
                 return process_function_type(process, module_base, type_index, u8"unknown_name");
             }
         } else {
@@ -222,7 +222,7 @@ namespace anton_engine::windows::debugging {
         if (DWORD type_index = 0; SymGetTypeInfo(process, module_base, index, TI_GET_TYPEID, &type_index)) {
             return get_type_as_string(process, module_base, type_index);
         } else {
-            [[maybe_unused]] uint64_t error_code = get_last_error();
+            [[maybe_unused]] u64 error_code = get_last_error();
             return {u8"unknown_type"};
         }
     }
@@ -233,7 +233,7 @@ namespace anton_engine::windows::debugging {
             LocalFree(name);
             return class_name;
         } else {
-            [[maybe_unused]] uint64_t const error_code = get_last_error();
+            [[maybe_unused]] u64 const error_code = get_last_error();
             return {u8"unknown_name"};
         }
     }
@@ -250,7 +250,7 @@ namespace anton_engine::windows::debugging {
                     return {u8"unknown_type"};
             }
         } else {
-            [[maybe_unused]] uint64_t error_code = get_last_error();
+            [[maybe_unused]] u64 error_code = get_last_error();
             return {u8"unknown_type"};
         }
     }
