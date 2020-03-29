@@ -25,6 +25,8 @@ namespace anton_engine::atl {
         using iterator_category = atl::Random_Access_Iterator_Tag;
 
         UTF8_Char_Iterator() = delete;
+        // offset_from_begin is the offset from beginning of a buffer in bytes.
+        UTF8_Char_Iterator(char8 const*, i64 offset_from_begin);
         UTF8_Char_Iterator(UTF8_Char_Iterator const&) = default;
         UTF8_Char_Iterator(UTF8_Char_Iterator&&) = default;
         ~UTF8_Char_Iterator() = default;
@@ -53,22 +55,19 @@ namespace anton_engine::atl {
 
         [[nodiscard]] value_type operator*() const;
 
+        char8 const* get_underlying_pointer() const;
+
         [[nodiscard]] bool operator==(UTF8_Char_Iterator const& b) const {
-            return data == b.data;
+            return _data == b._data;
         }
 
         [[nodiscard]] bool operator<(UTF8_Char_Iterator const& b) const {
-            return data - b.data < 0;
+            return _data - b._data < 0;
         }
 
     private:
-        char8 const* data;
-
-        UTF8_Char_Iterator(char8 const*);
-
-        friend class String;
-        friend class String_View;
-        friend class UTF8_Chars;
+        char8 const* _data;
+        i64 _offset;
     };
 
     [[nodiscard]] inline bool operator!=(UTF8_Char_Iterator const& a, UTF8_Char_Iterator const& b) {

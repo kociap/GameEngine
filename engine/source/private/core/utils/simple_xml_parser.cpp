@@ -6,17 +6,17 @@ namespace anton_engine::utils {
     namespace xml {
         enum class State { tag_open, tag_name, tag_name_end, tag_close, property_name, property_name_end, property_value, property_value_end };
 
-        static void parse_tag(std::string const& str, std::string::size_type& i, atl::Vector<Tag>& tags) {
+        static void parse_tag(atl::String_View::char_iterator& i, atl::String_View::char_iterator const end, atl::Vector<Tag>& tags) {
             Tag tag;
             tag.type = Tag_Type::opening;
             State state = State::tag_open;
-            for (; i < str.size(); ++i) {
-                char c = str[i];
-                if (c == '>')
+            for (; i != end; ++i) {
+                char32 c = *i;
+                if (c == U'>')
                     break;
 
                 if (state == State::tag_open) {
-                    if (c == '/') {
+                    if (c == U'/') {
                         tag.type = Tag_Type::closing;
                     } else {
                         state = State::tag_name;
@@ -26,7 +26,7 @@ namespace anton_engine::utils {
                     if (std::isalnum(c)) {
                         tag.name += c;
                     } else {
-                        if (c == '/') {
+                        if (c == U'/') {
                             tag.type = Tag_Type::self_closing;
                             state = State::tag_close;
                         } else {
@@ -34,7 +34,7 @@ namespace anton_engine::utils {
                         }
                     }
                 } else if (state == State::tag_name_end) {
-                    if (c == '/') {
+                    if (c == U'/') {
                         tag.type = Tag_Type::self_closing;
                         state = State::tag_close;
                     } else if (std::isalnum(c)) {
@@ -72,14 +72,15 @@ namespace anton_engine::utils {
             tags.push_back(std::move(tag));
         }
 
-        atl::Vector<Tag> parse(std::string const& str) {
+        atl::Vector<Tag> parse(atl::String_View const file) {
             atl::Vector<Tag> tags;
-
-            for (std::string::size_type i = 0; i < str.size(); ++i) {
-                if (str[i] != '<') {
+            for (auto i = file.chars_begin(), end = file.chars_end(); i != end; ++i) {
+                char32 const c = *i;
+                if (c != U'<') {
                     continue;
                 } else {
-                    parse_tag(str, ++i, tags);
+                    ++i;
+                    parse_tag(i, end, tags);
                 }
             }
 

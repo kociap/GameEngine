@@ -11,22 +11,15 @@
 #include <core/paths.hpp>
 #include <shaders/shader.hpp>
 #include <rendering/texture_format.hpp>
-#include <core/utils/filesystem.hpp>
 #include <core/exception.hpp>
+#include <core/filesystem.hpp>
 
 #include <stdio.h>
 
-#include <fstream>
 #include <stdexcept>
 
 namespace anton_engine::assets {
-    static atl::String fs_path_to_string(std::filesystem::path const& path) {
-        std::string gen_str = path.generic_string();
-        return {gen_str.data(), (i64)gen_str.size()};
-    }
-
-    atl::String read_file_raw_string(std::filesystem::path const& _path) {
-        atl::String path = fs_path_to_string(_path);
+    atl::String read_file_raw_string(atl::String_View const path) {
         FILE* const file = fopen(path.data(), "r");
         if (!file) {
             atl::String error_msg{u8"Could not open file "};
@@ -42,31 +35,30 @@ namespace anton_engine::assets {
         return out;
     }
 
-    opengl::Shader_Type shader_type_from_filename(std::filesystem::path const& filename) {
-        atl::String const extension = fs_path_to_string(filename.extension());
-        if (extension == u8".vert") {
+    opengl::Shader_Type shader_type_from_filename(atl::String_View const filename) {
+        atl::String_View const ext = fs::get_extension(filename);
+        if (ext == u8".vert") {
             return opengl::Shader_Type::vertex_shader;
-        } else if (extension == u8".frag") {
+        } else if (ext == u8".frag") {
             return opengl::Shader_Type::fragment_shader;
-        } else if (extension == u8".geom") {
+        } else if (ext == u8".geom") {
             return opengl::Shader_Type::geometry_shader;
-        } else if (extension == u8".comp") {
+        } else if (ext == u8".comp") {
             return opengl::Shader_Type::compute_shader;
-        } else if (extension == u8".tese") {
+        } else if (ext == u8".tese") {
             return opengl::Shader_Type::tessellation_evaluation_shader;
-        } else if (extension == u8".tesc") {
+        } else if (ext == u8".tesc") {
             return opengl::Shader_Type::tessellation_control_shader;
         } else {
-            throw Exception(u8"\"" + extension + u8"\" is not a known shader file extension");
+            throw Exception(u8"\"" + ext + u8"\" is not a known shader file extension");
         }
     }
 
-    Shader_File load_shader_file(std::filesystem::path const& _path) {
+    Shader_File load_shader_file(atl::String_View const path) {
         // TODO: Will not compile in shipping build.
-        std::filesystem::path full_path = utils::concat_paths(paths::shaders_directory(), _path);
-        atl::String const path = fs_path_to_string(_path);
+        atl::String const full_path = fs::concat_paths(paths::shaders_directory(), path);
         atl::String const shader_source = read_file_raw_string(full_path);
-        opengl::Shader_Type const type = shader_type_from_filename(_path);
+        opengl::Shader_Type const type = shader_type_from_filename(path);
         return Shader_File(path, type, shader_source);
     }
 
@@ -95,41 +87,41 @@ namespace anton_engine::assets {
     }
 
     // TODO extract writing and reading to one tu to keep them in sync
-    Texture_Format load_texture_no_mipmaps(std::string const& filename, u64 const texture_id, atl::Vector<uint8_t>& pixels) {
+    Texture_Format load_texture_no_mipmaps(atl::String_View const filename, u64 const texture_id, atl::Vector<u8>& pixels) {
 #if !GE_BUILD_SHIPPING
-        std::filesystem::path const texture_path = utils::concat_paths(paths::assets_directory(), filename + ".getex");
+        atl::String const filename_ext = atl::String(filename) + ".getex";
+        atl::String const texture_path = fs::concat_paths(paths::assets_directory(), filename_ext);
         // TODO texture loading
-        atl::String path = fs_path_to_string(texture_path);
-        FILE* file = fopen(path.data(), "rb");
+        FILE* file = fopen(texture_path.data(), "rb");
         while (file && !feof(file)) {
             [[maybe_unused]] i64 const texture_data_size = read_int64_le(file);
             u64 const tex_id = read_uint64_le(file);
             if (tex_id == texture_id) {
                 Texture_Format format;
                 fread(reinterpret_cast<char*>(&format), sizeof(Texture_Format), 1, file);
-                i64 texture_size_bytes = read_int64_le(file);
+                i64 const texture_size_bytes = read_int64_le(file);
                 pixels.resize(texture_size_bytes);
                 fread(reinterpret_cast<char*>(pixels.data()), texture_size_bytes, 1, file);
                 fclose(file);
                 return format;
             } else {
                 // Since there's only one texture per file right now, we do not have to skip past it, but instead throw an exception
-                throw Exception("Texture not found in the file " + fs_path_to_string(texture_path));
+                throw Exception(u8"Texture not found in the file " + texture_path);
             }
         }
-        throw Exception("Invalid texture file");
+        throw Exception(u8"Invalid texture file");
 #else
 #    error "No implementation of load_texture_no_mipmaps for shipping build."
 // TODO shipping build texture loading
 #endif
     }
 
-    Mesh load_mesh(std::filesystem::path const& filename, u64 const guid) {
+    Mesh load_mesh(atl::String_View const filename, u64 const guid) {
         // TODO: Shipping build. Files will be packed.
-        auto asset_path = utils::concat_paths(paths::assets_directory(), filename);
-        asset_path.replace_extension(".mesh");
-        atl::String path = fs_path_to_string(asset_path);
-        FILE* file = fopen(path.data(), "rb");
+        atl::String_View const filename_no_ext = fs::remove_extension(filename);
+        atl::String asset_path = fs::concat_paths(paths::assets_directory(), filename_no_ext);
+        asset_path.append(u8".mesh");
+        FILE* file = fopen(asset_path.data(), "rb");
         while (file) {
             u64 const extracted_guid = read_uint64_le(file);
             if (extracted_guid != guid) {
@@ -150,6 +142,6 @@ namespace anton_engine::assets {
         }
 
         // TODO: Fix this very primitive error handling.
-        throw Exception("Mesh not found");
+        throw Exception(u8"Mesh not found");
     }
 } // namespace anton_engine::assets

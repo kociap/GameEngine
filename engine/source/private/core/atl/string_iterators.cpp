@@ -1,24 +1,25 @@
-#include <core/assert.hpp>
 #include <core/atl/detail/string_iterators.hpp>
 
+#include <core/assert.hpp>
+#include <core/exception.hpp>
+#include <core/math/math.hpp>
+
 namespace anton_engine::atl {
-    constexpr u8 continuation_byte_signature_mask = 0b11000000;
-    constexpr u8 continuation_byte_signature = 0b10000000;
-    constexpr u8 continuation_byte_value_mask = 0b00111111;
-
-    constexpr u8 leading_byte_mask = 0b11111000;
-    constexpr u8 leading_byte_ascii = 0b01111111;
-    constexpr u8 leading_byte_2byte = 0b11011111;
-    constexpr u8 leading_byte_3byte = 0b11101111;
-    constexpr u8 leading_byte_4byte = 0b11110111;
-
-    UTF8_Char_Iterator::UTF8_Char_Iterator(char8 const* p): data(p) {}
+    UTF8_Char_Iterator::UTF8_Char_Iterator(char8 const* p, i64 offset): _data(p), _offset(offset) {}
 
     UTF8_Char_Iterator& UTF8_Char_Iterator::operator++() {
-        do {
-            ++data;
-        } while ((*data & continuation_byte_signature_mask) == continuation_byte_signature);
-        return *this;
+        if(_offset >= 0) {
+            u8 const first_byte = *_data;
+            u8 const leading_zeros = math::clz((u8)~first_byte);
+            u32 const byte_count = math::max((u8)1, leading_zeros);
+            _data += byte_count;
+            _offset += byte_count;
+            return *this;
+        } else {
+            _offset += 1;
+            _data += 1;
+            return *this;
+        }
     }
 
     UTF8_Char_Iterator UTF8_Char_Iterator::operator++(int) {
@@ -28,10 +29,19 @@ namespace anton_engine::atl {
     }
 
     UTF8_Char_Iterator& UTF8_Char_Iterator::operator--() {
-        do {
-            --data;
-        } while ((*data & continuation_byte_signature_mask) == continuation_byte_signature);
-        return *this;
+        if(_offset != 0) {
+            constexpr u8 data_byte_mask = 0xC0;
+            constexpr u8 data_byte = 0x80;
+            do {
+                _data -= 1;
+                _offset -= 1;
+            } while ((*_data & data_byte_mask) == data_byte);
+            return *this;
+        } else {
+            _offset -= 1;
+            _data -= 1;
+            return *this;
+        }
     }
 
     UTF8_Char_Iterator UTF8_Char_Iterator::operator--(int) {
@@ -59,22 +69,25 @@ namespace anton_engine::atl {
     }
 
     UTF8_Char_Iterator::value_type UTF8_Char_Iterator::operator*() const {
-        u8 leading_masked = *data & leading_byte_mask;
-        ANTON_VERIFY((leading_masked & leading_byte_ascii) == leading_masked || (leading_masked & leading_byte_2byte) == leading_masked ||
-                         (leading_masked & leading_byte_3byte) == leading_masked || (leading_masked & leading_byte_4byte) == leading_masked,
-                     "Invalid leading UTF-8 byte");
-
-        if ((leading_masked & leading_byte_ascii) == leading_masked) {
-            return static_cast<value_type>(data[0]);
-        } else if ((leading_masked & leading_byte_2byte) == leading_masked) {
-            return (static_cast<value_type>(data[0] & 0b00011111) << 6) | static_cast<value_type>(data[1] & continuation_byte_value_mask);
-        } else if ((leading_masked & leading_byte_3byte) == leading_masked) {
-            return (static_cast<value_type>(data[0] & 0b00001111) << 12) | (static_cast<value_type>(data[1] & continuation_byte_value_mask) << 6) |
-                   static_cast<value_type>(data[2] & continuation_byte_value_mask);
-        } else {
-            return (static_cast<value_type>(data[0] & 0b00000111) << 18) | (static_cast<value_type>(data[1] & continuation_byte_value_mask) << 12) |
-                   (static_cast<value_type>(data[2] & continuation_byte_value_mask) << 6) | static_cast<value_type>(data[3] & continuation_byte_value_mask);
+        // TODO: Use unicode library instead.
+        u8 const leading_zeros = math::clz((u8)~_data[0]);
+        u32 const byte_count = math::max((u8)1, leading_zeros);
+        switch(byte_count) {
+            case 1: 
+                return _data[0];
+            case 2:
+                return (_data[0] & 0x1F << 6) | (_data[1] & 0x3F);
+            case 3:
+                return (_data[0] & 0x1F << 12) | (_data[1] & 0x3F << 6);
+            case 4:
+                return (_data[0] & 0x1F << 18) | (_data[1] & 0x3F << 12) | (_data[2] & 0x3F << 6) | (_data[3] & 0x3F);
+            default:
+                throw Exception(u8"Unsupported UTF-8 codepoint size.");
         }
+    }
+
+    char8 const* UTF8_Char_Iterator::get_underlying_pointer() const {
+        return _data;
     }
 
     UTF8_Bytes::UTF8_Bytes(value_type* first, value_type* last): _begin(first), _end(last) {}
@@ -124,26 +137,26 @@ namespace anton_engine::atl {
     UTF8_Chars::UTF8_Chars(value_type const* first, value_type const* last): _begin(first), _end(last) {}
 
     auto UTF8_Chars::begin() -> iterator {
-        return _begin;
+        return iterator{_begin, 0};
     }
 
     auto UTF8_Chars::begin() const -> const_iterator {
-        return _begin;
+        return const_iterator{_begin, 0};
     }
 
     auto UTF8_Chars::cbegin() const -> const_iterator {
-        return _begin;
+        return const_iterator{_begin, 0};
     }
 
     auto UTF8_Chars::end() -> iterator {
-        return _end;
+        return iterator{_end, _end - _begin};
     }
 
     auto UTF8_Chars::end() const -> const_iterator {
-        return _end;
+        return const_iterator{_end, _end - _begin};
     }
 
     auto UTF8_Chars::cend() const -> const_iterator {
-        return _end;
+        return const_iterator{_end, _end - _begin};
     }
 } // namespace anton_engine::atl

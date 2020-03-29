@@ -13,7 +13,7 @@ set(ENGINE_DEPENDENCIES_FOLDER "Dependencies")
 set(ENGINE_TOOLS_FOLDER "Tools")
 
 set(ENGINE_WITH_EDITOR 1)
-set(ANTON_BUILD_WITH_ASAN TRUE)
+set(ANTON_BUILD_WITH_ASAN FALSE)
 set(ANTON_BUILD_TOOLS FALSE)
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
@@ -66,6 +66,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT MSVC)
         -Wno-error=unused-const-variable 
         -Wno-error=unused-parameter
         -Wno-error=unused-variable
+        -ftime-trace
     )
 
     set(ANTON_DEPENDENCIES_COMPILE_FLAGS -Wno-everything)

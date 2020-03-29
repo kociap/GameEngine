@@ -1,19 +1,14 @@
 #ifndef CORE_UTILS_FILESYSTEM_HPP_INCLUDE
 #define CORE_UTILS_FILESYSTEM_HPP_INCLUDE
 
+#include <core/types.hpp>
 #include <core/atl/vector.hpp>
-#include <cstdint>
-#include <filesystem>
-#include <fstream>
+#include <core/atl/string_view.hpp>
 
 namespace anton_engine::utils {
-    // Path utility functions
-
-    std::filesystem::path concat_paths(std::filesystem::path const&, std::filesystem::path const&);
-
     // File utility functions
 
-    atl::Vector<uint8_t> read_file_binary(std::filesystem::path const& path);
+    atl::Vector<u8> read_file_binary(atl::String_View path);
 } // namespace anton_engine::utils
 
 #endif // !CORE_UTILS_FILESYSTEM_HPP_INCLUDE

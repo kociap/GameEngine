@@ -87,10 +87,10 @@ namespace anton_engine::atl {
         using iterator_category = typename Iterator::iterator_category;
         using wrapped_iterator_type = Iterator;
 
-        explicit Reverse_Iterator(wrapped_iterator_type iter): _iterator(--iter) {} // This
+        explicit Reverse_Iterator(wrapped_iterator_type iter): _iterator(iter) {}
 
         wrapped_iterator_type base() const {
-            return _iterator + 1; // And this
+            return _iterator;
         }
 
         Reverse_Iterator& operator++() {
@@ -134,11 +134,11 @@ namespace anton_engine::atl {
         }
 
         [[nodiscard]] reference operator*() const {
-            return *_iterator;
+            return *(_iterator - 1);
         }
 
         [[nodiscard]] wrapped_iterator_type operator->() const {
-            return _iterator;
+            return _iterator - 1;
         }
 
         [[nodiscard]] reference operator[](difference_type n) const {

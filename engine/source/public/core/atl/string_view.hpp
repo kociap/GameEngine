@@ -22,8 +22,9 @@ namespace anton_engine::atl {
     public:
         /* [[nodiscard]] */ constexpr String_View();
         /* [[nodiscard]] */ constexpr String_View(String_View const&) = default;
-        /* [[nodiscard]] */ constexpr String_View(value_type const*, size_type);
-        /* [[nodiscard]] */ constexpr String_View(value_type const*);
+        /* [[nodiscard]] */ constexpr String_View(value_type const* str, size_type size);
+        /* [[nodiscard]] */ constexpr String_View(value_type const* str);
+        String_View(char_iterator first, char_iterator last);
         constexpr String_View& operator=(String_View const&) = default;
 
         // TODO: proxies are non-constexpr
@@ -66,12 +67,11 @@ namespace anton_engine::atl {
         return !(lhs == rhs);
     }
 
-    inline u64 hash(String_View const view) {
+    constexpr u64 hash(String_View const view) {
         // Seeded with a randomly picked prime number. No idea how that affects the performance or collision frequency.
         // TODO: Do my research on seeding the hash function.
         return anton_engine::murmurhash2_64(view.bytes_begin(), view.size_bytes(), 547391837);
     }
-
 } // namespace anton_engine::atl
 
 namespace std {
@@ -106,6 +106,9 @@ namespace anton_engine::atl {
         }
     }
 
+    inline String_View::String_View(char_iterator first, char_iterator last): 
+        _begin(first.get_underlying_pointer()), _end(last.get_underlying_pointer()) {}
+
     inline /* constexpr */ auto String_View::bytes() const -> UTF8_Const_Bytes {
         return {_begin, _end};
     }
@@ -135,11 +138,11 @@ namespace anton_engine::atl {
     }
 
     inline /* constexpr */ auto String_View::chars_begin() const -> char_iterator {
-        return _begin;
+        return char_iterator{_begin, 0};
     }
 
     inline /* constexpr */ auto String_View::chars_end() const -> char_iterator {
-        return _end;
+        return char_iterator{_end, _end - _begin};
     }
 
     constexpr auto String_View::size_bytes() const -> size_type {

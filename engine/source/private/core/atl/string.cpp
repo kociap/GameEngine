@@ -10,8 +10,8 @@
 #include <core/atl/type_traits.hpp>
 #include <core/unicode/common.hpp>
 
-#include <cstdint>  // uintptr_t
 #include <string.h> // memset
+#include <stdlib.h>
 
 namespace anton_engine::atl {
     String String::from_utf16(char16 const* str_utf16) {
@@ -110,7 +110,7 @@ namespace anton_engine::atl {
     }
 
     String& String::operator=(String const& other) {
-        value_type* new_data = reinterpret_cast<value_type*>(_allocator.allocate(_capacity, alignof(value_type)));
+        value_type* new_data = reinterpret_cast<value_type*>(_allocator.allocate(other._capacity, alignof(value_type)));
         _allocator.deallocate(_data, _capacity, alignof(value_type));
         _data = new_data;
         _size = other._size;
@@ -122,6 +122,23 @@ namespace anton_engine::atl {
 
     String& String::operator=(String&& other) noexcept {
         swap(*this, other);
+        return *this;
+    }
+
+    String& String::operator=(String_View const sv) {
+        _size = sv.size_bytes();
+        size_type const old_capacity = _capacity;
+        _capacity = 64;
+        while(_capacity < _size + 1) {
+            _capacity *= 2;
+        }
+
+        value_type* new_data = reinterpret_cast<value_type*>(_allocator.allocate(_capacity, alignof(value_type)));
+        _allocator.deallocate(_data, old_capacity, alignof(value_type));
+        _data = new_data;
+
+        memset(_data + _size, 0, _capacity - _size);
+        atl::copy(sv.data(), sv.data() + sv.size_bytes(), _data);
         return *this;
     }
 
@@ -171,11 +188,11 @@ namespace anton_engine::atl {
     }
 
     auto String::chars_begin() const -> char_iterator {
-        return _data;
+        return char_iterator{_data, 0};
     }
 
     auto String::chars_end() const -> char_iterator {
-        return _data + _size;
+        return char_iterator{_data + _size, _size};
     }
 
     auto String::capacity() const -> size_type {
@@ -213,6 +230,15 @@ namespace anton_engine::atl {
         _size += 1;
     }
 
+    void String::append(char32 const c) {
+        ensure_capacity(_size + 4);
+        // TODO: FIX
+        // i64 const bytes_written =  unicode::convert_utf32_to_utf8(&c, )
+        _data[_size] = (char8)c;
+        i64 bytes_written = 1;
+        _size += bytes_written;
+    }
+
     void String::append(String_View str) {
         ensure_capacity(_size + str.size_bytes() + 1);
         atl::copy(str.bytes_begin(), str.bytes_end(), _data + _size);
@@ -236,9 +262,9 @@ namespace anton_engine::atl {
     }
 
     void String::ensure_capacity(size_type requested_capacity) {
-        if (requested_capacity > _capacity) {
+        if (requested_capacity >= _capacity) {
             size_type new_capacity = _capacity;
-            while (new_capacity < requested_capacity) {
+            while (new_capacity <= requested_capacity) {
                 new_capacity *= 2;
             }
 
@@ -260,6 +286,21 @@ namespace anton_engine::atl {
             _data = new_data;
             _capacity = requested_capacity;
         }
+    }
+
+    String& operator+=(String& str, char8 c) {
+        str.append(c);
+        return str;
+    }
+
+    String& operator+=(String& str, char32 c) {
+        str.append(c);
+        return str;
+    }
+
+    String& operator+=(String& str, String_View sv) {
+        str.append(sv);
+        return str;
     }
 
     void swap(atl::String& str1, atl::String& str2) {
@@ -362,9 +403,13 @@ namespace anton_engine::atl {
 
     atl::String to_string(void* value) {
         char buffer[50] = {};
-        uintptr_t address = reinterpret_cast<uintptr_t>(value);
+        usize address = reinterpret_cast<usize>(value);
         int written_chars = sprintf(buffer, "0x%016llx", address);
         return {buffer, written_chars};
+    }
+
+    f32 str_to_f32(atl::String const& sv) {
+        return ::strtof(sv.data(), nullptr);
     }
 } // namespace anton_engine::atl
 

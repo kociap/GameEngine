@@ -3,14 +3,7 @@
 #include <stdio.h>
 
 namespace anton_engine::utils {
-    std::filesystem::path concat_paths(std::filesystem::path const& a, std::filesystem::path const& b) {
-        std::filesystem::path copy(a);
-        copy /= b; // TODO use generic separator
-        return copy;
-    }
-
-    atl::Vector<u8> read_file_binary(std::filesystem::path const& _path) {
-        std::string path = _path.generic_string();
+    atl::Vector<u8> read_file_binary(atl::String_View const path) {
         FILE* file = fopen(path.data(), "rb");
         if (!file) {
             // TODO: More specific exception that will actually allow

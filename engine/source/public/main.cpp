@@ -57,10 +57,11 @@ int main(int argc, char** argv) {
 #else
         engine_main(argc, argv);
 #endif // !ANTON_WITH_EDITOR
-    } catch(Exception& e) {
+    } catch(Exception const& e) {
         FILE* file = fopen(log_path, "w");
         fputs("anton_engine crashed with message:", file);
-        fputs(e.get_message().data(), file);
+        atl::String_View const msg = e.get_message();
+        fputs(msg.data(), file);
         fclose(file);
     } catch(...) {
         FILE* file = fopen(log_path, "w");

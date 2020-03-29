@@ -60,6 +60,7 @@ namespace anton_engine::atl {
         // Does not copy the allocator
         String& operator=(String const&);
         String& operator=(String&&) noexcept;
+        String& operator=(String_View);
 
     public:
         // Implicit conversion operator
@@ -84,8 +85,6 @@ namespace anton_engine::atl {
         // Always const
         [[nodiscard]] char_iterator chars_end() const;
 
-        // TODO: Reverse iterators
-
         // Capacity of the string in bytes.
         [[nodiscard]] size_type capacity() const;
         // Size of the string in bytes.
@@ -106,6 +105,7 @@ namespace anton_engine::atl {
 
         void clear();
         void append(char8);
+        void append(char32);
         void append(String_View);
         // template <typename Input_Iterator>
         // iterator insert(const_iterator pos, Input_Iterator first, Input_Iterator last);
@@ -126,6 +126,10 @@ namespace anton_engine::atl {
         void ensure_capacity(size_type requested_capacity);
         void ensure_capacity_exact(size_type requested_capacity);
     };
+
+    String& operator+=(String&, char8);
+    String& operator+=(String&, char32);
+    String& operator+=(String&, String_View);
 
     // Compares bytes
     [[nodiscard]] bool operator==(String const&, String const&);
@@ -161,6 +165,8 @@ namespace anton_engine::atl {
     String to_string(long double);
     String to_string(void*);
 
+    // TODO: Organize better.
+    f32 str_to_f32(atl::String const&);
 } // namespace anton_engine::atl
 
 namespace anton_engine {

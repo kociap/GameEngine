@@ -2,17 +2,17 @@
 #define CORE_PATHS_HPP_INCLUDE
 
 #include <build_config.hpp>
-#include <filesystem>
+#include <core/atl/string_view.hpp>
 
 namespace anton_engine::paths {
-    std::filesystem::path executable_name();
-    std::filesystem::path executable_directory();
+    atl::String_View executable_name();
+    atl::String_View executable_directory();
 
-    std::filesystem::path assets_directory();
-    std::filesystem::path shaders_directory();
+    atl::String_View assets_directory();
+    atl::String_View shaders_directory();
 
 #if ANTON_WITH_EDITOR
-    std::filesystem::path project_directory();
+    atl::String_View project_directory();
 #endif // ANTON_WITH_EDITOR
 } // namespace anton_engine::paths
 

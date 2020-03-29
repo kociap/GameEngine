@@ -12,7 +12,7 @@
 #include <core/paths_internal.hpp>
 #include <engine/resource_manager.hpp>
 #include <engine/time_internal.hpp>
-#include <core/utils/filesystem.hpp>
+#include <core/filesystem.hpp>
 #include <windowing/window.hpp>
 
 #include <engine/ecs/jobs_management.hpp>
@@ -58,8 +58,8 @@ namespace anton_engine {
     // TODO: Rework.
     static void load_input_bindings() {
         // TODO uses engine exe dir
-        std::filesystem::path const bindings_file_path(utils::concat_paths(paths::executable_directory(), "input_bindings.config"));
-        std::string const config_file(assets::read_file_raw_string(bindings_file_path).data());
+        atl::String const bindings_file_path = fs::concat_paths(paths::executable_directory(), u8"input_bindings.config");
+        atl::String const config_file = assets::read_file_raw_string(bindings_file_path);
         {
             auto find_property = [](auto& properties, auto predicate) -> atl::Vector<utils::xml::Tag_Property>::iterator {
                 auto end = properties.end();
@@ -102,8 +102,8 @@ namespace anton_engine {
                         ANTON_LOG_INFO("Missing scale property, skipping...");
                         continue;
                     }
-                    input::add_axis(axis_prop->value.data(), key_from_string(key_prop->value), std::stof(sensitivity_prop->value),
-                                    std::stof(accumulation_speed_prop->value), false);
+                    input::add_axis(axis_prop->value.data(), key_from_string(key_prop->value), atl::str_to_f32(sensitivity_prop->value),
+                                    atl::str_to_f32(accumulation_speed_prop->value), false);
                 } else {
                     input::add_action(action_prop->value.data(), key_from_string(key_prop->value));
                 }
@@ -483,9 +483,11 @@ namespace anton_engine {
     }
 
     int engine_main(int argc, char** argv) {
-        std::filesystem::path exe_directory(argv[0], std::filesystem::path::generic_format);
-        paths::set_executable_name(exe_directory.filename());
-        exe_directory.remove_filename();
+        // TODO: Generic format.
+        atl::String const exe_path = argv[0];
+        atl::String_View const exe_name = fs::get_filename(exe_path);
+        paths::set_executable_name(exe_name);
+        atl::String_View const exe_directory = fs::remove_filename(exe_path);
         paths::set_executable_directory(exe_directory);
 
         init();

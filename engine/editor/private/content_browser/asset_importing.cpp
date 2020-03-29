@@ -12,10 +12,10 @@
 #include <rendering/opengl_enums_defs.hpp>
 #include <core/paths.hpp>
 #include <rendering/texture_format.hpp>
+#include <core/filesystem.hpp>
 #include <core/utils/filesystem.hpp>
 
 #include <stdio.h>
-#include <string>
 
 namespace anton_engine::asset_importing {
     struct Matching_Format {
@@ -64,7 +64,7 @@ namespace anton_engine::asset_importing {
     }
 
     // TODO: Preprocess textures to limit the number of possible texture formats
-    static void write_texture(std::filesystem::path const& output_directory, std::filesystem::path const& file_original_path, importers::Image const& image) {
+    static void write_texture(atl::String_View const output_directory, atl::String_View const file_original_path, importers::Image const& image) {
         u64 identifier = 0; // TODO generate identifier
         Texture_Format format;
         format.width = image.width;
@@ -80,7 +80,9 @@ namespace anton_engine::asset_importing {
         i64 const image_bytes = image.data.size();
         i64 const texture_chunk_size = static_cast<i64>(sizeof(Texture_Format)) + 8 + image_bytes;
 
-        std::string const out_file_path = utils::concat_paths(output_directory, file_original_path.stem().generic_string() + ".getex").generic_string();
+        atl::String_View const out_filename_no_ext = fs::get_filename_no_extension(file_original_path);
+        atl::String const out_filename = atl::String(out_filename_no_ext) + ".getex";
+        atl::String const out_file_path = fs::concat_paths(output_directory, out_filename);
         FILE* file = fopen(out_file_path.data(), "wb");
         if(!file) { throw Exception(u8"Could not open file for writing"); }
         fwrite(reinterpret_cast<char const*>(&texture_chunk_size), 8, 1, file); // Allows to skip the entire texture chunk without parsing it
@@ -91,7 +93,7 @@ namespace anton_engine::asset_importing {
         fclose(file);
     }
 
-    void import_image(std::filesystem::path const& path) {
+    void import_image(atl::String_View const path) {
         // TODO convert from gamma encoded/srgb space to linear
         // TODO include necessary info in the output file
         // TODO meta files
@@ -157,10 +159,10 @@ namespace anton_engine::asset_importing {
         return {atl::move(vertices), atl::move(indices)};
     }
 
-    Imported_Meshes import_mesh(std::filesystem::path const& path) {
+    Imported_Meshes import_mesh(atl::String_View const path) {
         atl::Vector<u8> const file = utils::read_file_binary(path);
-        std::string const extension = path.extension().generic_string();
-        if (importers::test_obj(extension.data(), file)) {
+        atl::String_View const extension = fs::get_extension(path);
+        if (importers::test_obj(extension, file)) {
             atl::Vector<importers::Mesh> meshes = importers::import_obj(file);
 
             Imported_Meshes imported_meshes;
@@ -174,10 +176,9 @@ namespace anton_engine::asset_importing {
         throw Exception(u8"Unsupported file format");
     }
 
-    void save_meshes(atl::String_View filename, atl::Slice<u64 const> const guids, atl::Slice<Mesh const> meshes) {
-        atl::String file_name_with_ext(filename);
-        file_name_with_ext.append(u8".mesh");
-        std::string path = utils::concat_paths(paths::assets_directory(), std::filesystem::path(file_name_with_ext.data())).generic_string();
+    void save_meshes(atl::String_View const filename, atl::Slice<u64 const> const guids, atl::Slice<Mesh const> meshes) {
+        atl::String const file_name_with_ext = atl::String(filename) + u8".mesh";
+        atl::String const path = fs::concat_paths(paths::assets_directory(), file_name_with_ext);
         FILE* out = fopen(path.data(), "wb");
         if(!out) { throw Exception(u8"Could not open file for writing"); }
         for (isize i = 0; i < guids.size(); ++i) {

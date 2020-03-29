@@ -1,7 +1,7 @@
 #ifndef ENGINE_KEY_HPP_INCLUDE
 #define ENGINE_KEY_HPP_INCLUDE
 
-#include <string>
+#include <core/atl/string_view.hpp>
 
 namespace anton_engine {
     enum class Key {
@@ -162,8 +162,8 @@ namespace anton_engine {
     bool is_gamepad_axis(Key);
     bool is_gamepad_stick(Key);
 
-    std::string key_to_string(Key);
-    Key key_from_string(std::string const&);
+    atl::String_View key_to_string(Key);
+    Key key_from_string(atl::String_View);
 } // namespace anton_engine
 
 #endif // !ENGINE_KEY_HPP_INCLUDE

@@ -20,7 +20,7 @@
 #include <engine/resource_manager.hpp>
 #include <shaders/shader.hpp>
 #include <engine/time_internal.hpp>
-#include <core/utils/filesystem.hpp>
+#include <core/filesystem.hpp>
 #include <windowing/window.hpp>
 
 #include <rendering/builtin_editor_shaders.hpp>
@@ -214,8 +214,8 @@ namespace anton_engine {
     // TODO: Rework.
     static void load_input_bindings() {
         // TODO uses engine exe dir
-        std::filesystem::path const bindings_file_path(utils::concat_paths(paths::executable_directory(), "input_bindings.config"));
-        std::string const config_file(assets::read_file_raw_string(bindings_file_path).data());
+        atl::String const bindings_file_path = fs::concat_paths(paths::executable_directory(), u8"input_bindings.config");
+        atl::String const config_file = assets::read_file_raw_string(bindings_file_path);
         {
             auto find_property = [](auto& properties, auto predicate) -> atl::Vector<utils::xml::Tag_Property>::iterator {
                 auto end = properties.end();
@@ -258,8 +258,8 @@ namespace anton_engine {
                         ANTON_LOG_INFO("Missing scale property, skipping...");
                         continue;
                     }
-                    input::add_axis(axis_prop->value.data(), key_from_string(key_prop->value), std::stof(sensitivity_prop->value),
-                                    std::stof(accumulation_speed_prop->value), false);
+                    input::add_axis(axis_prop->value.data(), key_from_string(key_prop->value), atl::str_to_f32(sensitivity_prop->value),
+                                    atl::str_to_f32(accumulation_speed_prop->value), false);
                 } else {
                     input::add_action(action_prop->value.data(), key_from_string(key_prop->value));
                 }
@@ -284,10 +284,10 @@ namespace anton_engine {
         opengl::load();
         rendering::setup_rendering();
         rendering::init_font_rendering();
-        atl::String comic_path = paths::assets_directory().generic_string().data();
+        atl::String comic_path{paths::assets_directory()};
         comic_path.append(u8"/fonts/comic.ttf");
         comic_sans_face = rendering::load_face_from_file(comic_path, 0);
-        atl::String french_script_regular = paths::assets_directory().generic_string().data();
+        atl::String french_script_regular{paths::assets_directory()};
         french_script_regular.append(u8"/fonts/french_script_regular.ttf");
         french_script_regular_face = rendering::load_face_from_file(french_script_regular, 0);
         load_builtin_shaders();
@@ -342,15 +342,17 @@ namespace anton_engine {
         //     throw std::runtime_error("Specified project file does not exist");
         // }
 
-        std::filesystem::path exe_directory(argv[0], std::filesystem::path::generic_format);
-        paths::set_executable_name(exe_directory.filename());
-        exe_directory.remove_filename();
+        // TODO: Generic format
+        atl::String const exe_path = argv[0];
+        atl::String_View const exe_name = fs::get_filename(exe_path);
+        paths::set_executable_name(exe_name);
+        atl::String_View const exe_directory = fs::remove_filename(exe_path);
         paths::set_executable_directory(exe_directory);
+
         //std::filesystem::path project_directory(argv[1], std::filesystem::path::generic_format);
-        std::filesystem::path project_directory("C:/Users/An0num0us/Documents/GameEngine_Game/GameEngine_Game.geproject",
-                                                std::filesystem::path::generic_format);
-        project_directory.remove_filename();
-        paths::set_project_directory(project_directory);
+        atl::String const project_file_path = u8"C:/Users/An0num0us/Documents/GameEngine_Game/GameEngine_Game.geproject";;
+        atl::String_View const project_file_directory = fs::remove_filename(project_file_path);
+        paths::set_project_directory(project_file_directory);
 
         // TODO Validate project file
 

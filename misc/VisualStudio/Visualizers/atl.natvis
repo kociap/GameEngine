@@ -17,8 +17,8 @@
 
     <!-- anton_engine::atl::String_View -->
     <Type Name="anton_engine::atl::String_View">
-        <DisplayString>{_begin, s8}</DisplayString>
-        <StringView>_begin, s8</StringView>
+        <DisplayString>{_begin,[_end - _begin]s8}</DisplayString>
+        <StringView>_begin,[_end - _begin]s8</StringView>
         <Expand>
             <Item Name="size">_end - _begin</Item>
             <ArrayItems>
