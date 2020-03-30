@@ -87,10 +87,10 @@ namespace anton_engine::rendering {
         // TODO: layout
         // TODO: caching
         
-        i32 const buf_size = unicode::convert_utf8_to_utf32(string.data(), nullptr) / sizeof(char32);
+        i32 const buf_size = unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), nullptr) / sizeof(char32);
         atl::Vector<char32> buffer_utf32{atl::reserve, buf_size};
         buffer_utf32.force_size(buf_size);
-        unicode::convert_utf8_to_utf32(string.data(), buffer_utf32.data());
+        unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), buffer_utf32.data());
         atl::Vector<Glyph> glyphs;
         for(i32 i = 0; i < buf_size; ++i) {
             // Skip null-terminator because it's non-printable, but rasterizes to rectangle.
@@ -127,10 +127,10 @@ namespace anton_engine::rendering {
         // TODO: layout
         // TODO: caching
         
-        i32 const buf_size = unicode::convert_utf8_to_utf32(string.data(), nullptr) / sizeof(char32);
+        i32 const buf_size = unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), nullptr) / sizeof(char32);
         atl::Vector<char32> buffer_utf32{atl::reserve, buf_size};
         buffer_utf32.force_size(buf_size);
-        unicode::convert_utf8_to_utf32(string.data(), buffer_utf32.data());
+        unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), buffer_utf32.data());
         i32 width = 0;
         i32 height_above_baseline = 0;
         i32 height_below_baseline = 0;

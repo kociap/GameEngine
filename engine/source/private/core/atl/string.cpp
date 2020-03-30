@@ -15,10 +15,10 @@
 
 namespace anton_engine::atl {
     String String::from_utf16(char16 const* str_utf16) {
-        i32 const buffer_size = unicode::convert_utf16_to_utf8(str_utf16, nullptr);
+        i32 const buffer_size = unicode::convert_utf16_to_utf8(str_utf16, -1, nullptr);
         String str{atl::reserve, buffer_size};
         str.force_size(buffer_size);
-        unicode::convert_utf16_to_utf8(str_utf16, str.data());
+        unicode::convert_utf16_to_utf8(str_utf16, -1, str.data());
         return str;
     }
 
@@ -232,10 +232,7 @@ namespace anton_engine::atl {
 
     void String::append(char32 const c) {
         ensure_capacity(_size + 4);
-        // TODO: FIX
-        // i64 const bytes_written =  unicode::convert_utf32_to_utf8(&c, )
-        _data[_size] = (char8)c;
-        i64 bytes_written = 1;
+        i64 const bytes_written =  unicode::convert_utf32_to_utf8(&c, 4, _data + _size);
         _size += bytes_written;
     }
 
