@@ -58,4 +58,18 @@
             <ExpandedItem Condition="_holds_value">_value</ExpandedItem>
         </Expand>
     </Type>
+
+    <!-- anton_engine::atl::Flat_Hash_Map<Key, Value, Hash, Key_Compare> -->
+    <Type Name="anton_engine::atl::Flat_Hash_Map&lt;*,*,*,*&gt;">
+        <DisplayString >{{ size = {_size}, capacity = {_capacity} }}</DisplayString>
+        <Expand>
+            <Item Name="Allocator">_allocator</Item>
+            <Item Name="Hash">_hasher</Item>
+            <Item Name="Key_Compare">_key_equal</Item>
+            <ArrayItems>
+                <Size>_capacity</Size>
+                <ValuePointer>_slots</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
 </AutoVisualizer>

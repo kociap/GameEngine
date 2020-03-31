@@ -86,6 +86,17 @@ namespace anton_engine::atl {
     template <typename T>
     constexpr bool is_pointer = Is_Pointer<T>::value;
 
+    // Is_Const
+    //
+    template <typename T>
+    struct Is_Const: False_Type {};
+
+    template <typename T>
+    struct Is_Const<T const>: True_Type {};
+
+    template <typename T>
+    constexpr bool is_const = Is_Const<T>::value;
+
     // Is_Lvalue_Reference
     //
     template <typename T>
