@@ -2,12 +2,12 @@
 #define CORE_SERIALIZATION_ACHIVES_BINARY_HPP_INCLUDE
 
 #include <core/types.hpp>
-#include <iosfwd>
+#include <core/stream.hpp>
 
 namespace anton_engine::serialization {
     class Binary_Input_Archive {
     public:
-        explicit Binary_Input_Archive(std::ifstream& strm): file(strm) {}
+        explicit Binary_Input_Archive(Input_Stream& strm): file(strm) {}
 
         template <typename T>
         void read(T& v) {
@@ -16,15 +16,15 @@ namespace anton_engine::serialization {
             read_binary(out, data_size);
         }
 
-        void read_binary(void*, isize bytes);
+        void read_binary(void*, i64 bytes);
 
     private:
-        std::ifstream& file;
+        Input_Stream& file;
     };
 
     class Binary_Output_Archive {
     public:
-        explicit Binary_Output_Archive(std::ofstream& strm): file(strm) {}
+        explicit Binary_Output_Archive(Output_Stream& strm): file(strm) {}
 
         template <typename T>
         void write(T const& v) {
@@ -33,10 +33,10 @@ namespace anton_engine::serialization {
             write_binary(data, data_size);
         }
 
-        void write_binary(void const*, isize bytes);
+        void write_binary(void const*, i64 bytes);
 
     private:
-        std::ofstream& file;
+        Output_Stream& file;
     };
 } // namespace anton_engine::serialization
 
