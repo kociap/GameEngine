@@ -2,7 +2,6 @@
 #define CORE_MATH_VECTOR4_HPP_INCLUDE
 
 #include <core/atl/utility.hpp>
-#include <cmath>
 #include <core/math/math.hpp>
 
 namespace anton_engine {
@@ -185,7 +184,7 @@ namespace anton_engine {
         }
 
         inline float length(Vector4 const v) {
-            return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+            return math::sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
         }
 
         inline Vector4 normalize(Vector4 vec) {

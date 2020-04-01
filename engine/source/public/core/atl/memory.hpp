@@ -4,8 +4,7 @@
 #include <core/atl/detail/memory_common.hpp>
 #include <core/atl/iterators.hpp>
 #include <core/atl/type_traits.hpp>
-
-#include <string.h> // memcpy, memmove
+#include <core/anton_crt.hpp>
 
 // TODO alloc_aligned
 

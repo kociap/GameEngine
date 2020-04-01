@@ -1,5 +1,6 @@
 #include <windowing/window.hpp>
 
+#include <core/anton_crt.hpp>
 #include <core/assert.hpp>
 #include <core/atl/vector.hpp>
 #include <core/diagnostic_macros.hpp>
@@ -7,8 +8,6 @@
 #include <core/atl/fixed_array.hpp>
 
 #include <mimas/mimas_gl.h>
-
-#include <stdio.h>
 
 namespace anton_engine::windowing {
     class Window {
@@ -77,7 +76,6 @@ namespace anton_engine::windowing {
 
     void _window_activate_callback(Mimas_Window* const, mimas_i32 const activated, void* const data){
         Window* const window = reinterpret_cast<Window*>(data);
-        printf("MIMAS ACTIVATE EVENT %d\n", activated);
         if(window->callbacks.window_activate) {
             window->callbacks.window_activate(window, activated, window->callbacks.window_activate_data);
         }

@@ -1,6 +1,8 @@
 #ifndef CORE_ATL_MEMORY_COMMON_HPP_INCLUDE
 #define CORE_ATL_MEMORY_COMMON_HPP_INCLUDE
 
+void* operator new(unsigned long long size, void*);
+
 namespace anton_engine::atl {
     // addressof
     template <typename T>

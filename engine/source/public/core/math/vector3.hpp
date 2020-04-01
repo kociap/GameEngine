@@ -2,7 +2,6 @@
 #define CORE_MATH_VECTOR3_HPP_INCLUDE
 
 #include <core/atl/utility.hpp>
-#include <cmath>
 #include <core/math/math.hpp>
 
 namespace anton_engine {
@@ -194,7 +193,7 @@ namespace anton_engine {
         }
 
         inline float length(Vector3 v) {
-            return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+            return math::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
         }
 
         inline Vector3 normalize(Vector3 vec) {

@@ -13,10 +13,10 @@ ANTON_RESTORE_WARNINGS();
 #include <core/atl/string.hpp>
 #include <core/atl/string_utils.hpp>
 #include <core/windows/debugging.hpp>
+#include <core/anton_crt.hpp>
 
 #include <new>
 #include <stdio.h>
-#include <string.h> // memset
 
 namespace anton_engine {
     void anton_assert(char const* message, char const* file, unsigned long long line) {

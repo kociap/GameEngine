@@ -2,6 +2,7 @@
 
 #include <rendering/glad.hpp>
 
+#include <core/anton_crt.hpp>
 #include <core/types.hpp>
 #include <core/atl/vector.hpp>
 #include <build_config.hpp>
@@ -13,8 +14,6 @@
 #include <rendering/texture_format.hpp>
 #include <core/exception.hpp>
 #include <core/filesystem.hpp>
-
-#include <stdio.h>
 
 namespace anton_engine::assets {
     atl::String read_file_raw_string(atl::String_View const path) {

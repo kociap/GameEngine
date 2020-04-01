@@ -1,8 +1,8 @@
 #ifndef CORE_MATH_MATH_HPP_INCLUDE
 #define CORE_MATH_MATH_HPP_INCLUDE
 
+#include <core/anton_crt.hpp>
 #include <core/types.hpp>
-#include <math.h>
 #include <core/intrinsics.hpp>
 
 // Safety measures
@@ -45,11 +45,11 @@ namespace anton_engine::math {
     }
 
     inline f32 pow(f32 base, f32 exp) {
-        return ::pow(base, exp);
+        return ::powf(base, exp);
     }
 
     inline float sqrt(float a) {
-        return ::sqrt(a);
+        return ::sqrtf(a);
     }
 
     inline float inv_sqrt(float a) {
@@ -66,6 +66,10 @@ namespace anton_engine::math {
 
     inline float cos(float angle) {
         return ::cosf(angle);
+    }
+
+    inline f32 tan(f32 angle) {
+        return ::tanf(angle);
     }
 
     template<typename T>

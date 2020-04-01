@@ -7,11 +7,11 @@
 // Windows.h must be included before DbgHelp.h. Otherwise we get undefined identifiers in DbgHelp.h
 #include <DbgHelp.h>
 
+#include <core/anton_crt.hpp>
 #include <core/atl/string.hpp>
 #include <core/windows/common.hpp>
 
 #include <new>
-#include <string.h> // memset
 
 // Specifies symbol's basic type.
 // Copied from cvconst.h

@@ -15,8 +15,6 @@
 #include <core/filesystem.hpp>
 #include <core/utils/filesystem.hpp>
 
-#include <stdio.h>
-
 namespace anton_engine::asset_importing {
     struct Matching_Format {
         opengl::Format format;

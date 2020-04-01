@@ -40,7 +40,6 @@
 #include <core/serialization/archives/binary.hpp>
 #include <core/serialization/serialization.hpp>
 #include <engine/time.hpp>
-#include <stdio.h>
 
 #include <engine/time.hpp>
 

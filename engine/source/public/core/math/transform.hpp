@@ -5,6 +5,7 @@
 #include <core/math/matrix4.hpp>
 #include <core/math/quaternion.hpp>
 #include <core/math/vector3.hpp>
+#include <core/math/math.hpp>
 
 namespace anton_engine::math::transform {
     Matrix4 translate(Vector3 translation);
@@ -73,7 +74,7 @@ namespace anton_engine::math::transform {
     }
 
     inline Matrix4 perspective(float fov, float aspect_ratio, float near, float far) {
-        float inv_tan = 1 / (tanf(fov / 2));
+        float inv_tan = 1 / (math::tan(fov / 2));
         return {{inv_tan / aspect_ratio, 0, 0, 0}, {0, inv_tan, 0, 0}, {0, 0, -(far + near) / (far - near), -1}, {0, 0, -2 * far * near / (far - near), 0}};
 
         // left handed

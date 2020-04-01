@@ -1,6 +1,6 @@
 #include <core/utils/filesystem.hpp>
 
-#include <stdio.h>
+#include <core/anton_crt.hpp>
 
 namespace anton_engine::utils {
     atl::Vector<u8> read_file_binary(atl::String_View const path) {

@@ -9,9 +9,11 @@
 #include <core/atl/string_utils.hpp>
 #include <core/atl/type_traits.hpp>
 #include <core/unicode/common.hpp>
+#include <core/anton_crt.hpp>
 
-#include <string.h> // memset
-#include <stdlib.h>
+// TODO: Replace with format.
+#include <stdio.h> // sprintf
+#include <stdlib.h> // strtof
 
 namespace anton_engine::atl {
     String String::from_utf16(char16 const* str_utf16) {

@@ -1,14 +1,12 @@
 #include <module_loader.hpp>
 #include <stdexcept>
 
+#include <core/anton_crt.hpp>
 #include <engine/ecs/component_serialization.hpp>
 #include <engine/ecs/system_management.hpp>
 #include <core/exception.hpp>
 
 #include <build_config.hpp>
-
-#include <stdio.h>
-#include <string.h>
 
 namespace anton_engine {
 #if ANTON_WITH_EDITOR
