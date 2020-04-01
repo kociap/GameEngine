@@ -25,9 +25,9 @@ namespace anton_engine {
         atl::swap(other.program, program);
     }
 
-    Shader& Shader::operator=(Shader&& shader) noexcept {
-        atl::swap(shader.program, program);
-        uniform_cache = atl::move(shader.uniform_cache);
+    Shader& Shader::operator=(Shader&& other) noexcept {
+        atl::swap(other.program, program);
+        atl::swap(uniform_cache, other.uniform_cache);
         return *this;
     }
 
@@ -41,13 +41,15 @@ namespace anton_engine {
         glAttachShader(program, shader.shader);
     }
 
-    static void build_shader_uniform_cache(u32 program, std::unordered_map<u64, i32>& uniform_cache) {
+    static void build_shader_uniform_cache(u32 program, atl::Flat_Hash_Map<u64, i32>& uniform_cache) {
         i32 active_uniforms;
         glGetProgramInterfaceiv(program, GL_UNIFORM, GL_ACTIVE_RESOURCES, &active_uniforms);
+        // glGetProgramInterfaceiv outputs the max name length including null-terminator.
         i32 uniform_max_name_length;
         glGetProgramInterfaceiv(program, GL_UNIFORM, GL_MAX_NAME_LENGTH, &uniform_max_name_length);
         atl::Vector<char> name(uniform_max_name_length);
         for (i32 uniform_index = 0; uniform_index < active_uniforms; ++uniform_index) {
+            // glGetActiveUniformName outputs the number of characters written not including null-terminator.
             i32 name_length;
             glGetActiveUniformName(program, static_cast<u32>(uniform_index), uniform_max_name_length, &name_length, &name[0]);
             i32 const location = glGetUniformLocation(program, &name[0]);
@@ -83,7 +85,7 @@ namespace anton_engine {
         u64 const h = atl::hash(name);
         auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
-            glUniform1i(iter->second, a);
+            glUniform1i(iter->value, a);
         }
     }
 
@@ -91,7 +93,7 @@ namespace anton_engine {
         u64 const h = atl::hash(name);
         auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
-            glUniform1ui(iter->second, a);
+            glUniform1ui(iter->value, a);
         }
     }
 
@@ -99,7 +101,7 @@ namespace anton_engine {
         u64 const h = atl::hash(name);
         auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
-            glUniform1f(iter->second, a);
+            glUniform1f(iter->value, a);
         }
     }
 
@@ -107,7 +109,7 @@ namespace anton_engine {
         u64 const h = atl::hash(name);
         auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
-            glUniform2fv(iter->second, 1, &vec.x);
+            glUniform2fv(iter->value, 1, &vec.x);
         }
     }
 
@@ -115,7 +117,7 @@ namespace anton_engine {
         u64 const h = atl::hash(name);
         auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
-            glUniform3fv(iter->second, 1, &vec.x);
+            glUniform3fv(iter->value, 1, &vec.x);
         }
     }
 
@@ -123,7 +125,7 @@ namespace anton_engine {
         u64 const h = atl::hash(name);
         auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
-            glUniform3fv(iter->second, 1, &c.r);
+            glUniform3fv(iter->value, 1, &c.r);
         }
     }
 
@@ -131,7 +133,7 @@ namespace anton_engine {
         u64 const h = atl::hash(name);
         auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
-            glUniform4fv(iter->second, 1, &c.r);
+            glUniform4fv(iter->value, 1, &c.r);
         }
     }
 
@@ -139,7 +141,7 @@ namespace anton_engine {
         u64 const h = atl::hash(name);
         auto iter = uniform_cache.find(h);
         if (iter != uniform_cache.end()) {
-            glUniformMatrix4fv(iter->second, 1, GL_FALSE, mat.get_raw());
+            glUniformMatrix4fv(iter->value, 1, GL_FALSE, mat.get_raw());
         }
     }
 

@@ -4,6 +4,7 @@
 #include <core/diagnostic_macros.hpp>
 #include <core/unicode/common.hpp>
 #include <core/math/math.hpp>
+#include <core/atl/flat_hash_map.hpp>
 
 #include <rendering/glad.hpp>
 #include <rendering/opengl.hpp>
@@ -12,8 +13,6 @@ ANTON_DISABLE_WARNINGS()
 #include <ft2build.h>
 #include FT_FREETYPE_H
 ANTON_RESTORE_WARNINGS()
-
-#include <unordered_map>
 
 namespace anton_engine::rendering {
     struct Text_Image_With_Parameters {
@@ -24,7 +23,7 @@ namespace anton_engine::rendering {
 
     class Font_Library {
     public:
-        std::unordered_map<u64, atl::Vector<Text_Image_With_Parameters>> font_texture_map;
+        atl::Flat_Hash_Map<u64, atl::Vector<Text_Image_With_Parameters>> font_texture_map;
     };
 
     static Font_Library* font_lib = nullptr;
@@ -169,7 +168,7 @@ namespace anton_engine::rendering {
         u64 const str_hash = atl::hash(string);
         auto iter = font_lib->font_texture_map.find(str_hash);
         if(iter != font_lib->font_texture_map.end()) {
-            atl::Vector<Text_Image_With_Parameters>& vec = iter->second;
+            atl::Vector<Text_Image_With_Parameters>& vec = iter->value;
             for(Text_Image_With_Parameters& tex: vec) {
                 if(tex.face == _face && tex.render_info.points == info.points && 
                    tex.render_info.h_dpi == info.h_dpi && tex.render_info.v_dpi == info.v_dpi) {
@@ -227,7 +226,8 @@ namespace anton_engine::rendering {
         glTextureParameteriv(image.texture, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glTextureSubImage2D(image.texture, 0, 0, 0, buffer_width, buffer_height, GL_RED, GL_UNSIGNED_BYTE, tex_data.data());
-        font_lib->font_texture_map[str_hash].emplace_back(_face, info, image);
+        atl::Vector<Text_Image_With_Parameters>& textures = font_lib->font_texture_map.find_or_emplace(str_hash)->value;
+        textures.emplace_back(_face, info, image);
         return image;
     }
 } // namespace anton_engine::rendering

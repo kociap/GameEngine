@@ -4,9 +4,9 @@
 #include <core/types.hpp>
 #include <core/atl/string_view.hpp>
 #include <core/atl/type_traits.hpp>
+#include <core/atl/flat_hash_map.hpp>
 #include <core/math/vector2.hpp>
 #include <core/math/vector3.hpp>
-#include <unordered_map>
 
 namespace anton_engine {
     class Vector3;
@@ -45,7 +45,7 @@ namespace anton_engine {
         friend void delete_shader(Shader&);
 
     private:
-        std::unordered_map<u64, i32> uniform_cache;
+        atl::Flat_Hash_Map<u64, i32> uniform_cache;
         u32 program = 0;
     };
 

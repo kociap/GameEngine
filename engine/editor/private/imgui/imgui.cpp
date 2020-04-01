@@ -9,8 +9,7 @@
 #include <core/atl/vector.hpp>
 #include <windowing/window.hpp>
 #include <rendering/fonts.hpp>
-
-#include <unordered_map>
+#include <core/atl/flat_hash_map.hpp>
 
 #include <core/logging.hpp>
 
@@ -68,7 +67,7 @@ namespace anton_engine::imgui {
         f32 border_area_width;
         bool enabled;
         // TODO: Rename to make multi-purpose.
-        std::unordered_map<i64, Button_State> button_state;
+        atl::Flat_Hash_Map<i64, Button_State> button_state;
         Draw_Context draw_context;
     };
 
@@ -95,7 +94,7 @@ namespace anton_engine::imgui {
     public:
         // TODO: Remove current and next.
         struct {
-            std::unordered_map<i64, Window> windows;
+            atl::Flat_Hash_Map<i64, Window> windows;
         } current, next;
         i64 hot_window = -1;
         i64 active_window = -1;
@@ -687,6 +686,7 @@ namespace anton_engine::imgui {
     }
 
     void set_default_font(Context& ctx, Font_Style style) {
+        // TODO: Should this function change default style?
         ctx.default_font_style = style;
     }
 
@@ -710,6 +710,10 @@ namespace anton_engine::imgui {
 
     void set_default_style(Context& ctx, Style style) {
         ctx.default_style = style;
+    }
+
+    Style get_default_style(Context& ctx) {
+        return ctx.default_style;
     }
 
     void set_input_state(Context& ctx, Input_State const state) {
@@ -757,7 +761,7 @@ namespace anton_engine::imgui {
             if (ctx.input.left_mouse_button) {
                 if (ctx.hot_window != -1) {
                     ctx.active_window = ctx.hot_window;
-                    Window& window = ctx.next.windows.at(ctx.active_window);
+                    Window& window = ctx.next.windows.find(ctx.active_window)->value;
                     Dockspace* const dockspace = window.dockspace;
                     dockspace->active_window = window.id;
 
@@ -776,7 +780,7 @@ namespace anton_engine::imgui {
             }
         } else if (ctx.input.left_mouse_button) {
             if (ctx.active_window != -1) {
-                Window& window = ctx.next.windows.at(ctx.active_window);
+                Window& window = ctx.next.windows.find(ctx.active_window)->value;
                 Vector2 const cursor_pos_delta = ctx.input.cursor_position - ctx.prev_input.cursor_position;
                 // ANTON_LOG_INFO("cursor_pos_delta: " + atl::to_string(cursor_pos_delta.x) + " " + atl::to_string(cursor_pos_delta.y));
                 if (ctx.dragging) {
@@ -916,7 +920,7 @@ namespace anton_engine::imgui {
         } else {
             if (just_left_released) {
                 if (ctx.dragging && !ctx.drag_alien_dockspace) {
-                    Window& window = ctx.next.windows.at(ctx.active_window);
+                    Window& window = ctx.next.windows.find(ctx.active_window)->value;
                     Viewport* main_viewport = get_main_viewport(ctx);
                     bool const cursor_in_main_viewport = test_point_in_box(cursor, get_viewport_screen_pos(main_viewport), get_viewport_size(main_viewport));
                     if (main_viewport->dockspaces.size() == 0 && cursor_in_main_viewport) {
@@ -1105,7 +1109,7 @@ namespace anton_engine::imgui {
             f32 tab_offset = 0.0f;
             f32 constexpr separator_width = 5;
             for (i64 const id: dockspace->windows) {
-                Window& window = ctx.next.windows.at(id);
+                Window& window = ctx.next.windows.find(id)->value;
                 Vertex::Color const tab_color = id == ctx.hot_window || id == ctx.active_window
                                                     ? color_to_vertex_color(window.style.background_color * Color(1.5f, 1.5f, 1.5f, 1.0f))
                                                     : color_to_vertex_color(window.style.background_color * Color(1.2f, 1.2f, 1.2f, 1.0f));
@@ -1157,7 +1161,7 @@ namespace anton_engine::imgui {
             }
 
             // Render window background
-            Window& window = ctx.next.windows.at(dockspace->active_window);
+            Window& window = ctx.next.windows.find(dockspace->active_window)->value;
             Draw_Command cmd;
             cmd.vertex_offset = verts.size();
             Vertex::Color const color = color_to_vertex_color(window.style.background_color);
@@ -1351,15 +1355,15 @@ namespace anton_engine::imgui {
             window.border_area_width = 4.0f;
             window.enabled = true;
             ctx.current_window = window.id;
-            auto [new_iter, _] = ctx.next.windows.emplace(id, window);
+            auto new_iter = ctx.next.windows.emplace(id, window);
 
             Dockspace* const dockspace = create_dockspace(ctx);
-            add_window(dockspace, new_iter->second, 0);
+            add_window(dockspace, new_iter->value, 0);
             // TODO: Hardcoded size.
             Viewport* const viewport = create_viewport(ctx, {200.0f, 200.0f}, false);
             parent_to_root(dockspace, viewport);
         } else {
-            iter->second.enabled = true;
+            iter->value.enabled = true;
             ctx.current_window = id;
         }
     }
@@ -1396,9 +1400,9 @@ namespace anton_engine::imgui {
     Button_State button(Context& ctx, atl::String_View text, Button_Style const inactive_style, Button_Style const hot_style, Button_Style const active_style) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
         // TODO: Check window z-order to determine whether this window is top-level
-        Window& window = ctx.next.windows.at(ctx.current_window);
+        Window& window = ctx.next.windows.find(ctx.current_window)->value;
         i64 const hash = hash_string(text);
-        Button_State& state = window.button_state[hash];
+        Button_State& state = window.button_state.find_or_emplace(hash)->value;
         Button_Style style;
         switch(state) {
             case Button_State::inactive: {
@@ -1506,7 +1510,7 @@ namespace anton_engine::imgui {
 
     void image(Context& ctx, u64 const texture, Vector2 const size, Vector2 const uv_top_left, Vector2 const uv_bottom_right) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
-        Window& window = ctx.next.windows.at(ctx.current_window);
+        Window& window = ctx.next.windows.find(ctx.current_window)->value;
         Vector2 const window_size = get_dockspace_content_size(window.dockspace);
         Draw_Context& dc = window.draw_context;
         Vector2 const draw_pos = dc.draw_pos;
@@ -1541,7 +1545,7 @@ namespace anton_engine::imgui {
     Style get_style(Context& ctx) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
-        Window& window = ctx.next.windows.at(ctx.current_window);
+        Window& window = ctx.next.windows.find(ctx.current_window)->value;
         return window.style;
     }
 
@@ -1549,7 +1553,7 @@ namespace anton_engine::imgui {
     void set_style(Context& ctx, Style const style) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
-        Window& window = ctx.next.windows.at(ctx.current_window);
+        Window& window = ctx.next.windows.find(ctx.current_window)->value;
         window.style = style;
     }
 
@@ -1557,14 +1561,14 @@ namespace anton_engine::imgui {
         ANTON_VERIFY(width >= 1.0f, "Border area may not be thinner than 1 pixel.");
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
-        Window& window = ctx.next.windows.at(ctx.current_window);
+        Window& window = ctx.next.windows.find(ctx.current_window)->value;
         window.border_area_width = width;
     }
 
     void set_window_size(Context& ctx, Vector2 const size) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
-        Window& window = ctx.next.windows.at(ctx.current_window);
+        Window& window = ctx.next.windows.find(ctx.current_window)->value;
         Dockspace* dockspace = window.dockspace;
         if(dockspace->layout_parent->tile_type == Layout_Tile_Type::root && dockspace->windows.size() == 1) {
             Vector2 const tab_size = get_dockspace_tab_bar_size(dockspace);
@@ -1577,7 +1581,7 @@ namespace anton_engine::imgui {
     void set_window_pos(Context& ctx, Vector2 const pos) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
 
-        Window& window = ctx.next.windows.at(ctx.current_window);
+        Window& window = ctx.next.windows.find(ctx.current_window)->value;
         Dockspace* const dockspace = window.dockspace;
         if(dockspace->layout_parent->tile_type == Layout_Tile_Type::root && dockspace->windows.size() == 1) {
             set_viewport_screen_pos(dockspace->viewport, pos);
@@ -1598,7 +1602,7 @@ namespace anton_engine::imgui {
 
     Vector2 get_window_dimensions(Context& ctx) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
-        Window& window = ctx.next.windows.at(ctx.current_window);
+        Window& window = ctx.next.windows.find(ctx.current_window)->value;
         return get_dockspace_content_size(window.dockspace);
     }
 

@@ -30,9 +30,9 @@
 #include <engine/resource_manager.hpp>
 #include <shaders/shader.hpp>
 #include <core/utils/enum.hpp>
+#include <core/atl/flat_hash_map.hpp>
 
 #include <algorithm> // std::sort
-#include <unordered_map>
 
 #if ANTON_WITH_EDITOR
 #    include <editor.hpp>
@@ -155,7 +155,7 @@ namespace anton_engine::rendering {
     // Draw commands buffer
     static atl::Vector<Draw_Elements_Command> draw_elements_commands;
 
-    static std::unordered_map<u64, Draw_Elements_Command> persistent_draw_commands_map;
+    static atl::Flat_Hash_Map<u64, Draw_Elements_Command> persistent_draw_commands_map;
 
     static u64 get_persistent_geometry_next_handle() {
         static u64 handle = 0;
@@ -521,7 +521,9 @@ namespace anton_engine::rendering {
     }
 
     void add_draw_command(Draw_Persistent_Geometry_Command const cmd) {
-        Draw_Elements_Command draw_cmd = persistent_draw_commands_map.at(cmd.handle);
+        auto iter = persistent_draw_commands_map.find(cmd.handle);
+        ANTON_ASSERT(iter != persistent_draw_commands_map.end(), "Persistent draw command was not added prior to its use.");
+        Draw_Elements_Command draw_cmd = iter->value;
         draw_cmd.base_instance = cmd.base_instance;
         draw_cmd.instance_count = cmd.instance_count;
         add_draw_command(draw_cmd);

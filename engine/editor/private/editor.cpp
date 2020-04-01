@@ -90,6 +90,16 @@ namespace anton_engine {
 
             imgui::begin_frame(ctx);
 
+            imgui::begin_window(ctx, "just_a_window");
+            imgui::button(ctx, u8"just some text");
+            imgui::button(ctx, u8"énicódę frééśtyłę");
+            imgui::Button_Style style = imgui::get_default_style(ctx).button;
+            style.font.face = french_script_regular_face;
+            imgui::button(ctx, u8"just some text", style, style, style);
+            imgui::button(ctx, u8"énicódę frééśtyłę", style, style, style);
+
+            imgui::end_window(ctx);
+
             ECS& ecs = Editor::get_ecs();
             {
                 auto viewport_camera_view = Editor::get_ecs().view<Viewport_Camera, Camera, Transform>();

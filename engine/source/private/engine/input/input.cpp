@@ -11,9 +11,9 @@
 #include <engine/time.hpp>
 #include <core/utils/filesystem.hpp>
 #include <core/utils/simple_xml_parser.hpp>
+#include <core/atl/flat_hash_map.hpp>
 
 #include <cctype>
-#include <unordered_map>
 
 // TODO add support for multiple gamepads
 
@@ -81,7 +81,7 @@ namespace anton_engine::input {
         Action(atl::String_View const a): action(a) {}
     };
 
-    static std::unordered_map<Key, Key_State> key_states;
+    static atl::Flat_Hash_Map<Key, Key_State> key_states;
     // TODO redesign events
     static atl::Vector<Key> key_events_queue;
     static atl::Vector<Event> input_event_queue;
@@ -140,19 +140,22 @@ namespace anton_engine::input {
         }
         mouse_event_queue.clear();
 
-        key_states[Key::mouse_x].value = key_states[Key::mouse_x].raw_value = current_frame_mouse.mouse_x;
-        key_states[Key::mouse_y].value = key_states[Key::mouse_y].raw_value = current_frame_mouse.mouse_y;
-        key_states[Key::mouse_scroll].value = key_states[Key::mouse_scroll].raw_value = current_frame_mouse.wheel;
+        Key_State& mouse_x_key_state = key_states.find_or_emplace(Key::mouse_x)->value;
+        mouse_x_key_state.value = mouse_x_key_state.raw_value = current_frame_mouse.mouse_x;
+        Key_State& mouse_y_key_state = key_states.find_or_emplace(Key::mouse_y)->value;
+        mouse_y_key_state.value = mouse_y_key_state.raw_value = current_frame_mouse.mouse_y;
+        Key_State& wheel_key_state = key_states.find_or_emplace(Key::mouse_scroll)->value;
+        wheel_key_state.value = wheel_key_state.raw_value = current_frame_mouse.wheel;
     }
 
     static void process_gamepad_events() {
         Vector2 left_stick;
         Vector2 right_stick;
 
-        Key_State& left_stick_x_state = key_states[Key::gamepad_left_stick_x_axis];
-        Key_State& left_stick_y_state = key_states[Key::gamepad_left_stick_y_axis];
-        Key_State& right_stick_x_state = key_states[Key::gamepad_right_stick_x_axis];
-        Key_State& right_stick_y_state = key_states[Key::gamepad_right_stick_y_axis];
+        Key_State& left_stick_x_state = key_states.find_or_emplace(Key::gamepad_left_stick_x_axis)->value;
+        Key_State& left_stick_y_state = key_states.find_or_emplace(Key::gamepad_left_stick_y_axis)->value;
+        Key_State& right_stick_x_state = key_states.find_or_emplace(Key::gamepad_right_stick_x_axis)->value;
+        Key_State& right_stick_y_state = key_states.find_or_emplace(Key::gamepad_right_stick_y_axis)->value;
 
         for (Gamepad_Event const& stick_event: gamepad_stick_event_queue) {
             if (stick_event.key == Key::gamepad_right_stick_x_axis) {
@@ -207,7 +210,7 @@ namespace anton_engine::input {
         right_stick_y_state.value = right_stick.y;
 
         for (auto [pad_index, key, value]: gamepad_event_queue) {
-            Key_State& key_state = key_states[key];
+            Key_State& key_state = key_states.find_or_emplace(key)->value;
             key_state.value = key_state.raw_value = value;
             key_state.down = value != 0.0f;
             key_state.up_down_transitioned = true;
@@ -229,7 +232,7 @@ namespace anton_engine::input {
 
         // Update key_state
         for (auto [key, value]: input_event_queue) {
-            Key_State& key_state = key_states[key];
+            Key_State& key_state = key_states.find_or_emplace(key)->value;
             key_state.value = key_state.raw_value = value;
             key_state.up_down_transitioned = (value != 0.0f) != key_state.down;
             key_state.down = value != 0.0f;
@@ -238,7 +241,7 @@ namespace anton_engine::input {
 
         float delta_time = get_delta_time();
         for (auto& mapping: axis_mappings) {
-            Key_State const& key_state = key_states[mapping.key];
+            Key_State const& key_state = key_states.find_or_emplace(mapping.key)->value;
             if (is_mouse_axis(mapping.key) || is_gamepad_axis(mapping.key)) {
                 // Force raw for those axes
                 mapping.raw_value = key_state.value;
@@ -275,7 +278,7 @@ namespace anton_engine::input {
             for (Key const k: key_events_queue) {
                 if (action.captured_key == k) {
                     // If the captured key is not none, then we have a mapping that allowed us to capture the key
-                    Key_State const& key_state = key_states[k];
+                    Key_State const& key_state = key_states.find_or_emplace(k)->value;
                     action.down = key_state.down;
                     action.pressed = key_state.up_down_transitioned && key_state.down;
                     action.released = key_state.up_down_transitioned && !key_state.down;
@@ -288,7 +291,7 @@ namespace anton_engine::input {
                 if (action.captured_key == Key::none) {
                     Action_Mapping const* action_mapping = find_mapping_with_key(action_mappings, action.action, k);
                     if (action_mapping) {
-                        Key_State const& key_state = key_states[k];
+                        Key_State const& key_state = key_states.find_or_emplace(k)->value;
                         if (paired_action) {
                             action.down = key_state.down;
                             action.pressed = key_state.up_down_transitioned && key_state.down;
@@ -382,7 +385,7 @@ namespace anton_engine::input {
 
     Key_State get_key_state(Key k) {
         ANTON_ASSERT(k != Key::none && k != Key::any_key, "Key may not be none or any_key");
-        return key_states[k];
+        return key_states.find_or_emplace(k)->value;
     }
 
     // Any_Key_State get_any_key_state() {
