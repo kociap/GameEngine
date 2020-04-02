@@ -382,6 +382,14 @@ namespace anton_engine::windowing {
         mimas_clip_cursor(window->mimas_window, reinterpret_cast<Mimas_Rect const*>(rect));
     }
 
+    void lock_cursor(Window* window) {
+        mimas_lock_cursor(window->mimas_window);
+    }
+
+    void unlock_cursor(Window* window) {
+        mimas_unlock_cursor(window->mimas_window);
+    }
+
     void set_cursor(Window* window, Cursor* cursor) {
         mimas_set_cursor(window->mimas_window, reinterpret_cast<Mimas_Cursor*>(cursor));
     }

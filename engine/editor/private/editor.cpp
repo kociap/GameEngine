@@ -44,6 +44,7 @@
 #include <engine/time.hpp>
 
 #include <mimas/mimas.h>
+#include <stdio.h>
 
 namespace anton_engine {
     static bool _quit = false;
@@ -65,6 +66,9 @@ namespace anton_engine {
     static rendering::Font_Face* comic_sans_face = nullptr;
     static rendering::Font_Face* french_script_regular_face = nullptr;
     static Editor_Shared_State* shared_state;
+    static bool cursor_locked = false;
+    static Vector2 cursor_locked_pos;
+    static bool prev_u_key_state = false;
 
     void quit() {
         _quit = true;
@@ -91,14 +95,27 @@ namespace anton_engine {
 
             imgui::begin_window(ctx, "just_a_window");
             imgui::button(ctx, u8"just some text");
-            imgui::button(ctx, u8"énicódę frééśtyłę");
+            imgui::button(ctx, u8"¡Los ñoquis con espaguetis están riquísimos, pruébalos, te encantarán!");
             imgui::Button_Style style = imgui::get_default_style(ctx).button;
             style.font.face = french_script_regular_face;
-            style.font.size = 16;
+            style.font.size = 24;
             imgui::button(ctx, u8"just some text", style, style, style);
-            imgui::button(ctx, u8"énicódę ffffffrééśtyłę", style, style, style);
+            imgui::button(ctx, u8"ffffrench script regular", style, style, style);
 
             imgui::end_window(ctx);
+
+            bool const new_u_key_state = windowing::get_key(Key::u);
+            if(!prev_u_key_state && new_u_key_state) {
+                cursor_locked = !cursor_locked;
+                if(cursor_locked) {
+                    cursor_locked_pos = Vector2{0.0f, 0.0f};
+                    windowing::lock_cursor(main_window);
+                } else {
+                    windowing::unlock_cursor(main_window);
+                }
+            }
+
+            prev_u_key_state = new_u_key_state;
 
             ECS& ecs = Editor::get_ecs();
             {
@@ -199,8 +216,18 @@ namespace anton_engine {
     // TODO: Forward decl of load_world. Remove (eventually)
     static void load_world();
 
-    static void cursor_pos_callback(windowing::Window* const window, f32 const x, f32 const y, void* const data) {
-        // printf("cursor move: %f %f\n", x, y);
+    static void cursor_pos_callback(windowing::Window* const window, f32 const param_x, f32 const param_y, void*) {
+        if(cursor_locked) {
+            float x = static_cast<float>(param_x);
+            float y = static_cast<float>(param_y);
+            float offset_x = x - cursor_locked_pos.x;
+            float offset_y = cursor_locked_pos.y - y;
+            cursor_locked_pos.x = x;
+            cursor_locked_pos.y = y;
+
+            input::add_event(Key::mouse_x, offset_x);
+            input::add_event(Key::mouse_y, offset_y);
+        }
     }
 
     static void mouse_button_callback(windowing::Window* const window, Key const button, i32 const action, void* const data) {
@@ -223,6 +250,10 @@ namespace anton_engine {
             float value = static_cast<float>(action); // press is 1, release is 0
             input::add_event(key, value);
         }
+    }
+
+    static void window_activate_callback(windowing::Window* const, bool activated, void*) {
+        printf("Window activate %d\n", activated);
     }
 
     // TODO: Rework.
@@ -293,6 +324,7 @@ namespace anton_engine {
         windowing::set_mouse_button_callback(main_window, mouse_button_callback, nullptr);
         windowing::set_cursor_pos_callback(main_window, cursor_pos_callback, nullptr);
         windowing::set_key_callback(main_window, keyboard_callback, nullptr);
+        windowing::set_window_activate_callback(main_window, window_activate_callback, nullptr);
         gl_context = windowing::create_context(4, 5, windowing::OpenGL_Profile::core);
         windowing::make_context_current(gl_context, main_window);
         opengl::load();
@@ -510,16 +542,16 @@ namespace anton_engine {
         instantiate_entity(box_handle, {-3, -1, 4});
         instantiate_entity(box_handle, {0, -1, 4});
 
-        instantiate_entity(boxes1_mesh, {1, 2, -2});
-        instantiate_entity(boxes2_mesh, {-1, 2, 0});
-        instantiate_entity(boxes3_mesh, {1, 2, 0});
+        // instantiate_entity(boxes1_mesh, {1, 2, -2});
+        // instantiate_entity(boxes2_mesh, {-1, 2, 0});
+        // instantiate_entity(boxes3_mesh, {1, 2, 0});
 
-        Entity quad = ecs->create();
-        Static_Mesh_Component& quad_sm = ecs->add_component<Static_Mesh_Component>(quad);
-        quad_sm.material_handle = material_handle;
-        quad_sm.mesh_handle = quad_mesh;
-        quad_sm.shader_handle = default_shader_handle;
-        ecs->add_component<Transform>(quad);
+        // Entity quad = ecs->create();
+        // Static_Mesh_Component& quad_sm = ecs->add_component<Static_Mesh_Component>(quad);
+        // quad_sm.material_handle = material_handle;
+        // quad_sm.mesh_handle = quad_mesh;
+        // quad_sm.shader_handle = default_shader_handle;
+        // ecs->add_component<Transform>(quad);
 
         // Plane floor_mesh;
         // floor_mesh.material.diffuse_texture.handle = assets::load_srgb_texture("wood_floor.png", false);
@@ -570,7 +602,7 @@ namespace anton_engine {
         camera_c.near_plane = 0.05f;
         ecs->add_component<Camera_Movement>(camera);
         ecs->add_component<Debug_Hotkeys>(camera);
-        camera_t.translate({0, 0, 0});
+        camera_t.translate({0, 0, 2});
 
         Entity directional_light = ecs->create();
         Directional_Light_Component& dl_c = ecs->add_component<Directional_Light_Component>(directional_light);

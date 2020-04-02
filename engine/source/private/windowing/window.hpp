@@ -35,6 +35,8 @@ namespace anton_engine::windowing {
     void destroy_window(Window*);
 
     void clip_cursor(Window*, Rect const*);
+    void lock_cursor(Window*);
+    void unlock_cursor(Window*);
     void set_cursor(Window* window, Cursor* cursor);
     Cursor* create_standard_cursor(Standard_Cursor cursor);
     void destroy_cursor(Cursor* cursor);

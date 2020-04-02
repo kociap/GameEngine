@@ -76,6 +76,7 @@ namespace anton_engine {
 
         ECS& ecs = Editor::get_ecs();
         auto [entity, viewport_camera, camera, transform] = ecs.create<Viewport_Camera, Camera, Transform>();
+        transform.local_position = Vector3{0.0f, 0.0f, 2.0f};
         viewport_entity = entity;
         viewport_camera.viewport_index = index;
 
