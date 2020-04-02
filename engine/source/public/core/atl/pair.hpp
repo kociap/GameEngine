@@ -206,10 +206,10 @@ namespace std {
     template <typename T1, typename T2>
     struct tuple_size<anton_engine::atl::Pair<T1, T2> const>: anton_engine::atl::Tuple_Size<anton_engine::atl::Pair<T1, T2> const> {};
 
-    template <size_t I, typename T1, typename T2>
+    template <unsigned long long I, typename T1, typename T2>
     struct tuple_element<I, anton_engine::atl::Pair<T1, T2>>: anton_engine::atl::Tuple_Element<I, anton_engine::atl::Pair<T1, T2>> {};
 
-    template <size_t I, typename T1, typename T2>
+    template <unsigned long long I, typename T1, typename T2>
     struct tuple_element<I, anton_engine::atl::Pair<T1, T2> const>
         : anton_engine::atl::Tuple_Element<I, anton_engine::atl::Pair<T1, T2> const> {};
 } // namespace std

@@ -11,8 +11,7 @@
 #include <core/integer_sequence_generator.hpp>
 #include <core/serialization/archives/binary.hpp>
 #include <core/typeid.hpp>
-
-#include <type_traits>
+#include <core/atl/tuple.hpp>
 
 namespace anton_engine {
     class ECS {
@@ -128,7 +127,7 @@ namespace anton_engine {
             return create();
         } else {
             Entity entity = create();
-            return std::tuple<Entity, Components&...>{entity, add_component<Components>(entity)...};
+            return atl::Tuple<Entity, Components&...>{entity, add_component<Components>(entity)...};
         }
     }
 
@@ -139,7 +138,7 @@ namespace anton_engine {
     template <typename T, typename... Ctor_Args>
     inline T& ECS::add_component(Entity const entity, Ctor_Args&&... args) {
         Component_Container<T>& components = *ensure_container<T>();
-        return components.add(entity, std::forward<Ctor_Args>(args)...);
+        return components.add(entity, atl::forward<Ctor_Args>(args)...);
     }
 
     template <typename T>
@@ -154,7 +153,7 @@ namespace anton_engine {
             Component_Container<Ts...>* components = ensure_container<Ts...>();
             return components->get(entity);
         } else {
-            return std::make_tuple(get_component<Ts>(entity)...);
+            return atl::make_tuple(get_component<Ts>(entity)...);
         }
     }
 
@@ -164,15 +163,15 @@ namespace anton_engine {
             Component_Container<Ts...>* components = ensure_container<Ts...>();
             return components->try_get(entity);
         } else {
-            return std::make_tuple(try_get_component<Ts>(entity)...);
+            return atl::make_tuple(try_get_component<Ts>(entity)...);
         }
     }
 
     template <typename... Ts>
     inline bool ECS::has_component(Entity const entity) {
         static_assert(sizeof...(Ts) > 0, "Empty parameter pack");
-        auto const containers = std::make_tuple(find_container<Ts>()...);
-        return (... && (std::get<Component_Container<Ts>*>(containers) ? std::get<Component_Container<Ts>*>(containers)->has(entity) : false));
+        auto const containers = atl::make_tuple(find_container<Ts>()...);
+        return (... && (atl::get<Component_Container<Ts>*>(containers) ? atl::get<Component_Container<Ts>*>(containers)->has(entity) : false));
     }
 
     template <typename Component, typename Sort, typename Predicate>

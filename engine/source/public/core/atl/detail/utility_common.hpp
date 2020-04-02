@@ -38,4 +38,14 @@ namespace anton_engine::atl {
     using tuple_element = typename Tuple_Element<I, T>::type;
 } // namespace anton_engine::atl
 
+// We provide std::tuple_size and std::tuple_element to enable structured bindings on certain types
+// so we forward declare those types so that we do not have to deal with errors or std headers.
+namespace std {
+    template<typename>
+    struct tuple_size;
+
+    template<unsigned long long, typename>
+    struct tuple_element;
+}
+
 #endif // !CORE_ATL_UTILITY_COMMON_HPP_INCLUDE

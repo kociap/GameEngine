@@ -31,7 +31,7 @@ namespace anton_engine {
     static char const* next_fxaa = "postprocessing/nv_fxaa_port.frag";
 
     static void swap_fxaa_shader() {
-        std::swap(current_fxaa, next_fxaa);
+        atl::swap(current_fxaa, next_fxaa);
     }
 
     void Debug_Hotkeys::update(Debug_Hotkeys& debug_hotkeys) {

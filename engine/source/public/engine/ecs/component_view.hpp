@@ -4,8 +4,7 @@
 #include <core/math/math.hpp>
 #include <core/atl/utility.hpp>
 #include <engine/ecs/component_container.hpp>
-
-#include <tuple>
+#include <core/atl/tuple.hpp>
 
 namespace anton_engine {
     template <typename... Components>
@@ -25,14 +24,14 @@ namespace anton_engine {
             using underlying_iterator_t = typename Component_Container_Base::iterator;
 
             // begin and end are iterators into the smallest container
-            iterator(std::tuple<Component_Container<Components>*...> c, underlying_iterator_t b, underlying_iterator_t e): containers(c), begin(b), end(e) {}
+            iterator(atl::Tuple<Component_Container<Components>*...> c, underlying_iterator_t b, underlying_iterator_t e): containers(c), begin(b), end(e) {}
 
         public:
             using value_type = typename atl::Iterator_Traits<underlying_iterator_t>::value_type;
             using reference = typename atl::Iterator_Traits<underlying_iterator_t>::reference;
             using pointer = typename atl::Iterator_Traits<underlying_iterator_t>::pointer;
             using difference_type = typename atl::Iterator_Traits<underlying_iterator_t>::difference_type;
-            using iterator_category = std::forward_iterator_tag;
+            using iterator_category = atl::Forward_Iterator_Tag;
 
             iterator& operator++() {
                 return (++begin != end && !has_all_components(*begin)) ? ++(*this) : *this;
@@ -69,18 +68,18 @@ namespace anton_engine {
 
         private:
             bool has_all_components(Entity entity) {
-                return (... && std::get<Component_Container<Components>*>(containers)->has(entity));
+                return (... && atl::get<Component_Container<Components>*>(containers)->has(entity));
             }
 
         private:
-            std::tuple<Component_Container<Components>*...> containers;
+            atl::Tuple<Component_Container<Components>*...> containers;
             underlying_iterator_t begin;
             underlying_iterator_t end;
         };
 
     public:
         [[nodiscard]] size_type size() const {
-            i64 sizes[] = {std::get<Component_Container<Components>*>(containers)->size()...};
+            i64 sizes[] = {atl::get<Component_Container<Components>*>(containers)->size()...};
             i64 min = sizes[0];
             for(i64 i = 1; i < atl::size(sizes); ++i) {
                 min = math::min(min, sizes[i]);
@@ -101,9 +100,9 @@ namespace anton_engine {
         template <typename... T>
         [[nodiscard]] decltype(auto) get(Entity const entity) {
             if constexpr (sizeof...(T) == 1) {
-                return (..., std::get<Component_Container<T>*>(containers)->get(entity));
+                return (..., atl::get<Component_Container<T>*>(containers)->get(entity));
             } else {
-                return std::tuple<T&...>(get<T>(entity)...);
+                return atl::Tuple<T&...>(get<T>(entity)...);
             }
         }
 
@@ -128,12 +127,12 @@ namespace anton_engine {
 
     private:
         bool has_all_components(Entity entity) {
-            return (... && std::get<Component_Container<Components>*>(containers)->has(entity));
+            return (... && atl::get<Component_Container<Components>*>(containers)->has(entity));
         }
 
         // TODO add const support
         Component_Container_Base* find_smallest_container() {
-            Component_Container_Base* conts[] = {static_cast<Component_Container_Base*>(std::get<Component_Container<Components>*>(containers))...};
+            Component_Container_Base* conts[] = {static_cast<Component_Container_Base*>(atl::get<Component_Container<Components>*>(containers))...};
             i64 min = conts[0]->size();
             i64 smallest_cont = 0;
             for(i64 i = 1; i < atl::size(conts); ++i) {
@@ -147,7 +146,7 @@ namespace anton_engine {
         }
 
     private:
-        std::tuple<Component_Container<Components>*...> containers;
+        atl::Tuple<Component_Container<Components>*...> containers;
     };
 
     // Specialization of Component_View  for single component type.
