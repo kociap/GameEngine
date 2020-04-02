@@ -6,7 +6,6 @@
 #include <core/types.hpp>
 #include <content_browser/importers/common.hpp>
 #include <core/math/math.hpp>
-#include <stdexcept>
 #include <zlib.h>
 
 namespace anton_engine::importers {

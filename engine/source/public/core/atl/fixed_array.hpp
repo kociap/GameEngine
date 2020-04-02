@@ -85,7 +85,7 @@ namespace anton_engine::atl {
             in.read(capacity);
             in.read(size);
             array.clear();
-            if constexpr (std::is_default_constructible_v<T>) {
+            if constexpr (atl::is_default_constructible<T>) {
                 array.resize(size);
                 try {
                     for (T& elem: array) {

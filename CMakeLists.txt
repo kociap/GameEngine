@@ -32,6 +32,7 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
         # -Wno-missing-prototypes
         -Wnon-virtual-dtor
         -Wno-implicit-fallthrough # there's implicit falthrough in murmurhash2.hpp
+        -Werror=return-type
         -Wno-error=unused-const-variable 
         -Wno-error=unused-parameter
         -Wno-error=unused-variable
@@ -66,7 +67,9 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT MSVC)
         -Wno-error=unused-const-variable 
         -Wno-error=unused-parameter
         -Wno-error=unused-variable
-        # -ftime-trace
+        -Werror=return-type
+        -ftime-trace
+        -fno-rtti
     )
 
     set(ANTON_DEPENDENCIES_COMPILE_FLAGS -Wno-everything)
@@ -96,7 +99,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT MSVC)
     endif()
 elseif(MSVC)
     set(ANTON_COMPILE_FLAGS 
-        /W4
+        /W3
         /diagnostics:caret # Extended diagnostics include the column where the issue was found and places a caret (^) under the location
         /permissive-
     )

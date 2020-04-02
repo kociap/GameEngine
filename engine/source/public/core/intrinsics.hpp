@@ -10,11 +10,11 @@
 #elif defined(_MSC_VER)
 #    define ANTON_UNREACHABLE() __assume(0)
 #    define ANTON_UNLIKELY(x) x
-#    define ANTON_EXPECT(x) x
+#    define ANTON_LIKELY(x) x
 #else
 #    define ANTON_UNREACHABLE()
 #    define ANTON_UNLIKELY(x) x
-#    define ANTON_EXPECT(x) x
+#    define ANTON_LIKELY(x) x
 #endif
 
 #endif // !CORE_INTRINSICS_HPP_INCLUDE

@@ -152,7 +152,7 @@ namespace anton_engine::atl {
             }
 
             [[nodiscard]] value_type& operator*() const {
-                return *reinterpret_cast<value_type*>(_slots)
+                return *reinterpret_cast<value_type*>(_slots);
             }
 
             [[nodiscard]] bool operator==(iterator const& b) const {

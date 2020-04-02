@@ -3,7 +3,6 @@
 #include <core/atl/detail/utility_common.hpp>
 #include <core/math/math.hpp>
 #include <new>
-#include <typeinfo>
 
 namespace anton_engine::atl {
     static Allocator default_allocator;
@@ -45,7 +44,7 @@ namespace anton_engine::atl {
     }
 
     bool Allocator::is_equal(Memory_Allocator const& other) const {
-        return this == &other || typeid(*this) == typeid(other);
+        return this == &other;
     }
 
     // Buffer Allocator

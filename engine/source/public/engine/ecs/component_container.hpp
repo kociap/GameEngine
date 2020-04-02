@@ -9,8 +9,6 @@
 #include <core/serialization/archives/binary.hpp>
 #include <core/atl/algorithm.hpp>
 
-#include <type_traits>
-
 namespace anton_engine {
     class Component_Container_Base {
     public:
@@ -200,15 +198,15 @@ namespace anton_engine {
 
     template <typename Component, typename Sort, typename Predicate>
     void Component_Container_Base::sort_components(atl::Vector<Component>& components, Sort sort, Predicate predicate) {
-        static_assert(std::is_invocable_r_v<bool, Predicate, Entity const, Entity const> ||
-                          std::is_invocable_r_v<bool, Predicate, Component const, Component const>,
+        static_assert(atl::is_invocable_r<bool, Predicate, Entity const, Entity const> ||
+                      atl::is_invocable_r<bool, Predicate, Component const, Component const>,
                       "Predicate is not invocable with either Entity or Component as the parameter");
         atl::Vector<i64> indices(_entities.size());
         atl::iota(indices.begin(), indices.end(), 0);
         sort(indices.begin(), indices.end(), [&, cmp = predicate](i64 const lhs, i64 const rhs) -> bool {
-            if constexpr (std::is_invocable_r_v<bool, Predicate, Entity const, Entity const>) {
+            if constexpr (atl::is_invocable_r<bool, Predicate, Entity const, Entity const>) {
                 return cmp(atl::as_const(_entities[lhs]), atl::as_const(_entities[rhs]));
-            } else {
+            } else  {
                 return cmp(atl::as_const(components[lhs]), atl::as_const(components[rhs]));
             }
         });

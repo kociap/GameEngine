@@ -3,22 +3,22 @@
 
 #include <core/atl/vector.hpp>
 #include <core/types.hpp>
-#include <stdexcept>
+#include <core/exception.hpp>
 
 namespace anton_engine::importers {
     constexpr u64 jpeg_header = 0xFFD8;
 
-    class Unknown_Critical_Chunk: public std::runtime_error {
+    class Unknown_Critical_Chunk: public Exception {
     public:
-        Unknown_Critical_Chunk(): std::runtime_error("") {}
+        Unknown_Critical_Chunk(): Exception("") {}
     };
 
-    class Invalid_Image_File: public std::runtime_error {
-        using std::runtime_error::runtime_error;
+    class Invalid_Image_File: public Exception {
+        using Exception::Exception;
     };
 
-    class Decompression_Failure: public std::runtime_error {
-        using std::runtime_error::runtime_error;
+    class Decompression_Failure: public Exception {
+        using Exception::Exception;
     };
 
     enum class Image_Pixel_Format {

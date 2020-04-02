@@ -1,11 +1,11 @@
 #ifndef ENGINE_ECS_COMPONENT_VIEW_HPP_INCLUDE
 #define ENGINE_ECS_COMPONENT_VIEW_HPP_INCLUDE
 
+#include <core/math/math.hpp>
+#include <core/atl/utility.hpp>
 #include <engine/ecs/component_container.hpp>
 
-#include <algorithm>
 #include <tuple>
-#include <type_traits>
 
 namespace anton_engine {
     template <typename... Components>
@@ -80,7 +80,12 @@ namespace anton_engine {
 
     public:
         [[nodiscard]] size_type size() const {
-            return std::min({std::get<Component_Container<Components>*>(containers)->size()...});
+            i64 sizes[] = {std::get<Component_Container<Components>*>(containers)->size()...};
+            i64 min = sizes[0];
+            for(i64 i = 1; i < atl::size(sizes); ++i) {
+                min = math::min(min, sizes[i]);
+            }
+            return min;
         }
 
         [[nodiscard]] iterator begin() {
@@ -108,11 +113,11 @@ namespace anton_engine {
         //
         template <typename Callable>
         void each(Callable&& callable) {
-            static_assert(std::is_invocable_v<Callable, Entity, Components&...> || std::is_invocable_v<Callable, Components&...>);
+            static_assert(atl::is_invocable<Callable, Entity, Components&...> || atl::is_invocable<Callable, Components&...>);
             auto smallest_container = find_smallest_container();
             for (Entity const entity: *smallest_container) {
                 if (has_all_components(entity)) {
-                    if constexpr (std::is_invocable_v<Callable, Components&...>) {
+                    if constexpr (atl::is_invocable<Callable, Components&...>) {
                         callable(get<Components>(entity)...);
                     } else {
                         callable(entity, get<Components>(entity)...);
@@ -128,8 +133,17 @@ namespace anton_engine {
 
         // TODO add const support
         Component_Container_Base* find_smallest_container() {
-            return std::min({static_cast<Component_Container_Base*>(std::get<Component_Container<Components>*>(containers))...},
-                            [](auto* a, auto* b) { return a->size() < b->size(); });
+            Component_Container_Base* conts[] = {static_cast<Component_Container_Base*>(std::get<Component_Container<Components>*>(containers))...};
+            i64 min = conts[0]->size();
+            i64 smallest_cont = 0;
+            for(i64 i = 1; i < atl::size(conts); ++i) {
+                i64 const size = conts[i]->size();
+                if(size < min) {
+                    min = size;
+                    smallest_cont = i;
+                }
+            }
+            return conts[smallest_cont];
         }
 
     private:
@@ -169,9 +183,9 @@ namespace anton_engine {
         //
         template <typename Callable>
         void each(Callable&& callable) {
-            static_assert(std::is_invocable_v<Callable, Entity, Component&> || std::is_invocable_v<Callable, Component&>);
+            static_assert(atl::is_invocable<Callable, Entity, Component&> || atl::is_invocable<Callable, Component&>);
             for (Entity entity: *static_cast<Component_Container_Base*>(container)) {
-                if constexpr (std::is_invocable_v<Callable, Component&>) {
+                if constexpr (atl::is_invocable<Callable, Component&>) {
                     callable(get(entity));
                 } else {
                     callable(entity, get(entity));
