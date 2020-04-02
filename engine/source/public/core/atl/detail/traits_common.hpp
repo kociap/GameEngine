@@ -27,6 +27,15 @@ namespace anton_engine::atl {
 
         template <typename T1, typename T2>
         constexpr bool is_same = Is_Same<T1, T2>::value;
+
+        // Is_Same_Type
+        // Compares 'type' member typedefs.
+        // Accesses 'type' member typedef only when the 'value' member is instantiated.
+        //
+        template<typename T1, typename T2>
+        struct Is_Same_Type {
+            static constexpr bool value = is_same<typename T1::type, typename T2::type>;
+        };
     } // namespace detail
 } // namespace anton_engine::atl
 

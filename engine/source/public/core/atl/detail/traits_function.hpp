@@ -88,35 +88,27 @@ namespace anton_engine::atl {
         struct Is_Invocable {
         private:
             template <typename XFn, typename... XArgs>
-            static atl::type_sink<atl::True_Type, decltype(atl::declval<XFn>(atl::declval<XArgs>()...))> test(int);
+            static atl::type_sink<atl::True_Type, decltype(atl::declval<XFn>()(atl::declval<XArgs>()...))> test(int);
 
             template <typename...>
             static atl::False_Type test(...);
 
         public:
-            using type = decltype(test<Fn, Args...>(0));
-        };
-
-        template <typename Return, typename Fn, typename... Args>
-        struct Is_Invocable_R {
-        private:
-            template <typename XReturn, typename XFn, typename... XArgs>
-            static atl::enable_if<atl::detail::is_same<XReturn, decltype(atl::declval<XFn>(atl::declval<XArgs>()...))>,
-                                        atl::True_Type>
-            test(int);
-
-            template <typename...>
-            static atl::False_Type test(...);
-
-        public:
-            using type = decltype(test<Return, Fn, Args...>(0));
+            static constexpr bool value = decltype(test<Fn, Args...>(0))::value;
         };
     } // namespace detail
+
+    template<typename Fn, typename... Args>
+    struct Invoke_Result: enable_if<detail::Is_Invocable<Fn, Args...>::value,
+                                    Identity<decltype(declval<Fn>()(declval<Args>()...))>> {};
+
+    template<typename Fn, typename... Args>
+    using invoke_result = typename Invoke_Result<Fn, Args...>::type;
 
     // Is_Invocable
     //
     template <typename Fn, typename... Args>
-    struct Is_Invocable: detail::Is_Invocable<Fn, Args...>::type {};
+    struct Is_Invocable: Bool_Constant<detail::Is_Invocable<Fn, Args...>::value> {};
 
     template <typename Fn, typename... Args>
     constexpr bool is_invocable = Is_Invocable<Fn, Args...>::value;
@@ -124,7 +116,7 @@ namespace anton_engine::atl {
     // Is_Invocable_R
     //
     template <typename Return, typename Fn, typename... Args>
-    struct Is_Invocable_R: detail::Is_Invocable_R<Return, Fn, Args...>::type {};
+    struct Is_Invocable_R: Bool_Constant<conjunction<Is_Invocable<Fn, Args...>, detail::Is_Same_Type<Identity<Return>, Invoke_Result<Fn, Args...>>>> {};
 
     template <typename Return, typename Fn, typename... Args>
     constexpr bool is_invocable_r = Is_Invocable_R<Return, Fn, Args...>::value;

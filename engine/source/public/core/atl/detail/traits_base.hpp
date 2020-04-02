@@ -88,9 +88,13 @@ namespace anton_engine::atl {
     //
     template <typename...>
     constexpr bool false_trait = false;
+
+    // Identity
     //
-    // Logical operators
-    //
+    template<typename T>
+    struct Identity {
+        using type = T;
+    };
 
     // Negation
     // Unary trait that performs logical NOT on a single type trait.
