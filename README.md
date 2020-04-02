@@ -1,5 +1,8 @@
 # GameEngine
 ## Progress GIFs
+### IMGUI implemented in editor
+![Engine Docking](gifs/engine_dock_multiviewport.gif)
+![Engine Multiviewport](gifs/engine_multiviewport.gif)
 ### IMGUI docking preview
 ![IMGUI drag preview](gifs/new_drag_preview.gif)
 ### IMGUI layout
