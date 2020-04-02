@@ -94,8 +94,9 @@ namespace anton_engine {
             imgui::button(ctx, u8"énicódę frééśtyłę");
             imgui::Button_Style style = imgui::get_default_style(ctx).button;
             style.font.face = french_script_regular_face;
+            style.font.size = 16;
             imgui::button(ctx, u8"just some text", style, style, style);
-            imgui::button(ctx, u8"énicódę frééśtyłę", style, style, style);
+            imgui::button(ctx, u8"énicódę ffffffrééśtyłę", style, style, style);
 
             imgui::end_window(ctx);
 
@@ -106,10 +107,14 @@ namespace anton_engine {
                     auto [viewport_camera, camera, transform] = viewport_camera_view.get<Viewport_Camera, Camera, Transform>(entity);
                     auto viewport = viewports[viewport_camera.viewport_index];
                     if (viewport) {
-                        Viewport_Camera::update(viewport_camera, transform);
-                        Matrix4 const view_mat = get_camera_view_matrix(transform);
+                        if(viewport->is_active()) {
+                            Viewport_Camera::update(viewport_camera, transform);
+                        }
 
-                        Matrix4 const projection_mat = get_camera_projection_matrix(camera, viewport->get_size());
+                        Vector2 const viewport_size = viewport->get_size();
+                        viewport->resize_framebuffers(viewport_size.x, viewport_size.y);
+                        Matrix4 const view_mat = get_camera_view_matrix(transform);
+                        Matrix4 const projection_mat = get_camera_projection_matrix(camera, viewport_size);
                         Matrix4 const inv_projection_mat = math::inverse(projection_mat);
                         Matrix4 const inv_view_mat = math::inverse(view_mat);
                         viewport->process_actions(view_mat, inv_view_mat, projection_mat, inv_projection_mat, transform, shared_state->selected_entities);

@@ -68,6 +68,7 @@ namespace anton_engine::windowing {
     Vector2 get_window_pos(Window*);
     void set_window_pos(Window*, Vector2);
     void set_size(Window* window, Vector2 size);
+    bool is_active(Window* window);
 
     enum class OpenGL_Profile {
         core,

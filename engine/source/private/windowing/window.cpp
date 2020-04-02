@@ -27,6 +27,7 @@ namespace anton_engine::windowing {
             void* scroll_data = nullptr;
             void* key_data = nullptr;
         } callbacks;
+        bool active = false;
     };
 
     class Windowing {
@@ -76,6 +77,7 @@ namespace anton_engine::windowing {
 
     void _window_activate_callback(Mimas_Window* const, mimas_i32 const activated, void* const data){
         Window* const window = reinterpret_cast<Window*>(data);
+        window->active = activated;
         if(window->callbacks.window_activate) {
             window->callbacks.window_activate(window, activated, window->callbacks.window_activate_data);
         }
@@ -457,12 +459,16 @@ namespace anton_engine::windowing {
         return {(f32)x, (f32)y};
     }
 
+    void set_window_pos(Window* const window, Vector2 const pos) {
+        mimas_set_window_content_pos(window->mimas_window, pos.x, pos.y);
+    }
+
     void set_size(Window* const window, Vector2 const size) {
         mimas_set_window_content_size(window->mimas_window, size.x, size.y);
     }
 
-    void set_window_pos(Window* const window, Vector2 const pos) {
-        mimas_set_window_content_pos(window->mimas_window, pos.x, pos.y);
+    bool is_active(Window* window) {
+        return window->active;
     }
 
     OpenGL_Context* create_context(i32 const major, i32 const minor, OpenGL_Profile const profile) {

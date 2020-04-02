@@ -68,7 +68,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND NOT MSVC)
         -Wno-error=unused-parameter
         -Wno-error=unused-variable
         -Werror=return-type
-        -ftime-trace
+        # -ftime-trace
         -fno-rtti
     )
 

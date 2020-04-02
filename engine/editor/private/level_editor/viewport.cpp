@@ -96,7 +96,7 @@ namespace anton_engine {
         delete back_framebuffer;
     }
 
-    void Viewport::resize(i32 const w, i32 const h) {
+    void Viewport::resize_framebuffers(i32 const w, i32 const h) {
         framebuffer->resize(w, h);
         multisampled_framebuffer->resize(w, h);
         deferred_framebuffer->resize(w, h);
@@ -111,6 +111,15 @@ namespace anton_engine {
         Vector2 const viewport_size = imgui::get_window_dimensions(*ctx);
         imgui::end_window(*ctx);
         return viewport_size;
+    }
+
+    bool Viewport::is_active() const {
+        atl::String window_id{u8"viewport_window"};
+        window_id.append(atl::to_string(index));
+        imgui::begin_window(*ctx, window_id);
+        bool const is_active = imgui::is_window_active(*ctx);
+        imgui::end_window(*ctx);
+        return is_active;
     }
 
     static Entity pick_object(Ray const ray) {

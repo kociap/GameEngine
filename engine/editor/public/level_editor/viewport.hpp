@@ -27,8 +27,9 @@ namespace anton_engine {
                              Transform camera_transform, atl::Vector<Entity>& selected_entities);
         void render(Matrix4 view_mat, Matrix4 inv_view_mat, Matrix4 proj_mat, Matrix4 inv_proj_mat, 
                     Camera camera, Transform camera_transform, atl::Slice<Entity const> selected_entities);
-        void resize(i32 width, i32 height);
+        void resize_framebuffers(i32 width, i32 height);
         Vector2 get_size() const;
+        bool is_active() const;
 
     private:
         Framebuffer* framebuffer = nullptr;
