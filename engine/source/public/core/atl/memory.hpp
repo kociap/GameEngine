@@ -7,6 +7,7 @@
 #include <core/anton_crt.hpp>
 
 // TODO alloc_aligned
+// TODO: add constexpr if for trivial operations.
 
 namespace anton_engine::atl {
     template <class T>
@@ -104,29 +105,32 @@ namespace anton_engine::atl {
     template <typename Forward_Iterator>
     void uninitialized_default_construct(Forward_Iterator first, Forward_Iterator last) {
         using value_type = typename atl::Iterator_Traits<Forward_Iterator>::value_type;
-        Forward_Iterator first_copy = first;
-        try {
-            for (; first != last; ++first) {
-                ::new (atl::addressof(*first)) value_type();
+        if constexpr (!atl::is_trivially_constructible<value_type>) {
+            Forward_Iterator first_copy = first;
+            try {
+                for (; first != last; ++first) {
+                    ::new (atl::addressof(*first)) value_type();
+                }
+            } catch (...) {
+                atl::destruct(first_copy, first);
+                throw;
             }
-        } catch (...) {
-            atl::destruct(first_copy, first);
-            throw;
         }
     }
 
     template <typename Forward_Iterator, typename Count>
     void uninitialized_default_construct_n(Forward_Iterator first, Count n) {
-        // TODO: Trivially constructible
         using value_type = typename atl::Iterator_Traits<Forward_Iterator>::value_type;
-        Forward_Iterator first_copy = first;
-        try {
-            for (; n > 0; --n, ++first) {
-                ::new (atl::addressof(*first)) value_type();
+        if constexpr (!atl::is_trivially_constructible<value_type>) {
+            Forward_Iterator first_copy = first;
+            try {
+                for (; n > 0; --n, ++first) {
+                    ::new (atl::addressof(*first)) value_type();
+                }
+            } catch (...) {
+                atl::destruct(first_copy, first);
+                throw;
             }
-        } catch (...) {
-            atl::destruct(first_copy, first);
-            throw;
         }
     }
 
@@ -171,6 +175,7 @@ namespace anton_engine::atl {
     }
 
     // copy
+    // Copy assigns elements from [first, last[ to dest.
     //
     // Returns: An iterator to the end of the dest range.
     //
@@ -202,7 +207,8 @@ namespace anton_engine::atl {
     // Copy assigns elements from range [first, last[ to dest in reverse order (last element is copied first) decrementing dest after each copy.
     // The back of the range [first, last[ may overlap the front of the range [dest - (first - last), dest[.
     //
-    // Returns iterator to the beginning of the destination range.
+    // Returns:
+    // An iterator to the beginning of the destination range.
     //
     // Example usage:
     //   atl::copy_backward(array.begin(), array.end(), dest_array.end());
@@ -241,9 +247,10 @@ namespace anton_engine::atl {
     }
 
     // move
-    // Moves elements from [first, last[ to dest.
+    // Move assigns elements from [first, last[ to dest.
     //
-    // Returns: An iterator to the end of the dest range.
+    // Returns: 
+    // An iterator to the end of the dest range.
     //
     template <typename Input_Iterator, typename Output_Iterator>
     inline Output_Iterator move(Input_Iterator first, Input_Iterator last, Output_Iterator dest) {
@@ -272,7 +279,8 @@ namespace anton_engine::atl {
     // Move assigns elements from range [first, last[ to dest in reverse order (last element is copied first) decrementing dest after each move.
     // The back of the range [first, last[ may overlap the front of the range [dest - (first - last), dest[.
     //
-    // Returns iterator to the beginning of the destination range.
+    // Returns:
+    // An iterator to the beginning of the destination range.
     //
     // Example usage:
     //   atl::move_backward(array.begin(), array.end(), dest_array.end());

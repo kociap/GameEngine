@@ -369,9 +369,10 @@ namespace anton_engine::atl {
     template <typename T, typename Allocator>
     template <typename Input_Iterator>
     void Vector<T, Allocator>::assign(Input_Iterator first, Input_Iterator last) {
-        ensure_capacity(last - first);
         destruct_n(_data, _size);
-        copy(first, last, _data);
+        _size = 0;
+        ensure_capacity(last - first);
+        atl::uninitialized_copy(first, last, _data);
         _size = last - first;
     }
 
@@ -383,7 +384,8 @@ namespace anton_engine::atl {
 
         if (_size == _capacity || position != _size) {
             if (_size != _capacity) {
-                atl::move_backward(get_ptr(position), get_ptr(_size), get_ptr(_size + 1));
+                atl::uninitialized_move_n(get_ptr(_size - 1), 1, get_ptr(_size));
+                atl::move_backward(get_ptr(position), get_ptr(_size - 1), get_ptr(_size));
                 attempt_construct(get_ptr(position), value);
                 _size += 1;
             } else {
@@ -391,11 +393,11 @@ namespace anton_engine::atl {
                 T* const new_data = allocate(new_capacity);
                 i64 moved = 0;
                 try {
-                    atl::move(get_ptr(0), get_ptr(position), new_data);
+                    atl::uninitialized_move(get_ptr(0), get_ptr(position), new_data);
                     moved = position;
                     attempt_construct(new_data + position, value);
                     moved += 1;
-                    atl::move(get_ptr(position), get_ptr(_size), new_data + moved);
+                    atl::uninitialized_move(get_ptr(position), get_ptr(_size), new_data + moved);
                 } catch (...) {
                     atl::destruct_n(new_data, moved);
                     deallocate(new_data, new_capacity);
@@ -421,25 +423,33 @@ namespace anton_engine::atl {
             ANTON_FAIL(position <= _size && position >= 0, "Index out of bounds.");
         }
 
-        // TODO: Distance
-        // TODO: Non-movable types.
-        // TODO: Fix this thing because I copy-pasted the above which isn't 100% correct
+        // TODO: Distance and actual support for input iterators.
         i64 const dist = last - first;
         if (_size + dist > _capacity || position != _size) {
             if (_size + dist <= _capacity) {
-                atl::move_backward(get_ptr(position), get_ptr(_size), get_ptr(_size + dist));
-                atl::copy(first, last, get_ptr(position));
+                i64 const total_elems = _size - position;
+                i64 const elems_outside = math::min(_size - position, dist);
+                i64 const elems_inside = total_elems - elems_outside;
+                i64 const target_offset = math::max(position + dist, _size);
+                atl::uninitialized_move_n(get_ptr(position + elems_inside), elems_outside, get_ptr(target_offset));
+                atl::move_backward(get_ptr(position), get_ptr(position + elems_inside), get_ptr(position + dist + elems_inside));
+                atl::destruct_n(get_ptr(position), elems_inside);
+                atl::uninitialized_copy(first, last, get_ptr(position));
                 _size += dist;
             } else {
-                i64 const new_capacity = _capacity * 2;
+                i64 new_capacity = _capacity * 2;
+                while(new_capacity <= _size + dist) {
+                    new_capacity *= 2;
+                }
+
                 T* const new_data = allocate(new_capacity);
                 i64 moved = 0;
                 try {
-                    atl::move(get_ptr(0), get_ptr(position), new_data);
+                    atl::uninitialized_move(get_ptr(0), get_ptr(position), new_data);
                     moved = position;
-                    atl::copy(first, last, new_data + moved);
+                    atl::uninitialized_copy(first, last, new_data + moved);
                     moved += dist;
-                    atl::move(get_ptr(position), get_ptr(_size), new_data + moved);
+                    atl::uninitialized_move(get_ptr(position), get_ptr(_size), new_data + moved);
                 } catch (...) {
                     atl::destruct_n(new_data, moved);
                     deallocate(new_data, new_capacity);
@@ -453,7 +463,7 @@ namespace anton_engine::atl {
             }
         } else {
             // Quick path when position points to end and we have room for one more element.
-            atl::copy(first, last, get_ptr(_size));
+            atl::uninitialized_copy(first, last, get_ptr(_size));
             _size += dist;
         }
     }

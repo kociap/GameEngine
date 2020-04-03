@@ -6,6 +6,7 @@
 #include <core/atl/allocator.hpp>
 #include <core/atl/detail/functors.hpp>
 #include <core/atl/tags.hpp>
+#include <core/assert.hpp>
 
 namespace anton_engine::atl {
     // Stores both keys and values in the main array, which minimizes memory indirections.
@@ -78,10 +79,16 @@ namespace anton_engine::atl {
             }
 
             [[nodiscard]] value_type* operator->() const {
+                if constexpr(ANTON_ITERATOR_DEBUG) {
+                    ANTON_FAIL(*_states == State::active, "Dereferencing invalid Flat_Hash_Map pointer.");
+                }
                 return reinterpret_cast<value_type*>(_slots);
             }
 
             [[nodiscard]] value_type& operator*() const {
+                if constexpr(ANTON_ITERATOR_DEBUG) {
+                    ANTON_FAIL(*_states == State::active, "Dereferencing invalid Flat_Hash_Map pointer.");
+                }
                 return *reinterpret_cast<value_type*>(_slots);
             }
 
@@ -385,7 +392,7 @@ namespace anton_engine::atl {
             while(true) {
                 State const state = _states[index];
                 if(state == State::active && _key_equal(key, _slots[index].key)) {
-                    return iterator(_slots + index, _states);
+                    return iterator(_slots + index, _states + index);
                 } else if(state != State::active) {
                     return end();
                 }
@@ -403,7 +410,7 @@ namespace anton_engine::atl {
             while(true) {
                 State const state = _states[index];
                 if(state == State::active && _key_equal(key, _slots[index].key)) {
-                    return iterator(_slots + index, _states);
+                    return iterator(_slots + index, _states + index);
                 } else if(state != State::active) {
                     return end();
                 }
@@ -421,7 +428,7 @@ namespace anton_engine::atl {
         while(true) {
             State const state = _states[index];
             if(state == State::active && _key_equal(key, _slots[index].key)) {
-                return iterator(_slots + index, _states);
+                return iterator(_slots + index, _states + index);
             } else if(state == State::empty) {
                 _states[index] = State::active;
                 new (_slots + index) Slot(key);
