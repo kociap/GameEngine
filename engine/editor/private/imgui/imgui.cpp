@@ -61,6 +61,7 @@ namespace anton_engine::imgui {
 
     class Window {
     public:
+        atl::String _debug_name;
         Style style;
         i64 id;
         Dockspace* dockspace;
@@ -1194,10 +1195,15 @@ namespace anton_engine::imgui {
                 draw_cmd_buffer[i].vertex_offset += vertex_offset;
                 draw_cmd_buffer[i].index_offset += index_offset;
             }
-            dc.vertex_buffer.clear();
-            dc.index_buffer.clear();
-            dc.draw_commands.clear();
-            dc.draw_pos = Vector2{0.0f, 0.0f};
+
+            for (i64 const id: dockspace->windows) {
+                Window& window = ctx.windows.find(id)->value;
+                Draw_Context& dc = window.draw_context;
+                dc.vertex_buffer.clear();
+                dc.index_buffer.clear();
+                dc.draw_commands.clear();
+                dc.draw_pos = Vector2{0.0f, 0.0f};
+            }
         }
 
         // Render dockspce drag preview guides
@@ -1345,6 +1351,7 @@ namespace anton_engine::imgui {
         auto const iter = ctx.windows.find(id);
         if (iter == ctx.windows.end()) {
             Window window;
+            window._debug_name = identifier;
             window.id = id;
             window.style = ctx.default_style;
             window.border_area_width = 4.0f;
@@ -1394,8 +1401,16 @@ namespace anton_engine::imgui {
 
     Button_State button(Context& ctx, atl::String_View text, Button_Style const inactive_style, Button_Style const hot_style, Button_Style const active_style) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
-        // TODO: Check window z-order to determine whether this window is top-level
         Window& window = ctx.windows.find(ctx.current_window)->value;
+        Dockspace* const dockspace = window.dockspace;
+        if(dockspace->active_window != window.id) {
+            i64 const hash = hash_string(text);
+            Button_State& state = window.button_state.find_or_emplace(hash)->value;
+            state = Button_State::inactive;
+            return Button_State::inactive;
+        }
+
+        // TODO: Check window z-order to determine whether this window is top-level for correct button behaviour.
         i64 const hash = hash_string(text);
         Button_State& state = window.button_state.find_or_emplace(hash)->value;
         Button_Style style;
@@ -1423,7 +1438,7 @@ namespace anton_engine::imgui {
 
         Draw_Context& dc = window.draw_context;
         Vector2 const border_draw_pos = dc.draw_pos;
-        Vector2 const dockspace_pos = get_dockspace_content_screen_pos(window.dockspace);
+        Vector2 const dockspace_pos = get_dockspace_content_screen_pos(dockspace);
         Vector2 const cursor = ctx.input.cursor_position;
         bool const lmb = ctx.input.left_mouse_button;
         if(test_point_in_box(cursor, dockspace_pos + border_draw_pos, Vector2{border_width, border_height})) {
@@ -1506,6 +1521,11 @@ namespace anton_engine::imgui {
     void image(Context& ctx, u64 const texture, Vector2 const size, Vector2 const uv_top_left, Vector2 const uv_bottom_right) {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
         Window& window = ctx.windows.find(ctx.current_window)->value;
+        Dockspace* const dockspace = window.dockspace;
+        if(dockspace->active_window != window.id) {
+            return;
+        }
+        
         Vector2 const window_size = get_dockspace_content_size(window.dockspace);
         Draw_Context& dc = window.draw_context;
         Vector2 const draw_pos = dc.draw_pos;
