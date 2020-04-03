@@ -462,7 +462,7 @@ namespace anton_engine::atl {
                 _size += dist;
             }
         } else {
-            // Quick path when position points to end and we have room for one more element.
+            // Quick path when position points to end and we have room for dist elements.
             atl::uninitialized_copy(first, last, get_ptr(_size));
             _size += dist;
         }
