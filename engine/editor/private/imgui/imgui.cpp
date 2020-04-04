@@ -1427,6 +1427,121 @@ namespace anton_engine::imgui {
         ANTON_VERIFY(ctx.current_window != -1, "No current window.");
     }
 
+    static Vector2 compute_text_dimensions(atl::String_View const text, Font_Style const style, f32 const max_width, bool const ignore_newline) {
+        rendering::Face_Metrics const face_metrics = rendering::get_face_metrics(style.face);
+        f32 const line_height = (f32)style.size * (f32)style.v_dpi / 72.0f * (f32)face_metrics.line_height / (f32)face_metrics.units_per_em;
+        rendering::Text_Metrics const space_metrics = rendering::compute_text_dimensions(style.face, {style.size, style.h_dpi, style.v_dpi}, u8" ");
+        Vector2 text_dimensions;
+        f32 offset_x = 0;
+        auto i = text.chars_begin();
+        auto j = text.chars_begin();
+        auto end = text.chars_end();
+        while(i != end) {
+            char32 const c = *i;
+            bool const whitespace = atl::is_whitespace(c);
+            i64 const distance_to_end = end - i;
+            if(!whitespace && end - i > 1) {
+                ++i;
+            } else {
+                bool const should_end_line = !ignore_newline && c == U'\n';
+                // When i and j are unequal, we hit a whitespace preceded by a word.
+                if(i != j) {
+                    atl::String_View const word{j, distance_to_end > 1 ? i : i + 1};
+                    rendering::Text_Metrics const metrics = rendering::compute_text_dimensions(style.face, {style.size, style.h_dpi, style.v_dpi}, word);
+                    bool const empty_line = offset_x == 0.0f;
+                    bool const overflows_line = offset_x + space_metrics.width + metrics.width > max_width;
+                    bool const break_line = (!empty_line && overflows_line) || should_end_line;
+                    if(break_line) {
+                        text_dimensions.x = math::max(text_dimensions.x, offset_x);
+                        text_dimensions.y += line_height;
+                        offset_x = metrics.width;
+                    } else {
+                        offset_x += metrics.width + space_metrics.width;
+                    }
+                } else {
+                    if(should_end_line) {
+                        text_dimensions.y += line_height;
+                        offset_x = 0.0f;
+                    }
+                }
+
+                ++i;
+                j = i;
+            }
+        }
+
+        text_dimensions.x = math::max(text_dimensions.x, offset_x);
+        text_dimensions.y += line_height;
+        return text_dimensions;
+    }
+
+    static void render_multiline_text(atl::String_View const text, Font_Style const style, Draw_Context& dc, Vector2 const base_draw_pos, f32 const max_width, bool const ignore_newline) {
+        rendering::Face_Metrics const face_metrics = rendering::get_face_metrics(style.face);
+        // Max height above baseline
+        f32 const ascent = (f32)style.size * (f32)style.v_dpi / 72.0f * (f32)face_metrics.ascent / (f32)face_metrics.units_per_em;
+        f32 const line_height = (f32)style.size * (f32)style.v_dpi / 72.0f * (f32)face_metrics.line_height / (f32)face_metrics.units_per_em;
+        rendering::Text_Metrics const space_metrics = rendering::compute_text_dimensions(style.face, {style.size, style.h_dpi, style.v_dpi}, u8" ");
+        Vector2 offset;
+        auto i = text.chars_begin();
+        auto j = text.chars_begin();
+        auto end = text.chars_end();
+        while(i != end) {
+            char32 const c = *i;
+            bool const whitespace = atl::is_whitespace(c);
+            i64 const distance_to_end = end - i;
+            if(!whitespace && distance_to_end > 1) {
+                ++i;
+            } else {
+                bool const should_end_line = !ignore_newline && c == U'\n';
+                // When i and j are unequal, we hit a whitespace preceded by a word.
+                if(i != j) {
+                    atl::String_View const word{j, distance_to_end > 1 ? i : i + 1};
+                    rendering::Text_Metrics const metrics = rendering::compute_text_dimensions(style.face, {style.size, style.h_dpi, style.v_dpi}, word);
+                    bool const empty_line = offset.x == 0.0f;
+                    bool const overflows_line = offset.x + space_metrics.width + metrics.width > max_width;
+                    bool const break_line = (!empty_line && overflows_line) || should_end_line;
+                    if(break_line) {
+                        offset.x = 0.0f;
+                        offset.y += line_height;
+                    }
+
+                    rendering::Text_Image const text_img = rendering::render_text(style.face, {style.size, style.h_dpi, style.v_dpi}, word);
+                    Vector2 const baseline_correction = {0.0f, ascent - text_img.baseline};
+                    Vector2 const draw_pos = base_draw_pos + offset + baseline_correction;
+                    Draw_Command text_cmd;
+                    text_cmd.texture = text_img.texture;
+                    text_cmd.element_count = 6;
+                    text_cmd.vertex_offset = dc.vertex_buffer.size();
+                    text_cmd.index_offset = dc.index_buffer.size();
+                    dc.draw_commands.emplace_back(text_cmd);
+                    dc.vertex_buffer.emplace_back(draw_pos, Vector2{0.0f, 1.0f}, Vertex::Color{0, 0, 0, 0});
+                    dc.vertex_buffer.emplace_back(draw_pos + Vector2{0.0f, (f32)text_img.height}, Vector2{0.0f, 0.0f}, Vertex::Color{0, 0, 0, 0});
+                    dc.vertex_buffer.emplace_back(draw_pos + Vector2{(f32)text_img.width, (f32)text_img.height}, Vector2{1.0f, 0.0f}, Vertex::Color{0, 0, 0, 0});
+                    dc.vertex_buffer.emplace_back(draw_pos + Vector2{(f32)text_img.width, 0.0f}, Vector2{1.0f, 1.0f}, Vertex::Color{0, 0, 0, 0});
+                    dc.index_buffer.emplace_back(0);
+                    dc.index_buffer.emplace_back(1);
+                    dc.index_buffer.emplace_back(2);
+                    dc.index_buffer.emplace_back(0);
+                    dc.index_buffer.emplace_back(2);
+                    dc.index_buffer.emplace_back(3);
+
+                    offset.x += metrics.width;
+                    if(!break_line) {
+                        offset.x += space_metrics.width;
+                    }
+                } else {
+                    if(should_end_line) {
+                        offset.y += line_height;
+                        offset.x = 0.0f;
+                    }
+                }
+
+                ++i;
+                j = i;
+            }
+        }
+    }
+
     Button_State button(Context& ctx, atl::String_View text) {
         return button(ctx, text, ctx.default_style.button, ctx.default_style.hot_button, ctx.default_style.active_button);
     }
@@ -1462,37 +1577,44 @@ namespace anton_engine::imgui {
 
         // TODO: Text wrap
 
-        rendering::Text_Metrics metrics = rendering::compute_text_dimensions(style.font.face, {style.font.size, style.font.h_dpi, style.font.v_dpi}, text);
-        f32 button_height = math::max(0.0f, style.padding[0]) + math::max(0.0f, style.padding[2]) + metrics.height;
-        f32 button_width = math::max(0.0f, style.padding[1]) + math::max(0.0f, style.padding[3]) + metrics.width;
-        f32 border_height = button_height + style.border[0] + style.border[2];
-        f32 border_width = button_width + style.border[1] + style.border[3];
-
         Draw_Context& dc = window.draw_context;
         Vector2 const border_draw_pos = dc.draw_pos;
         Vector2 const dockspace_pos = get_dockspace_content_screen_pos(dockspace);
+        Vector2 const dockspace_size = get_dockspace_content_size(dockspace);
         Vector2 const cursor = ctx.input.cursor_position;
-        bool const lmb = ctx.input.left_mouse_button;
-        if(test_point_in_box(cursor, dockspace_pos + border_draw_pos, Vector2{border_width, border_height})) {
-            // TODO: Will report click even when the cursor hovers the button with lmb already pressed.
-            if(lmb) {
-                state = Button_State::clicked;
-                style = active_style;
+
+        {
+            f32 const button_padding_height = math::max(0.0f, style.padding[0]) + math::max(0.0f, style.padding[2]);
+            f32 const button_padding_width = math::max(0.0f, style.padding[1]) + math::max(0.0f, style.padding[3]);
+            f32 const border_height = math::max(0.0f, style.border[0]) + math::max(0.0f, style.border[2]);
+            f32 const border_width = math::max(0.0f, style.border[1]) + math::max(0.0f, style.border[3]);
+            f32 const max_text_width = dockspace_size.x - dc.draw_pos.x - border_width - button_padding_width;
+            Vector2 const text_dimensions = compute_text_dimensions(text, style.font, max_text_width, true);
+            Vector2 const button_dimensions = Vector2{text_dimensions.x + border_width + button_padding_width, text_dimensions.y + border_height + button_padding_height};
+            bool const lmb = ctx.input.left_mouse_button;
+            if(test_point_in_box(cursor, dockspace_pos + border_draw_pos, button_dimensions)) {
+                // TODO: Will report click even when the cursor hovers the button with lmb already pressed.
+                if(lmb) {
+                    state = Button_State::clicked;
+                    style = active_style;
+                } else {
+                    state = Button_State::hot;
+                    style = hot_style;
+                }
             } else {
-                state = Button_State::hot;
-                style = hot_style;
+                state = Button_State::inactive;
+                style = inactive_style;
             }
-        } else {
-            state = Button_State::inactive;
-            style = inactive_style;
         }
 
-        metrics = rendering::compute_text_dimensions(style.font.face, {style.font.size, style.font.h_dpi, style.font.v_dpi}, text);
-        button_height = math::max(0.0f, style.padding[0]) + math::max(0.0f, style.padding[2]) + metrics.height;
-        button_width = math::max(0.0f, style.padding[1]) + math::max(0.0f, style.padding[3]) + metrics.width;
-        border_height = button_height + style.border[0] + style.border[2];
-        border_width = button_width + style.border[1] + style.border[3];
-
+        f32 const button_padding_height = math::max(0.0f, style.padding[0]) + math::max(0.0f, style.padding[2]);
+        f32 const button_padding_width = math::max(0.0f, style.padding[1]) + math::max(0.0f, style.padding[3]);
+        f32 const border_height = math::max(0.0f, style.border[0]) + math::max(0.0f, style.border[2]);
+        f32 const border_width = math::max(0.0f, style.border[1]) + math::max(0.0f, style.border[3]);
+        f32 const max_text_width = dockspace_size.x - dc.draw_pos.x - border_width - button_padding_width;
+        Vector2 const text_dimensions = compute_text_dimensions(text, style.font, max_text_width, true);
+        Vector2 const button_no_border_dimensions = Vector2{text_dimensions.x + button_padding_width, text_dimensions.y + button_padding_height};
+        Vector2 const button_dimensions = Vector2{text_dimensions.x + border_width + button_padding_width, text_dimensions.y + border_height + button_padding_height};
         Vector2 const button_draw_pos = border_draw_pos + Vector2{style.border[3], style.border[0]};
         Vertex::Color const bg_color = color_to_vertex_color(style.background_color);
         Vertex::Color const border_color = color_to_vertex_color(style.border_color);
@@ -1503,13 +1625,13 @@ namespace anton_engine::imgui {
             cmd.vertex_offset = dc.vertex_buffer.size();
             cmd.index_offset = dc.index_buffer.size();
             dc.vertex_buffer.emplace_back(border_draw_pos, Vector2{0.0f, 1.0f}, border_color);
-            dc.vertex_buffer.emplace_back(border_draw_pos + Vector2{0.0f, border_height}, Vector2{0.0f, 0.0f}, border_color);
-            dc.vertex_buffer.emplace_back(border_draw_pos + Vector2{border_width, border_height}, Vector2{1.0f, 0.0f}, border_color);
-            dc.vertex_buffer.emplace_back(border_draw_pos + Vector2{border_width, 0.0f}, Vector2{1.0f, 1.0f}, border_color);
+            dc.vertex_buffer.emplace_back(border_draw_pos + Vector2{0.0f, button_dimensions.y}, Vector2{0.0f, 0.0f}, border_color);
+            dc.vertex_buffer.emplace_back(border_draw_pos + button_dimensions, Vector2{1.0f, 0.0f}, border_color);
+            dc.vertex_buffer.emplace_back(border_draw_pos + Vector2{button_dimensions.x, 0.0f}, Vector2{1.0f, 1.0f}, border_color);
             dc.vertex_buffer.emplace_back(button_draw_pos, Vector2{0.0f, 1.0f}, bg_color);
-            dc.vertex_buffer.emplace_back(button_draw_pos + Vector2{0.0f, button_height}, Vector2{0.0f, 0.0f}, bg_color);
-            dc.vertex_buffer.emplace_back(button_draw_pos + Vector2{button_width, button_height}, Vector2{1.0f, 0.0f}, bg_color);
-            dc.vertex_buffer.emplace_back(button_draw_pos + Vector2{button_width, 0.0f}, Vector2{1.0f, 1.0f}, bg_color);
+            dc.vertex_buffer.emplace_back(button_draw_pos + Vector2{0.0f, button_no_border_dimensions.y}, Vector2{0.0f, 0.0f}, bg_color);
+            dc.vertex_buffer.emplace_back(button_draw_pos + button_no_border_dimensions, Vector2{1.0f, 0.0f}, bg_color);
+            dc.vertex_buffer.emplace_back(button_draw_pos + Vector2{button_no_border_dimensions.x, 0.0f}, Vector2{1.0f, 1.0f}, bg_color);
             dc.index_buffer.emplace_back(0);
             dc.index_buffer.emplace_back(1);
             dc.index_buffer.emplace_back(2);
@@ -1524,29 +1646,11 @@ namespace anton_engine::imgui {
             dc.index_buffer.emplace_back(3 + 4);
             dc.draw_commands.emplace_back(cmd);
         }
-        dc.draw_pos += Vector2{0.0f, border_height};
+        dc.draw_pos += Vector2{0.0f, button_dimensions.y};
 
         Vector2 const text_draw_pos = button_draw_pos + Vector2{style.padding[3], style.padding[0]};
-        {
-            rendering::Font_Render_Info fri = {style.font.size, style.font.h_dpi, style.font.v_dpi};
-            rendering::Text_Image text_img = rendering::render_text(style.font.face, fri, text);
-            Draw_Command text_cmd;
-            text_cmd.texture = text_img.texture;
-            text_cmd.element_count = 6;
-            text_cmd.vertex_offset = dc.vertex_buffer.size();
-            text_cmd.index_offset = dc.index_buffer.size();
-            dc.vertex_buffer.emplace_back(text_draw_pos, Vector2{0.0f, 1.0f}, Vertex::Color{0, 0, 0, 0});
-            dc.vertex_buffer.emplace_back(text_draw_pos + Vector2{0.0f, (f32)text_img.height}, Vector2{0.0f, 0.0f}, Vertex::Color{0, 0, 0, 0});
-            dc.vertex_buffer.emplace_back(text_draw_pos + Vector2{(f32)text_img.width, (f32)text_img.height}, Vector2{1.0f, 0.0f}, Vertex::Color{0, 0, 0, 0});
-            dc.vertex_buffer.emplace_back(text_draw_pos + Vector2{(f32)text_img.width, 0.0f}, Vector2{1.0f, 1.0f}, Vertex::Color{0, 0, 0, 0});
-            dc.index_buffer.emplace_back(0);
-            dc.index_buffer.emplace_back(1);
-            dc.index_buffer.emplace_back(2);
-            dc.index_buffer.emplace_back(0);
-            dc.index_buffer.emplace_back(2);
-            dc.index_buffer.emplace_back(3);
-            dc.draw_commands.emplace_back(text_cmd);
-        }
+        render_multiline_text(text, style.font, dc, text_draw_pos, max_text_width, true);
+
         return state;
     }
 

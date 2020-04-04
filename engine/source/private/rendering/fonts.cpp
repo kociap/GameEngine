@@ -76,6 +76,19 @@ namespace anton_engine::rendering {
         FT_Done_Face(reinterpret_cast<FT_Face>(face));
     }
 
+    Face_Metrics get_face_metrics(Font_Face* _face) {
+        FT_Face face = reinterpret_cast<FT_Face>(_face);
+        Face_Metrics metrics;
+        metrics.family_name = face->family_name;
+        metrics.style_name = face->style_name;
+        metrics.ascent = face->ascender;
+        metrics.descent = face->descender;
+        metrics.line_height = face->height;
+        metrics.max_advance = face->max_advance_width;
+        metrics.units_per_em = face->units_per_EM;
+        return metrics;
+    }
+
     atl::Vector<Glyph> rasterize_text_glyphs(Font_Face* const _face, Font_Render_Info const info, atl::String_View const string) {
         FT_Face face = reinterpret_cast<FT_Face>(_face);
 
@@ -224,6 +237,10 @@ namespace anton_engine::rendering {
         glTextureStorage2D(image.texture, 1, GL_R8, buffer_width, buffer_height);
         i32 const swizzle[] = {GL_ONE, GL_ONE, GL_ONE, GL_RED};
         glTextureParameteriv(image.texture, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+        glTextureParameteri(image.texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTextureParameteri(image.texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        f32 const border_color[] = {0.0f, 0.0f, 0.0f, 0.0f};
+        glTextureParameterfv(image.texture, GL_TEXTURE_BORDER_COLOR, border_color);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glTextureSubImage2D(image.texture, 0, 0, 0, buffer_width, buffer_height, GL_RED, GL_UNSIGNED_BYTE, tex_data.data());
         atl::Vector<Text_Image_With_Parameters>& textures = font_lib->font_texture_map.find_or_emplace(str_hash)->value;

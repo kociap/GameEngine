@@ -36,6 +36,23 @@ namespace anton_engine::rendering {
         atl::Vector<u8> bitmap;
     };
 
+    // All metrics are expressed in font units.
+    //
+    class Face_Metrics {
+    public:
+        atl::String_View family_name;
+        atl::String_View style_name;
+        // Max height above baseline.
+        i32 ascent;
+        // Max height below baseline (negative if below baseline). 
+        i32 descent;
+        // Distance between 2 consecutive baselines.
+        i32 line_height;
+        i32 max_advance;
+        // font units per em
+        i32 units_per_em;
+    };  
+
     class Text_Metrics {
     public:
         i32 width;
@@ -64,6 +81,10 @@ namespace anton_engine::rendering {
     //
     Font_Face* load_face(atl::Slice<u8 const> file_data, u32 face_index);
     void unload_face(Font_Face* face);
+
+    Face_Metrics get_face_metrics(Font_Face* face);
+    // Face_Metrics get_face_metrics_as_pixels(Font_Face* face, Font_Render_Info)
+
     atl::Vector<Glyph> rasterize_text_glyphs(Font_Face* face, Font_Render_Info info, atl::String_View string);
     Text_Metrics compute_text_dimensions(Font_Face* face, Font_Render_Info info, atl::String_View string);
     Text_Image render_text(Font_Face* face, Font_Render_Info info, atl::String_View string);

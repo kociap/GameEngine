@@ -99,8 +99,11 @@ namespace anton_engine {
             imgui::Button_Style style = imgui::get_default_style(ctx).button;
             style.font.face = french_script_regular_face;
             style.font.size = 24;
-            imgui::button(ctx, u8"just some text", style, style, style);
-            imgui::button(ctx, u8"ffffrench script regular", style, style, style);
+            imgui::Button_Style hot_style = imgui::get_default_style(ctx).hot_button;
+            hot_style.font.face = french_script_regular_face;
+            hot_style.font.size = 24;
+            imgui::button(ctx, u8"just some text", style, hot_style, hot_style);
+            imgui::button(ctx, u8"ffffrench script regular", style, hot_style, hot_style);
 
             imgui::end_window(ctx);
 
