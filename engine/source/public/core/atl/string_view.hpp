@@ -3,7 +3,7 @@
 
 #include <build_config.hpp>
 #include <core/hashing/murmurhash2.hpp>
-#include <core/atl/detail/string_iterators.hpp>
+#include <core/atl/detail/string_common.hpp>
 #include <core/atl/iterators.hpp>
 #include <core/atl/string_utils.hpp>
 #include <core/atl/utility.hpp>

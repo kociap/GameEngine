@@ -1,10 +1,15 @@
-#include <core/atl/detail/string_iterators.hpp>
+#include <core/atl/detail/string_common.hpp>
 
 #include <core/assert.hpp>
 #include <core/exception.hpp>
 #include <core/math/math.hpp>
 
 namespace anton_engine::atl {
+    bool is_whitespace(char32 const c) {
+        // TODO: This is dumb ascii check. Make more unicode-ish.
+        return c <= 32;
+    }
+
     UTF8_Char_Iterator::UTF8_Char_Iterator(char8 const* p, i64 offset): _data(p), _offset(offset) {}
 
     UTF8_Char_Iterator& UTF8_Char_Iterator::operator++() {

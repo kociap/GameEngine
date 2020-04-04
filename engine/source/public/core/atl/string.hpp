@@ -2,7 +2,7 @@
 #define CORE_ATL_STRING_HPP_INCLUDE
 
 #include <core/atl/allocator.hpp>
-#include <core/atl/detail/string_iterators.hpp>
+#include <core/atl/detail/string_common.hpp>
 #include <core/atl/iterators.hpp>
 #include <core/atl/string_view.hpp>
 #include <core/atl/tags.hpp>

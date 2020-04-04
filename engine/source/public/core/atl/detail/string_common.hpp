@@ -11,6 +11,8 @@ namespace anton_engine::atl {
     class String_View;
     class UTF8_Chars;
 
+    [[nodiscard]] bool is_whitespace(char32);
+
     // UTF8_Char_Iterator
     // Iterates over Unicode code points encoded as UTF-8.
     //

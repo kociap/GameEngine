@@ -29,6 +29,7 @@ extern "C" {
     void* memset(void* dest, int value, unsigned long long count);
     void* memcpy(void* dest, void const* src, unsigned long long count);
     void* memmove(void* dest, void const* src, unsigned long long count);
+    int memcmp(void const* lhs, void const* rhs, unsigned long long count);
 
     unsigned long long strlen(char const* string);
 
