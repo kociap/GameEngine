@@ -12,6 +12,10 @@ extern "C" {
         #define offsetof(s,m) __builtin_offsetof(s,m)
     #endif
 
+    // time.h
+
+    struct timespec;
+
     // math.h
 
     ANTON_CRT_IMPORT float powf(float, float);

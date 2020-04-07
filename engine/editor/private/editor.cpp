@@ -22,6 +22,7 @@
 #include <engine/time_internal.hpp>
 #include <core/filesystem.hpp>
 #include <windowing/window.hpp>
+#include <core/threads.hpp>
 
 #include <rendering/builtin_editor_shaders.hpp>
 #include <rendering/glad.hpp>
@@ -43,7 +44,6 @@
 
 #include <engine/time.hpp>
 
-#include <mimas/mimas.h>
 #include <stdio.h>
 
 namespace anton_engine {
@@ -69,15 +69,18 @@ namespace anton_engine {
     static bool cursor_locked = false;
     static Vector2 cursor_locked_pos;
     static bool prev_u_key_state = false;
+    static i64 target_framerate = 144;
 
     void quit() {
         _quit = true;
     }
 
     static void loop() {
-        windowing::poll_events();
         update_time();
+        windowing::poll_events();
         input::process_events();
+
+        // printf("frame_start_time: %f, frame_start: %.9f\n", get_frame_start_time(), get_time());
 
         // printf("delta time: %llf\n", get_delta_time());
 
@@ -214,6 +217,16 @@ namespace anton_engine {
         }
 
         ecs->remove_requested_entities();
+
+        // printf("frame_start_time: %f, frame_end_before_thread: %.9f\n", get_frame_start_time(), get_time());
+        f64 const current_time = get_time() - get_frame_start_time();
+        f64 const target_frametime = 1.0f / target_framerate;
+        f64 const sleep_time = math::max(target_frametime - current_time, 0.0);
+        threads::Timespec duration;
+        duration.seconds = sleep_time;
+        duration.nanoseconds = sleep_time * 1000000000.0;
+        threads::sleep(duration);
+        // printf("frame_start_time: %f, frame_end_after_thread: %.9f\n", get_frame_start_time(), get_time());
     }
 
     // TODO: Forward decl of load_world. Remove (eventually)
@@ -320,7 +333,7 @@ namespace anton_engine {
         if(!windowing::init()) {
             throw Exception("Windowing could not be initialized.");
         }
-        windowing::enable_vsync(true);
+        windowing::enable_vsync(false);
         main_window = windowing::create_window(1280, 720, true);
         windowing::Display* primary_display = windowing::get_primary_display();
         // windowing::fullscreen_window(main_window, primary_display);

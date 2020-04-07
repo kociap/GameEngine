@@ -22,12 +22,13 @@ namespace anton_engine {
         // 0 through 999
         u16 milliseconds;
     };
-
-    // Returns time in seconds
-    double get_time();
     
     System_Time get_utc_system_time();
     System_Time get_local_system_time();
+
+    // Returns time in seconds
+    double get_time();
+    double get_frame_start_time();
 
     // The time it took to complete the previous frame
     double get_delta_time();
