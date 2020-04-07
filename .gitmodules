@@ -10,3 +10,6 @@
 [submodule "engine/dependencies/mimas"]
 	path = engine/dependencies/mimas
 	url = https://github.com/kociap/mimas.git
+[submodule "engine/dependencies/harfbuzz"]
+	path = engine/dependencies/harfbuzz
+	url = https://github.com/harfbuzz/harfbuzz.git
