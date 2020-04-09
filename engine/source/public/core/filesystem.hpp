@@ -40,15 +40,15 @@ namespace anton_engine::fs {
         void* _buffer;
     };
 
-    class Onput_File_Stream: public Output_Stream {
+    class Output_File_Stream: public Output_Stream {
     public:
-        Onput_File_Stream();
-        Onput_File_Stream(atl::String_View filename);
-        Onput_File_Stream(Onput_File_Stream const&) = delete;
-        Onput_File_Stream(Onput_File_Stream&&);
-        Onput_File_Stream& operator=(Onput_File_Stream const&) = delete;
-        Onput_File_Stream& operator=(Onput_File_Stream&&);
-        virtual ~Onput_File_Stream();
+        Output_File_Stream();
+        Output_File_Stream(atl::String_View filename);
+        Output_File_Stream(Output_File_Stream const&) = delete;
+        Output_File_Stream(Output_File_Stream&&);
+        Output_File_Stream& operator=(Output_File_Stream const&) = delete;
+        Output_File_Stream& operator=(Output_File_Stream&&);
+        virtual ~Output_File_Stream();
 
         void open(atl::String_View filename);
         void close();

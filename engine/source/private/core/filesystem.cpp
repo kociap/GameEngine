@@ -142,26 +142,26 @@ namespace anton_engine::fs {
         return ftell((FILE*)_buffer);
     }
 
-    Onput_File_Stream::Onput_File_Stream(): _buffer(nullptr) {}
+    Output_File_Stream::Output_File_Stream(): _buffer(nullptr) {}
 
-    Onput_File_Stream::Onput_File_Stream(atl::String_View filename) {
+    Output_File_Stream::Output_File_Stream(atl::String_View filename) {
         open(filename);
     }
 
-    Onput_File_Stream::Onput_File_Stream(Onput_File_Stream&& other): _buffer(other._buffer) {
+    Output_File_Stream::Output_File_Stream(Output_File_Stream&& other): _buffer(other._buffer) {
         other._buffer = nullptr;
     }
 
-    Onput_File_Stream& Onput_File_Stream::operator=(Onput_File_Stream&& other) {
+    Output_File_Stream& Output_File_Stream::operator=(Output_File_Stream&& other) {
         atl::swap(_buffer, other._buffer);
         return *this;
     }
 
-    Onput_File_Stream::~Onput_File_Stream() {
+    Output_File_Stream::~Output_File_Stream() {
         close();
     }
 
-    void Onput_File_Stream::open(atl::String_View filename) {
+    void Output_File_Stream::open(atl::String_View filename) {
         if(_buffer) {
             fclose((FILE*)_buffer);
         }
@@ -169,29 +169,29 @@ namespace anton_engine::fs {
         _buffer = fopen(filename.data(), "wb");
     }
 
-    void Onput_File_Stream::close() {
+    void Output_File_Stream::close() {
         if(_buffer) {
             fclose((FILE*)_buffer);
         }
     }
 
-    void Onput_File_Stream::flush() {
+    void Output_File_Stream::flush() {
         fflush((FILE*)_buffer);
     }
 
-    void Onput_File_Stream::write(void const* buffer, i64 count) {
+    void Output_File_Stream::write(void const* buffer, i64 count) {
         fwrite(buffer, count, 1, (FILE*)_buffer);
     }
 
-    void Onput_File_Stream::put(char32 c) {
+    void Output_File_Stream::put(char32 c) {
         fputc(c, (FILE*)_buffer);
     }
 
-    void Onput_File_Stream::seek(Seek_Dir dir, i64 offset) {
+    void Output_File_Stream::seek(Seek_Dir dir, i64 offset) {
         fseek((FILE*)_buffer, offset, (int)(dir));
     }
 
-    i64 Onput_File_Stream::tell() {
+    i64 Output_File_Stream::tell() {
         return ftell((FILE*)_buffer);
     }
 
