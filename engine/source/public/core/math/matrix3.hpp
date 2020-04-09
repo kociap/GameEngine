@@ -1,5 +1,5 @@
-#ifndef GAME_ENGINE_CORE_MATH_MARTIX3_HPP_INCLUDE
-#define GAME_ENGINE_CORE_MATH_MARTIX3_HPP_INCLUDE
+#ifndef CORE_MATH_MARTIX3_HPP_INCLUDE
+#define CORE_MATH_MARTIX3_HPP_INCLUDE
 
 #include <core/math/vector3.hpp>
 
@@ -203,4 +203,4 @@ namespace anton_engine::math {
     }
 } // namespace anton_engine::math
 
-#endif // !GAME_ENGINE_CORE_MATH_MARTIX3_HPP_INCLUDE
+#endif // !CORE_MATH_MARTIX3_HPP_INCLUDE

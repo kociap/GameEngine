@@ -1,5 +1,5 @@
-#ifndef GAME_ENGINE_CORE_MATH_MARTIX2_HPP_INCLUDE
-#define GAME_ENGINE_CORE_MATH_MARTIX2_HPP_INCLUDE
+#ifndef CORE_MATH_MARTIX2_HPP_INCLUDE
+#define CORE_MATH_MARTIX2_HPP_INCLUDE
 
 #include <core/atl/utility.hpp>
 #include <core/math/vector2.hpp>
@@ -175,4 +175,4 @@ namespace anton_engine::math {
     }
 } // namespace anton_engine::math
 
-#endif // !GAME_ENGINE_CORE_MATH_MARTIX2_HPP_INCLUDE
+#endif // !CORE_MATH_MARTIX2_HPP_INCLUDE

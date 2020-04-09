@@ -112,6 +112,11 @@ namespace anton_engine::math {
         return ::ceilf(x);
     }
 
+    inline f32 fract(f32 x) {
+        f32 integral_part;
+        return ::modff(x, &integral_part);
+    }
+
     constexpr float step_to_value(float current, float target, float change) {
         float delta = target - current;
         if (abs(delta) > change) {

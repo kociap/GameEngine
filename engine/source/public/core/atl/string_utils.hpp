@@ -1,5 +1,5 @@
-#ifndef CORE_STRING_UTILS_HPP_INCLUDE
-#define CORE_STRING_UTILS_HPP_INCLUDE
+#ifndef CORE_ATL_STRING_UTILS_HPP_INCLUDE
+#define CORE_ATL_STRING_UTILS_HPP_INCLUDE
 
 namespace anton_engine::atl {
     inline bool compare_equal(char const* lhs, char const* rhs) {
@@ -33,4 +33,4 @@ namespace anton_engine::atl {
     }
 } // namespace anton_engine::atl
 
-#endif // !CORE_STRING_UTILS_HPP_INCLUDE
+#endif // !CORE_ATL_STRING_UTILS_HPP_INCLUDE

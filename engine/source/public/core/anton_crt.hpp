@@ -26,6 +26,8 @@ extern "C" {
     ANTON_CRT_IMPORT float floorf(float);
     ANTON_CRT_IMPORT float ceilf(float);
     ANTON_CRT_IMPORT float tanf(float);
+    ANTON_CRT_IMPORT float modff(float, float*);
+
 
     // string.h
     // memset, memmove, memcpy, strlen don't use dllimport on win.
