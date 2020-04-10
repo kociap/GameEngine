@@ -13,7 +13,7 @@ namespace anton_engine {
 
         friend class ECS;
 
-        Component_View(Component_Container<Components>*... c): containers(c...) {}
+        Component_View(Component_Container<Components>*... c): _containers(c...) {}
 
     public:
         using size_type = Component_Container_Base::size_type;
@@ -24,7 +24,7 @@ namespace anton_engine {
             using underlying_iterator_t = typename Component_Container_Base::iterator;
 
             // begin and end are iterators into the smallest container
-            iterator(atl::Tuple<Component_Container<Components>*...> c, underlying_iterator_t b, underlying_iterator_t e): containers(c), begin(b), end(e) {}
+            iterator(atl::Tuple<Component_Container<Components>*...> c, underlying_iterator_t b, underlying_iterator_t e): _containers(c), _begin(b), _end(e) {}
 
         public:
             using value_type = typename atl::Iterator_Traits<underlying_iterator_t>::value_type;
@@ -34,7 +34,11 @@ namespace anton_engine {
             using iterator_category = atl::Forward_Iterator_Tag;
 
             iterator& operator++() {
-                return (++begin != end && !has_all_components(*begin)) ? ++(*this) : *this;
+                ANTON_ASSERT(_begin != _end, "Cannot advance end iterator");
+                do {
+                    ++_begin;
+                } while(_begin != _end && !has_all_components(*_begin));
+                return *this;
             }
 
             iterator& operator+=(i64 rhs) {
@@ -44,13 +48,12 @@ namespace anton_engine {
                 }
             }
 
-            // Return underlying_iterator_t to call operator-> recursively
             underlying_iterator_t operator->() {
-                return begin;
+                return _begin;
             }
 
             reference operator*() {
-                return *begin;
+                return *_begin;
             }
 
             [[nodiscard]] friend iterator operator+(iterator lhs, i64 const rhs) {
@@ -59,27 +62,27 @@ namespace anton_engine {
             }
 
             [[nodiscard]] friend bool operator==(iterator const& a, iterator const& b) {
-                return a.begin == b.begin;
+                return a._begin == b._begin;
             }
 
             [[nodiscard]] friend bool operator!=(iterator const& a, iterator const& b) {
-                return a.begin != b.begin;
+                return a._begin != b._begin;
             }
 
         private:
             bool has_all_components(Entity entity) {
-                return (... && atl::get<Component_Container<Components>*>(containers)->has(entity));
+                return (... && atl::get<Component_Container<Components>*>(_containers)->has(entity));
             }
 
         private:
-            atl::Tuple<Component_Container<Components>*...> containers;
-            underlying_iterator_t begin;
-            underlying_iterator_t end;
+            atl::Tuple<Component_Container<Components>*...> _containers;
+            underlying_iterator_t _begin;
+            underlying_iterator_t _end;
         };
 
     public:
         [[nodiscard]] size_type size() const {
-            i64 sizes[] = {atl::get<Component_Container<Components>*>(containers)->size()...};
+            i64 sizes[] = {atl::get<Component_Container<Components>*>(_containers)->size()...};
             i64 min = sizes[0];
             for(i64 i = 1; i < atl::size(sizes); ++i) {
                 min = math::min(min, sizes[i]);
@@ -89,20 +92,20 @@ namespace anton_engine {
 
         [[nodiscard]] iterator begin() {
             auto c = find_smallest_container();
-            return iterator(containers, c->begin(), c->end());
+            return iterator(_containers, c->begin(), c->end());
         }
 
         [[nodiscard]] iterator end() {
             auto c = find_smallest_container();
-            return iterator(containers, c->end(), c->end());
+            return iterator(_containers, c->end(), c->end());
         }
 
-        template <typename... T>
+        template <typename... Ts>
         [[nodiscard]] decltype(auto) get(Entity const entity) {
-            if constexpr (sizeof...(T) == 1) {
-                return (..., atl::get<Component_Container<T>*>(containers)->get(entity));
+            if constexpr (sizeof...(Ts) == 1) {
+                return (..., atl::get<Component_Container<Ts>*>(_containers)->get(entity));
             } else {
-                return atl::Tuple<T&...>(get<T>(entity)...);
+                return atl::Tuple<Ts&...>(get<Ts>(entity)...);
             }
         }
 
@@ -127,12 +130,12 @@ namespace anton_engine {
 
     private:
         bool has_all_components(Entity entity) {
-            return (... && atl::get<Component_Container<Components>*>(containers)->has(entity));
+            return (... && atl::get<Component_Container<Components>*>(_containers)->has(entity));
         }
 
         // TODO add const support
         Component_Container_Base* find_smallest_container() {
-            Component_Container_Base* conts[] = {static_cast<Component_Container_Base*>(atl::get<Component_Container<Components>*>(containers))...};
+            Component_Container_Base* conts[] = {static_cast<Component_Container_Base*>(atl::get<Component_Container<Components>*>(_containers))...};
             i64 min = conts[0]->size();
             i64 smallest_cont = 0;
             for(i64 i = 1; i < atl::size(conts); ++i) {
@@ -146,35 +149,35 @@ namespace anton_engine {
         }
 
     private:
-        atl::Tuple<Component_Container<Components>*...> containers;
+        atl::Tuple<Component_Container<Components>*...> _containers;
     };
 
     // Specialization of Component_View  for single component type.
-    // Avoids unnecessary checks, which results in performance boost.
+    // Avoids unnecessary checks.
     template <typename Component>
     class Component_View<Component> {
         friend class ECS;
 
-        Component_View(Component_Container<Component>* c): container(c) {}
+        Component_View(Component_Container<Component>* c): _container(c) {}
 
     public:
         using size_type = Component_Container_Base::size_type;
         using iterator = Component_Container_Base::iterator;
 
         [[nodiscard]] size_type size() const {
-            return container->size();
+            return _container->size();
         }
 
         [[nodiscard]] iterator begin() {
-            return container->Component_Container_Base::begin();
+            return _container->Component_Container_Base::begin();
         }
 
         [[nodiscard]] iterator end() {
-            return container->Component_Container_Base::end();
+            return _container->Component_Container_Base::end();
         }
 
         [[nodiscard]] Component& get(Entity const entity) {
-            return container->get(entity);
+            return _container->get(entity);
         }
 
         // Provides a convenient way to iterate over all entities and their components.
@@ -183,7 +186,7 @@ namespace anton_engine {
         template <typename Callable>
         void each(Callable&& callable) {
             static_assert(atl::is_invocable<Callable, Entity, Component&> || atl::is_invocable<Callable, Component&>);
-            for (Entity entity: *static_cast<Component_Container_Base*>(container)) {
+            for (Entity entity: *static_cast<Component_Container_Base*>(_container)) {
                 if constexpr (atl::is_invocable<Callable, Component&>) {
                     callable(get(entity));
                 } else {
@@ -193,7 +196,7 @@ namespace anton_engine {
         }
 
     private:
-        Component_Container<Component>* container;
+        Component_Container<Component>* _container;
     };
 } // namespace anton_engine
 

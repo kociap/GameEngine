@@ -1,5 +1,5 @@
-#ifndef CORE_HASHINH_MURMURHASH2_HPP_INCLUDE
-#define CORE_HASHINH_MURMURHASH2_HPP_INCLUDE
+#ifndef CORE_HASHING_MURMURHASH2_HPP_INCLUDE
+#define CORE_HASHING_MURMURHASH2_HPP_INCLUDE
 
 #include <core/types.hpp>
 
@@ -18,46 +18,48 @@ namespace anton_engine {
     // 1. It will not work incrementally.
     // 2. It will not produce the same results on little-endian and big-endian
     //    machines.
-    constexpr u32 murmurhash2_32(const void* key, int len, u32 seed) {
+    // 
+    // len - size of the data pointed to by key in bytes.
+    //
+    constexpr u32 murmurhash2_32(void const* key, i32 len, u32 seed) {
+        #define mmix(h,k) { k *= m; k ^= k >> r; k *= m; h *= m; h ^= k; }
+
         // 'm' and 'r' are mixing constants generated offline.
         // They're not really 'magic', they just happen to work well.
-
-        const u32 m = 0x5bd1e995;
-        const int r = 24;
-
-        // Initialize the hash to a 'random' value
-
-        u32 h = seed ^ len;
+        u32 const m = 0x5bd1e995;
+        i32 const r = 24;
+        u32 l = len;
 
         // Mix 4 bytes at a time into the hash
 
-        const unsigned char* data = (const unsigned char*)key;
+        unsigned char const* data = (unsigned char const*)key;
 
-        while (len >= 4) {
+        u32 h = seed;
+
+        while(len >= 4) {
             u32 k = *(u32*)data;
 
-            k *= m;
-            k ^= k >> r;
-            k *= m;
-
-            h *= m;
-            h ^= k;
+            mmix(h,k);
 
             data += 4;
             len -= 4;
         }
 
+        u32 t = 0;
+
         // Handle the last few bytes of the input array
 
-        switch (len) {
-        case 3:
-            h ^= data[2] << 16;
-        case 2:
-            h ^= data[1] << 8;
-        case 1:
-            h ^= data[0];
-            h *= m;
-        };
+        switch(len) {
+            case 3: 
+                t ^= data[2] << 16;
+            case 2: 
+                t ^= data[1] << 8;
+            case 1: 
+                t ^= data[0];
+        }
+
+        mmix(h, t);
+        mmix(h, l);
 
         // Do a few final mixes of the hash to ensure the last few
         // bytes are well-incorporated.
@@ -65,6 +67,8 @@ namespace anton_engine {
         h ^= h >> 13;
         h *= m;
         h ^= h >> 15;
+
+        #undef mmix
 
         return h;
     }
@@ -74,14 +78,16 @@ namespace anton_engine {
     // The same caveats as 32-bit MurmurHash2 apply here - beware of alignment
     // and endian-ness issues if used across multiple platforms.
     //
-    constexpr u64 murmurhash2_64(const void* key, int len, unsigned int seed) {
-        const u64 m = 0xc6a4a7935bd1e995;
-        const int r = 47;
+    // len - size of the data pointed to by key in bytes.
+    //
+    constexpr u64 murmurhash2_64(void const* key, i64 len, u64 seed) {
+        u64 const m = 0xc6a4a7935bd1e995;
+        i64 const r = 47;
 
         u64 h = seed ^ (len * m);
 
-        const u64* data = (const u64*)key;
-        const u64* end = data + (len / 8);
+        u64 const* data = (u64 const*)key;
+        u64 const* end = data + (len / 8);
 
         while (data != end) {
             u64 k = *data++;
@@ -94,7 +100,7 @@ namespace anton_engine {
             h *= m;
         }
 
-        const unsigned char* data2 = (const unsigned char*)data;
+        unsigned char const* data2 = (unsigned char const*)data;
 
         switch (len & 7) {
         case 7:
@@ -122,4 +128,4 @@ namespace anton_engine {
     }
 } // namespace anton_engine
 
-#endif // !CORE_HASHINH_MURMURHASH2_HPP_INCLUDE
+#endif // !CORE_HASHING_MURMURHASH2_HPP_INCLUDE

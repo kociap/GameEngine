@@ -68,9 +68,7 @@ namespace anton_engine::atl {
     }
 
     constexpr u64 hash(String_View const view) {
-        // Seeded with a randomly picked prime number. No idea how that affects the performance or collision frequency.
-        // TODO: Do my research on seeding the hash function.
-        return anton_engine::murmurhash2_64(view.bytes_begin(), view.size_bytes(), 547391837);
+        return anton_engine::murmurhash2_64(view.bytes_begin(), view.size_bytes(), 0x1F0D3804);
     }
 } // namespace anton_engine::atl
 

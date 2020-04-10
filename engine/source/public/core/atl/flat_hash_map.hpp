@@ -4,7 +4,7 @@
 #include <core/types.hpp>
 #include <core/atl/memory.hpp>
 #include <core/atl/allocator.hpp>
-#include <core/atl/detail/functors.hpp>
+#include <core/atl/functors.hpp>
 #include <core/atl/tags.hpp>
 #include <core/assert.hpp>
 
@@ -24,90 +24,13 @@ namespace anton_engine::atl {
         class Entry {
         public:
             Key const key;
-            Value value;
+            Value& value;
         };
         
         using value_type = Entry;
         using allocator_type = Polymorphic_Allocator;
         using hasher = Hash;
         using key_equal = Key_Equal;
-
-
-        class iterator {
-        public:
-            using value_type = Entry;
-            using difference_type = isize;
-            using iterator_category = atl::Bidirectional_Input_Tag;
-
-            iterator() = delete;
-            iterator(iterator const&) = default;
-            iterator(iterator&&) = default;
-            ~iterator() = default;
-            iterator& operator=(iterator const&) = default;
-            iterator& operator=(iterator&&) = default;
-
-            iterator& operator++() {
-                _slots += 1;
-                _states += 1;
-                while(*_states == State::empty || *_states == State::deleted) {
-                    _slots += 1;
-                    _states += 1;
-                }
-                return *this;
-            }
-
-            iterator operator++(int) {
-                iterator iter = *this;
-                ++(*this);
-                return iter;
-            }
-
-            iterator& operator--() {
-                _slots -= 1;
-                _states -= 1;
-                while(*_states == State::empty || *_states == State::deleted) {
-                    _slots -= 1;
-                    _states -= 1;
-                }
-                return *this;
-            }
-
-            iterator operator--(int) {
-                iterator iter = *this;
-                --(*this);
-                return iter;
-            }
-
-            [[nodiscard]] value_type* operator->() const {
-                if constexpr(ANTON_ITERATOR_DEBUG) {
-                    ANTON_FAIL(*_states == State::active, "Dereferencing invalid Flat_Hash_Map pointer.");
-                }
-                return reinterpret_cast<value_type*>(_slots);
-            }
-
-            [[nodiscard]] value_type& operator*() const {
-                if constexpr(ANTON_ITERATOR_DEBUG) {
-                    ANTON_FAIL(*_states == State::active, "Dereferencing invalid Flat_Hash_Map pointer.");
-                }
-                return *reinterpret_cast<value_type*>(_slots);
-            }
-
-            [[nodiscard]] bool operator==(iterator const& b) const {
-                return _slots == b._slots;
-            }
-
-            [[nodiscard]] bool operator!=(iterator const& b) const {
-                return _slots != b._slots;
-            }
-
-        private:
-            friend Flat_Hash_Map;
-
-            Slot* _slots;
-            State* _states;
-
-            iterator(Slot* slots, State* states): _slots(slots), _states(states) {}
-        };
 
         class const_iterator {
         public:
@@ -122,13 +45,89 @@ namespace anton_engine::atl {
             const_iterator& operator=(const_iterator const&) = default;
             const_iterator& operator=(const_iterator&&) = default;
 
-            iterator& operator++() {
+            const_iterator& operator++() {
                 _slots += 1;
                 _states += 1;
                 while(*_states == State::empty || *_states == State::deleted) {
                     _slots += 1;
                     _states += 1;
                 }
+                return *this;
+            }
+
+            const_iterator operator++(int) {
+                const_iterator iter = *this;
+                ++(*this);
+                return iter;
+            }
+
+            const_iterator& operator--() {
+                _slots -= 1;
+                _states -= 1;
+                while(*_states == State::empty || *_states == State::deleted) {
+                    _slots -= 1;
+                    _states -= 1;
+                }
+                return *this;
+            }
+
+            const_iterator operator--(int) {
+                const_iterator iter = *this;
+                --(*this);
+                return iter;
+            }
+
+            [[nodiscard]] value_type* operator->() const {
+                if constexpr(ANTON_ITERATOR_DEBUG) {
+                    ANTON_FAIL(*_states == State::active, "Dereferencing invalid Flat_Hash_Map iterator.");
+                }
+                return reinterpret_cast<value_type*>(_slots);
+            }
+
+            [[nodiscard]] value_type& operator*() const {
+                if constexpr(ANTON_ITERATOR_DEBUG) {
+                    ANTON_FAIL(*_states == State::active, "Dereferencing invalid Flat_Hash_Map iterator.");
+                }
+                return *reinterpret_cast<value_type*>(_slots);
+            }
+
+            [[nodiscard]] bool operator==(const_iterator const& b) const {
+                return _slots == b._slots;
+            }
+
+            [[nodiscard]] bool operator!=(const_iterator const& b) const {
+                return _slots != b._slots;
+            }
+
+        private:
+            friend class Flat_Hash_Map;
+            friend class iterator;
+
+            Slot const* _slots;
+            State const* _states;
+
+            const_iterator(Slot const* slots, State const* states): _slots(slots), _states(states) {}
+        };
+
+        class iterator {
+        public:
+            using value_type = Entry;
+            using difference_type = isize;
+            using iterator_category = atl::Bidirectional_Input_Tag;
+
+            iterator() = delete;
+            iterator(iterator const&) = default;
+            iterator(iterator&&) = default;
+            ~iterator() = default;
+            iterator& operator=(iterator const&) = default;
+            iterator& operator=(iterator&&) = default;
+
+            [[nodiscard]] operator const_iterator() const {
+                return _iter;
+            }
+
+            iterator& operator++() {
+                ++_iter;
                 return *this;
             }
 
@@ -139,12 +138,7 @@ namespace anton_engine::atl {
             }
 
             iterator& operator--() {
-                _slots -= 1;
-                _states -= 1;
-                while(*_states == State::empty || *_states == State::deleted) {
-                    _slots -= 1;
-                    _states -= 1;
-                }
+                --_iter;
                 return *this;
             }
 
@@ -155,28 +149,27 @@ namespace anton_engine::atl {
             }
 
             [[nodiscard]] value_type* operator->() const {
-                return reinterpret_cast<value_type*>(_slots);
+                return const_cast<value_type*>(_iter.operator->());
             }
 
             [[nodiscard]] value_type& operator*() const {
-                return *reinterpret_cast<value_type*>(_slots);
+                return const_cast<value_type&>(*_iter);
             }
 
             [[nodiscard]] bool operator==(iterator const& b) const {
-                return _slots == b._slots;
+                return _iter == b._iter;
             }
 
             [[nodiscard]] bool operator!=(iterator const& b) const {
-                return _slots != b._slots;
+                return _iter != b._iter;
             }
 
         private:
             friend Flat_Hash_Map;
 
-            Slot const* _slots;
-            State const* _states;
+            const_iterator _iter;
 
-            const_iterator(Slot const* slots, State const* states): _slots(slots), _states(states) {}
+            iterator(Slot* slots, State* states): _iter(slots, states) {}
         };
 
         Flat_Hash_Map(allocator_type const& = allocator_type(), hasher const& = hasher(), key_equal const& = key_equal());
@@ -187,24 +180,29 @@ namespace anton_engine::atl {
         Flat_Hash_Map& operator=(Flat_Hash_Map&&) noexcept;
         ~Flat_Hash_Map();
 
-        iterator begin();
-        const_iterator begin() const;
-        const_iterator cbegin();
+        [[nodiscard]] iterator begin();
+        [[nodiscard]] const_iterator begin() const;
+        [[nodiscard]] const_iterator cbegin();
 
-        iterator end();
-        const_iterator end() const;
-        const_iterator cend();
+        [[nodiscard]] iterator end();
+        [[nodiscard]] const_iterator end() const;
+        [[nodiscard]] const_iterator cend();
 
-        iterator find(Key const&);
-        const_iterator find(Key const&) const;
-        // Finds the entry with given key or default constructs one if it doesn't exist
-        iterator find_or_emplace(Key const&);
+        [[nodiscard]] iterator find(Key const& key);
+        [[nodiscard]] const_iterator find(Key const& key) const;
+
+        // Finds the entry with given key or default constructs one if it doesn't exist.
+        //
+        template<typename... Args>
+        [[nodiscard]] iterator find_or_emplace(Key const& key, Args&&... args);
 
         // TODO: Consider making emplace overwrite the value if it already exists.
         template<typename... Args>
-        iterator emplace(Key const&, Args&&...);
+        iterator emplace(Key const& key, Args&&... args);
         template<typename... Args>
-        iterator emplace(Key&&, Args&&...);
+        iterator emplace(Key&& key, Args&&... args);
+
+        void erase(const_iterator position);
 
         void ensure_capacity(i64 c);
 
@@ -384,6 +382,9 @@ namespace anton_engine::atl {
         return const_iterator(_slots + _capacity, _states + _capacity);        
     }
 
+    // TODO: Both find functions currently suffer from infinitely looping if no 
+    //       element in the hash map is empty.
+
     template<typename Key, typename Value, typename Hash, typename Key_Compare>
     auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::find(Key const& key) -> iterator {
         if(_capacity) {
@@ -393,7 +394,7 @@ namespace anton_engine::atl {
                 State const state = _states[index];
                 if(state == State::active && _key_equal(key, _slots[index].key)) {
                     return iterator(_slots + index, _states + index);
-                } else if(state != State::active) {
+                } else if(state == State::empty) {
                     return end();
                 }
                 index = (index + 1) % _capacity;
@@ -411,7 +412,7 @@ namespace anton_engine::atl {
                 State const state = _states[index];
                 if(state == State::active && _key_equal(key, _slots[index].key)) {
                     return iterator(_slots + index, _states + index);
-                } else if(state != State::active) {
+                } else if(state == State::empty) {
                     return end();
                 }
                 index = (index + 1) % _capacity;
@@ -421,21 +422,13 @@ namespace anton_engine::atl {
     }
 
     template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::find_or_emplace(Key const& key) -> iterator {
-        ensure_capacity(_size + 1);
-        u64 const h = _hasher(key);
-        i64 index = h % _capacity;
-        while(true) {
-            State const state = _states[index];
-            if(state == State::active && _key_equal(key, _slots[index].key)) {
-                return iterator(_slots + index, _states + index);
-            } else if(state == State::empty) {
-                _states[index] = State::active;
-                new (_slots + index) Slot(key);
-                _size += 1;
-                return iterator(_slots + index, _states + index);
-            }
-            index = (index + 1) % _capacity;
+    template<typename... Args>
+    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::find_or_emplace(Key const& key, Args&&... args) -> iterator {
+        auto iter = find(key);
+        if(iter != end()) {
+            return iter;
+        } else {
+            return emplace(key, atl::forward<Args>(args)...);
         }
     }
 
@@ -484,6 +477,17 @@ namespace anton_engine::atl {
     }
 
     template<typename Key, typename Value, typename Hash, typename Key_Compare>
+    void Flat_Hash_Map<Key, Value, Hash, Key_Compare>::erase(const_iterator pos) {
+        if constexpr(ANTON_ITERATOR_DEBUG) {
+            // TODO: Implement.
+        }
+
+        *pos._states = State::deleted;
+        destruct(pos._slots);
+        _size -= 1;
+    }
+
+    template<typename Key, typename Value, typename Hash, typename Key_Compare>
     i64 Flat_Hash_Map<Key, Value, Hash, Key_Compare>::capacity() const {
         return _capacity;
     }
@@ -504,11 +508,20 @@ namespace anton_engine::atl {
     }
 
     template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    void Flat_Hash_Map<Key, Value, Hash, Key_Compare>::ensure_capacity(i64 const c) {
-        i64 new_capacity = _capacity != 0 ? _capacity : 64;
+    f32 Flat_Hash_Map<Key, Value, Hash, Key_Compare>::load_factor() const {
+        return (f32)_size / (f32)_capacity;
+    }
 
-        // TODO: load_factor
-        while(new_capacity < c) {
+    template<typename Key, typename Value, typename Hash, typename Key_Compare>
+    f32 Flat_Hash_Map<Key, Value, Hash, Key_Compare>::max_load_factor() const {
+        return 0.75f;
+    }
+
+    template<typename Key, typename Value, typename Hash, typename Key_Compare>
+    void Flat_Hash_Map<Key, Value, Hash, Key_Compare>::ensure_capacity(i64 const c) {
+        i64 const reqiured_capacity = (f32)c / max_load_factor();
+        i64 new_capacity = _capacity != 0 ? _capacity : 64;
+        while(new_capacity < reqiured_capacity) {
             new_capacity *= 2;
         }
 

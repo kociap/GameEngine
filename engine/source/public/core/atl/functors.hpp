@@ -26,13 +26,13 @@ namespace anton_engine::atl {
     //
     template<typename T>
     struct Default_Hash: detail::Conditionally_Enabled_Hash<!is_const<T> && (is_enum<T> || is_integral<T> || is_floating_point<T> || is_pointer<T>)> {
-        u64 operator()(T const& v) {
+        [[nodiscard]] u64 operator()(T const& v) {
             union {
-                T _t;
-                u64 _v;
-            } _u;
-            _u._t = v;
-            return _u._v;
+                T t;
+                u64 v;
+            } u;
+            u.t = v;
+            return murmurhash2_64(&u.v, sizeof(u64), 0x1F0D3804);
         }
     };
 
@@ -40,10 +40,10 @@ namespace anton_engine::atl {
     //
     template<typename T>
     struct Equal_Compare {
-        bool operator()(T const& lhs, T const& rhs) {
+        [[nodiscard]] bool operator()(T const& lhs, T const& rhs) {
             return lhs == rhs;
         }
     };
-}
+} // namespace anton_engine
 
 #endif // !CORE_ATL_DETAIL_FUNCTORS_HPP_INCLUDE
