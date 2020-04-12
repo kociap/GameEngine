@@ -1,7 +1,8 @@
 #ifndef CORE_ATL_MEMORY_COMMON_HPP_INCLUDE
 #define CORE_ATL_MEMORY_COMMON_HPP_INCLUDE
 
-void* operator new(unsigned long long size, void*);
+void* operator new(unsigned long long size, void*) noexcept;
+void operator delete(void* ptr, void* place) noexcept;
 
 namespace anton_engine::atl {
     // addressof
