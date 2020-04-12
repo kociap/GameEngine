@@ -790,8 +790,8 @@ namespace anton_engine::imgui {
     static i32 check_cursor_in_border_area(Vector2 const cursor_pos, Vector2 const pos, Vector2 const size, Vector2 const border_area_width) {
         Vector2 const aspect = {size.y / size.x, 1.0f};
         Vector2 const size_a = {size.y, size.y};
-        Vector2 const cursor_a = math::multiply_componentwise(cursor_pos - pos, aspect);
-        Vector2 const border_a = math::multiply_componentwise(border_area_width, aspect);
+        Vector2 const cursor_a = (cursor_pos - pos) * aspect;
+        Vector2 const border_a = border_area_width * aspect;
         if (!test_point_in_box(cursor_a, border_a, size_a - 2 * border_a)) {
             f32 const dist_top = cursor_a.y;
             f32 const dist_bottom = size_a.y - cursor_a.y;
@@ -1669,7 +1669,7 @@ namespace anton_engine::imgui {
         Vector2 const clipped_size = {math::min(window_space.x, size.x), math::min(window_space.y, size.y)};
         Vector2 const uv_diff = uv_bottom_right - uv_top_left;
         Vector2 const scale_fac = {clipped_size.x / size.x, clipped_size.y / size.y};
-        Vector2 const uv_br = uv_top_left + math::multiply_componentwise(uv_diff, scale_fac);
+        Vector2 const uv_br = uv_top_left + uv_diff * scale_fac;
         Vector2 const uv_tl = uv_top_left;
 
         Draw_Command cmd;

@@ -13,18 +13,18 @@ namespace anton_engine {
 
         Matrix2();
         Matrix2(Vector2, Vector2);
-        Matrix2(float m00, float m01, float m10, float m11);
+        Matrix2(f32 m00, f32 m01, f32 m10, f32 m11);
 
-        Vector2& operator[](int row);
-        Vector2 operator[](int row) const;
-        float& operator()(int row, int column);
-        float operator()(int row, int column) const;
-        float const* get_raw() const;
+        Vector2& operator[](i32 row);
+        Vector2 operator[](i32 row) const;
+        f32& operator()(i32 row, i32 column);
+        f32 operator()(i32 row, i32 column) const;
+        f32 const* get_raw() const;
 
-        Matrix2& operator+=(float);
-        Matrix2& operator-=(float);
-        Matrix2& operator*=(float);
-        Matrix2& operator/=(float);
+        Matrix2& operator+=(f32);
+        Matrix2& operator-=(f32);
+        Matrix2& operator*=(f32);
+        Matrix2& operator/=(f32);
 
         Matrix2& transpose();
 
@@ -32,22 +32,22 @@ namespace anton_engine {
         Vector2 rows[2];
     };
 
-    Matrix2 operator+(Matrix2, float);
-    Matrix2 operator-(Matrix2, float);
-    Matrix2 operator*(Matrix2, float);
-    Matrix2 operator/(Matrix2, float);
+    Matrix2 operator+(Matrix2, f32);
+    Matrix2 operator-(Matrix2, f32);
+    Matrix2 operator*(Matrix2, f32);
+    Matrix2 operator/(Matrix2, f32);
     Matrix2 operator+(Matrix2, Matrix2);
     Matrix2 operator-(Matrix2, Matrix2);
     Matrix2 operator*(Matrix2, Matrix2);
     Vector2 operator*(Vector2, Matrix2);
-} // namespace anton_engine
 
-namespace anton_engine::math {
-    Matrix2 transpose(Matrix2);
-    float determinant(Matrix2);
-    Matrix2 adjugate(Matrix2);
-    Matrix2 inverse(Matrix2);
-} // namespace anton_engine::math
+    namespace math {
+        Matrix2 transpose(Matrix2);
+        f32 determinant(Matrix2);
+        Matrix2 adjugate(Matrix2);
+        Matrix2 inverse(Matrix2);
+    } // namespace math
+} // namespace anton_engine
 
 namespace anton_engine {
     inline Matrix2 const zero = Matrix2();
@@ -55,51 +55,51 @@ namespace anton_engine {
 
     inline Matrix2::Matrix2(): rows{} {}
     inline Matrix2::Matrix2(Vector2 a, Vector2 b): rows{a, b} {}
-    inline Matrix2::Matrix2(float m00, float m01, float m10, float m11): rows{{m00, m01}, {m10, m11}} {}
+    inline Matrix2::Matrix2(f32 m00, f32 m01, f32 m10, f32 m11): rows{{m00, m01}, {m10, m11}} {}
 
-    inline Vector2& Matrix2::operator[](int const row) {
+    inline Vector2& Matrix2::operator[](i32 const row) {
         return rows[row];
     }
 
-    inline Vector2 Matrix2::operator[](int const row) const {
+    inline Vector2 Matrix2::operator[](i32 const row) const {
         return rows[row];
     }
 
-    inline float& Matrix2::operator()(int const row, int const column) {
+    inline f32& Matrix2::operator()(i32 const row, i32 const column) {
         return rows[row][column];
     }
 
-    inline float Matrix2::operator()(int const row, int const column) const {
+    inline f32 Matrix2::operator()(i32 const row, i32 const column) const {
         return rows[row][column];
     }
 
-    inline float const* Matrix2::get_raw() const {
-        return reinterpret_cast<float const*>(rows);
+    inline f32 const* Matrix2::get_raw() const {
+        return (f32 const*)rows;
     }
 
-    inline Matrix2& Matrix2::operator+=(float const a) {
-        for (int i = 0; i < 4; ++i) {
+    inline Matrix2& Matrix2::operator+=(f32 const a) {
+        for (i32 i = 0; i < 4; ++i) {
             rows[i] += a;
         }
         return *this;
     }
 
-    inline Matrix2& Matrix2::operator-=(float const a) {
-        for (int i = 0; i < 4; ++i) {
+    inline Matrix2& Matrix2::operator-=(f32 const a) {
+        for (i32 i = 0; i < 4; ++i) {
             rows[i] -= a;
         }
         return *this;
     }
 
-    inline Matrix2& Matrix2::operator*=(float const a) {
-        for (int i = 0; i < 4; ++i) {
+    inline Matrix2& Matrix2::operator*=(f32 const a) {
+        for (i32 i = 0; i < 4; ++i) {
             rows[i] *= a;
         }
         return *this;
     }
 
-    inline Matrix2& Matrix2::operator/=(float const a) {
-        for (int i = 0; i < 4; ++i) {
+    inline Matrix2& Matrix2::operator/=(f32 const a) {
+        for (i32 i = 0; i < 4; ++i) {
             rows[i] /= a;
         }
         return *this;
@@ -110,22 +110,22 @@ namespace anton_engine {
         return *this;
     }
 
-    inline Matrix2 operator+(Matrix2 m, float const a) {
+    inline Matrix2 operator+(Matrix2 m, f32 const a) {
         m += a;
         return m;
     }
 
-    inline Matrix2 operator-(Matrix2 m, float const a) {
+    inline Matrix2 operator-(Matrix2 m, f32 const a) {
         m -= a;
         return m;
     }
 
-    inline Matrix2 operator*(Matrix2 m, float const a) {
+    inline Matrix2 operator*(Matrix2 m, f32 const a) {
         m *= a;
         return m;
     }
 
-    inline Matrix2 operator/(Matrix2 m, float const a) {
+    inline Matrix2 operator/(Matrix2 m, f32 const a) {
         m /= a;
         return m;
     }
@@ -154,25 +154,25 @@ namespace anton_engine {
     inline Vector2 operator*(Vector2 const v, Matrix2 const m) {
         return {v[0] * m[0][0] + v[1] * m[1][0], v[0] * m[0][1] + v[1] * m[1][1]};
     }
+
+    namespace math {
+        inline Matrix2 transpose(Matrix2 m) {
+            m.transpose();
+            return m;
+        }
+
+        inline f32 determinant(Matrix2 const m) {
+            return m[0][0] * m[1][1] - m[1][0] * m[0][1];
+        }
+
+        inline Matrix2 adjugate(Matrix2 const m) {
+            return {{m[1][1], -m[0][1]}, {-m[1][0], m[0][0]}};
+        }
+
+        inline Matrix2 inverse(Matrix2 const m) {
+            return adjugate(m) / determinant(m);
+        }
+    } // namespace math
 } // namespace anton_engine
-
-namespace anton_engine::math {
-    inline Matrix2 transpose(Matrix2 m) {
-        m.transpose();
-        return m;
-    }
-
-    inline float determinant(Matrix2 const m) {
-        return m[0][0] * m[1][1] - m[1][0] * m[0][1];
-    }
-
-    inline Matrix2 adjugate(Matrix2 const m) {
-        return {{m[1][1], -m[0][1]}, {-m[1][0], m[0][0]}};
-    }
-
-    inline Matrix2 inverse(Matrix2 const m) {
-        return adjugate(m) / determinant(m);
-    }
-} // namespace anton_engine::math
 
 #endif // !CORE_MATH_MARTIX2_HPP_INCLUDE

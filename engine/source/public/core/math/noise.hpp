@@ -9,7 +9,7 @@
 #include <core/math/vector4.hpp>
 
 namespace anton_engine::math {
-    inline float perlin_noise(Vector2 const position) {
+    inline f32 perlin_noise(Vector2 const position) {
         static Vector2 const gradients[] = {{0.0f, 1.0f},  {0.382683f, 0.923879f},   {0.707107f, 0.707107f},   {0.923879f, 0.382683f},
                                             {1.0f, 0.0f},  {0.923879f, -0.382683f},  {0.707107f, -0.707107f},  {0.382683f, -0.923879f},
                                             {0.0f, -1.0f}, {-0.382683f, -0.923879f}, {-0.707107f, -0.707107f}, {-0.923879f, -0.382683f},
@@ -55,7 +55,7 @@ namespace anton_engine::math {
         return 1.4142135f * noise;
     }
 
-    inline float perlin_noise(Vector2 const position, atl::Slice<Vector2 const> const gradients, atl::Slice<i32 const> const permutation_table) {
+    inline f32 perlin_noise(Vector2 const position, atl::Slice<Vector2 const> const gradients, atl::Slice<i32 const> const permutation_table) {
         i64 const x_int = (position.x < 0.0f ? i64(position.x) - 1 : i64(position.x));
         i64 const y_int = (position.y < 0.0f ? i64(position.y) - 1 : i64(position.y));
 
@@ -82,7 +82,7 @@ namespace anton_engine::math {
         return 1.4142135f * noise;
     }
 
-    // float simplex_noise();
+    // f32 simplex_noise();
 } // namespace anton_engine::math
 
 #endif // !CORE_MATH_NOISE_HPP_INCLUDE

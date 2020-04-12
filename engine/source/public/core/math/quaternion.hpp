@@ -10,80 +10,48 @@ namespace anton_engine {
         // Equivalent to Quaternion(0, 0, 0, 1)
         static Quaternion const identity;
 
-    public:
-        float x = 0;
-        float y = 0;
-        float z = 0;
-        float w = 1;
+        f32 x = 0;
+        f32 y = 0;
+        f32 z = 0;
+        f32 w = 1;
 
-    public:
         Quaternion() = default;
-        Quaternion(float x, float y, float z, float w): x(x), y(y), z(z), w(w) {}
-
-        // Make this quaternion conjugate
-        void conjugate();
-        // Normalize this quaternion
-        void normalize();
-        // Make this quaternion an inverse
-        void inverse();
+        Quaternion(f32 x, f32 y, f32 z, f32 w): x(x), y(y), z(z), w(w) {}
     };
 
     Quaternion operator+(Quaternion const&, Quaternion const&);
     Quaternion operator-(Quaternion const&, Quaternion const&);
     // Hamilton Product
     Quaternion operator*(Quaternion, Quaternion);
-    Quaternion operator*(Quaternion const&, float);
-    Quaternion operator/(Quaternion const&, float);
+    Quaternion operator*(Quaternion const&, f32);
+    Quaternion operator/(Quaternion const&, f32);
+
+    namespace math {
+        inline f32 length_squared(Quaternion const& q) {
+            return q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
+        }
+
+        inline f32 length(Quaternion const& q) {
+            return sqrt(length_squared(q));
+        }
+
+        inline Quaternion normalize(Quaternion const& q) {
+            return q * math::inv_sqrt(length_squared(q));
+        }
+
+        inline Quaternion conjugate(Quaternion const& q) {
+            return {-q.x, -q.y, -q.z, q.w};
+        }
+
+        // If quaternion is normalized, this function returns the same result as conjugate
+        inline Quaternion inverse(Quaternion const& q) {
+            return conjugate(q) / length_squared(q);
+        }
+    } // namespace math
 } // namespace anton_engine
-
-namespace anton_engine::math {
-    inline float length_squared(Quaternion const& q) {
-        return q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
-    }
-
-    inline float length(Quaternion const& q) {
-        return sqrt(length_squared(q));
-    }
-
-    inline Quaternion normalize(Quaternion const& q) {
-        return q * math::inv_sqrt(length_squared(q));
-    }
-
-    inline Quaternion conjugate(Quaternion const& q) {
-        return {-q.x, -q.y, -q.z, q.w};
-    }
-
-    // If quaternion is normalized, this function returns the same result as conjugate
-    inline Quaternion inverse(Quaternion const& q) {
-        return conjugate(q) / length_squared(q);
-    }
-} // namespace anton_engine::math
 
 namespace anton_engine {
     inline Quaternion const Quaternion::identity = Quaternion(0, 0, 0, 1);
-
-    inline void Quaternion::conjugate() {
-        x = -x;
-        y = -y;
-        z = -z;
-    }
-
-    inline void Quaternion::normalize() {
-        float invNorm = math::inv_sqrt(math::length_squared(*this));
-        x *= invNorm;
-        y *= invNorm;
-        z *= invNorm;
-        w *= invNorm;
-    }
-
-    inline void Quaternion::inverse() {
-        conjugate();
-        float ns = math::length_squared(*this);
-        x /= ns;
-        y /= ns;
-        z /= ns;
-        w /= ns;
-    }
 
     inline Quaternion operator+(Quaternion const& q1, Quaternion const& q2) {
         return {q1.x + q2.x, q1.y + q2.y, q1.z + q2.z, q1.w + q2.w};
@@ -102,11 +70,11 @@ namespace anton_engine {
         // clang-format on
     }
 
-    inline Quaternion operator*(Quaternion const& q, float a) {
+    inline Quaternion operator*(Quaternion const& q, f32 a) {
         return {q.x * a, q.y * a, q.z * a, q.w * a};
     }
 
-    inline Quaternion operator/(Quaternion const& q, float a) {
+    inline Quaternion operator/(Quaternion const& q, f32 a) {
         return {q.x / a, q.y / a, q.z / a, q.w / a};
     }
 } // namespace anton_engine

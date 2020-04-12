@@ -3,7 +3,6 @@
 
 #include <core/anton_crt.hpp>
 #include <core/types.hpp>
-#include <core/intrinsics.hpp>
 
 // Safety measures
 #undef max
@@ -11,36 +10,36 @@
 
 namespace anton_engine::math {
     namespace constants {
-        constexpr float pi = 3.1415926f;
-        constexpr float half_pi = 1.5707964f;
-        constexpr float two_pi = 6.2831853f;
-        constexpr float deg_to_rad = pi / 180.0f;
-        constexpr float rad_to_deg = 180.0f / pi;
+        constexpr f32 pi = 3.1415926f;
+        constexpr f32 half_pi = 1.5707964f;
+        constexpr f32 two_pi = 6.2831853f;
+        constexpr f32 deg_to_rad = pi / 180.0f;
+        constexpr f32 rad_to_deg = 180.0f / pi;
         // Largest representable value
-        constexpr float max = 3.402823466e+38F;
+        constexpr f32 max = 3.402823466e+38F;
         // Largest negative representable value
-        constexpr float min = -3.402823466e+38F;
+        constexpr f32 min = -3.402823466e+38F;
         // Smallest number such that 1.0 + epsilon != 1.0
-        constexpr float epsilon = 1.192092896e-07F;
+        constexpr f32 epsilon = 1.192092896e-07F;
         // __builtin_huge_valf is supported by all major compilers.
-        constexpr float infinity = __builtin_huge_valf();
+        constexpr f32 infinity = __builtin_huge_valf();
     } // namespace constants
 
     namespace constantsd {
-        constexpr double pi = 3.141592653589793;
-        constexpr double deg_to_rad = pi / 180.0;
-        constexpr double rad_to_deg = 180.0 / pi;
+        constexpr f64 pi = 3.141592653589793;
+        constexpr f64 deg_to_rad = pi / 180.0;
+        constexpr f64 rad_to_deg = 180.0 / pi;
         // Smallest number such that 1.0 + epsilon != 1.0
-        constexpr double epsilon = 2.2204460492503131e-016;
+        constexpr f64 epsilon = 2.2204460492503131e-016;
         // __builtin_huge_val is supported by all major compilers.
-        constexpr double infinity = __builtin_huge_val();
+        constexpr f64 infinity = __builtin_huge_val();
     } // namespace constantsd
 
-    constexpr float radians(float degrees) {
+    constexpr f32 radians(f32 degrees) {
         return degrees * constants::deg_to_rad;
     }
 
-    constexpr float degrees(float radians) {
+    constexpr f32 degrees(f32 radians) {
         return radians * constants::rad_to_deg;
     }
 
@@ -48,23 +47,23 @@ namespace anton_engine::math {
         return ::powf(base, exp);
     }
 
-    inline float sqrt(float a) {
+    inline f32 sqrt(f32 a) {
         return ::sqrtf(a);
     }
 
-    inline float inv_sqrt(float a) {
+    inline f32 inv_sqrt(f32 a) {
         return 1 / sqrt(a);
     }
 
-    constexpr float sign(float a) {
-        return static_cast<float>((a > 0.0f) - (a < 0.0f));
+    constexpr f32 sign(f32 a) {
+        return static_cast<f32>((a > 0.0f) - (a < 0.0f));
     }
 
-    inline float sin(float angle) {
+    inline f32 sin(f32 angle) {
         return ::sinf(angle);
     }
 
-    inline float cos(float angle) {
+    inline f32 cos(f32 angle) {
         return ::cosf(angle);
     }
 
@@ -72,7 +71,7 @@ namespace anton_engine::math {
         return ::tanf(angle);
     }
 
-    template<typename T>
+    template <typename T>
     constexpr T abs(T a) {
         return a < T(0) ? -a : a;
     }
@@ -117,8 +116,8 @@ namespace anton_engine::math {
         return ::modff(x, &integral_part);
     }
 
-    constexpr float step_to_value(float current, float target, float change) {
-        float delta = target - current;
+    constexpr f32 step_to_value(f32 current, f32 target, f32 change) {
+        f32 delta = target - current;
         if (abs(delta) > change) {
             return current + sign(delta) * change;
         } else {
@@ -128,13 +127,13 @@ namespace anton_engine::math {
 
     // lerp
     // Computes the linear interpolation between a and b for the parameter t in the interval [0, 1].
-    constexpr f32 lerp(float const a, float const b, float const t) {
+    constexpr f32 lerp(f32 const a, f32 const b, f32 const t) {
         return (1.0f - t) * a + t * b;
     }
 
     // smoothstep
     //
-    constexpr float smoothstep(float edge0, float edge1, float x) {
+    constexpr f32 smoothstep(f32 edge0, f32 edge1, f32 x) {
         x = clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
         return x * x * (3.0f - 2.0f * x);
     }
@@ -145,7 +144,7 @@ namespace anton_engine::math {
     // Returns 0 if x <= edge0, 1 if x >= edge1, otherwise computes 6x^5 - 15x^4 + 10x^3
     // with x rescaled to range [0.0, 1.0].
     //
-    constexpr float smootherstep(float edge0, float edge1, float x) {
+    constexpr f32 smootherstep(f32 edge0, f32 edge1, f32 x) {
         x = clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
         return x * x * x * ((6.0f * x - 15.0f) * x + 10.0f);
     }
@@ -190,7 +189,7 @@ namespace anton_engine::math {
         v |= (v >> 4);
         return 8 - popcount(v);
     }
-    
+
     constexpr u16 clz(u16 v) {
         v |= (v >> 1);
         v |= (v >> 2);

@@ -4,9 +4,9 @@
 #include <core/class_macros.hpp>
 #include <core/math/matrix4.hpp>
 #include <core/math/quaternion.hpp>
+#include <core/math/transform.hpp>
 #include <core/math/vector3.hpp>
 #include <core/serialization/serialization.hpp>
-#include <core/math/transform.hpp>
 
 namespace anton_engine {
     class COMPONENT Transform {
@@ -20,7 +20,7 @@ namespace anton_engine {
         }
 
         void scale(Vector3 const& scale_vec) {
-            local_scale = math::multiply_componentwise(local_scale, scale_vec);
+            local_scale *= scale_vec;
         }
 
         // axis to rotate about

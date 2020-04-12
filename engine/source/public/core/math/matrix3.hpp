@@ -13,16 +13,16 @@ namespace anton_engine {
         Matrix3();
         Matrix3(Vector3, Vector3, Vector3);
 
-        Vector3& operator[](int row);
-        Vector3 operator[](int row) const;
-        float& operator()(int row, int column);
-        float operator()(int row, int column) const;
-        float const* get_raw() const;
+        Vector3& operator[](i32 row);
+        Vector3 operator[](i32 row) const;
+        f32& operator()(i32 row, i32 column);
+        f32 operator()(i32 row, i32 column) const;
+        f32 const* get_raw() const;
 
-        Matrix3& operator+=(float);
-        Matrix3& operator-=(float);
-        Matrix3& operator*=(float);
-        Matrix3& operator/=(float);
+        Matrix3& operator+=(f32);
+        Matrix3& operator-=(f32);
+        Matrix3& operator*=(f32);
+        Matrix3& operator/=(f32);
 
         Matrix3& transpose();
 
@@ -30,22 +30,22 @@ namespace anton_engine {
         Vector3 rows[3];
     };
 
-    Matrix3 operator+(Matrix3, float);
-    Matrix3 operator-(Matrix3, float);
-    Matrix3 operator*(Matrix3, float);
-    Matrix3 operator/(Matrix3, float);
+    Matrix3 operator+(Matrix3, f32);
+    Matrix3 operator-(Matrix3, f32);
+    Matrix3 operator*(Matrix3, f32);
+    Matrix3 operator/(Matrix3, f32);
     Matrix3 operator+(Matrix3, Matrix3);
     Matrix3 operator-(Matrix3, Matrix3);
     Matrix3 operator*(Matrix3, Matrix3);
     Vector3 operator*(Vector3, Matrix3);
-} // namespace anton_engine
 
-namespace anton_engine::math {
-    Matrix3 transpose(Matrix3);
-    float determinant(Matrix3);
-    Matrix3 adjugate(Matrix3);
-    Matrix3 inverse(Matrix3);
-} // namespace anton_engine::math
+    namespace math {
+        Matrix3 transpose(Matrix3);
+        f32 determinant(Matrix3);
+        Matrix3 adjugate(Matrix3);
+        Matrix3 inverse(Matrix3);
+    } // namespace math
+} // namespace anton_engine
 
 namespace anton_engine {
     inline Matrix3 const Matrix3::zero = Matrix3();
@@ -54,49 +54,49 @@ namespace anton_engine {
     Matrix3::Matrix3(): rows{} {}
     Matrix3::Matrix3(Vector3 const a, Vector3 const b, Vector3 const c): rows{a, b, c} {}
 
-    Vector3& Matrix3::operator[](int const row) {
+    Vector3& Matrix3::operator[](i32 const row) {
         return rows[row];
     }
 
-    Vector3 Matrix3::operator[](int const row) const {
+    Vector3 Matrix3::operator[](i32 const row) const {
         return rows[row];
     }
 
-    inline float& Matrix3::operator()(int const row, int const column) {
+    inline f32& Matrix3::operator()(i32 const row, i32 const column) {
         return rows[row][column];
     }
 
-    inline float Matrix3::operator()(int const row, int const column) const {
+    inline f32 Matrix3::operator()(i32 const row, i32 const column) const {
         return rows[row][column];
     }
 
-    inline float const* Matrix3::get_raw() const {
-        return reinterpret_cast<float const*>(rows);
+    inline f32 const* Matrix3::get_raw() const {
+        return (f32 const*)rows;
     }
 
-    inline Matrix3& Matrix3::operator+=(float a) {
-        for (int i = 0; i < 3; ++i) {
+    inline Matrix3& Matrix3::operator+=(f32 a) {
+        for (i32 i = 0; i < 3; ++i) {
             rows[i] += a;
         }
         return *this;
     }
 
-    inline Matrix3& Matrix3::operator-=(float a) {
-        for (int i = 0; i < 3; ++i) {
+    inline Matrix3& Matrix3::operator-=(f32 a) {
+        for (i32 i = 0; i < 3; ++i) {
             rows[i] -= a;
         }
         return *this;
     }
 
-    inline Matrix3& Matrix3::operator*=(float num) {
-        for (int i = 0; i < 3; ++i) {
+    inline Matrix3& Matrix3::operator*=(f32 num) {
+        for (i32 i = 0; i < 3; ++i) {
             rows[i] *= num;
         }
         return *this;
     }
 
-    inline Matrix3& Matrix3::operator/=(float num) {
-        for (int i = 0; i < 3; ++i) {
+    inline Matrix3& Matrix3::operator/=(f32 num) {
+        for (i32 i = 0; i < 3; ++i) {
             rows[i] /= num;
         }
         return *this;
@@ -109,22 +109,22 @@ namespace anton_engine {
         return *this;
     }
 
-    inline Matrix3 operator+(Matrix3 m, float a) {
+    inline Matrix3 operator+(Matrix3 m, f32 a) {
         m += a;
         return m;
     }
 
-    inline Matrix3 operator-(Matrix3 m, float a) {
+    inline Matrix3 operator-(Matrix3 m, f32 a) {
         m -= a;
         return m;
     }
 
-    inline Matrix3 operator*(Matrix3 m, float a) {
+    inline Matrix3 operator*(Matrix3 m, f32 a) {
         m *= a;
         return m;
     }
 
-    inline Matrix3 operator/(Matrix3 m, float a) {
+    inline Matrix3 operator/(Matrix3 m, f32 a) {
         m /= a;
         return m;
     }
@@ -143,7 +143,7 @@ namespace anton_engine {
 
     inline Matrix3 operator*(Matrix3 const lhs, Matrix3 const rhs) {
         Matrix3 r;
-        for (int i = 0; i < 3; ++i) {
+        for (i32 i = 0; i < 3; ++i) {
             r[i][0] = lhs[i][0] * rhs[0][0] + lhs[i][1] * rhs[1][0] + lhs[i][2] * rhs[2][0];
             r[i][1] = lhs[i][0] * rhs[0][1] + lhs[i][1] * rhs[1][1] + lhs[i][2] * rhs[2][1];
             r[i][2] = lhs[i][0] * rhs[0][2] + lhs[i][1] * rhs[1][2] + lhs[i][2] * rhs[2][2];
@@ -158,49 +158,49 @@ namespace anton_engine {
         r[2] = lhs[0] * rhs[0][2] + lhs[1] * rhs[1][2] + lhs[2] * rhs[2][2];
         return r;
     }
+
+    namespace math {
+        inline Matrix3 transpose(Matrix3 m) {
+            m.transpose();
+            return m;
+        }
+
+        inline static f32 determinant2x2(f32 m00, f32 m01, f32 m10, f32 m11) {
+            return m00 * m11 - m01 * m10;
+        }
+
+        inline f32 determinant(Matrix3 m) {
+            // clang-format off
+            return   m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+                - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+                + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+            // clang-format on
+        }
+
+        inline Matrix3 adjugate(Matrix3 m) {
+            f32 m00 = determinant2x2(m[1][1], m[1][2], m[2][1], m[2][2]);
+            f32 m01 = determinant2x2(m[1][0], m[1][2], m[2][0], m[2][2]);
+            f32 m02 = determinant2x2(m[1][0], m[1][1], m[2][0], m[2][1]);
+
+            f32 m10 = determinant2x2(m[0][1], m[0][2], m[2][1], m[2][2]);
+            f32 m11 = determinant2x2(m[0][0], m[0][2], m[2][0], m[2][2]);
+            f32 m12 = determinant2x2(m[0][0], m[0][1], m[2][0], m[2][1]);
+
+            f32 m20 = determinant2x2(m[0][1], m[0][2], m[1][1], m[1][2]);
+            f32 m21 = determinant2x2(m[0][0], m[0][2], m[1][0], m[1][2]);
+            f32 m22 = determinant2x2(m[0][0], m[0][1], m[1][0], m[1][1]);
+            // clang-format off
+            return Matrix3(
+                {m00, -m10, m20}, 
+                {-m01, m11, -m21}, 
+                {m02, -m12, m22});
+            // clang-format on
+        }
+
+        inline Matrix3 inverse(Matrix3 m) {
+            return adjugate(m) / determinant(m);
+        }
+    } // namespace math
 } // namespace anton_engine
-
-namespace anton_engine::math {
-    inline Matrix3 transpose(Matrix3 m) {
-        m.transpose();
-        return m;
-    }
-
-    inline static float determinant2x2(float m00, float m01, float m10, float m11) {
-        return m00 * m11 - m01 * m10;
-    }
-
-    inline float determinant(Matrix3 m) {
-        // clang-format off
-        return   m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
-               - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
-               + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
-        // clang-format on
-    }
-
-    inline Matrix3 adjugate(Matrix3 m) {
-        float m00 = determinant2x2(m[1][1], m[1][2], m[2][1], m[2][2]);
-        float m01 = determinant2x2(m[1][0], m[1][2], m[2][0], m[2][2]);
-        float m02 = determinant2x2(m[1][0], m[1][1], m[2][0], m[2][1]);
-
-        float m10 = determinant2x2(m[0][1], m[0][2], m[2][1], m[2][2]);
-        float m11 = determinant2x2(m[0][0], m[0][2], m[2][0], m[2][2]);
-        float m12 = determinant2x2(m[0][0], m[0][1], m[2][0], m[2][1]);
-
-        float m20 = determinant2x2(m[0][1], m[0][2], m[1][1], m[1][2]);
-        float m21 = determinant2x2(m[0][0], m[0][2], m[1][0], m[1][2]);
-        float m22 = determinant2x2(m[0][0], m[0][1], m[1][0], m[1][1]);
-        // clang-format off
-        return Matrix3(
-            {m00, -m10, m20}, 
-            {-m01, m11, -m21}, 
-            {m02, -m12, m22});
-        // clang-format on
-    }
-
-    inline Matrix3 inverse(Matrix3 m) {
-        return adjugate(m) / determinant(m);
-    }
-} // namespace anton_engine::math
 
 #endif // !CORE_MATH_MARTIX3_HPP_INCLUDE
