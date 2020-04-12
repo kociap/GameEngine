@@ -89,7 +89,7 @@ namespace anton_engine::atl {
                 if constexpr(ANTON_ITERATOR_DEBUG) {
                     ANTON_FAIL(*_states == State::active, "Dereferencing invalid Flat_Hash_Map iterator.");
                 }
-                return *reinterpret_cast<value_type const*>(_slots)
+                return *reinterpret_cast<value_type const*>(_slots);
             }
 
             [[nodiscard]] bool operator==(const_iterator const& b) const {
