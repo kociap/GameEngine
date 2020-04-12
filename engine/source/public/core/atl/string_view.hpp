@@ -22,8 +22,9 @@ namespace anton_engine::atl {
     public:
         /* [[nodiscard]] */ constexpr String_View();
         /* [[nodiscard]] */ constexpr String_View(String_View const&) = default;
-        /* [[nodiscard]] */ constexpr String_View(value_type const* str, size_type size);
         /* [[nodiscard]] */ constexpr String_View(value_type const* str);
+        /* [[nodiscard]] */ constexpr String_View(value_type const* str, size_type size);
+        /* [[nodiscard]] */ constexpr String_View(value_type const* first, value_type const* last);
         String_View(char_iterator first, char_iterator last);
         constexpr String_View& operator=(String_View const&) = default;
 
@@ -54,7 +55,7 @@ namespace anton_engine::atl {
     };
 
     // Compares bytes
-    [[nodiscard]] inline bool operator==(String_View const& lhs, String_View const& rhs) {
+    [[nodiscard]] constexpr bool operator==(String_View const& lhs, String_View const& rhs) {
         if (lhs.size_bytes() != rhs.size_bytes()) {
             return false;
         }
@@ -63,13 +64,15 @@ namespace anton_engine::atl {
     }
 
     // Compares bytes
-    [[nodiscard]] inline bool operator!=(String_View const& lhs, String_View const& rhs) {
+    [[nodiscard]] constexpr bool operator!=(String_View const& lhs, String_View const& rhs) {
         return !(lhs == rhs);
     }
 
     constexpr u64 hash(String_View const view) {
         return anton_engine::murmurhash2_64(view.bytes_begin(), view.size_bytes(), 0x1F0D3804);
     }
+
+    constexpr i64 find_substring(atl::String_View string, atl::String_View substr);
 } // namespace anton_engine::atl
 
 namespace std {
@@ -87,18 +90,24 @@ namespace std {
 namespace anton_engine::atl {
     constexpr String_View::String_View(): _begin(nullptr), _end(nullptr) {}
 
-    constexpr String_View::String_View(value_type const* s, size_type n): _begin(s), _end(s + n) {
-        if constexpr (ANTON_STRING_VIEW_VERIFY_ENCODING) {
-            // TODO: Implement
-        }
-    }
-
     constexpr String_View::String_View(value_type const* s): _begin(s), _end(s) {
         if (_begin != nullptr) {
             while (*_end)
                 ++_end;
         }
 
+        if constexpr (ANTON_STRING_VIEW_VERIFY_ENCODING) {
+            // TODO: Implement
+        }
+    }
+
+    constexpr String_View::String_View(value_type const* s, size_type n): _begin(s), _end(s + n) {
+        if constexpr (ANTON_STRING_VIEW_VERIFY_ENCODING) {
+            // TODO: Implement
+        }
+    }
+
+    constexpr String_View::String_View(value_type const* first, value_type const* last): _begin(first), _end(last) {
         if constexpr (ANTON_STRING_VIEW_VERIFY_ENCODING) {
             // TODO: Implement
         }
@@ -154,6 +163,23 @@ namespace anton_engine::atl {
     constexpr void swap(String_View& sv1, String_View& sv2) {
         atl::swap(sv1._begin, sv2._begin);
         atl::swap(sv1._end, sv2._end);
+    }
+
+    constexpr i64 find_substring(atl::String_View const string, atl::String_View const substr) {
+        // Bruteforce
+        char8 const* const string_data = string.data();
+        char8 const* const substr_data = substr.data();
+        for(i64 i = 0, end = string.size_bytes() - substr.size_bytes(); i < end; ++i) {
+            bool equal = true;
+            for(i64 j = i, k = 0; k < substr.size_bytes(); ++j, ++k) {
+                equal &= string_data[j] == substr_data[k];
+            }
+
+            if(equal) {
+                return i;
+            }
+        }
+        return -1;
     }
 } // namespace anton_engine::atl
 
