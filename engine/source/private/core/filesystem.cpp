@@ -85,7 +85,7 @@ namespace anton_engine::fs {
 
     Input_File_Stream::Input_File_Stream(): _buffer(nullptr) {}
 
-    Input_File_Stream::Input_File_Stream(atl::String_View filename) {
+    Input_File_Stream::Input_File_Stream(atl::String const& filename): _buffer(nullptr) {
         open(filename);
     }
 
@@ -102,12 +102,17 @@ namespace anton_engine::fs {
         close();
     }
 
-    void Input_File_Stream::open(atl::String_View filename) {
+    Input_File_Stream::operator bool() const {
+        return is_open();
+    }
+
+    bool Input_File_Stream::open(atl::String const& filename) {
         if(_buffer) {
             fclose((FILE*)_buffer);
         }
 
         _buffer = fopen(filename.data(), "rb");
+        return _buffer != nullptr;
     }
 
     void Input_File_Stream::close() {
@@ -116,8 +121,16 @@ namespace anton_engine::fs {
         }
     }
 
+    bool Input_File_Stream::is_open() const {
+        return _buffer != nullptr;
+    }
+
     void Input_File_Stream::read(void* buffer, i64 count) {
         fread(buffer, count, 1, (FILE*)_buffer);
+    }
+
+    void Input_File_Stream::read(atl::Slice<u8> const buffer) {
+        fread(buffer.data(), buffer.size(), 1, (FILE*)_buffer);
     }
 
     char32 Input_File_Stream::peek() {
@@ -144,7 +157,7 @@ namespace anton_engine::fs {
 
     Output_File_Stream::Output_File_Stream(): _buffer(nullptr) {}
 
-    Output_File_Stream::Output_File_Stream(atl::String_View filename) {
+    Output_File_Stream::Output_File_Stream(atl::String const& filename): _buffer(nullptr) {
         open(filename);
     }
 
@@ -161,12 +174,17 @@ namespace anton_engine::fs {
         close();
     }
 
-    void Output_File_Stream::open(atl::String_View filename) {
+    Output_File_Stream::operator bool() const {
+        return is_open();
+    }
+
+    bool Output_File_Stream::open(atl::String const& filename) {
         if(_buffer) {
             fclose((FILE*)_buffer);
         }
 
         _buffer = fopen(filename.data(), "wb");
+        return _buffer != nullptr;
     }
 
     void Output_File_Stream::close() {
@@ -175,12 +193,24 @@ namespace anton_engine::fs {
         }
     }
 
+    bool Output_File_Stream::is_open() const {
+        return _buffer != nullptr;
+    }
+
     void Output_File_Stream::flush() {
         fflush((FILE*)_buffer);
     }
 
     void Output_File_Stream::write(void const* buffer, i64 count) {
         fwrite(buffer, count, 1, (FILE*)_buffer);
+    }
+
+    void Output_File_Stream::write(atl::Slice<u8 const> const buffer) {
+        fwrite(buffer.data(), buffer.size(), 1, (FILE*)_buffer);
+    }
+    
+    void Output_File_Stream::write(atl::String_View const buffer) {
+        fwrite(buffer.data(), buffer.size_bytes(), 1, (FILE*)_buffer);
     }
 
     void Output_File_Stream::put(char32 c) {
@@ -194,5 +224,4 @@ namespace anton_engine::fs {
     i64 Output_File_Stream::tell() {
         return ftell((FILE*)_buffer);
     }
-
 } // namespace anton_engine::fs
