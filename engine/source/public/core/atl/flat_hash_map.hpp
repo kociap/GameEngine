@@ -24,13 +24,14 @@ namespace anton_engine::atl {
         class Entry {
         public:
             Key const key;
-            Value& value;
+            Value value;
         };
         
         using value_type = Entry;
         using allocator_type = Polymorphic_Allocator;
         using hasher = Hash;
         using key_equal = Key_Equal;
+
 
         class const_iterator {
         public:
@@ -81,14 +82,14 @@ namespace anton_engine::atl {
                 if constexpr(ANTON_ITERATOR_DEBUG) {
                     ANTON_FAIL(*_states == State::active, "Dereferencing invalid Flat_Hash_Map iterator.");
                 }
-                return reinterpret_cast<value_type*>(_slots);
+                return reinterpret_cast<value_type const*>(_slots);
             }
 
             [[nodiscard]] value_type& operator*() const {
                 if constexpr(ANTON_ITERATOR_DEBUG) {
                     ANTON_FAIL(*_states == State::active, "Dereferencing invalid Flat_Hash_Map iterator.");
                 }
-                return *reinterpret_cast<value_type*>(_slots);
+                return *reinterpret_cast<value_type const*>(_slots)
             }
 
             [[nodiscard]] bool operator==(const_iterator const& b) const {
@@ -482,7 +483,7 @@ namespace anton_engine::atl {
             // TODO: Implement.
         }
 
-        *pos._states = State::deleted;
+        *const_cast<State*>(pos._states) = State::deleted;
         destruct(pos._slots);
         _size -= 1;
     }
@@ -519,9 +520,9 @@ namespace anton_engine::atl {
 
     template<typename Key, typename Value, typename Hash, typename Key_Compare>
     void Flat_Hash_Map<Key, Value, Hash, Key_Compare>::ensure_capacity(i64 const c) {
-        i64 const reqiured_capacity = (f32)c / max_load_factor();
+        i64 const required_capacity = (f32)c / max_load_factor();
         i64 new_capacity = _capacity != 0 ? _capacity : 64;
-        while(new_capacity < reqiured_capacity) {
+        while(new_capacity < required_capacity) {
             new_capacity *= 2;
         }
 
@@ -565,7 +566,7 @@ namespace anton_engine::atl {
 
     template<typename Key, typename Value, typename Hash, typename Key_Compare>
     auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::empty_initial_states() -> State* {
-        // constexpr to force the values to be allocated at runtime.
+        // constexpr to force the values to be allocated at compiletime.
         // TODO: I have no idea what I'm doing.
         // TODO: Remind myself at one point why I'm aligning stuff.
         alignas(16) static constexpr State empty_state[] = {
@@ -588,6 +589,6 @@ namespace anton_engine::atl {
         }
         return index;
     }
-}
+} // namespace anton_engine::atl
 
 #endif // !CORE_ATL_FLAT_HASH_MAP_HPP_INCLUDE
