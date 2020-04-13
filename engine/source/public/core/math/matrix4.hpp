@@ -3,7 +3,6 @@
 
 #include <core/atl/utility.hpp>
 #include <core/math/vector4.hpp>
-#include <core/types.hpp>
 
 namespace anton_engine {
     // Row major
@@ -12,108 +11,63 @@ namespace anton_engine {
         static Matrix4 const zero;
         static Matrix4 const identity;
 
-        Matrix4();
-        Matrix4(Vector4, Vector4, Vector4, Vector4);
+        Matrix4(): rows{} {}
+        Matrix4(Vector4 const a, Vector4 const b, Vector4 const c, Vector4 const d): rows{a, b, c, d} {}
 
-        Vector4& operator[](i32 row);
-        Vector4 operator[](i32 row) const;
-        f32& operator()(i32 row, i32 column);
-        f32 operator()(i32 row, i32 column) const;
-        f32 const* get_raw() const;
+        Vector4& operator[](i32 const row) {
+            return rows[row];
+        }
 
-        Matrix4& operator+=(f32);
-        Matrix4& operator-=(f32);
-        Matrix4& operator*=(f32);
-        Matrix4& operator/=(f32);
+        Vector4 operator[](i32 const row) const {
+            return rows[row];
+        }
 
-        Matrix4& transpose();
+        f32& operator()(i32 const row, i32 const column) {
+            return rows[row][column];
+        }
+
+        f32 operator()(i32 const row, i32 const column) const {
+            return rows[row][column];
+        }
+
+        f32 const* get_raw() const {
+            return (f32 const*)rows;
+        }
+
+        Matrix4& operator+=(f32 const a) {
+            for (i32 i = 0; i < 4; ++i) {
+                rows[i] += a;
+            }
+            return *this;
+        }
+
+        Matrix4& operator-=(f32 const a) {
+            for (i32 i = 0; i < 4; ++i) {
+                rows[i] -= a;
+            }
+            return *this;
+        }
+
+        Matrix4& operator*=(f32 const a) {
+            for (i32 i = 0; i < 4; ++i) {
+                rows[i] *= a;
+            }
+            return *this;
+        }
+
+        Matrix4& operator/=(f32 const a) {
+            for (i32 i = 0; i < 4; ++i) {
+                rows[i] /= a;
+            }
+            return *this;
+        }
 
     private:
         Vector4 rows[4];
     };
 
-    Matrix4 operator+(Matrix4, f32);
-    Matrix4 operator-(Matrix4, f32);
-    Matrix4 operator*(Matrix4, f32);
-    Matrix4 operator/(Matrix4, f32);
-    Matrix4 operator+(Matrix4, Matrix4);
-    Matrix4 operator-(Matrix4, Matrix4);
-    Matrix4 operator*(Matrix4, Matrix4);
-    Vector4 operator*(Vector4, Matrix4);
-
-    namespace math {
-        Matrix4 transpose(Matrix4);
-        f32 determinant(Matrix4);
-        Matrix4 adjugate(Matrix4);
-        Matrix4 inverse(Matrix4);
-    } // namespace math
-} // namespace anton_engine
-
-namespace anton_engine {
     inline Matrix4 const Matrix4::zero = Matrix4();
     inline Matrix4 const Matrix4::identity = Matrix4{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
-
-    inline Matrix4::Matrix4(): rows{} {}
-
-    inline Matrix4::Matrix4(Vector4 const a, Vector4 const b, Vector4 const c, Vector4 const d): rows{a, b, c, d} {}
-
-    inline Vector4& Matrix4::operator[](i32 const row) {
-        return rows[row];
-    }
-
-    inline Vector4 Matrix4::operator[](i32 const row) const {
-        return rows[row];
-    }
-
-    inline f32& Matrix4::operator()(i32 const row, i32 const column) {
-        return rows[row][column];
-    }
-
-    inline f32 Matrix4::operator()(i32 const row, i32 const column) const {
-        return rows[row][column];
-    }
-
-    inline f32 const* Matrix4::get_raw() const {
-        return (f32 const*)rows;
-    }
-
-    inline Matrix4& Matrix4::operator+=(f32 const a) {
-        for (i32 i = 0; i < 4; ++i) {
-            rows[i] += a;
-        }
-        return *this;
-    }
-
-    inline Matrix4& Matrix4::operator-=(f32 const a) {
-        for (i32 i = 0; i < 4; ++i) {
-            rows[i] -= a;
-        }
-        return *this;
-    }
-
-    inline Matrix4& Matrix4::operator*=(f32 const a) {
-        for (i32 i = 0; i < 4; ++i) {
-            rows[i] *= a;
-        }
-        return *this;
-    }
-
-    inline Matrix4& Matrix4::operator/=(f32 const a) {
-        for (i32 i = 0; i < 4; ++i) {
-            rows[i] /= a;
-        }
-        return *this;
-    }
-
-    inline Matrix4& Matrix4::transpose() {
-        atl::swap((*this)[0][1], (*this)[1][0]);
-        atl::swap((*this)[0][2], (*this)[2][0]);
-        atl::swap((*this)[0][3], (*this)[3][0]);
-        atl::swap((*this)[1][2], (*this)[2][1]);
-        atl::swap((*this)[1][3], (*this)[3][1]);
-        atl::swap((*this)[2][3], (*this)[3][2]);
-        return *this;
-    }
 
     inline Matrix4 operator+(Matrix4 m, f32 const a) {
         m += a;
@@ -171,42 +125,47 @@ namespace anton_engine {
 
     namespace math {
         inline Matrix4 transpose(Matrix4 mat) {
-            mat.transpose();
+            atl::swap(mat[0][1], mat[1][0]);
+            atl::swap(mat[0][2], mat[2][0]);
+            atl::swap(mat[0][3], mat[3][0]);
+            atl::swap(mat[1][2], mat[2][1]);
+            atl::swap(mat[1][3], mat[3][1]);
+            atl::swap(mat[2][3], mat[3][2]);
             return mat;
         }
 
-        inline static f32 determinant3x3(f32 m00, f32 m01, f32 m02, f32 m10, f32 m11, f32 m12, f32 m20, f32 m21, f32 m22) {
+        inline static f32 _determinant3x3(f32 m00, f32 m01, f32 m02, f32 m10, f32 m11, f32 m12, f32 m20, f32 m21, f32 m22) {
             return m00 * m11 * m22 + m01 * m12 * m20 + m02 * m10 * m21 - m02 * m11 * m20 - m01 * m10 * m22 - m00 * m12 * m21;
         }
 
         inline f32 determinant(Matrix4 const m) {
-            f32 det0 = determinant3x3(m[1][1], m[1][2], m[1][3], m[2][1], m[2][2], m[2][3], m[3][1], m[3][2], m[3][3]);
-            f32 det1 = determinant3x3(m[1][0], m[1][2], m[1][3], m[2][0], m[2][2], m[2][3], m[3][0], m[3][2], m[3][3]);
-            f32 det2 = determinant3x3(m[1][0], m[1][1], m[1][3], m[2][0], m[2][1], m[2][3], m[3][0], m[3][1], m[3][3]);
-            f32 det3 = determinant3x3(m[1][0], m[1][1], m[1][2], m[2][0], m[2][1], m[2][2], m[3][0], m[3][1], m[3][2]);
+            f32 det0 = _determinant3x3(m[1][1], m[1][2], m[1][3], m[2][1], m[2][2], m[2][3], m[3][1], m[3][2], m[3][3]);
+            f32 det1 = _determinant3x3(m[1][0], m[1][2], m[1][3], m[2][0], m[2][2], m[2][3], m[3][0], m[3][2], m[3][3]);
+            f32 det2 = _determinant3x3(m[1][0], m[1][1], m[1][3], m[2][0], m[2][1], m[2][3], m[3][0], m[3][1], m[3][3]);
+            f32 det3 = _determinant3x3(m[1][0], m[1][1], m[1][2], m[2][0], m[2][1], m[2][2], m[3][0], m[3][1], m[3][2]);
             return m[0][0] * det0 - m[0][1] * det1 + m[0][2] * det2 - m[0][3] * det3;
         }
 
         inline Matrix4 adjugate(Matrix4 const m) {
-            f32 m00 = determinant3x3(m[1][1], m[1][2], m[1][3], m[2][1], m[2][2], m[2][3], m[3][1], m[3][2], m[3][3]);
-            f32 m01 = determinant3x3(m[1][0], m[1][2], m[1][3], m[2][0], m[2][2], m[2][3], m[3][0], m[3][2], m[3][3]);
-            f32 m02 = determinant3x3(m[1][0], m[1][1], m[1][3], m[2][0], m[2][1], m[2][3], m[3][0], m[3][1], m[3][3]);
-            f32 m03 = determinant3x3(m[1][0], m[1][1], m[1][2], m[2][0], m[2][1], m[2][2], m[3][0], m[3][1], m[3][2]);
+            f32 m00 = _determinant3x3(m[1][1], m[1][2], m[1][3], m[2][1], m[2][2], m[2][3], m[3][1], m[3][2], m[3][3]);
+            f32 m01 = _determinant3x3(m[1][0], m[1][2], m[1][3], m[2][0], m[2][2], m[2][3], m[3][0], m[3][2], m[3][3]);
+            f32 m02 = _determinant3x3(m[1][0], m[1][1], m[1][3], m[2][0], m[2][1], m[2][3], m[3][0], m[3][1], m[3][3]);
+            f32 m03 = _determinant3x3(m[1][0], m[1][1], m[1][2], m[2][0], m[2][1], m[2][2], m[3][0], m[3][1], m[3][2]);
 
-            f32 m10 = determinant3x3(m[0][1], m[0][2], m[0][3], m[2][1], m[2][2], m[2][3], m[3][1], m[3][2], m[3][3]);
-            f32 m11 = determinant3x3(m[0][0], m[0][2], m[0][3], m[2][0], m[2][2], m[2][3], m[3][0], m[3][2], m[3][3]);
-            f32 m12 = determinant3x3(m[0][0], m[0][1], m[0][3], m[2][0], m[2][1], m[2][3], m[3][0], m[3][1], m[3][3]);
-            f32 m13 = determinant3x3(m[0][0], m[0][1], m[0][2], m[2][0], m[2][1], m[2][2], m[3][0], m[3][1], m[3][2]);
+            f32 m10 = _determinant3x3(m[0][1], m[0][2], m[0][3], m[2][1], m[2][2], m[2][3], m[3][1], m[3][2], m[3][3]);
+            f32 m11 = _determinant3x3(m[0][0], m[0][2], m[0][3], m[2][0], m[2][2], m[2][3], m[3][0], m[3][2], m[3][3]);
+            f32 m12 = _determinant3x3(m[0][0], m[0][1], m[0][3], m[2][0], m[2][1], m[2][3], m[3][0], m[3][1], m[3][3]);
+            f32 m13 = _determinant3x3(m[0][0], m[0][1], m[0][2], m[2][0], m[2][1], m[2][2], m[3][0], m[3][1], m[3][2]);
 
-            f32 m20 = determinant3x3(m[0][1], m[0][2], m[0][3], m[1][1], m[1][2], m[1][3], m[3][1], m[3][2], m[3][3]);
-            f32 m21 = determinant3x3(m[0][0], m[0][2], m[0][3], m[1][0], m[1][2], m[1][3], m[3][0], m[3][2], m[3][3]);
-            f32 m22 = determinant3x3(m[0][0], m[0][1], m[0][3], m[1][0], m[1][1], m[1][3], m[3][0], m[3][1], m[3][3]);
-            f32 m23 = determinant3x3(m[0][0], m[0][1], m[0][2], m[1][0], m[1][1], m[1][2], m[3][0], m[3][1], m[3][2]);
+            f32 m20 = _determinant3x3(m[0][1], m[0][2], m[0][3], m[1][1], m[1][2], m[1][3], m[3][1], m[3][2], m[3][3]);
+            f32 m21 = _determinant3x3(m[0][0], m[0][2], m[0][3], m[1][0], m[1][2], m[1][3], m[3][0], m[3][2], m[3][3]);
+            f32 m22 = _determinant3x3(m[0][0], m[0][1], m[0][3], m[1][0], m[1][1], m[1][3], m[3][0], m[3][1], m[3][3]);
+            f32 m23 = _determinant3x3(m[0][0], m[0][1], m[0][2], m[1][0], m[1][1], m[1][2], m[3][0], m[3][1], m[3][2]);
 
-            f32 m30 = determinant3x3(m[0][1], m[0][2], m[0][3], m[1][1], m[1][2], m[1][3], m[2][1], m[2][2], m[2][3]);
-            f32 m31 = determinant3x3(m[0][0], m[0][2], m[0][3], m[1][0], m[1][2], m[1][3], m[2][0], m[2][2], m[2][3]);
-            f32 m32 = determinant3x3(m[0][0], m[0][1], m[0][3], m[1][0], m[1][1], m[1][3], m[2][0], m[2][1], m[2][3]);
-            f32 m33 = determinant3x3(m[0][0], m[0][1], m[0][2], m[1][0], m[1][1], m[1][2], m[2][0], m[2][1], m[2][2]);
+            f32 m30 = _determinant3x3(m[0][1], m[0][2], m[0][3], m[1][1], m[1][2], m[1][3], m[2][1], m[2][2], m[2][3]);
+            f32 m31 = _determinant3x3(m[0][0], m[0][2], m[0][3], m[1][0], m[1][2], m[1][3], m[2][0], m[2][2], m[2][3]);
+            f32 m32 = _determinant3x3(m[0][0], m[0][1], m[0][3], m[1][0], m[1][1], m[1][3], m[2][0], m[2][1], m[2][3]);
+            f32 m33 = _determinant3x3(m[0][0], m[0][1], m[0][2], m[1][0], m[1][1], m[1][2], m[2][0], m[2][1], m[2][2]);
             // clang-format off
             return Matrix4(
                 {m00, -m10, m20, -m30}, 
@@ -220,6 +179,13 @@ namespace anton_engine {
             return adjugate(m) / determinant(m);
         }
     } // namespace math
+
+    inline void swap(Matrix4& m1, Matrix4& m2) {
+        atl::swap(m1[0], m2[0]);
+        atl::swap(m1[1], m2[1]);
+        atl::swap(m1[2], m2[2]);
+        atl::swap(m1[3], m2[3]);
+    }
 } // namespace anton_engine
 
 #endif // !CORE_MATH_MARTIX4_HPP_INCLUDE

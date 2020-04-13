@@ -2,7 +2,6 @@
 #define ENGINE_TIME_HPP_INCLUDE
 
 #include <core/types.hpp>
-#include <core/macro_undefs.hpp>
 
 namespace anton_engine {
     struct System_Time {
@@ -22,7 +21,7 @@ namespace anton_engine {
         // 0 through 999
         u16 milliseconds;
     };
-    
+
     System_Time get_utc_system_time();
     System_Time get_local_system_time();
 

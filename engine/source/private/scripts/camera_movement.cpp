@@ -1,10 +1,10 @@
 #include <scripts/camera_movement.hpp>
 
 #include <build_config.hpp>
-#include <engine/ecs/entity.hpp>
-#include <engine/input.hpp>
 #include <core/math/math.hpp>
 #include <core/math/transform.hpp>
+#include <engine/ecs/entity.hpp>
+#include <engine/input.hpp>
 #include <engine/time.hpp>
 
 namespace anton_engine {
@@ -12,8 +12,8 @@ namespace anton_engine {
         // Look around
         float horizontal_rotation = input::get_axis("mouse_x");
         float vertical_rotation = input::get_axis("mouse_y");
-        transform.rotate(Vector3::up, math::radians(-horizontal_rotation));
-        camera_mov.camera_side = Vector3(Vector4(camera_mov.camera_side) * math::transform::rotate_y(math::radians(horizontal_rotation)));
+        transform.rotate(Vector3{0.0f, 1.0f, 0.0f}, math::radians(-horizontal_rotation));
+        camera_mov.camera_side = Vector3(Vector4(camera_mov.camera_side) * math::rotate_y(math::radians(horizontal_rotation)));
         transform.rotate(camera_mov.camera_side, math::radians(vertical_rotation));
 
         // Move
@@ -24,7 +24,7 @@ namespace anton_engine {
         float sideways = input::get_axis("move_sideways");
         transform.translate(camera_mov.camera_side * camera_speed * sideways);
         float vertical = input::get_axis("move_vertical");
-        transform.translate(Vector3::up * camera_speed * vertical);
+        transform.translate(Vector3{0.0f, 1.0f, 0.0f} * camera_speed * vertical);
 
         float scroll = input::get_axis("scroll");
         transform.translate(camera_front * scroll);

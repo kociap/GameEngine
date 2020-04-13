@@ -7,9 +7,11 @@
 #include <core/serialization/serialization.hpp>
 
 namespace anton_engine {
+    // By default points down along y axis.
+    //
     class COMPONENT Directional_Light_Component {
     public:
-        Vector3 direction = -Vector3::up;
+        Vector3 direction = Vector3{0.0f, -1.0f, 0.0f};
         Color color = Color::white;
         float intensity = 1.0f;
         bool dynamic = false;

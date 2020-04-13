@@ -1,34 +1,34 @@
 #include <level_editor/viewport.hpp>
 
-#include <core/atl/vector.hpp>
 #include <core/atl/utility.hpp>
+#include <core/atl/vector.hpp>
+#include <core/logging.hpp>
+#include <core/math/transform.hpp>
+#include <core/math/vector2.hpp>
+#include <editor.hpp>
+#include <editor_preferences.hpp>
 #include <engine/assets.hpp>
-#include <shaders/builtin_shaders.hpp>
 #include <engine/components/camera.hpp>
 #include <engine/components/static_mesh_component.hpp>
 #include <engine/components/transform.hpp>
 #include <engine/ecs/ecs.hpp>
-#include <editor.hpp>
-#include <editor_preferences.hpp>
-#include <rendering/framebuffer.hpp>
+#include <engine/input.hpp>
+#include <engine/input/input_internal.hpp>
+#include <engine/mesh.hpp>
+#include <engine/resource_manager.hpp>
+#include <engine/time.hpp>
 #include <level_editor/gizmo/arrow_3d.hpp>
 #include <level_editor/gizmo/dial_3d.hpp>
 #include <level_editor/gizmo/gizmo.hpp>
-#include <rendering/glad.hpp>
-#include <engine/input.hpp>
-#include <engine/input/input_internal.hpp>
+#include <level_editor/viewport_camera.hpp>
 #include <physics/intersection_tests.hpp>
 #include <physics/line.hpp>
-#include <core/logging.hpp>
-#include <core/math/transform.hpp>
-#include <core/math/vector2.hpp>
-#include <engine/mesh.hpp>
 #include <physics/obb.hpp>
+#include <rendering/framebuffer.hpp>
+#include <rendering/glad.hpp>
 #include <rendering/renderer.hpp>
-#include <engine/resource_manager.hpp>
+#include <shaders/builtin_shaders.hpp>
 #include <shaders/shader_file.hpp>
-#include <engine/time.hpp>
-#include <level_editor/viewport_camera.hpp>
 
 #include <imgui/imgui.hpp>
 #include <rendering/builtin_editor_shaders.hpp>
@@ -71,8 +71,8 @@ namespace anton_engine {
         front_back_buffer_info.height = height;
         front_back_buffer_info.color_buffers.resize(1);
         front_back_buffer_info.color_buffers[0].internal_format = Framebuffer::Internal_Format::rgba8;
-        front_framebuffer = new Framebuffer(front_back_buffer_info); 
-        back_framebuffer = new Framebuffer(front_back_buffer_info); 
+        front_framebuffer = new Framebuffer(front_back_buffer_info);
+        back_framebuffer = new Framebuffer(front_back_buffer_info);
 
         ECS& ecs = Editor::get_ecs();
         auto [entity, viewport_camera, camera, transform] = ecs.create<Viewport_Camera, Camera, Transform>();
@@ -131,11 +131,11 @@ namespace anton_engine {
         Component_View access = ecs.view<Static_Mesh_Component, Transform>();
         Entity selected = null_entity;
         Raycast_Hit closest_hit;
-        closest_hit.distance = math::constants::infinity;
-        for (Entity const entity: access) {
+        closest_hit.distance = math::infinity;
+        for(Entity const entity: access) {
             auto const& [c, transform] = access.get<Static_Mesh_Component, Transform>(entity);
             Mesh const& mesh = mesh_manager.get(c.mesh_handle);
-            if (auto hit = intersect_ray_mesh(ray, mesh, transform.to_matrix()); hit && hit->distance < closest_hit.distance) {
+            if(auto hit = intersect_ray_mesh(ray, mesh, transform.to_matrix()); hit && hit->distance < closest_hit.distance) {
                 // gizmo::draw_point(hit.hit_point, 0.05, Color::red, 200.0f);
                 closest_hit = hit.value();
                 selected = entity;
@@ -146,7 +146,7 @@ namespace anton_engine {
     }
 
     static Matrix4 compute_rotation(Gizmo_Transform_Space const space, Matrix4 const base_rotation, Matrix4 const object_rotation) {
-        switch (space) {
+        switch(space) {
         case Gizmo_Transform_Space::world:
             return base_rotation;
         case Gizmo_Transform_Space::local:
@@ -154,12 +154,12 @@ namespace anton_engine {
         }
     }
 
-    void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const inv_view_mat, Matrix4 const proj_mat,
-                                   Matrix4 const inv_proj_mat, Transform const camera_transform, atl::Vector<Entity>& selected_entities) {
+    void Viewport::process_actions(Matrix4 const view_mat, Matrix4 const inv_view_mat, Matrix4 const proj_mat, Matrix4 const inv_proj_mat,
+                                   Transform const camera_transform, atl::Vector<Entity>& selected_entities) {
         atl::String window_id{u8"viewport_window"};
         window_id.append(atl::to_string(index));
         imgui::begin_window(*ctx, window_id);
-        
+
         Vector2 const viewport_size = imgui::get_window_dimensions(*ctx);
         Vector2 const _cursor_pos = imgui::get_cursor_position(*ctx);
         // Transform from top-left to bottom-left (screen coordinates).
@@ -170,12 +170,12 @@ namespace anton_engine {
 
         auto const state = input::get_key_state(Key::right_mouse_button);
         auto const shift_state = input::get_key_state(Key::left_shift);
-        if (!state.down && state.up_down_transitioned) {
+        if(!state.down && state.up_down_transitioned) {
             Entity selected_entity = pick_object(cursor_ray);
-            if (selected_entity != null_entity) {
-                if (shift_state.down) {
+            if(selected_entity != null_entity) {
+                if(shift_state.down) {
                     bool already_selected = false;
-                    if (selected_entities.size() != 0 && selected_entity == selected_entities[0]) {
+                    if(selected_entities.size() != 0 && selected_entity == selected_entities[0]) {
                         already_selected = true;
                     } else {
                         // for (atl::Vector<Entity>::size_type i = 1; i < selected_entities.size(); ++i) {
@@ -186,27 +186,27 @@ namespace anton_engine {
                         // }
                     }
 
-                //     if (already_selected) {
-                //         editor_events::entity_deselected(selected_entity);
-                //     } else {
-                //         editor_events::entity_selected(selected_entity, false);
-                //     }
-                // } else {
-                //     editor_events::entity_selected(selected_entity, true);
+                    //     if (already_selected) {
+                    //         editor_events::entity_deselected(selected_entity);
+                    //     } else {
+                    //         editor_events::entity_selected(selected_entity, false);
+                    //     }
+                    // } else {
+                    //     editor_events::entity_selected(selected_entity, true);
                 }
             }
         }
 
-        if (selected_entities.size() > 0) {
+        if(selected_entities.size() > 0) {
             ECS& ecs = Editor::get_ecs();
             Transform& transform_ref = ecs.get_component<Transform>(selected_entities[0]);
             Transform const transform = transform_ref;
 
             input::Key_State const lmb_state = input::get_key_state(Key::left_mouse_button);
             Gizmo_Context& gizmo_ctx = get_gizmo_context();
-            if (lmb_state.up_down_transitioned) {
-                if (lmb_state.down) {
-                    switch (gizmo_ctx.type) {
+            if(lmb_state.up_down_transitioned) {
+                if(lmb_state.down) {
+                    switch(gizmo_ctx.type) {
                     case Gizmo_Transform_Type::translate: {
                         // gizmo::debug_draw_line(cursor_ray.origin, cursor_ray.origin + cursor_ray.direction * 1000.0f, 100.0f);
 
@@ -214,50 +214,51 @@ namespace anton_engine {
                         gizmo::Arrow_3D arrow{gizmo::Arrow_3D_Style::cone, {}, gizmo_settings.size};
                         Matrix4 const vp_mat = view_mat * proj_mat;
                         // TODO: Use global position.
-                        Matrix4 const translation = math::transform::translate(transform.local_position);
-                        float distance = math::constants::infinity;
+                        Matrix4 const translation = math::translate(transform.local_position);
+                        float distance = math::infinity;
 
                         // TODO: Use global object rotation for local gizmos.
-                        Matrix4 const base_rotation_x = math::transform::rotate_y(math::constants::half_pi);
-                        Matrix4 const rotation_x = compute_rotation(gizmo_ctx.space, base_rotation_x, math::transform::rotate(transform.local_rotation));
-                        if (atl::Optional<float> const arrow_distance =
-                                gizmo::intersect_arrow_3d(cursor_ray, arrow, rotation_x * translation, vp_mat, viewport_size);
-                            arrow_distance && *arrow_distance < distance) {
+                        Matrix4 const base_rotation_x = math::rotate_y(math::half_pi);
+                        Matrix4 const rotation_x = compute_rotation(gizmo_ctx.space, base_rotation_x, math::rotate(transform.local_rotation));
+                        if(atl::Optional<float> const arrow_distance =
+                               gizmo::intersect_arrow_3d(cursor_ray, arrow, rotation_x * translation, vp_mat, viewport_size);
+                           arrow_distance && *arrow_distance < distance) {
                             distance = *arrow_distance;
                             gizmo_ctx.grab.grabbed = true;
                             gizmo_ctx.grab.cached_transform = transform;
-                            gizmo_ctx.grab.grabbed_axis = Vector3(Vector4(Vector3::forward, 0) * rotation_x);
+                            gizmo_ctx.grab.grabbed_axis = Vector3(Vector4{0.0f, 0.0f, -1.0f, 0.0f} * rotation_x);
                         }
 
-                        Matrix4 const base_rotation_y = math::transform::rotate_x(-math::constants::half_pi);
-                        Matrix4 const rotation_y = compute_rotation(gizmo_ctx.space, base_rotation_y, math::transform::rotate(transform.local_rotation));
-                        if (atl::Optional<float> const arrow_distance =
-                                gizmo::intersect_arrow_3d(cursor_ray, arrow, rotation_y * translation, vp_mat, viewport_size);
-                            arrow_distance && *arrow_distance < distance) {
+                        Matrix4 const base_rotation_y = math::rotate_x(-math::half_pi);
+                        Matrix4 const rotation_y = compute_rotation(gizmo_ctx.space, base_rotation_y, math::rotate(transform.local_rotation));
+                        if(atl::Optional<float> const arrow_distance =
+                               gizmo::intersect_arrow_3d(cursor_ray, arrow, rotation_y * translation, vp_mat, viewport_size);
+                           arrow_distance && *arrow_distance < distance) {
                             distance = *arrow_distance;
                             gizmo_ctx.grab.grabbed = true;
                             gizmo_ctx.grab.cached_transform = transform;
-                            gizmo_ctx.grab.grabbed_axis = Vector3(Vector4(Vector3::forward, 0) * rotation_y);
+                            gizmo_ctx.grab.grabbed_axis = Vector3(Vector4{0.0f, 0.0f, -1.0f, 0} * rotation_y);
                         }
 
-                        Matrix4 const base_rotation_z = math::transform::rotate_y(math::constants::pi);
-                        Matrix4 const rotation_z = compute_rotation(gizmo_ctx.space, base_rotation_z, math::transform::rotate(transform.local_rotation));
-                        if (atl::Optional<float> const arrow_distance =
-                                gizmo::intersect_arrow_3d(cursor_ray, arrow, rotation_z * translation, vp_mat, viewport_size);
-                            arrow_distance && *arrow_distance < distance) {
+                        Matrix4 const base_rotation_z = math::rotate_y(math::pi);
+                        Matrix4 const rotation_z = compute_rotation(gizmo_ctx.space, base_rotation_z, math::rotate(transform.local_rotation));
+                        if(atl::Optional<float> const arrow_distance =
+                               gizmo::intersect_arrow_3d(cursor_ray, arrow, rotation_z * translation, vp_mat, viewport_size);
+                           arrow_distance && *arrow_distance < distance) {
                             distance = *arrow_distance;
                             gizmo_ctx.grab.grabbed = true;
                             gizmo_ctx.grab.cached_transform = transform;
-                            gizmo_ctx.grab.grabbed_axis = Vector3(Vector4(Vector3::forward, 0) * rotation_z);
+                            gizmo_ctx.grab.grabbed_axis = Vector3(Vector4{0.0f, 0.0f, -1.0f, 0.0f} * rotation_z);
                         }
 
-                        if (gizmo_ctx.grab.grabbed) {
+                        if(gizmo_ctx.grab.grabbed) {
                             Vector3 camera_pos_projected_on_translation_axis =
                                 math::dot(gizmo_ctx.grab.grabbed_axis, camera_transform.local_position) * gizmo_ctx.grab.grabbed_axis;
                             gizmo_ctx.grab.plane_normal = math::normalize(camera_transform.local_position - camera_pos_projected_on_translation_axis);
                             gizmo_ctx.grab.plane_distance = math::dot(transform.local_position, gizmo_ctx.grab.plane_normal);
                             gizmo_ctx.grab.mouse_grab_point =
-                                intersect_line_plane({cursor_ray.origin, cursor_ray.direction}, gizmo_ctx.grab.plane_normal, gizmo_ctx.grab.plane_distance)->hit_point;
+                                intersect_line_plane({cursor_ray.origin, cursor_ray.direction}, gizmo_ctx.grab.plane_normal, gizmo_ctx.grab.plane_distance)
+                                    ->hit_point;
                         }
                     } break;
                     case Gizmo_Transform_Type::rotate: {
@@ -267,50 +268,51 @@ namespace anton_engine {
                         gizmo::Arrow_3D arrow{gizmo::Arrow_3D_Style::cube, {}, gizmo_settings.size};
                         Matrix4 const vp_mat = view_mat * proj_mat;
                         // TODO: Use global position.
-                        Matrix4 const translation = math::transform::translate(transform.local_position);
-                        float distance = math::constants::infinity;
+                        Matrix4 const translation = math::translate(transform.local_position);
+                        float distance = math::infinity;
 
                         // TODO: Use global object rotation for local gizmos.
-                        Matrix4 const base_rotation_x = math::transform::rotate_y(math::constants::half_pi);
-                        Matrix4 const rotation_x = compute_rotation(gizmo_ctx.space, base_rotation_x, math::transform::rotate(transform.local_rotation));
-                        if (atl::Optional<float> const arrow_distance =
-                                gizmo::intersect_arrow_3d(cursor_ray, arrow, rotation_x * translation, vp_mat, viewport_size);
-                            arrow_distance && *arrow_distance < distance) {
+                        Matrix4 const base_rotation_x = math::rotate_y(math::half_pi);
+                        Matrix4 const rotation_x = compute_rotation(gizmo_ctx.space, base_rotation_x, math::rotate(transform.local_rotation));
+                        if(atl::Optional<float> const arrow_distance =
+                               gizmo::intersect_arrow_3d(cursor_ray, arrow, rotation_x * translation, vp_mat, viewport_size);
+                           arrow_distance && *arrow_distance < distance) {
                             distance = *arrow_distance;
                             gizmo_ctx.grab.grabbed = true;
                             gizmo_ctx.grab.cached_transform = transform;
-                            gizmo_ctx.grab.grabbed_axis = Vector3(Vector4(Vector3::forward, 0) * rotation_x);
+                            gizmo_ctx.grab.grabbed_axis = Vector3(Vector4{0.0f, 0.0f, -1.0f, 0.0f} * rotation_x);
                         }
 
-                        Matrix4 const base_rotation_y = math::transform::rotate_x(-math::constants::half_pi);
-                        Matrix4 const rotation_y = compute_rotation(gizmo_ctx.space, base_rotation_y, math::transform::rotate(transform.local_rotation));
-                        if (atl::Optional<float> const arrow_distance =
-                                gizmo::intersect_arrow_3d(cursor_ray, arrow, rotation_y * translation, vp_mat, viewport_size);
-                            arrow_distance && *arrow_distance < distance) {
+                        Matrix4 const base_rotation_y = math::rotate_x(-math::half_pi);
+                        Matrix4 const rotation_y = compute_rotation(gizmo_ctx.space, base_rotation_y, math::rotate(transform.local_rotation));
+                        if(atl::Optional<float> const arrow_distance =
+                               gizmo::intersect_arrow_3d(cursor_ray, arrow, rotation_y * translation, vp_mat, viewport_size);
+                           arrow_distance && *arrow_distance < distance) {
                             distance = *arrow_distance;
                             gizmo_ctx.grab.grabbed = true;
                             gizmo_ctx.grab.cached_transform = transform;
                             gizmo_ctx.grab.grabbed_axis = Vector3(Vector4(0, 0, -1, 0) * rotation_y);
                         }
 
-                        Matrix4 const base_rotation_z = math::transform::rotate_y(math::constants::pi);
-                        Matrix4 const rotation_z = compute_rotation(gizmo_ctx.space, base_rotation_z, math::transform::rotate(transform.local_rotation));
-                        if (atl::Optional<float> const arrow_distance =
-                                gizmo::intersect_arrow_3d(cursor_ray, arrow, rotation_z * translation, vp_mat, viewport_size);
-                            arrow_distance && *arrow_distance < distance) {
+                        Matrix4 const base_rotation_z = math::rotate_y(math::pi);
+                        Matrix4 const rotation_z = compute_rotation(gizmo_ctx.space, base_rotation_z, math::rotate(transform.local_rotation));
+                        if(atl::Optional<float> const arrow_distance =
+                               gizmo::intersect_arrow_3d(cursor_ray, arrow, rotation_z * translation, vp_mat, viewport_size);
+                           arrow_distance && *arrow_distance < distance) {
                             distance = *arrow_distance;
                             gizmo_ctx.grab.grabbed = true;
                             gizmo_ctx.grab.cached_transform = transform;
                             gizmo_ctx.grab.grabbed_axis = Vector3(Vector4(0, 0, -1, 0) * rotation_z);
                         }
 
-                        if (gizmo_ctx.grab.grabbed) {
+                        if(gizmo_ctx.grab.grabbed) {
                             Vector3 camera_pos_projected_on_translation_axis =
                                 math::dot(gizmo_ctx.grab.grabbed_axis, camera_transform.local_position) * gizmo_ctx.grab.grabbed_axis;
                             gizmo_ctx.grab.plane_normal = math::normalize(camera_transform.local_position - camera_pos_projected_on_translation_axis);
                             gizmo_ctx.grab.plane_distance = math::dot(transform.local_position, gizmo_ctx.grab.plane_normal);
                             gizmo_ctx.grab.mouse_grab_point =
-                                intersect_line_plane({cursor_ray.origin, cursor_ray.direction}, gizmo_ctx.grab.plane_normal, gizmo_ctx.grab.plane_distance)->hit_point;
+                                intersect_line_plane({cursor_ray.origin, cursor_ray.direction}, gizmo_ctx.grab.plane_normal, gizmo_ctx.grab.plane_distance)
+                                    ->hit_point;
                         }
                     } break;
                     }
@@ -318,12 +320,13 @@ namespace anton_engine {
                     gizmo_ctx.grab.grabbed = false;
                 }
             } else {
-                if (lmb_state.down && gizmo_ctx.grab.grabbed) {
+                if(lmb_state.down && gizmo_ctx.grab.grabbed) {
                     // TODO: Choose space in which to modify the transform based on gizmo context.
-                    switch (gizmo_ctx.type) {
+                    switch(gizmo_ctx.type) {
                     case Gizmo_Transform_Type::translate: {
                         Vector3 intersection =
-                            intersect_line_plane({cursor_ray.origin, cursor_ray.direction}, gizmo_ctx.grab.plane_normal, gizmo_ctx.grab.plane_distance)->hit_point;
+                            intersect_line_plane({cursor_ray.origin, cursor_ray.direction}, gizmo_ctx.grab.plane_normal, gizmo_ctx.grab.plane_distance)
+                                ->hit_point;
                         Vector3 delta_position =
                             math::dot(intersection - gizmo_ctx.grab.mouse_grab_point, gizmo_ctx.grab.grabbed_axis) * gizmo_ctx.grab.grabbed_axis;
                         //for (Entity const entity : selected_entities) {
@@ -335,7 +338,8 @@ namespace anton_engine {
                     } break;
                     case Gizmo_Transform_Type::scale: {
                         Vector3 intersection =
-                            intersect_line_plane({cursor_ray.origin, cursor_ray.direction}, gizmo_ctx.grab.plane_normal, gizmo_ctx.grab.plane_distance)->hit_point;
+                            intersect_line_plane({cursor_ray.origin, cursor_ray.direction}, gizmo_ctx.grab.plane_normal, gizmo_ctx.grab.plane_distance)
+                                ->hit_point;
                         Vector3 delta_position =
                             math::dot(intersection - gizmo_ctx.grab.mouse_grab_point, gizmo_ctx.grab.grabbed_axis) * gizmo_ctx.grab.grabbed_axis;
                         //for (Entity const entity : selected_entities) {
@@ -388,35 +392,34 @@ namespace anton_engine {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         // gizmo::debug_commit_draw_lines(vp_mat, camera_pos, timing::get_delta_time());
         // TODO: That's terrible
-        if (selected_entities.size() > 0) {
+        if(selected_entities.size() > 0) {
             ECS& ecs = Editor::get_ecs();
             Transform& transform_ref = ecs.get_component<Transform>(selected_entities[0]);
-            Matrix4 const offset = math::transform::translate(transform_ref.local_position);
-            Matrix4 const object_rotation = math::transform::rotate(transform_ref.local_rotation);
+            Matrix4 const offset = math::translate(transform_ref.local_position);
+            Matrix4 const object_rotation = math::rotate(transform_ref.local_rotation);
             Gizmo_Settings const gizmo_settings = get_editor_preferences().gizmo_settings;
             Gizmo_Context const gizmo_ctx = get_gizmo_context();
 
             // TODO: Use global transform instead of local.
             // TODO: Choose order in which to render the handles based on the camera angle, so that alpha blending works correctly.
-            switch (gizmo_ctx.type) {
+            switch(gizmo_ctx.type) {
             case Gizmo_Transform_Type::translate: {
                 Color axis_colors[3] = {gizmo_settings.axis_x_color, gizmo_settings.axis_y_color, gizmo_settings.axis_z_color};
-                Matrix4 const rotations[3] = {math::transform::rotate_y(math::constants::half_pi), math::transform::rotate_x(-math::constants::half_pi),
-                                              math::transform::rotate_y(math::constants::pi)};
+                Matrix4 const rotations[3] = {math::rotate_y(math::half_pi), math::rotate_x(-math::half_pi), math::rotate_y(math::pi)};
                 Matrix4 const transforms[3] = {compute_rotation(gizmo_ctx.space, rotations[0], object_rotation) * offset,
                                                compute_rotation(gizmo_ctx.space, rotations[1], object_rotation) * offset,
                                                compute_rotation(gizmo_ctx.space, rotations[2], object_rotation) * offset};
 
-                if (!gizmo_ctx.grab.grabbed) {
+                if(!gizmo_ctx.grab.grabbed) {
                     gizmo::Arrow_3D const arrow = {gizmo::Arrow_3D_Style::cone, Color::white, gizmo_settings.size};
                     atl::Optional<float> const hits[3] = {gizmo::intersect_arrow_3d(cursor_ray, arrow, transforms[0], vp_mat, viewport_size),
-                                                                gizmo::intersect_arrow_3d(cursor_ray, arrow, transforms[1], vp_mat, viewport_size),
-                                                                gizmo::intersect_arrow_3d(cursor_ray, arrow, transforms[2], vp_mat, viewport_size)};
-                    if (hits[0] || hits[1] || hits[2]) {
-                        auto value_or_infty = [](atl::Optional<float> const& hit) { return (hit ? hit.value() : math::constants::infinity); };
-                        if (value_or_infty(hits[0]) < value_or_infty(hits[1]) && value_or_infty(hits[0]) < value_or_infty(hits[2])) {
+                                                          gizmo::intersect_arrow_3d(cursor_ray, arrow, transforms[1], vp_mat, viewport_size),
+                                                          gizmo::intersect_arrow_3d(cursor_ray, arrow, transforms[2], vp_mat, viewport_size)};
+                    if(hits[0] || hits[1] || hits[2]) {
+                        auto value_or_infty = [](atl::Optional<float> const& hit) { return (hit ? hit.value() : math::infinity); };
+                        if(value_or_infty(hits[0]) < value_or_infty(hits[1]) && value_or_infty(hits[0]) < value_or_infty(hits[2])) {
                             axis_colors[0].a = 1.0f;
-                        } else if (value_or_infty(hits[1]) < value_or_infty(hits[0]) && value_or_infty(hits[1]) < value_or_infty(hits[2])) {
+                        } else if(value_or_infty(hits[1]) < value_or_infty(hits[0]) && value_or_infty(hits[1]) < value_or_infty(hits[2])) {
                             axis_colors[1].a = 1.0f;
                         } else {
                             axis_colors[2].a = 1.0f;
@@ -424,7 +427,7 @@ namespace anton_engine {
                     }
                 }
 
-                for (i32 i = 0; i < 3; ++i) {
+                for(i32 i = 0; i < 3; ++i) {
                     gizmo::Arrow_3D const arrow = {gizmo::Arrow_3D_Style::cone, axis_colors[i], gizmo_settings.size};
                     gizmo::draw_arrow_3d(arrow, transforms[i], vp_mat, viewport_size, camera_pos);
                 }
@@ -432,22 +435,21 @@ namespace anton_engine {
 
             case Gizmo_Transform_Type::rotate: {
                 Color axis_colors[3] = {gizmo_settings.axis_x_color, gizmo_settings.axis_y_color, gizmo_settings.axis_z_color};
-                Matrix4 const rotations[3] = {math::transform::rotate_y(math::constants::half_pi), math::transform::rotate_x(-math::constants::half_pi),
-                                              math::transform::rotate_y(math::constants::pi)};
+                Matrix4 const rotations[3] = {math::rotate_y(math::half_pi), math::rotate_x(-math::half_pi), math::rotate_y(math::pi)};
                 Matrix4 const transforms[3] = {compute_rotation(gizmo_ctx.space, rotations[0], object_rotation) * offset,
                                                compute_rotation(gizmo_ctx.space, rotations[1], object_rotation) * offset,
                                                compute_rotation(gizmo_ctx.space, rotations[2], object_rotation) * offset};
 
-                if (!gizmo_ctx.grab.grabbed) {
+                if(!gizmo_ctx.grab.grabbed) {
                     gizmo::Dial_3D const dial = {Color::white, gizmo_settings.size};
                     atl::Optional<float> const hits[3] = {gizmo::intersect_dial_3d(cursor_ray, dial, transforms[0], vp_mat, viewport_size),
-                                                                gizmo::intersect_dial_3d(cursor_ray, dial, transforms[1], vp_mat, viewport_size),
-                                                                gizmo::intersect_dial_3d(cursor_ray, dial, transforms[2], vp_mat, viewport_size)};
-                    if (hits[0] || hits[1] || hits[2]) {
-                        auto value_or_infty = [](atl::Optional<float> const& hit) { return (hit ? hit.value() : math::constants::infinity); };
-                        if (value_or_infty(hits[0]) < value_or_infty(hits[1]) && value_or_infty(hits[0]) < value_or_infty(hits[2])) {
+                                                          gizmo::intersect_dial_3d(cursor_ray, dial, transforms[1], vp_mat, viewport_size),
+                                                          gizmo::intersect_dial_3d(cursor_ray, dial, transforms[2], vp_mat, viewport_size)};
+                    if(hits[0] || hits[1] || hits[2]) {
+                        auto value_or_infty = [](atl::Optional<float> const& hit) { return (hit ? hit.value() : math::infinity); };
+                        if(value_or_infty(hits[0]) < value_or_infty(hits[1]) && value_or_infty(hits[0]) < value_or_infty(hits[2])) {
                             axis_colors[0].a = 1.0f;
-                        } else if (value_or_infty(hits[1]) < value_or_infty(hits[0]) && value_or_infty(hits[1]) < value_or_infty(hits[2])) {
+                        } else if(value_or_infty(hits[1]) < value_or_infty(hits[0]) && value_or_infty(hits[1]) < value_or_infty(hits[2])) {
                             axis_colors[1].a = 1.0f;
                         } else {
                             axis_colors[2].a = 1.0f;
@@ -455,7 +457,7 @@ namespace anton_engine {
                     }
                 }
 
-                for (i32 i = 0; i < 3; ++i) {
+                for(i32 i = 0; i < 3; ++i) {
                     gizmo::Dial_3D const dial = {axis_colors[i], gizmo_settings.size};
                     gizmo::draw_dial_3d(dial, transforms[i], vp_mat, camera_pos, viewport_size);
                 }
@@ -463,22 +465,21 @@ namespace anton_engine {
 
             case Gizmo_Transform_Type::scale: {
                 Color axis_colors[3] = {gizmo_settings.axis_x_color, gizmo_settings.axis_y_color, gizmo_settings.axis_z_color};
-                Matrix4 const rotations[3] = {math::transform::rotate_y(math::constants::half_pi), math::transform::rotate_x(-math::constants::half_pi),
-                                              math::transform::rotate_y(math::constants::pi)};
+                Matrix4 const rotations[3] = {math::rotate_y(math::half_pi), math::rotate_x(-math::half_pi), math::rotate_y(math::pi)};
                 Matrix4 const transforms[3] = {compute_rotation(gizmo_ctx.space, rotations[0], object_rotation) * offset,
                                                compute_rotation(gizmo_ctx.space, rotations[1], object_rotation) * offset,
                                                compute_rotation(gizmo_ctx.space, rotations[2], object_rotation) * offset};
 
-                if (!gizmo_ctx.grab.grabbed) {
+                if(!gizmo_ctx.grab.grabbed) {
                     gizmo::Arrow_3D const arrow = {gizmo::Arrow_3D_Style::cube, Color::white, gizmo_settings.size};
                     atl::Optional<float> const hits[3] = {gizmo::intersect_arrow_3d(cursor_ray, arrow, transforms[0], vp_mat, viewport_size),
-                                                                gizmo::intersect_arrow_3d(cursor_ray, arrow, transforms[1], vp_mat, viewport_size),
-                                                                gizmo::intersect_arrow_3d(cursor_ray, arrow, transforms[2], vp_mat, viewport_size)};
-                    if (hits[0] || hits[1] || hits[2]) {
-                        auto value_or_infty = [](atl::Optional<float> const& hit) { return (hit ? hit.value() : math::constants::infinity); };
-                        if (value_or_infty(hits[0]) < value_or_infty(hits[1]) && value_or_infty(hits[0]) < value_or_infty(hits[2])) {
+                                                          gizmo::intersect_arrow_3d(cursor_ray, arrow, transforms[1], vp_mat, viewport_size),
+                                                          gizmo::intersect_arrow_3d(cursor_ray, arrow, transforms[2], vp_mat, viewport_size)};
+                    if(hits[0] || hits[1] || hits[2]) {
+                        auto value_or_infty = [](atl::Optional<float> const& hit) { return (hit ? hit.value() : math::infinity); };
+                        if(value_or_infty(hits[0]) < value_or_infty(hits[1]) && value_or_infty(hits[0]) < value_or_infty(hits[2])) {
                             axis_colors[0].a = 1.0f;
-                        } else if (value_or_infty(hits[1]) < value_or_infty(hits[0]) && value_or_infty(hits[1]) < value_or_infty(hits[2])) {
+                        } else if(value_or_infty(hits[1]) < value_or_infty(hits[0]) && value_or_infty(hits[1]) < value_or_infty(hits[2])) {
                             axis_colors[1].a = 1.0f;
                         } else {
                             axis_colors[2].a = 1.0f;
@@ -486,7 +487,7 @@ namespace anton_engine {
                     }
                 }
 
-                for (i32 i = 0; i < 3; ++i) {
+                for(i32 i = 0; i < 3; ++i) {
                     gizmo::Arrow_3D const arrow = {gizmo::Arrow_3D_Style::cube, axis_colors[i], gizmo_settings.size};
                     gizmo::draw_arrow_3d(arrow, transforms[i], vp_mat, viewport_size, camera_pos);
                 }
@@ -539,8 +540,7 @@ namespace anton_engine {
     static void draw_grid(Matrix4 const view_proj_mat, Vector3 const camera_pos, Camera const camera, Vector2 const viewport_size) {
         Shader& grid_shader = get_builtin_shader(Builtin_Editor_Shader::grid);
         grid_shader.use();
-        Matrix4 const model_mat = math::transform::rotate_x(math::constants::half_pi) * math::transform::scale(camera.far_plane) *
-                                  math::transform::translate({camera_pos.x, 0.0f, camera_pos.z});
+        Matrix4 const model_mat = math::rotate_x(math::half_pi) * math::scale(camera.far_plane) * math::translate({camera_pos.x, 0.0f, camera_pos.z});
         grid_shader.set_matrix4("model_mat", model_mat);
         grid_shader.set_matrix4("vp_mat", view_proj_mat);
         grid_shader.set_vec3("camera_pos", camera_pos);
@@ -561,8 +561,8 @@ namespace anton_engine {
         glEnable(GL_CULL_FACE);
     }
 
-    void Viewport::render(Matrix4 const view_mat, Matrix4 const inv_view_mat, Matrix4 const proj_mat, Matrix4 const inv_proj_mat, 
-                          Camera const camera, Transform const camera_transform, atl::Slice<Entity const> const selected_entities) {
+    void Viewport::render(Matrix4 const view_mat, Matrix4 const inv_view_mat, Matrix4 const proj_mat, Matrix4 const inv_proj_mat, Camera const camera,
+                          Transform const camera_transform, atl::Slice<Entity const> const selected_entities) {
         // TODO: Mist instead of sudden clip
 
         atl::String window_id{u8"viewport_window"};

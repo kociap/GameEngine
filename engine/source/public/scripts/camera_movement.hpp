@@ -2,17 +2,17 @@
 #define SCRIPTS_CAMERA_MOVEMENT_HPP_INCLUDE
 
 #include <core/class_macros.hpp>
-#include <engine/components/camera.hpp>
-#include <engine/components/transform.hpp>
 #include <core/math/vector3.hpp>
 #include <core/serialization/serialization.hpp>
+#include <engine/components/camera.hpp>
+#include <engine/components/transform.hpp>
 
 namespace anton_engine {
     class COMPONENT Camera_Movement {
     public:
         static void update(Camera_Movement&, Camera&, Transform&);
 
-        Vector3 camera_side = Vector3::right;
+        Vector3 camera_side = Vector3{1.0f, 0.0f, 0.0f};
     };
 } // namespace anton_engine
 

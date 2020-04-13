@@ -2,14 +2,13 @@
 #define ENGINE_COMPONENTS_CAMERA_HPP_INCLUDE
 
 #include <core/class_macros.hpp>
-#include <engine/components/transform.hpp>
 #include <core/math/matrix4.hpp>
 #include <core/math/transform.hpp>
 #include <core/math/vector2.hpp>
 #include <core/math/vector3.hpp>
 #include <core/serialization/serialization.hpp>
-
 #include <core/types.hpp>
+#include <engine/components/transform.hpp>
 
 namespace anton_engine {
     class COMPONENT Camera {
@@ -25,13 +24,13 @@ namespace anton_engine {
 
     inline Vector3 get_camera_top(Transform& transform) {
         // TODO: Return global instead of local
-        Vector4 top = Vector4(0, 1, 0, 0) * math::transform::rotate(transform.local_rotation);
+        Vector4 top = Vector4(0, 1, 0, 0) * math::rotate(transform.local_rotation);
         return {top.x, top.y, top.z};
     }
 
     inline Vector3 get_camera_front(Transform& transform) {
         // TODO: Return global instead of local
-        Vector4 front = Vector4(0, 0, -1, 0) * math::transform::rotate(transform.local_rotation);
+        Vector4 front = Vector4(0, 0, -1, 0) * math::rotate(transform.local_rotation);
         return {front.x, front.y, front.z};
     }
 
@@ -42,18 +41,18 @@ namespace anton_engine {
 
     inline Matrix4 get_camera_projection_matrix(Camera& camera, i32 viewport_width, i32 viewport_height) {
         float aspect_ratio = static_cast<float>(viewport_width) / static_cast<float>(viewport_height);
-        return math::transform::perspective(math::radians(camera.fov), aspect_ratio, camera.near_plane, camera.far_plane);
+        return math::perspective_rh(math::radians(camera.fov), aspect_ratio, camera.near_plane, camera.far_plane);
 
         // Ortographic camera stuff
-        // return math::transform::orthographic(-size * aspect_ratio, size * aspect_ratio, -size, size, near_plane, far_plane);
+        // return math::orthographic(-size * aspect_ratio, size * aspect_ratio, -size, size, near_plane, far_plane);
     }
 
     inline Matrix4 get_camera_projection_matrix(Camera const camera, Vector2 const viewport_size) {
         f32 const aspect_ratio = viewport_size.x / viewport_size.y;
-        return math::transform::perspective(math::radians(camera.fov), aspect_ratio, camera.near_plane, camera.far_plane);
+        return math::perspective_rh(math::radians(camera.fov), aspect_ratio, camera.near_plane, camera.far_plane);
 
         // Ortographic camera stuff
-        // return math::transform::orthographic(-size * aspect_ratio, size * aspect_ratio, -size, size, near_plane, far_plane);
+        // return math::orthographic(-size * aspect_ratio, size * aspect_ratio, -size, size, near_plane, far_plane);
     }
 
     // inline Vector3 screen_to_world_point(Matrix4 const inv_view, Matrix4 const inv_projection, i32 const screen_width, i32 const screen_height,

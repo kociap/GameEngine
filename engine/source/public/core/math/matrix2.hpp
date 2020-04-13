@@ -11,104 +11,63 @@ namespace anton_engine {
         static Matrix2 const zero;
         static Matrix2 const identity;
 
-        Matrix2();
-        Matrix2(Vector2, Vector2);
-        Matrix2(f32 m00, f32 m01, f32 m10, f32 m11);
+        Matrix2(): rows{} {}
+        Matrix2(Vector2 const a, Vector2 const b): rows{a, b} {}
 
-        Vector2& operator[](i32 row);
-        Vector2 operator[](i32 row) const;
-        f32& operator()(i32 row, i32 column);
-        f32 operator()(i32 row, i32 column) const;
-        f32 const* get_raw() const;
+        Vector2& operator[](i32 const row) {
+            return rows[row];
+        }
 
-        Matrix2& operator+=(f32);
-        Matrix2& operator-=(f32);
-        Matrix2& operator*=(f32);
-        Matrix2& operator/=(f32);
+        Vector2 operator[](i32 const row) const {
+            return rows[row];
+        }
 
-        Matrix2& transpose();
+        f32& operator()(i32 const row, i32 const column) {
+            return rows[row][column];
+        }
+
+        f32 operator()(i32 const row, i32 const column) const {
+            return rows[row][column];
+        }
+
+        f32 const* get_raw() const {
+            return (f32 const*)rows;
+        }
+
+        Matrix2& operator+=(f32 const a) {
+            for (i32 i = 0; i < 4; ++i) {
+                rows[i] += a;
+            }
+            return *this;
+        }
+
+        Matrix2& operator-=(f32 const a) {
+            for (i32 i = 0; i < 4; ++i) {
+                rows[i] -= a;
+            }
+            return *this;
+        }
+
+        Matrix2& operator*=(f32 const a) {
+            for (i32 i = 0; i < 4; ++i) {
+                rows[i] *= a;
+            }
+            return *this;
+        }
+
+        Matrix2& operator/=(f32 const a) {
+            for (i32 i = 0; i < 4; ++i) {
+                rows[i] /= a;
+            }
+            return *this;
+        }
 
     private:
         Vector2 rows[2];
     };
 
-    Matrix2 operator+(Matrix2, f32);
-    Matrix2 operator-(Matrix2, f32);
-    Matrix2 operator*(Matrix2, f32);
-    Matrix2 operator/(Matrix2, f32);
-    Matrix2 operator+(Matrix2, Matrix2);
-    Matrix2 operator-(Matrix2, Matrix2);
-    Matrix2 operator*(Matrix2, Matrix2);
-    Vector2 operator*(Vector2, Matrix2);
-
-    namespace math {
-        Matrix2 transpose(Matrix2);
-        f32 determinant(Matrix2);
-        Matrix2 adjugate(Matrix2);
-        Matrix2 inverse(Matrix2);
-    } // namespace math
-} // namespace anton_engine
-
-namespace anton_engine {
     inline Matrix2 const zero = Matrix2();
     inline Matrix2 const Matrix2::identity = Matrix2({1, 0}, {0, 1});
-
-    inline Matrix2::Matrix2(): rows{} {}
-    inline Matrix2::Matrix2(Vector2 a, Vector2 b): rows{a, b} {}
-    inline Matrix2::Matrix2(f32 m00, f32 m01, f32 m10, f32 m11): rows{{m00, m01}, {m10, m11}} {}
-
-    inline Vector2& Matrix2::operator[](i32 const row) {
-        return rows[row];
-    }
-
-    inline Vector2 Matrix2::operator[](i32 const row) const {
-        return rows[row];
-    }
-
-    inline f32& Matrix2::operator()(i32 const row, i32 const column) {
-        return rows[row][column];
-    }
-
-    inline f32 Matrix2::operator()(i32 const row, i32 const column) const {
-        return rows[row][column];
-    }
-
-    inline f32 const* Matrix2::get_raw() const {
-        return (f32 const*)rows;
-    }
-
-    inline Matrix2& Matrix2::operator+=(f32 const a) {
-        for (i32 i = 0; i < 4; ++i) {
-            rows[i] += a;
-        }
-        return *this;
-    }
-
-    inline Matrix2& Matrix2::operator-=(f32 const a) {
-        for (i32 i = 0; i < 4; ++i) {
-            rows[i] -= a;
-        }
-        return *this;
-    }
-
-    inline Matrix2& Matrix2::operator*=(f32 const a) {
-        for (i32 i = 0; i < 4; ++i) {
-            rows[i] *= a;
-        }
-        return *this;
-    }
-
-    inline Matrix2& Matrix2::operator/=(f32 const a) {
-        for (i32 i = 0; i < 4; ++i) {
-            rows[i] /= a;
-        }
-        return *this;
-    }
-
-    inline Matrix2& Matrix2::transpose() {
-        atl::swap((*this)[1][0], (*this)[0][1]);
-        return *this;
-    }
 
     inline Matrix2 operator+(Matrix2 m, f32 const a) {
         m += a;
@@ -157,7 +116,7 @@ namespace anton_engine {
 
     namespace math {
         inline Matrix2 transpose(Matrix2 m) {
-            m.transpose();
+            atl::swap(m[1][0], m[0][1]);
             return m;
         }
 
@@ -173,6 +132,11 @@ namespace anton_engine {
             return adjugate(m) / determinant(m);
         }
     } // namespace math
+
+    inline void swap(Matrix2& m1, Matrix2& m2) {
+        atl::swap(m1[0], m2[0]);
+        atl::swap(m1[1], m2[1]);
+    }
 } // namespace anton_engine
 
 #endif // !CORE_MATH_MARTIX2_HPP_INCLUDE

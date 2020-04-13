@@ -1,40 +1,40 @@
 #include <editor.hpp>
 
 #include <build_config.hpp>
-#include <shaders/builtin_shaders.hpp>
-#include <scripts/camera_movement.hpp>
+#include <core/diagnostic_macros.hpp>
+#include <core/filesystem.hpp>
+#include <core/paths.hpp>
+#include <core/paths_internal.hpp>
+#include <core/threads.hpp>
 #include <engine/components/camera.hpp>
 #include <engine/components/entity_name.hpp>
 #include <engine/components/transform.hpp>
-#include <scripts/debug_hotkeys.hpp>
-#include <core/diagnostic_macros.hpp>
 #include <engine/ecs/ecs.hpp>
 #include <engine/input.hpp>
 #include <engine/input/input_internal.hpp>
 #include <engine/material.hpp>
 #include <engine/mesh.hpp>
-#include <rendering/opengl.hpp>
-#include <core/paths.hpp>
-#include <core/paths_internal.hpp>
-#include <rendering/renderer.hpp>
 #include <engine/resource_manager.hpp>
-#include <shaders/shader.hpp>
 #include <engine/time_internal.hpp>
-#include <core/filesystem.hpp>
+#include <rendering/opengl.hpp>
+#include <rendering/renderer.hpp>
+#include <scripts/camera_movement.hpp>
+#include <scripts/debug_hotkeys.hpp>
+#include <shaders/builtin_shaders.hpp>
+#include <shaders/shader.hpp>
 #include <windowing/window.hpp>
-#include <core/threads.hpp>
 
-#include <rendering/builtin_editor_shaders.hpp>
-#include <rendering/glad.hpp>
 #include <imgui/imgui.hpp>
-#include <rendering/imgui_rendering.hpp>
 #include <level_editor/viewport.hpp>
 #include <level_editor/viewport_camera.hpp>
+#include <rendering/builtin_editor_shaders.hpp>
+#include <rendering/glad.hpp>
+#include <rendering/imgui_rendering.hpp>
 
-#include <engine/input.hpp>
-#include <engine/input/input_internal.hpp>
 #include <core/utils/simple_xml_parser.hpp>
 #include <engine/assets.hpp>
+#include <engine/input.hpp>
+#include <engine/input/input_internal.hpp>
 
 // TODO: Remove
 #include <core/logging.hpp>
@@ -126,10 +126,10 @@ namespace anton_engine {
             ECS& ecs = Editor::get_ecs();
             {
                 auto viewport_camera_view = Editor::get_ecs().view<Viewport_Camera, Camera, Transform>();
-                for (Entity const entity: viewport_camera_view) {
+                for(Entity const entity: viewport_camera_view) {
                     auto [viewport_camera, camera, transform] = viewport_camera_view.get<Viewport_Camera, Camera, Transform>(entity);
                     auto viewport = viewports[viewport_camera.viewport_index];
-                    if (viewport) {
+                    if(viewport) {
                         if(viewport->is_active()) {
                             Viewport_Camera::update(viewport_camera, transform);
                         }
@@ -149,10 +149,10 @@ namespace anton_engine {
 
             {
                 auto viewport_camera_view = Editor::get_ecs().view<Viewport_Camera, Camera, Transform>();
-                for (Entity const entity: viewport_camera_view) {
+                for(Entity const entity: viewport_camera_view) {
                     auto [viewport_camera, camera, transform] = viewport_camera_view.get<Viewport_Camera, Camera, Transform>(entity);
                     auto viewport = viewports[viewport_camera.viewport_index];
-                    if (viewport) {
+                    if(viewport) {
                         Matrix4 const view_mat = get_camera_view_matrix(transform);
                         Matrix4 const projection_mat = get_camera_projection_matrix(camera, viewport->get_size());
                         Matrix4 const inv_projection_mat = math::inverse(projection_mat);
@@ -176,7 +176,7 @@ namespace anton_engine {
             glEnable(GL_BLEND);
             imgui_shader.use();
             imgui::bind_buffers();
-            for (imgui::Viewport* viewport: viewports) {
+            for(imgui::Viewport* viewport: viewports) {
                 atl::Slice<imgui::Draw_Command const> draw_commands = imgui::get_viewport_draw_commands(ctx, *viewport);
                 if(draw_commands.size() == 0) {
                     continue;
@@ -191,12 +191,12 @@ namespace anton_engine {
                 glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 Matrix4 const imgui_projection =
-                    math::transform::orthographic(window_pos.x, window_pos.x + window_size.x, window_pos.y + window_size.y, window_pos.y, 1.0f, -1.0f);
+                    math::orthographic_rh(window_pos.x, window_pos.x + window_size.x, window_pos.y + window_size.y, window_pos.y, 1.0f, -1.0f);
                 imgui_shader.set_matrix4("proj_mat", imgui_projection);
 
                 imgui_shader.set_int("texture_bound", 0);
                 u32 last_bound_texture = 0;
-                for (imgui::Draw_Command draw_command: draw_commands) {
+                for(imgui::Draw_Command draw_command: draw_commands) {
                     if(last_bound_texture != draw_command.texture) {
                         imgui::commit_draw();
                         glBindTextureUnit(0, draw_command.texture);
@@ -262,7 +262,7 @@ namespace anton_engine {
     }
 
     static void keyboard_callback(windowing::Window* const, Key const key, int const action, void*) {
-        if (action != 2) {
+        if(action != 2) {
             float value = static_cast<float>(action); // press is 1, release is 0
             input::add_event(key, value);
         }
@@ -280,8 +280,8 @@ namespace anton_engine {
         {
             auto find_property = [](auto& properties, auto predicate) -> atl::Vector<utils::xml::Tag_Property>::iterator {
                 auto end = properties.end();
-                for (auto iter = properties.begin(); iter != end; ++iter) {
-                    if (predicate(*iter)) {
+                for(auto iter = properties.begin(); iter != end; ++iter) {
+                    if(predicate(*iter)) {
                         return iter;
                     }
                 }
@@ -289,8 +289,8 @@ namespace anton_engine {
             };
 
             atl::Vector<utils::xml::Tag> tags(utils::xml::parse(config_file));
-            for (utils::xml::Tag& tag: tags) {
-                if (tag.name != "axis" && tag.name != "action") {
+            for(utils::xml::Tag& tag: tags) {
+                if(tag.name != "axis" && tag.name != "action") {
                     ANTON_LOG_INFO("Unknown tag, skipping...");
                     continue;
                 }
@@ -301,21 +301,21 @@ namespace anton_engine {
                 auto accumulation_speed_prop = find_property(tag.properties, [](auto& property) { return property.name == "scale"; });
                 auto sensitivity_prop = find_property(tag.properties, [](auto& property) { return property.name == "sensitivity"; });
 
-                if (axis_prop == tag.properties.end() && action_prop == tag.properties.end()) {
+                if(axis_prop == tag.properties.end() && action_prop == tag.properties.end()) {
                     ANTON_LOG_INFO("Missing action/axis property, skipping...");
                     continue;
                 }
-                if (key_prop == tag.properties.end()) {
+                if(key_prop == tag.properties.end()) {
                     ANTON_LOG_INFO("Missing key property, skipping...");
                     continue;
                 }
 
-                if (axis_prop != tag.properties.end()) {
-                    if (sensitivity_prop == tag.properties.end()) {
+                if(axis_prop != tag.properties.end()) {
+                    if(sensitivity_prop == tag.properties.end()) {
                         ANTON_LOG_INFO("Missing sensitivity property, skipping...");
                         continue;
                     }
-                    if (accumulation_speed_prop == tag.properties.end()) {
+                    if(accumulation_speed_prop == tag.properties.end()) {
                         ANTON_LOG_INFO("Missing scale property, skipping...");
                         continue;
                     }
@@ -412,14 +412,15 @@ namespace anton_engine {
         paths::set_executable_directory(exe_directory);
 
         //std::filesystem::path project_directory(argv[1], std::filesystem::path::generic_format);
-        atl::String const project_file_path = u8"C:/Users/An0num0us/Documents/GameEngine_Game/GameEngine_Game.geproject";;
+        atl::String const project_file_path = u8"C:/Users/An0num0us/Documents/GameEngine_Game/GameEngine_Game.geproject";
+        ;
         atl::String_View const project_file_directory = fs::remove_filename(project_file_path);
         paths::set_project_directory(project_file_directory);
 
         // TODO Validate project file
 
         init();
-        while (!_quit) {
+        while(!_quit) {
             loop();
         }
         terminate();
@@ -446,11 +447,11 @@ namespace anton_engine {
 
 #include <content_browser/asset_guid.hpp>
 #include <content_browser/asset_importing.hpp>
+#include <content_browser/postprocess.hpp>
 #include <engine/assets.hpp>
 #include <engine/components/directional_light_component.hpp>
 #include <engine/components/point_light_component.hpp>
 #include <engine/components/static_mesh_component.hpp>
-#include <content_browser/postprocess.hpp>
 
 #include <core/serialization/archives/binary.hpp>
 #include <core/serialization/serialization.hpp>
@@ -538,7 +539,7 @@ namespace anton_engine {
             box_sm.shader_handle = default_shader_handle;
             box_sm.material_handle = material_handle;
             box_t.translate(position);
-            box_t.rotate(Vector3::forward, math::radians(rotation));
+            box_t.rotate(Vector3{0.0f, 0.0f, -1.0f}, math::radians(rotation));
         };
 
         auto instantiate_box = [default_shader_handle, box_handle, material_handle](Vector3 position, float rotation = 0) {
@@ -550,7 +551,7 @@ namespace anton_engine {
             box_sm.shader_handle = default_shader_handle;
             box_sm.material_handle = material_handle;
             box_t.translate(position);
-            box_t.rotate(Vector3::forward, math::radians(rotation));
+            box_t.rotate(Vector3{0.0f, 0.0f, -1.0f}, math::radians(rotation));
         };
 
         instantiate_entity(box_handle, {0, 0, -1});

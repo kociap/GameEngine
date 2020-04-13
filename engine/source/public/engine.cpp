@@ -1,41 +1,41 @@
 #include <engine.hpp>
 
-#include <core/types.hpp>
 #include <core/atl/utility.hpp>
+#include <core/filesystem.hpp>
+#include <core/logging.hpp>
+#include <core/paths_internal.hpp>
+#include <core/types.hpp>
 #include <engine/assets.hpp>
 #include <engine/ecs/ecs.hpp>
 #include <engine/ecs/entity.hpp>
 #include <engine/input.hpp>
 #include <engine/input/input_internal.hpp>
-#include <core/logging.hpp>
 #include <engine/mesh.hpp>
-#include <core/paths_internal.hpp>
 #include <engine/resource_manager.hpp>
 #include <engine/time_internal.hpp>
-#include <core/filesystem.hpp>
 #include <windowing/window.hpp>
 
 #include <engine/ecs/jobs_management.hpp>
 #include <engine/ecs/system_management.hpp>
 
-#include <shaders/builtin_shaders.hpp>
 #include <rendering/framebuffer.hpp>
 #include <rendering/glad.hpp>
 #include <rendering/opengl.hpp>
 #include <rendering/renderer.hpp>
+#include <shaders/builtin_shaders.hpp>
 #include <shaders/shader.hpp>
 
+#include <core/math/math.hpp>
+#include <core/math/noise.hpp>
+#include <core/paths.hpp>
+#include <core/random.hpp>
 #include <engine/components/camera.hpp>
 #include <engine/components/directional_light_component.hpp>
 #include <engine/components/point_light_component.hpp>
 #include <engine/components/static_mesh_component.hpp>
 #include <engine/components/transform.hpp>
-#include <scripts/debug_hotkeys.hpp>
-#include <core/math/math.hpp>
-#include <core/math/noise.hpp>
-#include <core/paths.hpp>
-#include <core/random.hpp>
 #include <scripts/camera_movement.hpp>
+#include <scripts/debug_hotkeys.hpp>
 
 #include <build_config.hpp>
 
@@ -63,8 +63,8 @@ namespace anton_engine {
         {
             auto find_property = [](auto& properties, auto predicate) -> atl::Vector<utils::xml::Tag_Property>::iterator {
                 auto end = properties.end();
-                for (auto iter = properties.begin(); iter != end; ++iter) {
-                    if (predicate(*iter)) {
+                for(auto iter = properties.begin(); iter != end; ++iter) {
+                    if(predicate(*iter)) {
                         return iter;
                     }
                 }
@@ -72,8 +72,8 @@ namespace anton_engine {
             };
 
             atl::Vector<utils::xml::Tag> tags(utils::xml::parse(config_file));
-            for (utils::xml::Tag& tag: tags) {
-                if (tag.name != "axis" && tag.name != "action") {
+            for(utils::xml::Tag& tag: tags) {
+                if(tag.name != "axis" && tag.name != "action") {
                     ANTON_LOG_INFO("Unknown tag, skipping...");
                     continue;
                 }
@@ -84,21 +84,21 @@ namespace anton_engine {
                 auto accumulation_speed_prop = find_property(tag.properties, [](auto& property) { return property.name == "scale"; });
                 auto sensitivity_prop = find_property(tag.properties, [](auto& property) { return property.name == "sensitivity"; });
 
-                if (axis_prop == tag.properties.end() && action_prop == tag.properties.end()) {
+                if(axis_prop == tag.properties.end() && action_prop == tag.properties.end()) {
                     ANTON_LOG_INFO("Missing action/axis property, skipping...");
                     continue;
                 }
-                if (key_prop == tag.properties.end()) {
+                if(key_prop == tag.properties.end()) {
                     ANTON_LOG_INFO("Missing key property, skipping...");
                     continue;
                 }
 
-                if (axis_prop != tag.properties.end()) {
-                    if (sensitivity_prop == tag.properties.end()) {
+                if(axis_prop != tag.properties.end()) {
+                    if(sensitivity_prop == tag.properties.end()) {
                         ANTON_LOG_INFO("Missing sensitivity property, skipping...");
                         continue;
                     }
-                    if (accumulation_speed_prop == tag.properties.end()) {
+                    if(accumulation_speed_prop == tag.properties.end()) {
                         ANTON_LOG_INFO("Missing scale property, skipping...");
                         continue;
                     }
@@ -142,7 +142,7 @@ namespace anton_engine {
     }
 
     static void keyboard_callback(windowing::Window* const, Key const key, int const action, void*) {
-        if (action != 2) {
+        if(action != 2) {
             float value = static_cast<float>(action); // press is 1, release is 0
             input::add_event(key, value);
         }
@@ -316,7 +316,7 @@ namespace anton_engine {
 
         Handle<Mesh> const quad_mesh = mesh_manager->add(generate_plane());
 
-        if constexpr (DESERIALIZE) {
+        if constexpr(DESERIALIZE) {
             // std::filesystem::path serialization_in_path = utils::concat_paths(paths::project_directory(), "ecs.bin");
             // std::ifstream file(serialization_in_path, std::ios::binary);
             // serialization::Binary_Input_Archive in_archive(file);
@@ -330,7 +330,7 @@ namespace anton_engine {
                 box_sm.shader_handle = default_shader_handle;
                 box_sm.material_handle = material_handle;
                 box_t.translate(position);
-                box_t.rotate(Vector3::forward, math::radians(rotation));
+                box_t.rotate(Vector3{0.0f, 0.0f, -1.0f}, math::radians(rotation));
             };
 
             instantiate_box({0, 0, -1});
@@ -441,13 +441,13 @@ namespace anton_engine {
         input::process_events();
 
         auto camera_mov_view = ecs->view<Camera_Movement, Camera, Transform>();
-        for (Entity const entity: camera_mov_view) {
+        for(Entity const entity: camera_mov_view) {
             auto [camera_mov, camera, transform] = camera_mov_view.get<Camera_Movement, Camera, Transform>(entity);
             Camera_Movement::update(camera_mov, camera, transform);
         }
 
         auto dbg_hotkeys = ecs->view<Debug_Hotkeys>();
-        for (Entity const entity: dbg_hotkeys) {
+        for(Entity const entity: dbg_hotkeys) {
             Debug_Hotkeys::update(dbg_hotkeys.get(entity));
         }
 
@@ -457,9 +457,9 @@ namespace anton_engine {
         // TODO make this rendering code great again (not that it ever was great, but still)
         rendering::update_dynamic_lights();
         auto cameras = ecs->view<Camera, Transform>();
-        for (Entity const entity: cameras) {
+        for(Entity const entity: cameras) {
             auto [camera, transform] = cameras.get<Camera, Transform>(entity);
-            if (camera.active) {
+            if(camera.active) {
                 Vector2 const window_dims = get_window_size(main_window);
                 Matrix4 const view_mat = get_camera_view_matrix(transform);
                 Matrix4 const inv_view_mat = math::inverse(view_mat);
@@ -491,7 +491,7 @@ namespace anton_engine {
         paths::set_executable_directory(exe_directory);
 
         init();
-        while (!windowing::close_requested(main_window)) {
+        while(!windowing::close_requested(main_window)) {
             loop();
         }
         terminate();

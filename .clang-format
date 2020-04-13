@@ -45,7 +45,7 @@ SpaceAfterCStyleCast: false
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeCtorInitializerColon: false
 SpaceBeforeInheritanceColon: false
-SpaceBeforeParens: ControlStatements
+SpaceBeforeParens: Never
 SpaceBeforeRangeBasedForLoopColon: false
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1

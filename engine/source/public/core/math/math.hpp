@@ -7,40 +7,32 @@
 // Safety measures
 #undef max
 #undef min
+#undef far
+#undef near
 
 namespace anton_engine::math {
-    namespace constants {
-        constexpr f32 pi = 3.1415926f;
-        constexpr f32 half_pi = 1.5707964f;
-        constexpr f32 two_pi = 6.2831853f;
-        constexpr f32 deg_to_rad = pi / 180.0f;
-        constexpr f32 rad_to_deg = 180.0f / pi;
-        // Largest representable value
-        constexpr f32 max = 3.402823466e+38F;
-        // Largest negative representable value
-        constexpr f32 min = -3.402823466e+38F;
-        // Smallest number such that 1.0 + epsilon != 1.0
-        constexpr f32 epsilon = 1.192092896e-07F;
-        // __builtin_huge_valf is supported by all major compilers.
-        constexpr f32 infinity = __builtin_huge_valf();
-    } // namespace constants
+    constexpr f32 pi = 3.1415926f;
+    constexpr f32 half_pi = 1.5707964f;
+    constexpr f32 two_pi = 6.2831853f;
+    constexpr f32 deg_to_rad = pi / 180.0f;
+    constexpr f32 rad_to_deg = 180.0f / pi;
+    // Largest representable value
+    constexpr f32 largest_representable = 3.402823466e+38F;
+    // Smallest number such that 1.0 + epsilon != 1.0
+    constexpr f32 epsilon = 1.192092896e-07F;
+    // __builtin_huge_valf is supported by all major compilers.
+    constexpr f32 infinity = __builtin_huge_valf();
 
-    namespace constantsd {
-        constexpr f64 pi = 3.141592653589793;
-        constexpr f64 deg_to_rad = pi / 180.0;
-        constexpr f64 rad_to_deg = 180.0 / pi;
-        // Smallest number such that 1.0 + epsilon != 1.0
-        constexpr f64 epsilon = 2.2204460492503131e-016;
-        // __builtin_huge_val is supported by all major compilers.
-        constexpr f64 infinity = __builtin_huge_val();
-    } // namespace constantsd
-
+    // Converts degrees to radians.
+    //
     constexpr f32 radians(f32 degrees) {
-        return degrees * constants::deg_to_rad;
+        return degrees * deg_to_rad;
     }
 
+    // Converts radians to degrees.
+    //
     constexpr f32 degrees(f32 radians) {
-        return radians * constants::rad_to_deg;
+        return radians * rad_to_deg;
     }
 
     inline f32 pow(f32 base, f32 exp) {
@@ -88,15 +80,7 @@ namespace anton_engine::math {
 
     template <typename T>
     constexpr T clamp(T x, T lower_limit, T upper_limit) {
-        if (x < lower_limit) {
-            return lower_limit;
-        }
-
-        if (x > upper_limit) {
-            return upper_limit;
-        }
-
-        return x;
+        return min(max(x, lower_limit), upper_limit);
     }
 
     inline f32 round(f32 x) {

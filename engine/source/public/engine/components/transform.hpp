@@ -13,7 +13,7 @@ namespace anton_engine {
     public:
         Quaternion local_rotation;
         Vector3 local_position;
-        Vector3 local_scale = Vector3::one;
+        Vector3 local_scale = Vector3{1.0f, 1.0f, 1.0f};
 
         void translate(Vector3 const& translation_vec) {
             local_position += translation_vec;
@@ -32,13 +32,13 @@ namespace anton_engine {
         }
 
         Matrix4 to_matrix() const {
-            Matrix4 mat = math::transform::scale(local_scale) * math::transform::rotate(local_rotation) * math::transform::translate(local_position);
+            Matrix4 mat = math::scale(local_scale) * math::rotate(local_rotation) * math::translate(local_position);
             return mat;
         }
     };
 
     inline Matrix4 to_matrix(Transform const t) {
-        Matrix4 mat = math::transform::scale(t.local_scale) * math::transform::rotate(t.local_rotation) * math::transform::translate(t.local_position);
+        Matrix4 mat = math::scale(t.local_scale) * math::rotate(t.local_rotation) * math::translate(t.local_position);
         return mat;
     }
 } // namespace anton_engine
