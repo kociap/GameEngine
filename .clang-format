@@ -42,6 +42,7 @@ PointerAlignment: Left
 ReflowComments: true
 SortIncludes: true
 SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: false
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeCtorInitializerColon: false
 SpaceBeforeInheritanceColon: false
