@@ -106,7 +106,7 @@ namespace anton_engine::rendering {
         atl::Vector<Glyph> glyphs;
         for(i32 i = 0; i < buf_size; ++i) {
             // Skip null-terminator because it's non-printable, but rasterizes to rectangle.
-            if(buffer_utf32[i] == 0) {
+            if(buffer_utf32[i] == U'\0') {
                 continue;
             }
 
@@ -139,16 +139,45 @@ namespace anton_engine::rendering {
         // TODO: layout
         // TODO: caching
         
-        i32 const buf_size = unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), nullptr) / sizeof(char32);
+        i64 const buf_size = unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), nullptr) / sizeof(char32);
         atl::Vector<char32> buffer_utf32{atl::reserve, buf_size};
         buffer_utf32.force_size(buf_size);
         unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), buffer_utf32.data());
-        i32 width = 0;
-        i32 height_above_baseline = 0;
-        i32 height_below_baseline = 0;
-        for(i32 i = 0; i < buf_size; ++i) {
+        i64 width = 0;
+        i64 height_above_baseline = 0;
+        i64 height_below_baseline = 0;
+
+        i64 i = 0;
+        // Skip all null-terminators.
+        for(; buffer_utf32[i] == U'\n' && i < buf_size; ++i);
+
+        // Special handling for first character.
+        if(i < buf_size) {
+            u32 const glyph_index = FT_Get_Char_Index(face, buffer_utf32[i]);
+            if(FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT)) {
+                throw Exception(u8"Could not compute text size: failed to load the glyph.");
+            }
+
+            FT_Glyph_Metrics& metrics = face->glyph->metrics;
+            height_above_baseline = metrics.horiBearingY;
+            height_below_baseline = metrics.height - metrics.horiBearingY;
+            if(i + 1 != buf_size) {
+                if(metrics.horiBearingX >= 0) {
+                    width += metrics.horiAdvance;
+                } else {
+                    // Handle the case of negative left side bearing
+                    width += -metrics.horiBearingX + metrics.horiAdvance;
+                }
+            } else {
+                // Handle the case of this being the only glyph.
+                width = metrics.width;
+            }
+            ++i;
+        }
+
+        for(; i < buf_size; ++i) {
             // Skip null-terminator because it's non-printable, but rasterizes to rectangle.
-            if(buffer_utf32[i] == 0) {
+            if(buffer_utf32[i] == U'\0') {
                 continue;
             }
 
@@ -158,9 +187,13 @@ namespace anton_engine::rendering {
             }
 
             FT_Glyph_Metrics& metrics = face->glyph->metrics;
-            width += metrics.horiAdvance / 64;
-            height_above_baseline = math::max(height_above_baseline, (i32)(metrics.horiBearingY / 64));
-            height_below_baseline = math::max(height_below_baseline, (i32)((metrics.height - metrics.horiBearingY) / 64));
+            height_above_baseline = math::max(height_above_baseline, (i64)(metrics.horiBearingY));
+            height_below_baseline = math::max(height_below_baseline, (i64)((metrics.height - metrics.horiBearingY)));
+            if(i + 1 != buf_size) {
+                width += metrics.horiAdvance;
+            } else {
+                width += metrics.horiBearingX + metrics.width;
+            }
         }
 
         return Text_Metrics{ width, height_above_baseline + height_below_baseline, height_above_baseline };
@@ -191,48 +224,133 @@ namespace anton_engine::rendering {
         }
 
         atl::Vector<Glyph> const glyphs = rasterize_text_glyphs(_face, info, string);
-        i64 buffer_width = 0;
-        i64 height_above_baseline = 0;
-        i64 height_below_baseline = 0;
-        i64 bitmap_width = 0;
-        for(i64 i = 0; i < glyphs.size(); i += 1) {
-            Glyph const& glyph = glyphs[i];
-            bitmap_width += glyph.bitmap_row_width;
-            // If it's last glyph, add whole bitmap row size because advance might be smaller than glyph size and 
-            // therefore the buffer wouldn't be large enough to fit the whole text.
-            buffer_width += (i + 1 < glyphs.size() ? glyph.hori_advance / 64 : glyph.bitmap_row_width);
-            height_above_baseline = math::max(height_above_baseline, static_cast<i64>(glyph.hori_bearing_y / 64));
-            height_below_baseline = math::max(height_below_baseline, static_cast<i64>((glyph.height - glyph.hori_bearing_y) / 64));
+        if(glyphs.size() == 0) {
+            return {};
         }
 
-        i64 buffer_height = height_above_baseline + height_below_baseline;
-        atl::Vector<u8> tex_data{buffer_width * buffer_height, 0};
-        i64 pen_position = 0;
+        i64 text_pixel_width = 0;
+        i64 height_above_baseline = 0;
+        i64 height_below_baseline = 0;
+
+        // Special handling of first glyph due to possibly negative left side bearing.
+        {
+            Glyph const& glyph = glyphs[0];
+            height_above_baseline = glyph.hori_bearing_y;
+            height_below_baseline = glyph.height - glyph.hori_bearing_y;
+            if(glyphs.size() != 1) {
+                if(glyph.hori_bearing_x >= 0) {
+                    text_pixel_width += glyph.hori_advance;
+                } else {
+                    // Handle the less frequent case of negative left side bearing
+                    text_pixel_width += -glyph.hori_bearing_x + glyph.hori_advance;
+                }
+            } else {
+                // If it's also the last glyph, add whole bitmap row size because advance might be smaller than glyph size and 
+                // therefore the buffer wouldn't be large enough to fit the whole text.
+                text_pixel_width = glyph.bitmap_row_width * 64;
+            }
+        }
+
+        for(i64 i = 1; i < glyphs.size(); i += 1) {
+            Glyph const& glyph = glyphs[i];
+            // If it's last glyph, add whole bitmap row size because advance might be smaller than glyph size and 
+            // therefore the buffer wouldn't be large enough to fit the whole text.
+            height_above_baseline = math::max(height_above_baseline, (i64)glyph.hori_bearing_y);
+            height_below_baseline = math::max(height_below_baseline, (i64)(glyph.height - glyph.hori_bearing_y));
+            if(i + 1 < glyphs.size()) {
+                text_pixel_width += glyph.hori_advance;
+            } else {
+                text_pixel_width += glyph.bitmap_row_width * 64;
+            }
+        }
+
+        i64 const buffer_height = (height_above_baseline + height_below_baseline) / 64 + !!((height_above_baseline + height_below_baseline) & 0x3F);
+        i64 const buffer_width = text_pixel_width / 64 + !!(text_pixel_width & 0x3F);
+        atl::Vector<u8> tex_data_f32{buffer_width * buffer_height, 0};
+        // If first glyph's left bearing is negative, move pen position so we don't write before the buffer.
+        i64 pen_position = (glyphs[0].hori_bearing_x >= 0 ? 0 : -glyphs[0].hori_bearing_x);
         for(Glyph const& glyph: glyphs) {
             // Spaces and other non-printable characters do not produce glyph representations.
             // The only non-zero field on those glyphs is advance width.
             if(glyph.bitmap_row_width == 0) {
-                pen_position += glyph.hori_advance / 64;
+                pen_position += glyph.hori_advance;
                 continue;
             }
 
-            i64 const vert_offset = height_above_baseline - glyph.hori_bearing_y / 64;
+            i64 const glyph_position = pen_position + glyph.hori_bearing_x;
+            i64 const vertical_offset = height_above_baseline - glyph.hori_bearing_y;
             i64 const bitmap_height = glyph.bitmap.size() / glyph.bitmap_row_width;
-            for(i64 i = 0; i < bitmap_height; i += 1) {
-                i64 const offset = buffer_width * (i + vert_offset) + pen_position;
-                for(i64 j = 0; j < glyph.bitmap_row_width; j += 1) {
-                    tex_data[offset + j] = math::min((u64)tex_data[offset + j] + (u64)glyph.bitmap[i * glyph.bitmap_row_width + j], (u64)255);
+            // In case when the text has no vertical subpixel offset and a glyph is the height of the buffer we would write past the end.
+            // We workaround that by adding special case to handle perfectly aligned glyphs.
+            if(vertical_offset & 0x3F) {
+                // Has vertical subpixel offset.
+                if(glyph_position & 0x3F) {
+                    // Has horizontal subpixel offset.
+                    f32 const fract_y = (f32)(vertical_offset & 0x3F) / 64.0f;
+                    f32 const one_fract_y = 1.0f - fract_y;
+                    f32 const fract_x = (f32)(glyph_position & 0x3F) / 64.0f;
+                    f32 const one_fract_x = 1.0f - fract_x;
+                    for(i64 i = 0; i < bitmap_height; i += 1) {
+                        i64 const offset = buffer_width * (i + vertical_offset / 64) + glyph_position / 64;
+                        i64 const next_row_offset = buffer_width * (i + vertical_offset / 64 + 1) + glyph_position / 64;
+                        for(i64 j = 0; j < glyph.bitmap_row_width; j += 1) {
+                            // Linearly distribute bitmap pixel value over the 4 overlapped pixels.
+                            f32 const bitmap_pixel = glyph.bitmap[i * glyph.bitmap_row_width + j];
+                            tex_data_f32[offset + j] = math::min(tex_data_f32[offset + j] + bitmap_pixel * one_fract_x * one_fract_y, 255.0f);
+                            tex_data_f32[offset + j + 1] = math::min(tex_data_f32[offset + j + 1] + bitmap_pixel * fract_x * one_fract_y, 255.0f);
+                            tex_data_f32[next_row_offset + j] = math::min(tex_data_f32[next_row_offset + j] + bitmap_pixel * one_fract_x * fract_y, 255.0f);
+                            tex_data_f32[next_row_offset + j + 1] = math::min(tex_data_f32[next_row_offset + j + 1] + bitmap_pixel * fract_x * fract_y, 255.0f);
+                        }
+                    }
+                } else {
+                    f32 const fract_y = (f32)(vertical_offset & 0x3F) / 64.0f;
+                    f32 const one_fract_y = 1.0f - fract_y;
+                    for(i64 i = 0; i < bitmap_height; i += 1) {
+                        i64 const offset = buffer_width * (i + vertical_offset / 64) + glyph_position / 64;
+                        i64 const next_row_offset = buffer_width * (i + vertical_offset / 64 + 1) + glyph_position / 64;
+                        for(i64 j = 0; j < glyph.bitmap_row_width; j += 1) {
+                            // Overlaps 2 vertical pixels. Distribute the bitmap pixel value linearily over them.
+                            f32 const bitmap_pixel = glyph.bitmap[i * glyph.bitmap_row_width + j];
+                            tex_data_f32[offset + j] = math::min(tex_data_f32[offset + j] + bitmap_pixel * one_fract_y, 255.0f);
+                            tex_data_f32[next_row_offset + j] = math::min(tex_data_f32[next_row_offset + j] + bitmap_pixel * fract_y, 255.0f);
+                        }
+                    }
+                }
+            } else {
+                if(glyph_position & 0x3F) {
+                    // Has horizontal subpixel offset.
+                    f32 const fract_x = (f32)(glyph_position & 0x3F) / 64.0f;
+                    f32 const one_fract_x = 1.0f - fract_x;
+                    for(i64 i = 0; i < bitmap_height; i += 1) {
+                        i64 const offset = buffer_width * (i + vertical_offset / 64) + glyph_position / 64;
+                        for(i64 j = 0; j < glyph.bitmap_row_width; j += 1) {
+                            // Overlaps 2 horizontal pixels. Distribute the bitmap pixel value linearily over them.
+                            f32 const bitmap_pixel = glyph.bitmap[i * glyph.bitmap_row_width + j];
+                            tex_data_f32[offset + j] = math::min(tex_data_f32[offset + j] + bitmap_pixel * one_fract_x, 255.0f);
+                            tex_data_f32[offset + j + 1] = math::min(tex_data_f32[offset + j + 1] + bitmap_pixel * fract_x, 255.0f);
+                        }
+                    }
+                } else {
+                    for(i64 i = 0; i < bitmap_height; i += 1) {
+                        i64 const offset = buffer_width * (i + vertical_offset / 64) + glyph_position / 64;
+                        for(i64 j = 0; j < glyph.bitmap_row_width; j += 1) {
+                            // Perfectly aligned. Just add.
+                            f32 const bitmap_pixel = glyph.bitmap[i * glyph.bitmap_row_width + j];
+                            tex_data_f32[offset + j] = math::min(tex_data_f32[offset + j] + bitmap_pixel, 255.0f);
+                        }
+                    }
                 }
             }
-            pen_position += glyph.hori_advance / 64;
+            pen_position += glyph.hori_advance;
         }
 
+        atl::Vector<u8> tex_data{atl::range_construct, tex_data_f32.begin(), tex_data_f32.end()};
         flip_texture(tex_data, buffer_width, buffer_height);
 
         Text_Image image;
         image.baseline = height_above_baseline;
-        image.width = buffer_width;
-        image.height = buffer_height;
+        image.width = buffer_width * 64;
+        image.height = buffer_height * 64;
         glCreateTextures(GL_TEXTURE_2D, 1, &image.texture);
         glTextureStorage2D(image.texture, 1, GL_R8, buffer_width, buffer_height);
         i32 const swizzle[] = {GL_ONE, GL_ONE, GL_ONE, GL_RED};
