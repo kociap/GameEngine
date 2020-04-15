@@ -18,6 +18,9 @@ namespace anton_engine::rendering {
 
     // All metrics are expressed in 26.6 pixel format (1/64 of a pixel).
     //
+    // Despite FreeType's documentation saying horizontal bearing is always positive for horizontal
+    // layout, in practice it may be negative (e.g. letter 'j' in Comic Sans).
+    //
     class Glyph {
     public:
         i32 width;
@@ -53,19 +56,25 @@ namespace anton_engine::rendering {
         i32 units_per_em;
     };  
 
+    // All metrics are expressed in 26.6 pixel format (1/64 of a pixel).
+    //
     class Text_Metrics {
     public:
-        i32 width;
-        i32 height;
-        i32 baseline;
+        i64 width;
+        i64 height;
+        i64 baseline;
     };
 
+    // All metrics are expressed in 26.6 pixel format (1/64 of a pixel).
+    //
+    // width and height are always a multiple of 64.
+    //
     class Text_Image {
     public:
         u32 texture;
-        i32 width;
-        i32 height;
-        i32 baseline;
+        i64 width;
+        i64 height;
+        i64 baseline;
     };
 
     void init_font_rendering();

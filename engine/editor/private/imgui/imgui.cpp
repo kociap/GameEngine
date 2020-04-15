@@ -1,15 +1,15 @@
 #include <imgui/imgui.hpp>
 
 #include <core/assert.hpp>
-#include <core/hashing/murmurhash2.hpp>
-#include <core/intrinsics.hpp>
-#include <core/math/math.hpp>
+#include <core/atl/flat_hash_map.hpp>
 #include <core/atl/string.hpp>
 #include <core/atl/utility.hpp>
 #include <core/atl/vector.hpp>
-#include <windowing/window.hpp>
+#include <core/hashing/murmurhash2.hpp>
+#include <core/intrinsics.hpp>
+#include <core/math/math.hpp>
 #include <rendering/fonts.hpp>
-#include <core/atl/flat_hash_map.hpp>
+#include <windowing/window.hpp>
 
 #include <core/logging.hpp>
 
@@ -165,11 +165,11 @@ namespace anton_engine::imgui {
     }
 
     void destroy_context(Context* ctx) {
-        for (Dockspace* dockspace: ctx->dockspaces) {
+        for(Dockspace* dockspace: ctx->dockspaces) {
             delete dockspace;
         }
 
-        for (i64 i = 0; i < ctx->viewports.size(); ++i) {
+        for(i64 i = 0; i < ctx->viewports.size(); ++i) {
             if(ctx->viewports[i] != ctx->main_viewport) {
                 windowing::destroy_window(ctx->viewports[i]->native_window);
             }
@@ -208,8 +208,8 @@ namespace anton_engine::imgui {
     }
 
     static void destroy_viewport(Context& ctx, Viewport* const viewport) {
-        for (i64 i = 0; i < ctx.viewports.size(); i += 1) {
-            if (ctx.viewports[i] == viewport) {
+        for(i64 i = 0; i < ctx.viewports.size(); i += 1) {
+            if(ctx.viewports[i] == viewport) {
                 ctx.viewports.erase_unsorted_unchecked(i);
                 break;
             }
@@ -247,8 +247,8 @@ namespace anton_engine::imgui {
     }
 
     static void remove_dockspace(Viewport* const viewport, Dockspace* const dockspace) {
-        for (i64 i = 0; i < viewport->dockspaces.size(); i += 1) {
-            if (viewport->dockspaces[i] == dockspace) {
+        for(i64 i = 0; i < viewport->dockspaces.size(); i += 1) {
+            if(viewport->dockspaces[i] == dockspace) {
                 dockspace->viewport = nullptr;
                 viewport->dockspaces.erase_unsorted_unchecked(i);
                 break;
@@ -283,8 +283,8 @@ namespace anton_engine::imgui {
     }
 
     static void destroy_dockspace(Context& ctx, Dockspace* const dockspace) {
-        for (i64 i = 0; i < ctx.dockspaces.size(); ++i) {
-            if (dockspace == ctx.dockspaces[i]) {
+        for(i64 i = 0; i < ctx.dockspaces.size(); ++i) {
+            if(dockspace == ctx.dockspaces[i]) {
                 ctx.dockspaces.erase_unsorted_unchecked(i);
                 break;
             }
@@ -302,13 +302,13 @@ namespace anton_engine::imgui {
     static void remove_window(Dockspace* const dockspace, Window& window) {
         i64 const window_id = window.id;
         i64 const windows_count = dockspace->windows.size();
-        for (i64 i = 0; i < windows_count; i += 1) {
-            if (dockspace->windows[i] == window_id) {
-                if (window_id == dockspace->active_window) {
+        for(i64 i = 0; i < windows_count; i += 1) {
+            if(dockspace->windows[i] == window_id) {
+                if(window_id == dockspace->active_window) {
                     // Prefer going left.
-                    if (i > 0) {
+                    if(i > 0) {
                         dockspace->active_window = dockspace->windows[i - 1];
-                    } else if (i + 1 < windows_count) {
+                    } else if(i + 1 < windows_count) {
                         dockspace->active_window = dockspace->windows[i + 1];
                     } else {
                         dockspace->active_window = -1;
@@ -348,8 +348,8 @@ namespace anton_engine::imgui {
 
     // Tab index of given window or -1 if window with given id doesn't exist in dockspace.
     static i64 get_tab_index(Dockspace* const dockspace, i64 const window) {
-        for (i64 i = 0; i < dockspace->windows.size(); i += 1) {
-            if (dockspace->windows[i] == window) {
+        for(i64 i = 0; i < dockspace->windows.size(); i += 1) {
+            if(dockspace->windows[i] == window) {
                 return i;
             }
         }
@@ -411,10 +411,10 @@ namespace anton_engine::imgui {
     }
 
     static void recalculate_sublayout_size(Layout_Tile* tile) {
-        switch (tile->tile_type) {
+        switch(tile->tile_type) {
         case Layout_Tile_Type::root: {
             Layout_Root* const root = (Layout_Root*)tile;
-            if (root->child) {
+            if(root->child) {
                 root->child->size = root->size;
                 root->child->position = {0.0f, 0.0f};
                 recalculate_sublayout_size(root->child);
@@ -425,15 +425,15 @@ namespace anton_engine::imgui {
             Layout* layout = (Layout*)tile;
             Vector2 const available_space = layout->size;
             f32 prev_width = 0.0f;
-            for (Layout_Tile* child: layout->tiles) {
+            for(Layout_Tile* child: layout->tiles) {
                 prev_width += child->size.x;
             }
 
-            if (prev_width == 0.0f) {
+            if(prev_width == 0.0f) {
                 f32 pos_offset = 0.0f;
                 Vector2 const parent_pos = layout->position;
                 Vector2 const child_size = {available_space.x / layout->tiles.size(), available_space.y};
-                for (Layout_Tile* child: layout->tiles) {
+                for(Layout_Tile* child: layout->tiles) {
                     child->size = child_size;
                     child->position = parent_pos + Vector2{pos_offset, 0.0f};
                     pos_offset += child_size.x;
@@ -443,7 +443,7 @@ namespace anton_engine::imgui {
                 f32 pos_offset = 0.0f;
                 Vector2 const parent_pos = layout->position;
                 f32 const size_factor = available_space.x / prev_width;
-                for (Layout_Tile* child: layout->tiles) {
+                for(Layout_Tile* child: layout->tiles) {
                     Vector2 const new_size = {child->size.x * size_factor, available_space.y};
                     child->size = new_size;
                     child->position = parent_pos + Vector2{pos_offset, 0.0f};
@@ -457,15 +457,15 @@ namespace anton_engine::imgui {
             Layout* layout = (Layout*)tile;
             Vector2 const available_space = layout->size;
             f32 prev_height = 0.0f;
-            for (Layout_Tile* child: layout->tiles) {
+            for(Layout_Tile* child: layout->tiles) {
                 prev_height += child->size.y;
             }
 
-            if (prev_height == 0.0f) {
+            if(prev_height == 0.0f) {
                 f32 pos_offset = 0.0f;
                 Vector2 const parent_pos = layout->position;
                 Vector2 const child_size = {available_space.x, available_space.y / layout->tiles.size()};
-                for (Layout_Tile* child: layout->tiles) {
+                for(Layout_Tile* child: layout->tiles) {
                     child->size = child_size;
                     child->position = parent_pos + Vector2{0.0f, pos_offset};
                     pos_offset += child_size.x;
@@ -475,7 +475,7 @@ namespace anton_engine::imgui {
                 f32 pos_offset = 0.0f;
                 Vector2 const parent_pos = layout->position;
                 f32 const size_factor = available_space.y / prev_height;
-                for (Layout_Tile* child: layout->tiles) {
+                for(Layout_Tile* child: layout->tiles) {
                     Vector2 const new_size = {available_space.x, child->size.y * size_factor};
                     child->size = new_size;
                     child->position = parent_pos + Vector2{0.0f, pos_offset};
@@ -496,8 +496,8 @@ namespace anton_engine::imgui {
 
     static void _unparent_internal(Layout* layout) {
         Layout_Tile* parent = layout->layout_parent;
-        if (layout->tiles.size() == 1) {
-            switch (parent->tile_type) {
+        if(layout->tiles.size() == 1) {
+            switch(parent->tile_type) {
             case Layout_Tile_Type::root: {
                 Layout_Root* const root = (Layout_Root*)parent;
                 Layout_Tile* const tile = layout->tiles[0];
@@ -511,8 +511,8 @@ namespace anton_engine::imgui {
             case Layout_Tile_Type::horizontal_layout:
             case Layout_Tile_Type::vertical_layout: {
                 Layout* const parent_layout = (Layout*)parent;
-                for (i64 i = 0, tiles_count = parent_layout->tiles.size(); i < tiles_count; ++i) {
-                    if (parent_layout->tiles[i] == layout) {
+                for(i64 i = 0, tiles_count = parent_layout->tiles.size(); i < tiles_count; ++i) {
+                    if(parent_layout->tiles[i] == layout) {
                         Layout_Tile* const tile = layout->tiles[0];
                         parent_layout->tiles[i] = tile;
                         tile->layout_parent = parent_layout;
@@ -535,7 +535,7 @@ namespace anton_engine::imgui {
 
     static void unparent(Dockspace* dockspace) {
         Layout_Tile* parent = dockspace->layout_parent;
-        switch (parent->tile_type) {
+        switch(parent->tile_type) {
         case Layout_Tile_Type::root: {
             Layout_Root* const root = (Layout_Root*)parent;
             root->child = nullptr;
@@ -545,8 +545,8 @@ namespace anton_engine::imgui {
         case Layout_Tile_Type::vertical_layout:
         case Layout_Tile_Type::horizontal_layout: {
             Layout* const layout = (Layout*)parent;
-            for (i64 i = 0, tiles_count = layout->tiles.size(); i < tiles_count; ++i) {
-                if (layout->tiles[i] == dockspace) {
+            for(i64 i = 0, tiles_count = layout->tiles.size(); i < tiles_count; ++i) {
+                if(layout->tiles[i] == dockspace) {
                     layout->tiles.erase(layout->tiles.begin() + i, layout->tiles.begin() + i + 1);
                     dockspace->layout_parent = nullptr;
                     break;
@@ -579,11 +579,11 @@ namespace anton_engine::imgui {
     //
     static void parent_vertical(Dockspace* dockspace, Dockspace* relative_to, bool const parent_before) {
         Layout_Tile* const parent = get_layout_parent(relative_to);
-        switch (parent->tile_type) {
+        switch(parent->tile_type) {
         case Layout_Tile_Type::root: {
             Layout_Root* root = (Layout_Root*)parent;
             Layout* layout = create_layout_vertical();
-            if (parent_before) {
+            if(parent_before) {
                 layout->tiles.emplace_back(dockspace);
                 layout->tiles.emplace_back(relative_to);
             } else {
@@ -605,14 +605,14 @@ namespace anton_engine::imgui {
         case Layout_Tile_Type::horizontal_layout: {
             Layout* parent_layout = (Layout*)parent;
             Layout* layout = create_layout_vertical();
-            for (i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
-                if (parent_layout->tiles[i] == relative_to) {
+            for(i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
+                if(parent_layout->tiles[i] == relative_to) {
                     parent_layout->tiles[i] = layout;
                     break;
                 }
             }
             layout->layout_parent = parent_layout;
-            if (parent_before) {
+            if(parent_before) {
                 layout->tiles.emplace_back(dockspace);
                 layout->tiles.emplace_back(relative_to);
             } else {
@@ -632,9 +632,9 @@ namespace anton_engine::imgui {
 
         case Layout_Tile_Type::vertical_layout: {
             Layout* parent_layout = (Layout*)parent;
-            for (i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
-                if (parent_layout->tiles[i] == relative_to) {
-                    if (parent_before) {
+            for(i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
+                if(parent_layout->tiles[i] == relative_to) {
+                    if(parent_before) {
                         parent_layout->tiles.insert(i, dockspace);
                     } else {
                         parent_layout->tiles.insert(i + 1, dockspace);
@@ -660,11 +660,11 @@ namespace anton_engine::imgui {
     //
     static void parent_horizontal(Dockspace* dockspace, Dockspace* relative_to, bool const parent_before) {
         Layout_Tile* const parent = get_layout_parent(relative_to);
-        switch (parent->tile_type) {
+        switch(parent->tile_type) {
         case Layout_Tile_Type::root: {
             Layout_Root* root = (Layout_Root*)parent;
             Layout* layout = create_layout_horizontal();
-            if (parent_before) {
+            if(parent_before) {
                 layout->tiles.emplace_back(dockspace);
                 layout->tiles.emplace_back(relative_to);
             } else {
@@ -686,14 +686,14 @@ namespace anton_engine::imgui {
         case Layout_Tile_Type::vertical_layout: {
             Layout* parent_layout = (Layout*)parent;
             Layout* layout = create_layout_horizontal();
-            for (i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
-                if (parent_layout->tiles[i] == relative_to) {
+            for(i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
+                if(parent_layout->tiles[i] == relative_to) {
                     parent_layout->tiles[i] = layout;
                     break;
                 }
             }
             layout->layout_parent = parent_layout;
-            if (parent_before) {
+            if(parent_before) {
                 layout->tiles.emplace_back(dockspace);
                 layout->tiles.emplace_back(relative_to);
             } else {
@@ -713,9 +713,9 @@ namespace anton_engine::imgui {
 
         case Layout_Tile_Type::horizontal_layout: {
             Layout* parent_layout = (Layout*)parent;
-            for (i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
-                if (parent_layout->tiles[i] == relative_to) {
-                    if (parent_before) {
+            for(i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
+                if(parent_layout->tiles[i] == relative_to) {
+                    if(parent_before) {
                         parent_layout->tiles.insert(i, dockspace);
                     } else {
                         parent_layout->tiles.insert(i + 1, dockspace);
@@ -792,17 +792,17 @@ namespace anton_engine::imgui {
         Vector2 const size_a = {size.y, size.y};
         Vector2 const cursor_a = (cursor_pos - pos) * aspect;
         Vector2 const border_a = border_area_width * aspect;
-        if (!test_point_in_box(cursor_a, border_a, size_a - 2 * border_a)) {
+        if(!test_point_in_box(cursor_a, border_a, size_a - 2 * border_a)) {
             f32 const dist_top = cursor_a.y;
             f32 const dist_bottom = size_a.y - cursor_a.y;
             f32 const dist_left = cursor_a.x;
             f32 const dist_right = size_a.x - cursor_a.x;
             f32 const closest_edge_dist = math::min(math::min(dist_top, dist_bottom), math::min(dist_left, dist_right));
-            if (dist_top == closest_edge_dist) {
+            if(dist_top == closest_edge_dist) {
                 return 0;
-            } else if (dist_bottom == closest_edge_dist) {
+            } else if(dist_bottom == closest_edge_dist) {
                 return 2;
-            } else if (dist_right == closest_edge_dist) {
+            } else if(dist_right == closest_edge_dist) {
                 return 1;
             } else {
                 return 3;
@@ -817,9 +817,9 @@ namespace anton_engine::imgui {
         bool const just_left_clicked = !ctx.prev_input.left_mouse_button && ctx.input.left_mouse_button;
         bool const just_left_released = ctx.prev_input.left_mouse_button && !ctx.input.left_mouse_button;
         // TODO: Hoist hot window search.
-        if (just_left_clicked) {
-            if (ctx.input.left_mouse_button) {
-                if (ctx.hot_window != -1) {
+        if(just_left_clicked) {
+            if(ctx.input.left_mouse_button) {
+                if(ctx.hot_window != -1) {
                     ctx.active_window = ctx.hot_window;
                     Window& window = ctx.windows.find(ctx.active_window)->value;
                     Dockspace* const dockspace = window.dockspace;
@@ -828,9 +828,9 @@ namespace anton_engine::imgui {
                     Vector2 const dockspace_pos = get_dockspace_screen_pos(dockspace);
                     Vector2 const tab_size = {compute_tab_width(dockspace), dockspace->tab_bar_height};
                     i64 const tab_count = dockspace->windows.size();
-                    for (i64 i = 0; i < tab_count; i += 1) {
+                    for(i64 i = 0; i < tab_count; i += 1) {
                         Vector2 const tab_pos = dockspace_pos + Vector2{tab_size.x * i, 0.0f};
-                        if (test_cursor_in_box(cursor, tab_pos, tab_size)) {
+                        if(test_cursor_in_box(cursor, tab_pos, tab_size)) {
                             ctx.clicked_tab = true;
                             ctx.drag.tab_click_offset = cursor - tab_pos;
                             break;
@@ -838,25 +838,25 @@ namespace anton_engine::imgui {
                     }
                 }
             }
-        } else if (ctx.input.left_mouse_button) {
-            if (ctx.active_window != -1) {
+        } else if(ctx.input.left_mouse_button) {
+            if(ctx.active_window != -1) {
                 Window& window = ctx.windows.find(ctx.active_window)->value;
                 Vector2 const cursor_pos_delta = ctx.input.cursor_position - ctx.prev_input.cursor_position;
                 // ANTON_LOG_INFO("cursor_pos_delta: " + atl::to_string(cursor_pos_delta.x) + " " + atl::to_string(cursor_pos_delta.y));
-                if (ctx.dragging) {
+                if(ctx.dragging) {
                     ctx.drag.hot_dockspace = find_dockspace_under_cursor(ctx, cursor, {&window.dockspace, 1});
 
                     if(ctx.drag.alien_dockspace) {
                         // We were in a dockspace's tab bar last frame.
                         Dockspace* const alien_dockspace = ctx.drag.alien_dockspace;
-                        if (test_cursor_in_box(cursor, get_dockspace_screen_pos(alien_dockspace), get_dockspace_tab_bar_size(alien_dockspace))) {
+                        if(test_cursor_in_box(cursor, get_dockspace_screen_pos(alien_dockspace), get_dockspace_tab_bar_size(alien_dockspace))) {
                             // We are still in tab bar. Update tab position.
                             f32 const tab_width = compute_tab_width(alien_dockspace);
                             Vector2 const dockspace_pos = get_dockspace_screen_pos(alien_dockspace);
                             f32 const offset = cursor.x - dockspace_pos.x;
                             i64 const index = math::floor(offset / tab_width);
                             i64 const current_tab_index = get_tab_index(alien_dockspace, window.id);
-                            if (current_tab_index != index) {
+                            if(current_tab_index != index) {
                                 // Readd window at new index.
                                 remove_window(alien_dockspace, window);
                                 add_window(alien_dockspace, window, index);
@@ -881,14 +881,14 @@ namespace anton_engine::imgui {
                     }
                 }
 
-                if (ctx.clicked_tab && !ctx.dragging && cursor_pos_delta != Vector2{0.0f, 0.0f}) {
+                if(ctx.clicked_tab && !ctx.dragging && cursor_pos_delta != Vector2{0.0f, 0.0f}) {
                     ctx.dragging = true;
                     ctx.drag.original_size = window.dockspace->size;
-                    if (window.dockspace->windows.size() == 1) {
+                    if(window.dockspace->windows.size() == 1) {
                         Dockspace* const dockspace = window.dockspace;
                         Viewport* const current_viewport = dockspace->viewport;
                         // Prevent main viewport from being moved by the dockspaces.
-                        if (current_viewport->dockspaces.size() == 1 && current_viewport != ctx.viewports[0]) {
+                        if(current_viewport->dockspaces.size() == 1 && current_viewport != ctx.viewports[0]) {
                             Vector2 const current_pos = get_viewport_screen_pos(current_viewport);
                             set_viewport_screen_pos(current_viewport, current_pos + cursor_pos_delta);
                         } else {
@@ -900,7 +900,7 @@ namespace anton_engine::imgui {
                         }
                     } else {
                         // TODO: Only tests for containment in tab bar.
-                        if (test_point_in_box(cursor, get_dockspace_tab_bar_screen_pos(window.dockspace), get_dockspace_tab_bar_size(window.dockspace))) {
+                        if(test_point_in_box(cursor, get_dockspace_tab_bar_screen_pos(window.dockspace), get_dockspace_tab_bar_size(window.dockspace))) {
                             ctx.drag.alien_dockspace = window.dockspace;
                         } else {
                             Dockspace* const prev_dockspace = window.dockspace;
@@ -918,15 +918,15 @@ namespace anton_engine::imgui {
                 }
             }
         } else {
-            if (just_left_released) {
-                if (ctx.dragging && !ctx.drag.alien_dockspace) {
+            if(just_left_released) {
+                if(ctx.dragging && !ctx.drag.alien_dockspace) {
                     Window& window = ctx.windows.find(ctx.active_window)->value;
                     Dockspace* const current_dockspace = window.dockspace;
                     Viewport* const current_viewport = current_dockspace->viewport;
                     Viewport* const main_viewport = ctx.main_viewport;
                     Viewport* const viewport_under_cursor = find_viewport_under_cursor(ctx, cursor, {&current_viewport, 1});
                     // TODO: Handle case when cursor is in non-client area of a viewport.
-                    if (viewport_under_cursor == main_viewport && main_viewport->dockspaces.size() == 0) {
+                    if(viewport_under_cursor == main_viewport && main_viewport->dockspaces.size() == 0) {
                         // Special case for main_viewport when it has 0 dockspaces.
                         // We have to parent to root in this case.
                         unparent(current_dockspace);
@@ -941,8 +941,9 @@ namespace anton_engine::imgui {
                             Vector2 const dockspace_tab_bar_size = get_dockspace_tab_bar_size(dockspace);
                             if(test_point_in_box(cursor, dockspace_content_pos, dockspace_content_size)) {
                                 Vector2 const border_area_width = dockspace_content_size * 0.5f * ctx.settings.window_drop_area_width;
-                                i32 const border_section = check_cursor_in_border_area(cursor, dockspace_content_pos, dockspace_content_size, border_area_width);
-                                switch (border_section) {
+                                i32 const border_section =
+                                    check_cursor_in_border_area(cursor, dockspace_content_pos, dockspace_content_size, border_area_width);
+                                switch(border_section) {
                                 case 0:
                                 case 2: {
                                     unparent(current_dockspace);
@@ -985,18 +986,18 @@ namespace anton_engine::imgui {
             ctx.hot_window = -1;
             Dockspace* const hot_dockspace = find_dockspace_under_cursor(ctx, cursor, {});
 
-            if (hot_dockspace) {
+            if(hot_dockspace) {
                 Vector2 const hot_dockspace_pos = get_dockspace_screen_pos(hot_dockspace);
                 Vector2 const content_pos = get_dockspace_content_screen_pos(hot_dockspace);
                 Vector2 const hot_dockspace_size = get_dockspace_size(hot_dockspace);
-                if (test_cursor_in_box(cursor, content_pos, hot_dockspace_size)) {
+                if(test_cursor_in_box(cursor, content_pos, hot_dockspace_size)) {
                     ctx.hot_window = hot_dockspace->active_window;
                 } else {
                     Vector2 const tab_size = {hot_dockspace_size.x / hot_dockspace->windows.size(), hot_dockspace->tab_bar_height};
                     f32 tab_offset = 0;
-                    for (i64 i = 0; i < hot_dockspace->windows.size(); i += 1) {
+                    for(i64 i = 0; i < hot_dockspace->windows.size(); i += 1) {
                         Vector2 const tab_pos = hot_dockspace_pos + Vector2{tab_offset, 0.0f};
-                        if (test_cursor_in_box(cursor, tab_pos, tab_size)) {
+                        if(test_cursor_in_box(cursor, tab_pos, tab_size)) {
                             ctx.hot_window = hot_dockspace->windows[i];
                             break;
                         }
@@ -1014,11 +1015,11 @@ namespace anton_engine::imgui {
         ctx.vertex_buffer.clear();
         ctx.index_buffer.clear();
 
-        for (Viewport* viewport: ctx.viewports) {
+        for(Viewport* viewport: ctx.viewports) {
             viewport->draw_commands_buffer.clear();
         }
 
-        for (auto [_, window]: ctx.windows) {
+        for(auto [_, window]: ctx.windows) {
             window.enabled = false;
             window.draw_context.draw_pos = Vector2{0.0f, 0.0f};
             window.draw_context.index_buffer.clear();
@@ -1030,8 +1031,8 @@ namespace anton_engine::imgui {
     }
 
     // From top-left counterclockwise order of vertices.
-    static void add_quad(atl::Vector<Vertex>& verts, atl::Vector<u32>& indices, Vertex v1, Vertex v2, Vertex v3, Vertex v4,
-                         u32 inx1, u32 inx2, u32 inx3, u32 inx4, u32 inx5, u32 inx6) {
+    static void add_quad(atl::Vector<Vertex>& verts, atl::Vector<u32>& indices, Vertex v1, Vertex v2, Vertex v3, Vertex v4, u32 inx1, u32 inx2, u32 inx3,
+                         u32 inx4, u32 inx5, u32 inx6) {
         verts.emplace_back(v1);
         verts.emplace_back(v2);
         verts.emplace_back(v3);
@@ -1083,7 +1084,7 @@ namespace anton_engine::imgui {
 
         auto& verts = ctx.vertex_buffer;
         auto& indices = ctx.index_buffer;
-        for (Dockspace const* const dockspace: ctx.dockspaces) {
+        for(Dockspace const* const dockspace: ctx.dockspaces) {
             atl::Vector<Draw_Command>& draw_cmd_buffer = dockspace->viewport->draw_commands_buffer;
             Vector2 const dockspace_pos = get_dockspace_screen_pos(dockspace);
             Vector2 const dockspace_size = get_dockspace_size(dockspace);
@@ -1115,7 +1116,7 @@ namespace anton_engine::imgui {
             f32 const tab_width = dockspace_size.x / dockspace->windows.size();
             f32 tab_offset = 0.0f;
             f32 constexpr separator_width = 5;
-            for (i64 const id: dockspace->windows) {
+            for(i64 const id: dockspace->windows) {
                 Window& window = ctx.windows.find(id)->value;
                 Vertex::Color const tab_color = id == ctx.hot_window || id == ctx.active_window
                                                     ? color_to_vertex_color(window.style.background_color * Color(1.5f, 1.5f, 1.5f, 1.0f))
@@ -1205,7 +1206,7 @@ namespace anton_engine::imgui {
                 draw_cmd_buffer[i].index_offset += index_offset;
             }
 
-            for (i64 const id: dockspace->windows) {
+            for(i64 const id: dockspace->windows) {
                 Window& window = ctx.windows.find(id)->value;
                 Draw_Context& dc = window.draw_context;
                 dc.vertex_buffer.clear();
@@ -1216,7 +1217,7 @@ namespace anton_engine::imgui {
         }
 
         // Render dockspce drag preview guides
-        if (ctx.drag.hot_dockspace) {
+        if(ctx.drag.hot_dockspace) {
             Viewport* const viewport = ctx.drag.hot_dockspace->viewport;
             Vector2 const dockspace_content_pos = get_dockspace_content_screen_pos(ctx.drag.hot_dockspace);
             Vector2 const dockspace_content_size = get_dockspace_content_size(ctx.drag.hot_dockspace);
@@ -1276,16 +1277,16 @@ namespace anton_engine::imgui {
                 guides_cmd.texture = 0;
                 viewport->draw_commands_buffer.emplace_back(guides_cmd);
 
-                for (i64 i = 0; i < (i64)atl::size(_verts); ++i) {
+                for(i64 i = 0; i < (i64)atl::size(_verts); ++i) {
                     verts.emplace_back(_verts[i], Vector2{0, 0}, color);
                 }
 
-                for (i64 i = 0; i < (i64)atl::size(_indices); ++i) {
+                for(i64 i = 0; i < (i64)atl::size(_indices); ++i) {
                     indices.emplace_back(_indices[i]);
                 }
 
                 i32 const border_section = check_cursor_in_border_area(cursor, dockspace_content_pos, dockspace_content_size, border_area_width);
-                if (border_section != -1) {
+                if(border_section != -1) {
                     Draw_Command preview_cmd;
                     preview_cmd.vertex_offset = verts.size();
                     preview_cmd.index_offset = indices.size();
@@ -1299,7 +1300,7 @@ namespace anton_engine::imgui {
                     Vector2 const dockspace_size = get_dockspace_size(dockspace);
                     Vector2 preview_pos;
                     Vector2 preview_size;
-                    switch (border_section) {
+                    switch(border_section) {
                     case 0: {
                         preview_pos = dockspace_pos;
                         preview_size = {dockspace_size.x, dockspace_size.y * 0.5f};
@@ -1381,7 +1382,7 @@ namespace anton_engine::imgui {
 
         i64 const id = hash_string(identifier);
         auto const iter = ctx.windows.find(id);
-        if (iter == ctx.windows.end()) {
+        if(iter == ctx.windows.end()) {
             Window window;
             window._debug_name = identifier;
             window.id = id;
@@ -1431,7 +1432,8 @@ namespace anton_engine::imgui {
         rendering::Face_Metrics const face_metrics = rendering::get_face_metrics(style.face);
         f32 const line_height = (f32)style.size * (f32)style.v_dpi / 72.0f * (f32)face_metrics.line_height / (f32)face_metrics.units_per_em;
         rendering::Text_Metrics const space_metrics = rendering::compute_text_dimensions(style.face, {style.size, style.h_dpi, style.v_dpi}, u8" ");
-        Vector2 text_dimensions;
+        f32 const space_width = (f32)space_metrics.width / 64.0f;
+        Vector2 text_dimensions = {0.0f, 0.0f};
         f32 offset_x = 0;
         auto i = text.chars_begin();
         auto j = text.chars_begin();
@@ -1448,15 +1450,16 @@ namespace anton_engine::imgui {
                 if(i != j) {
                     atl::String_View const word{j, distance_to_end > 1 ? i : i + 1};
                     rendering::Text_Metrics const metrics = rendering::compute_text_dimensions(style.face, {style.size, style.h_dpi, style.v_dpi}, word);
+                    f32 const word_width = (f32)metrics.width / 64.0f;
                     bool const empty_line = offset_x == 0.0f;
-                    bool const overflows_line = offset_x + space_metrics.width + metrics.width > max_width;
+                    bool const overflows_line = offset_x + space_width + word_width > max_width;
                     bool const break_line = (!empty_line && overflows_line) || should_end_line;
                     if(break_line) {
                         text_dimensions.x = math::max(text_dimensions.x, offset_x);
                         text_dimensions.y += line_height;
-                        offset_x = metrics.width;
+                        offset_x = word_width;
                     } else {
-                        offset_x += metrics.width + space_metrics.width;
+                        offset_x += word_width + space_width;
                     }
                 } else {
                     if(should_end_line) {
@@ -1475,13 +1478,15 @@ namespace anton_engine::imgui {
         return text_dimensions;
     }
 
-    static void render_multiline_text(atl::String_View const text, Font_Style const style, Draw_Context& dc, Vector2 const base_draw_pos, f32 const max_width, bool const ignore_newline) {
+    static void render_multiline_text(atl::String_View const text, Font_Style const style, Draw_Context& dc, Vector2 const base_draw_pos, f32 const max_width,
+                                      bool const ignore_newline) {
         rendering::Face_Metrics const face_metrics = rendering::get_face_metrics(style.face);
         // Max height above baseline
         f32 const ascent = (f32)style.size * (f32)style.v_dpi / 72.0f * (f32)face_metrics.ascent / (f32)face_metrics.units_per_em;
         f32 const line_height = (f32)style.size * (f32)style.v_dpi / 72.0f * (f32)face_metrics.line_height / (f32)face_metrics.units_per_em;
         rendering::Text_Metrics const space_metrics = rendering::compute_text_dimensions(style.face, {style.size, style.h_dpi, style.v_dpi}, u8" ");
-        Vector2 offset;
+        f32 const space_width = (f32)space_metrics.width / 64.0f;
+        Vector2 offset = {0.0f, 0.0f};
         auto i = text.chars_begin();
         auto j = text.chars_begin();
         auto end = text.chars_end();
@@ -1497,8 +1502,9 @@ namespace anton_engine::imgui {
                 if(i != j) {
                     atl::String_View const word{j, distance_to_end > 1 ? i : i + 1};
                     rendering::Text_Metrics const metrics = rendering::compute_text_dimensions(style.face, {style.size, style.h_dpi, style.v_dpi}, word);
+                    f32 const word_width = (f32)metrics.width / 64.0f;
                     bool const empty_line = offset.x == 0.0f;
-                    bool const overflows_line = offset.x + space_metrics.width + metrics.width > max_width;
+                    bool const overflows_line = offset.x + space_width + word_width > max_width;
                     bool const break_line = (!empty_line && overflows_line) || should_end_line;
                     if(break_line) {
                         offset.x = 0.0f;
@@ -1506,7 +1512,7 @@ namespace anton_engine::imgui {
                     }
 
                     rendering::Text_Image const text_img = rendering::render_text(style.face, {style.size, style.h_dpi, style.v_dpi}, word);
-                    Vector2 const baseline_correction = {0.0f, ascent - text_img.baseline};
+                    Vector2 const baseline_correction = {0.0f, ascent - (f32)text_img.baseline / 64.0f};
                     Vector2 const draw_pos = base_draw_pos + offset + baseline_correction;
                     Draw_Command text_cmd;
                     text_cmd.texture = text_img.texture;
@@ -1514,10 +1520,12 @@ namespace anton_engine::imgui {
                     text_cmd.vertex_offset = dc.vertex_buffer.size();
                     text_cmd.index_offset = dc.index_buffer.size();
                     dc.draw_commands.emplace_back(text_cmd);
+                    f32 const text_width = text_img.width / 64;
+                    f32 const text_height = text_img.height / 64;
                     dc.vertex_buffer.emplace_back(draw_pos, Vector2{0.0f, 1.0f}, Vertex::Color{0, 0, 0, 0});
-                    dc.vertex_buffer.emplace_back(draw_pos + Vector2{0.0f, (f32)text_img.height}, Vector2{0.0f, 0.0f}, Vertex::Color{0, 0, 0, 0});
-                    dc.vertex_buffer.emplace_back(draw_pos + Vector2{(f32)text_img.width, (f32)text_img.height}, Vector2{1.0f, 0.0f}, Vertex::Color{0, 0, 0, 0});
-                    dc.vertex_buffer.emplace_back(draw_pos + Vector2{(f32)text_img.width, 0.0f}, Vector2{1.0f, 1.0f}, Vertex::Color{0, 0, 0, 0});
+                    dc.vertex_buffer.emplace_back(draw_pos + Vector2{0.0f, text_height}, Vector2{0.0f, 0.0f}, Vertex::Color{0, 0, 0, 0});
+                    dc.vertex_buffer.emplace_back(draw_pos + Vector2{text_width, text_height}, Vector2{1.0f, 0.0f}, Vertex::Color{0, 0, 0, 0});
+                    dc.vertex_buffer.emplace_back(draw_pos + Vector2{text_width, 0.0f}, Vector2{1.0f, 1.0f}, Vertex::Color{0, 0, 0, 0});
                     dc.index_buffer.emplace_back(0);
                     dc.index_buffer.emplace_back(1);
                     dc.index_buffer.emplace_back(2);
@@ -1525,9 +1533,9 @@ namespace anton_engine::imgui {
                     dc.index_buffer.emplace_back(2);
                     dc.index_buffer.emplace_back(3);
 
-                    offset.x += metrics.width;
+                    offset.x += word_width;
                     if(!break_line) {
-                        offset.x += space_metrics.width;
+                        offset.x += space_width;
                     }
                 } else {
                     if(should_end_line) {
@@ -1562,17 +1570,17 @@ namespace anton_engine::imgui {
         Button_State& state = window.button_state.find_or_emplace(hash)->value;
         Button_Style style;
         switch(state) {
-            case Button_State::inactive: {
-                style = inactive_style;
-            } break;
+        case Button_State::inactive: {
+            style = inactive_style;
+        } break;
 
-            case Button_State::hot: {
-                style = hot_style;
-            } break;
+        case Button_State::hot: {
+            style = hot_style;
+        } break;
 
-            case Button_State::clicked: {
-                style = active_style;
-            } break;
+        case Button_State::clicked: {
+            style = active_style;
+        } break;
         }
 
         // TODO: Text wrap
@@ -1590,7 +1598,8 @@ namespace anton_engine::imgui {
             f32 const border_width = math::max(0.0f, style.border[1]) + math::max(0.0f, style.border[3]);
             f32 const max_text_width = dockspace_size.x - dc.draw_pos.x - border_width - button_padding_width;
             Vector2 const text_dimensions = compute_text_dimensions(text, style.font, max_text_width, true);
-            Vector2 const button_dimensions = Vector2{text_dimensions.x + border_width + button_padding_width, text_dimensions.y + border_height + button_padding_height};
+            Vector2 const button_dimensions =
+                Vector2{text_dimensions.x + border_width + button_padding_width, text_dimensions.y + border_height + button_padding_height};
             bool const lmb = ctx.input.left_mouse_button;
             if(test_point_in_box(cursor, dockspace_pos + border_draw_pos, button_dimensions)) {
                 // TODO: Will report click even when the cursor hovers the button with lmb already pressed.
@@ -1614,7 +1623,8 @@ namespace anton_engine::imgui {
         f32 const max_text_width = dockspace_size.x - dc.draw_pos.x - border_width - button_padding_width;
         Vector2 const text_dimensions = compute_text_dimensions(text, style.font, max_text_width, true);
         Vector2 const button_no_border_dimensions = Vector2{text_dimensions.x + button_padding_width, text_dimensions.y + button_padding_height};
-        Vector2 const button_dimensions = Vector2{text_dimensions.x + border_width + button_padding_width, text_dimensions.y + border_height + button_padding_height};
+        Vector2 const button_dimensions =
+            Vector2{text_dimensions.x + border_width + button_padding_width, text_dimensions.y + border_height + button_padding_height};
         Vector2 const button_draw_pos = border_draw_pos + Vector2{style.border[3], style.border[0]};
         Vertex::Color const bg_color = color_to_vertex_color(style.background_color);
         Vertex::Color const border_color = color_to_vertex_color(style.border_color);
@@ -1661,7 +1671,7 @@ namespace anton_engine::imgui {
         if(dockspace->active_window != window.id) {
             return;
         }
-        
+
         Vector2 const window_size = get_dockspace_content_size(window.dockspace);
         Draw_Context& dc = window.draw_context;
         Vector2 const draw_pos = dc.draw_pos;
@@ -1688,7 +1698,7 @@ namespace anton_engine::imgui {
         dc.index_buffer.emplace_back(2);
         dc.index_buffer.emplace_back(3);
         dc.draw_commands.emplace_back(cmd);
-        
+
         dc.draw_pos += Vector2{0.0f, clipped_size.y};
     }
 
