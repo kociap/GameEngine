@@ -1,14 +1,21 @@
 #include <rendering/renderer.hpp>
 
-#include <core/exception.hpp>
-#include <core/types.hpp>
+#include <build_config.hpp>
 #include <core/atl/algorithm.hpp>
+#include <core/atl/flat_hash_map.hpp>
 #include <core/atl/string.hpp>
 #include <core/atl/utility.hpp>
 #include <core/atl/vector.hpp>
+#include <core/exception.hpp>
+#include <core/handle.hpp>
+#include <core/intrinsics.hpp>
+#include <core/logging.hpp>
+#include <core/math/matrix4.hpp>
+#include <core/math/transform.hpp>
+#include <core/types.hpp>
+#include <core/utils/enum.hpp>
+#include <engine.hpp>
 #include <engine/assets.hpp>
-#include <build_config.hpp>
-#include <shaders/builtin_shaders.hpp>
 #include <engine/components/camera.hpp>
 #include <engine/components/directional_light_component.hpp>
 #include <engine/components/line_component.hpp>
@@ -17,20 +24,13 @@
 #include <engine/components/static_mesh_component.hpp>
 #include <engine/components/transform.hpp>
 #include <engine/ecs/ecs.hpp>
-#include <engine.hpp>
+#include <engine/mesh.hpp>
+#include <engine/resource_manager.hpp>
 #include <rendering/framebuffer.hpp>
 #include <rendering/glad.hpp>
-#include <core/handle.hpp>
-#include <core/intrinsics.hpp>
-#include <core/logging.hpp>
-#include <core/math/matrix4.hpp>
-#include <core/math/transform.hpp>
-#include <engine/mesh.hpp>
 #include <rendering/opengl.hpp>
-#include <engine/resource_manager.hpp>
+#include <shaders/builtin_shaders.hpp>
 #include <shaders/shader.hpp>
-#include <core/utils/enum.hpp>
-#include <core/atl/flat_hash_map.hpp>
 
 #include <algorithm> // std::sort
 
@@ -232,7 +232,7 @@ namespace anton_engine::rendering {
         gpu_draw_data_buffer.mapped = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, gpu_draw_data_buffer.size, buffer_flags);
         draw_id_buffer.size = matrix_buffer.size = material_buffer.size = gpu_draw_data_buffer.size / (sizeof(u32) + sizeof(Matrix4) + sizeof(Material));
         draw_id_buffer.buffer = draw_id_buffer.head = reinterpret_cast<u32*>(gpu_draw_data_buffer.mapped);
-        atl::iota(draw_id_buffer.buffer, draw_id_buffer.buffer + draw_id_buffer.size, 0);
+        atl::fill_with_consecutive(draw_id_buffer.buffer, draw_id_buffer.buffer + draw_id_buffer.size, 0);
         matrix_buffer.buffer = matrix_buffer.head = reinterpret_cast<Matrix4*>(draw_id_buffer.buffer + draw_id_buffer.size);
         material_buffer.buffer = material_buffer.head = reinterpret_cast<Material*>(matrix_buffer.buffer + matrix_buffer.size);
 
@@ -314,7 +314,7 @@ namespace anton_engine::rendering {
             auto directional_lights = ecs.view<Directional_Light_Component>();
             lights_data.directional_light_count = directional_lights.size();
             i32 i = 0;
-            for (Entity const entity: directional_lights) {
+            for(Entity const entity: directional_lights) {
                 Directional_Light_Component& light = directional_lights.get(entity);
                 lights_data.directional_lights[i] = {light.color, light.direction, light.intensity, 0.8f, 1.0f};
                 ++i;
@@ -334,7 +334,7 @@ namespace anton_engine::rendering {
             auto point_lights = ecs.view<Transform, Point_Light_Component>();
             lights_data.point_lights_count = point_lights.size();
             i32 i = 0;
-            for (Entity const entity: point_lights) {
+            for(Entity const entity: point_lights) {
                 auto [transform, light] = point_lights.get<Transform, Point_Light_Component>(entity);
                 // TODO: Global attentuation instead of per light. Most likely hardcoded in the shaders
                 lights_data.point_lights[i] = {transform.local_position, light.color, light.intensity, 1.0f, 0.09f, 0.032f, 0.8f, 1.0f};
@@ -350,8 +350,8 @@ namespace anton_engine::rendering {
     }
 
     [[nodiscard]] static i32 find_texture_with_format(Texture_Format const format) {
-        for (i32 i = 0; i < textures.size(); ++i) {
-            if (textures[i].format == format) {
+        for(i32 i = 0; i < textures.size(); ++i) {
+            if(textures[i].format == format) {
                 return i;
             }
         }
@@ -360,8 +360,8 @@ namespace anton_engine::rendering {
     }
 
     [[nodiscard]] static i32 find_unused_texture() {
-        for (i32 i = 0; i < textures.size(); ++i) {
-            if (textures[i].handle == 0) {
+        for(i32 i = 0; i < textures.size(); ++i) {
+            if(textures[i].handle == 0) {
                 return i;
             }
         }
@@ -377,7 +377,7 @@ namespace anton_engine::rendering {
 
     void load_textures_generate_mipmaps(Texture_Format const format, i32 const texture_count, void const* const* const pixels, Texture* const handles) {
         i32 texture_index = find_texture_with_format(format);
-        if (texture_index == -1) {
+        if(texture_index == -1) {
             i32 unused_texture = find_unused_texture();
             textures[unused_texture].format = format;
             glGenTextures(1, &textures[unused_texture].handle);
@@ -390,12 +390,12 @@ namespace anton_engine::rendering {
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            for (i32 i = 0; i < texture_count; ++i) {
+            for(i32 i = 0; i < texture_count; ++i) {
                 textures_storage[unused_texture].free_list.push_back(i);
             }
             texture_index = unused_texture;
         } else {
-            if (textures_storage[texture_index].free_list.size() >= texture_count) {
+            if(textures_storage[texture_index].free_list.size() >= texture_count) {
                 // We have a texture with free slots
                 glBindTexture(GL_TEXTURE_2D_ARRAY, textures[texture_index].handle);
             } else {
@@ -406,7 +406,7 @@ namespace anton_engine::rendering {
                 Array_Texture_Storage& texture_storage = textures_storage[texture_index];
                 i32 const new_size = texture_storage.size + texture_count - texture_storage.free_list.size();
                 glTexStorage3D(GL_TEXTURE_2D_ARRAY, format.mip_levels, format.sized_internal_format, format.width, format.height, new_size);
-                for (i32 i = 0; i < format.mip_levels; ++i) {
+                for(i32 i = 0; i < format.mip_levels; ++i) {
                     glCopyImageSubData(textures[texture_index].handle, GL_TEXTURE_2D_ARRAY, i, 0, 0, 0, new_texture, GL_TEXTURE_2D_ARRAY, i, 0, 0, 0,
                                        format.width, format.height, texture_storage.size);
                 }
@@ -414,14 +414,14 @@ namespace anton_engine::rendering {
                 textures[texture_index].handle = new_texture;
                 i32 const old_size = texture_storage.size;
                 texture_storage.size = new_size;
-                for (i32 i = old_size; i < new_size; ++i) {
+                for(i32 i = old_size; i < new_size; ++i) {
                     texture_storage.free_list.push_back(i);
                 }
             }
         }
 
         Array_Texture_Storage& texture_storage = textures_storage[texture_index];
-        for (i32 i = 0; i < texture_count; ++i) {
+        for(i32 i = 0; i < texture_count; ++i) {
             i32 const unused_texture = texture_storage.free_list[i];
             glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, unused_texture, format.width, format.height, 1, format.pixel_format, format.pixel_type, pixels[i]);
             handles[i].index = texture_index;
@@ -435,7 +435,7 @@ namespace anton_engine::rendering {
         Draw_Elements_Command cmd = {};
 
         i64 vert_head_offset = vertex_buffer.head - vertex_buffer.buffer;
-        if (vertex_buffer.size - vert_head_offset < vertices.size()) {
+        if(vertex_buffer.size - vert_head_offset < vertices.size()) {
             vertex_buffer.head = vertex_buffer.buffer;
             vert_head_offset = 0;
         }
@@ -444,7 +444,7 @@ namespace anton_engine::rendering {
         cmd.base_vertex = vert_head_offset;
 
         i64 elem_head_offset = element_buffer.head - element_buffer.buffer;
-        if (element_buffer.size - elem_head_offset < indices.size()) {
+        if(element_buffer.size - elem_head_offset < indices.size()) {
             element_buffer.head = element_buffer.buffer;
             elem_head_offset = 0;
         }
@@ -458,7 +458,7 @@ namespace anton_engine::rendering {
 
     u32 write_matrices_and_materials(atl::Slice<Matrix4 const> const matrices, atl::Slice<Material const> const materials) {
         i64 material_head_offset = material_buffer.head - material_buffer.buffer;
-        if (material_buffer.size - material_head_offset < materials.size()) {
+        if(material_buffer.size - material_head_offset < materials.size()) {
             material_buffer.head = material_buffer.buffer;
             material_head_offset = 0;
         }
@@ -466,7 +466,7 @@ namespace anton_engine::rendering {
         material_buffer.head += materials.size();
 
         i64 matrix_head_offset = matrix_buffer.head - matrix_buffer.buffer;
-        if (matrix_buffer.size - matrix_head_offset < matrices.size()) {
+        if(matrix_buffer.size - matrix_head_offset < matrices.size()) {
             matrix_buffer.head = matrix_buffer.buffer;
             matrix_head_offset = 0;
         }
@@ -481,7 +481,7 @@ namespace anton_engine::rendering {
         //       but we'll need all of that in the future.
         i64 const index_offset = persistent_element_buffer.head - persistent_element_buffer.buffer;
         i64 const vertex_offset = persistent_vertex_buffer.head - persistent_vertex_buffer.buffer;
-        if (index_offset + indices.size() > persistent_element_buffer.size || vertex_offset + vertices.size() > persistent_vertex_buffer.size) {
+        if(index_offset + indices.size() > persistent_element_buffer.size || vertex_offset + vertices.size() > persistent_vertex_buffer.size) {
             throw Exception(u8"Out of memory.");
         }
 
@@ -530,8 +530,8 @@ namespace anton_engine::rendering {
     }
 
     void commit_draw() {
-        if (draw_elements_commands.size() > 0) {
-            if (draw_cmd_buffer.head - draw_cmd_buffer.buffer + draw_elements_commands.size() > draw_cmd_buffer.size) {
+        if(draw_elements_commands.size() > 0) {
+            if(draw_cmd_buffer.head - draw_cmd_buffer.buffer + draw_elements_commands.size() > draw_cmd_buffer.size) {
                 draw_cmd_buffer.head = draw_cmd_buffer.buffer;
             }
 
@@ -568,20 +568,20 @@ namespace anton_engine::rendering {
         };
 
         auto find_slot_and_bind_texture = [](Bound_Texture bound_textures[16], Texture const texture, i64 const current_draw) -> u32 {
-            for (i32 i = 0; i < 16; ++i) {
-                if (bound_textures[i].index == texture.index) {
+            for(i32 i = 0; i < 16; ++i) {
+                if(bound_textures[i].index == texture.index) {
                     return i;
                 }
             }
 
             i32 max_draw_index = 0;
             i64 max_draw = -1;
-            for (i32 i = 1; i < 16; ++i) {
-                if (bound_textures[i].draw == -1) {
+            for(i32 i = 1; i < 16; ++i) {
+                if(bound_textures[i].draw == -1) {
                     bind_texture(i, texture);
                     bound_textures[i] = Bound_Texture{texture.index, current_draw};
                     return i;
-                } else if (bound_textures[i].draw > max_draw) {
+                } else if(bound_textures[i].draw > max_draw) {
                     max_draw_index = i;
                     max_draw = bound_textures[i].draw;
                 }
@@ -597,11 +597,11 @@ namespace anton_engine::rendering {
         Draw_Elements_Command cmd = {};
         // TODO: wrap around, write_geometry functions, etc.
         // Fairly dumb rendering loop.
-        for (auto iter = objects.begin(), end = objects.end(); iter != end; ++iter) {
+        for(auto iter = objects.begin(), end = objects.end(); iter != end; ++iter) {
             auto const [transform, static_mesh] = objects.get<Transform, Static_Mesh_Component>(*iter);
-            if (static_mesh.shader_handle != last_mesh.shader_handle || static_mesh.mesh_handle != last_mesh.mesh_handle ||
-                static_mesh.material_handle != last_mesh.material_handle) {
-                if (ANTON_LIKELY(current_draw != 0)) {
+            if(static_mesh.shader_handle != last_mesh.shader_handle || static_mesh.mesh_handle != last_mesh.mesh_handle ||
+               static_mesh.material_handle != last_mesh.material_handle) {
+                if(ANTON_LIKELY(current_draw != 0)) {
                     add_draw_command(cmd);
                 }
                 cmd.instance_count = 1;
@@ -609,8 +609,8 @@ namespace anton_engine::rendering {
                 cmd.instance_count += 1;
             }
 
-            if (static_mesh.shader_handle != last_mesh.shader_handle) {
-                if (ANTON_LIKELY(current_draw != 0)) {
+            if(static_mesh.shader_handle != last_mesh.shader_handle) {
+                if(ANTON_LIKELY(current_draw != 0)) {
                     commit_draw();
                 }
                 Shader& shader = shader_manager.get(static_mesh.shader_handle);
@@ -620,7 +620,7 @@ namespace anton_engine::rendering {
                 shader.set_matrix4("view", view);
             }
 
-            if (static_mesh.mesh_handle != last_mesh.mesh_handle) {
+            if(static_mesh.mesh_handle != last_mesh.mesh_handle) {
                 Mesh const& mesh = mesh_manager.get(static_mesh.mesh_handle);
                 cmd = write_geometry(mesh.vertices, mesh.indices);
                 cmd.instance_count = 1;
@@ -639,8 +639,8 @@ namespace anton_engine::rendering {
                 materials[0].normal_map.index = find_slot_and_bind_texture(bound_textures, mat.normal_map, current_draw);
                 Matrix4 const matrices[1] = {to_matrix(transform)};
                 [[maybe_unused]] u32 const base_instance = write_matrices_and_materials(matrices, materials);
-                if (static_mesh.shader_handle != last_mesh.shader_handle || static_mesh.mesh_handle != last_mesh.mesh_handle ||
-                    static_mesh.material_handle != last_mesh.material_handle) {
+                if(static_mesh.shader_handle != last_mesh.shader_handle || static_mesh.mesh_handle != last_mesh.mesh_handle ||
+                   static_mesh.material_handle != last_mesh.material_handle) {
                     cmd.base_instance = base_instance;
                 }
             }

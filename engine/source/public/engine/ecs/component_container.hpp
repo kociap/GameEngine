@@ -2,12 +2,12 @@
 #define ENGINE_ECS_COMPONENT_CONTAINER_HPP_INCLUDE
 
 #include <core/assert.hpp>
+#include <core/atl/algorithm.hpp>
 #include <core/atl/type_traits.hpp>
 #include <core/atl/vector.hpp>
+#include <core/serialization/archives/binary.hpp>
 #include <engine/ecs/component_container_iterator.hpp>
 #include <engine/ecs/entity.hpp>
-#include <core/serialization/archives/binary.hpp>
-#include <core/atl/algorithm.hpp>
 
 namespace anton_engine {
     class Component_Container_Base {
@@ -36,7 +36,7 @@ namespace anton_engine {
         void remove_entity(Entity entity);
 
         // Sort entities and the provided component vector.
-        template <typename Component, typename Sort, typename Predicate>
+        template<typename Component, typename Sort, typename Predicate>
         void sort_components(atl::Vector<Component>&, Sort sort, Predicate predicate);
 
         // Sort only entities.
@@ -51,7 +51,7 @@ namespace anton_engine {
         void ensure(size_type index);
     };
 
-    template <typename Component>
+    template<typename Component>
     class Component_Container: public Component_Container_Base {
     public:
         using iterator = Component_Container_Iterator<Component>;
@@ -72,10 +72,10 @@ namespace anton_engine {
             return {components(), size()};
         }
 
-        template <typename... Args>
+        template<typename... Args>
         Component& add(Entity const entity, Args&&... args) {
             ANTON_ASSERT(!has(entity), "Attempting to add duplicate entity");
-            if constexpr (atl::is_empty<Component>) {
+            if constexpr(atl::is_empty<Component>) {
                 add_entity(entity);
                 return _components;
             } else {
@@ -86,7 +86,7 @@ namespace anton_engine {
         }
 
         void remove(Entity const entity) {
-            if constexpr (!atl::is_empty<Component>) {
+            if constexpr(!atl::is_empty<Component>) {
                 _components.erase_unsorted(get_component_index(entity));
             }
 
@@ -95,7 +95,7 @@ namespace anton_engine {
 
         [[nodiscard]] Component& get(Entity const entity) {
             ANTON_ASSERT(has(entity), "Attempting to get component of an entity that has not been registered");
-            if constexpr (atl::is_empty<Component>) {
+            if constexpr(atl::is_empty<Component>) {
                 return _components;
             } else {
                 return _components[get_component_index(entity)];
@@ -103,14 +103,14 @@ namespace anton_engine {
         }
 
         [[nodiscard]] Component* try_get(Entity const entity) {
-            if constexpr (atl::is_empty<Component>) {
+            if constexpr(atl::is_empty<Component>) {
                 return has(entity) ? &_components : nullptr;
             } else {
                 return has(entity) ? _components.data() + get_component_index(entity) : nullptr;
             }
         }
 
-        template <typename Sort, typename Predicate>
+        template<typename Sort, typename Predicate>
         void sort(Sort sort, Predicate predicate);
 
     private:
@@ -129,18 +129,18 @@ namespace anton_engine {
         return _entities.data();
     }
 
-    template <typename Component>
+    template<typename Component>
     inline Component* Component_Container<Component>::components() {
-        if constexpr (atl::is_empty<Component>) {
+        if constexpr(atl::is_empty<Component>) {
             return &_components;
         } else {
             return _components.data();
         }
     }
 
-    template <typename Component>
+    template<typename Component>
     inline Component const* Component_Container<Component>::components() const {
-        if constexpr (atl::is_empty<Component>) {
+        if constexpr(atl::is_empty<Component>) {
             return &_components;
         } else {
             return _components.data();
@@ -191,30 +191,30 @@ namespace anton_engine {
     }
 
     inline void Component_Container_Base::ensure(size_type index) {
-        if (_indirect.size() <= index) {
+        if(_indirect.size() <= index) {
             _indirect.resize(index + 1, npos);
         }
     }
 
-    template <typename Component, typename Sort, typename Predicate>
+    template<typename Component, typename Sort, typename Predicate>
     void Component_Container_Base::sort_components(atl::Vector<Component>& components, Sort sort, Predicate predicate) {
         static_assert(atl::is_invocable_r<bool, Predicate, Entity const, Entity const> ||
-                      atl::is_invocable_r<bool, Predicate, Component const, Component const>,
+                          atl::is_invocable_r<bool, Predicate, Component const, Component const>,
                       "Predicate is not invocable with either Entity or Component as the parameter");
         atl::Vector<i64> indices(_entities.size());
-        atl::iota(indices.begin(), indices.end(), 0);
+        atl::fill_with_consecutive(indices.begin(), indices.end(), 0);
         sort(indices.begin(), indices.end(), [&, cmp = predicate](i64 const lhs, i64 const rhs) -> bool {
-            if constexpr (atl::is_invocable_r<bool, Predicate, Entity const, Entity const>) {
+            if constexpr(atl::is_invocable_r<bool, Predicate, Entity const, Entity const>) {
                 return cmp(atl::as_const(_entities[lhs]), atl::as_const(_entities[rhs]));
-            } else  {
+            } else {
                 return cmp(atl::as_const(components[lhs]), atl::as_const(components[rhs]));
             }
         });
 
         using atl::swap;
-        for (i64 i = 0; i < indices.size(); ++i) {
+        for(i64 i = 0; i < indices.size(); ++i) {
             i64 const sorted_index = indices[i];
-            if (i != sorted_index) {
+            if(i != sorted_index) {
                 swap(components[i], components[sorted_index]);
                 swap(_indirect[indirect_index(_entities[i])], _indirect[indirect_index(_entities[sorted_index])]);
                 swap(_entities[i], _entities[sorted_index]);
@@ -222,8 +222,8 @@ namespace anton_engine {
         }
     }
 
-    template <typename Component>
-    template <typename Sort, typename Predicate>
+    template<typename Component>
+    template<typename Sort, typename Predicate>
     inline void Component_Container<Component>::sort(Sort sort, Predicate predicate) {
         sort_components(_components, sort, predicate);
     }
@@ -234,25 +234,25 @@ namespace anton_engine {
 
     inline void deserialize(serialization::Binary_Input_Archive& archive, Component_Container_Base& container) {
         deserialize(archive, container._entities);
-        for (i64 i = 0; i < container._entities.size(); i += 1) {
+        for(i64 i = 0; i < container._entities.size(); i += 1) {
             auto index = container.indirect_index(container._entities[i]);
             container.ensure(index);
             container._indirect[index] = i;
         }
     }
 
-    template <typename C>
+    template<typename C>
     inline void Component_Container<C>::serialize(serialization::Binary_Output_Archive& archive, Component_Container_Base const* container) {
-        if constexpr (!atl::is_empty<C>) {
+        if constexpr(!atl::is_empty<C>) {
             anton_engine::serialize(archive, static_cast<Component_Container<C> const*>(container)->_components);
         }
         anton_engine::serialize(archive, *container);
     }
 
-    template <typename C>
+    template<typename C>
     inline void Component_Container<C>::deserialize(serialization::Binary_Input_Archive& archive, Component_Container_Base*& container) {
         container = new Component_Container<C>();
-        if constexpr (!atl::is_empty<C>) {
+        if constexpr(!atl::is_empty<C>) {
             anton_engine::deserialize(archive, static_cast<Component_Container<C>*>(container)->_components);
         }
         anton_engine::deserialize(archive, *container);
