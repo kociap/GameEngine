@@ -1,9 +1,9 @@
 #ifndef CORE_ATL_TUPLE_HPP_INCLUDE
 #define CORE_ATL_TUPLE_HPP_INCLUDE
 
-#include <core/types.hpp>
 #include <core/atl/detail/utility_common.hpp>
 #include <core/atl/tags.hpp>
+#include <core/types.hpp>
 
 namespace anton_engine::atl {
     template<typename T, T... Integers>
@@ -27,7 +27,7 @@ namespace anton_engine::atl {
         struct Make_Integer_Sequence<T, N, N, Integer_Sequence<T, Integers...>> {
             using type = Integer_Sequence<T, Integers...>;
         };
-    }
+    } // namespace detail
 
     template<typename T, T N>
     struct Make_Integer_Sequence {
@@ -56,7 +56,7 @@ namespace anton_engine::atl {
             template<typename... Args>
             constexpr Tuple_Expand(Variadic_Construct_Tag, Args&&... args): Tuple_Child<Indices, Types>(atl::forward<Args>(args))... {}
         };
-    }
+    } // namespace detail
 
     template<typename... Ts>
     class Tuple: public detail::Tuple_Expand<make_integer_sequence<u64, sizeof...(Ts)>, Ts...> {
@@ -94,7 +94,7 @@ namespace anton_engine::atl {
         struct Tuple_Element<N, N, Tuple<T, Types...>> {
             using type = T;
         };
-    }
+    } // namespace detail
 
     template<u64 Index, typename... Types>
     struct Tuple_Element<Index, Tuple<Types...>> {
@@ -126,7 +126,7 @@ namespace anton_engine::atl {
         constexpr T const&& get_helper_type(Tuple_Child<Index, T> const&& element) {
             return static_cast<T const&&>(element._element);
         }
-    }
+    } // namespace detail
 
     template<u64 Index, typename... Types>
     constexpr tuple_element<Index, Tuple<Types...>>& get(Tuple<Types...>& t) {
@@ -143,7 +143,7 @@ namespace anton_engine::atl {
     template<u64 Index, typename... Types>
     constexpr tuple_element<Index, Tuple<Types...>>&& get(Tuple<Types...>&& t) {
         using type = tuple_element<Index, Tuple<Types...>>;
-        return static_cast<type &&>(static_cast<detail::Tuple_Child<Index, type> &&>(t)._element);
+        return static_cast<type&&>(static_cast<detail::Tuple_Child<Index, type>&&>(t)._element);
     }
 
     template<u64 Index, typename... Types>
@@ -176,22 +176,34 @@ namespace anton_engine::atl {
     constexpr Tuple<atl::decay<Types>...> make_tuple(Types&&... args) {
         return Tuple<atl::decay<Types>...>(atl::forward<Types>(args)...);
     }
-}
+
+    namespace detail {
+        template<typename Callable, typename Tuple, u64... Indices>
+        constexpr decltype(auto) apply(Callable&& callable, Tuple&& tuple, integer_sequence<u64, Indices...>) {
+            return callable(atl::get<Indices>(atl::forward<Tuple>(tuple))...);
+        }
+    } // namespace detail
+
+    template<typename Callable, typename Tuple>
+    constexpr decltype(auto) apply(Callable&& callable, Tuple&& tuple) {
+        return detail::apply(atl::forward<Callable>(callable), atl::forward<Tuple>(tuple),
+                             make_integer_sequence<u64, atl::tuple_size<atl::remove_reference<Tuple>>>());
+    }
+} // namespace anton_engine::atl
 
 // We provide std::tuple_size and std::tuple_element to enable structured bindings
 namespace std {
-    template <typename... Types>
+    template<typename... Types>
     struct tuple_size<anton_engine::atl::Tuple<Types...>>: anton_engine::atl::Tuple_Size<anton_engine::atl::Tuple<Types...>> {};
 
-    template <typename... Types>
+    template<typename... Types>
     struct tuple_size<anton_engine::atl::Tuple<Types...> const>: anton_engine::atl::Tuple_Size<anton_engine::atl::Tuple<Types...> const> {};
 
-    template <unsigned long long I, typename... Types>
+    template<unsigned long long I, typename... Types>
     struct tuple_element<I, anton_engine::atl::Tuple<Types...>>: anton_engine::atl::Tuple_Element<I, anton_engine::atl::Tuple<Types...>> {};
 
-    template <unsigned long long I, typename... Types>
-    struct tuple_element<I, anton_engine::atl::Tuple<Types...> const>
-        : anton_engine::atl::Tuple_Element<I, anton_engine::atl::Tuple<Types...> const> {};
+    template<unsigned long long I, typename... Types>
+    struct tuple_element<I, anton_engine::atl::Tuple<Types...> const>: anton_engine::atl::Tuple_Element<I, anton_engine::atl::Tuple<Types...> const> {};
 } // namespace std
 
 #endif // !CORE_ATL_TUPLE_HPP_INCLUDE
