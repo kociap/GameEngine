@@ -2,9 +2,9 @@
 #define RENDERING_FONTS_HPP_INCLUDE
 
 #include <core/atl/slice.hpp>
-#include <core/types.hpp>
 #include <core/atl/string_view.hpp>
 #include <core/atl/vector.hpp>
+#include <core/types.hpp>
 
 namespace anton_engine::rendering {
     class Font_Face;
@@ -47,14 +47,14 @@ namespace anton_engine::rendering {
         atl::String_View style_name;
         // Max height above baseline.
         i32 ascent;
-        // Max height below baseline (negative if below baseline). 
+        // Max height below baseline (negative if below baseline).
         i32 descent;
         // Distance between 2 consecutive baselines.
         i32 line_height;
         i32 max_advance;
         // font units per em
         i32 units_per_em;
-    };  
+    };
 
     // All metrics are expressed in 26.6 pixel format (1/64 of a pixel).
     //
@@ -97,6 +97,6 @@ namespace anton_engine::rendering {
     atl::Vector<Glyph> rasterize_text_glyphs(Font_Face* face, Font_Render_Info info, atl::String_View string);
     Text_Metrics compute_text_dimensions(Font_Face* face, Font_Render_Info info, atl::String_View string);
     Text_Image render_text(Font_Face* face, Font_Render_Info info, atl::String_View string);
-}
+} // namespace anton_engine::rendering
 
 #endif // !RENDERING_FONTS_HPP_INCLUDE
