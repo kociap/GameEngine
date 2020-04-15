@@ -1,10 +1,10 @@
 #include <rendering/fonts.hpp>
 
-#include <core/exception.hpp>
-#include <core/diagnostic_macros.hpp>
-#include <core/unicode/common.hpp>
-#include <core/math/math.hpp>
 #include <core/atl/flat_hash_map.hpp>
+#include <core/diagnostic_macros.hpp>
+#include <core/exception.hpp>
+#include <core/math/math.hpp>
+#include <core/unicode/common.hpp>
 
 #include <rendering/glad.hpp>
 #include <rendering/opengl.hpp>
@@ -95,10 +95,10 @@ namespace anton_engine::rendering {
         if(FT_Set_Char_Size(face, 0, info.points * 64, info.h_dpi, info.v_dpi)) {
             throw Exception(u8"Could not render glyph: failed to set glyph size.");
         }
-        
+
         // TODO: layout
         // TODO: caching
-        
+
         i32 const buf_size = unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), nullptr) / sizeof(char32);
         atl::Vector<char32> buffer_utf32{atl::reserve, buf_size};
         buffer_utf32.force_size(buf_size);
@@ -123,7 +123,9 @@ namespace anton_engine::rendering {
             FT_Glyph_Metrics& metrics = face->glyph->metrics;
             unsigned char* bitmap_buffer_begin = (bitmap.pitch > 0 ? bitmap.buffer : bitmap.buffer + bitmap.pitch * bitmap.rows);
             unsigned char* bitmap_buffer_end = (bitmap.pitch > 0 ? bitmap.buffer + bitmap.pitch * bitmap.rows : bitmap.buffer);
-            glyphs.emplace_back(metrics.width, metrics.height, metrics.horiBearingX, metrics.horiBearingY, metrics.horiAdvance, /* metrics.vertBearingX, metrics.vertBearingY, metrics.vertAdvance, */ (u32)math::abs(bitmap.pitch), atl::Vector<u8>{atl::range_construct, bitmap_buffer_begin, bitmap_buffer_end});
+            glyphs.emplace_back(metrics.width, metrics.height, metrics.horiBearingX, metrics.horiBearingY, metrics.horiAdvance,
+                                /* metrics.vertBearingX, metrics.vertBearingY, metrics.vertAdvance, */ (u32)math::abs(bitmap.pitch),
+                                atl::Vector<u8>{atl::range_construct, bitmap_buffer_begin, bitmap_buffer_end});
         }
 
         return glyphs;
@@ -135,10 +137,10 @@ namespace anton_engine::rendering {
         if(FT_Set_Char_Size(face, 0, info.points * 64, info.h_dpi, info.v_dpi)) {
             throw Exception(u8"Could not compute text size: failed to set glyph size.");
         }
-        
+
         // TODO: layout
         // TODO: caching
-        
+
         i64 const buf_size = unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), nullptr) / sizeof(char32);
         atl::Vector<char32> buffer_utf32{atl::reserve, buf_size};
         buffer_utf32.force_size(buf_size);
@@ -149,7 +151,8 @@ namespace anton_engine::rendering {
 
         i64 i = 0;
         // Skip all null-terminators.
-        for(; buffer_utf32[i] == U'\n' && i < buf_size; ++i);
+        for(; buffer_utf32[i] == U'\n' && i < buf_size; ++i)
+            ;
 
         // Special handling for first character.
         if(i < buf_size) {
@@ -196,7 +199,7 @@ namespace anton_engine::rendering {
             }
         }
 
-        return Text_Metrics{ width, height_above_baseline + height_below_baseline, height_above_baseline };
+        return Text_Metrics{width, height_above_baseline + height_below_baseline, height_above_baseline};
     }
 
     static void flip_texture(atl::Slice<u8> tex, i64 const width, i64 const height) {
@@ -216,8 +219,7 @@ namespace anton_engine::rendering {
         if(iter != font_lib->font_texture_map.end()) {
             atl::Vector<Text_Image_With_Parameters>& vec = iter->value;
             for(Text_Image_With_Parameters& tex: vec) {
-                if(tex.face == _face && tex.render_info.points == info.points && 
-                   tex.render_info.h_dpi == info.h_dpi && tex.render_info.v_dpi == info.v_dpi) {
+                if(tex.face == _face && tex.render_info.points == info.points && tex.render_info.h_dpi == info.h_dpi && tex.render_info.v_dpi == info.v_dpi) {
                     return tex.image;
                 }
             }
@@ -245,7 +247,7 @@ namespace anton_engine::rendering {
                     text_pixel_width += -glyph.hori_bearing_x + glyph.hori_advance;
                 }
             } else {
-                // If it's also the last glyph, add whole bitmap row size because advance might be smaller than glyph size and 
+                // If it's also the last glyph, add whole bitmap row size because advance might be smaller than glyph size and
                 // therefore the buffer wouldn't be large enough to fit the whole text.
                 text_pixel_width = glyph.bitmap_row_width * 64;
             }
@@ -253,7 +255,7 @@ namespace anton_engine::rendering {
 
         for(i64 i = 1; i < glyphs.size(); i += 1) {
             Glyph const& glyph = glyphs[i];
-            // If it's last glyph, add whole bitmap row size because advance might be smaller than glyph size and 
+            // If it's last glyph, add whole bitmap row size because advance might be smaller than glyph size and
             // therefore the buffer wouldn't be large enough to fit the whole text.
             height_above_baseline = math::max(height_above_baseline, (i64)glyph.hori_bearing_y);
             height_below_baseline = math::max(height_below_baseline, (i64)(glyph.height - glyph.hori_bearing_y));
