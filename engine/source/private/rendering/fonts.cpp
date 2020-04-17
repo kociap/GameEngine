@@ -1,5 +1,6 @@
 #include <rendering/fonts.hpp>
 
+#include <core/atl/fixed_array.hpp>
 #include <core/atl/flat_hash_map.hpp>
 #include <core/diagnostic_macros.hpp>
 #include <core/exception.hpp>
@@ -15,35 +16,61 @@ ANTON_DISABLE_WARNINGS()
 ANTON_RESTORE_WARNINGS()
 
 namespace anton_engine::rendering {
-    struct Text_Image_With_Parameters {
+    static constexpr i32 font_texture_width = 4096;
+    static constexpr i32 font_texture_height = 4096;
+    static constexpr i32 min_font_row_height = 8;
+    static constexpr i32 max_row_count = font_texture_height / min_font_row_height;
+
+    struct Font_Row {
+        i32 y_start;
+        i32 y_end;
+        // Offset from the left side of the texture to first free position.
+        i32 pen_pos;
+    };
+
+    struct Font_Atlas {
         Font_Face* face;
         Font_Render_Info render_info;
-        Text_Image image;
+        atl::Vector<u32> textures;
+        atl::Vector<atl::Fixed_Array<Font_Row, max_row_count>> rows;
+        atl::Flat_Hash_Map<char32, Glyph> glyphs;
     };
 
     class Font_Library {
     public:
-        atl::Flat_Hash_Map<u64, atl::Vector<Text_Image_With_Parameters>> font_texture_map;
+        atl::Vector<Font_Atlas> atlases;
     };
+
+    static Font_Atlas* find_atlas_with_params(Font_Library& lib, Font_Face* face, Font_Render_Info const info) {
+        for(Font_Atlas& atlas: lib.atlases) {
+            Font_Render_Info& atlas_info = atlas.render_info;
+            if(atlas.face == face && atlas_info.points == info.points && atlas_info.h_dpi == info.h_dpi && atlas_info.v_dpi == info.v_dpi) {
+                return &atlas;
+            }
+        }
+        return nullptr;
+    }
 
     static Font_Library* font_lib = nullptr;
     static FT_Library ft_lib = nullptr;
 
-    void init_font_rendering() {
+    bool init_font_rendering() {
         FT_Error const error = FT_Init_FreeType(&ft_lib);
         if(error) {
-            throw Exception(u8"Could not initialize font rendering");
+            return false;
         }
 
         font_lib = new Font_Library;
+        return true;
     }
 
     void terminate_font_rendering() {
-        for(auto [key, value]: font_lib->font_texture_map) {
-            for(Text_Image_With_Parameters& tex: value) {
-                glDeleteTextures(1, &tex.image.texture);
+        for(Font_Atlas& atlas: font_lib->atlases) {
+            for(u32 const texture: atlas.textures) {
+                glDeleteTextures(1, &texture);
             }
         }
+
         delete font_lib;
         font_lib = nullptr;
 
@@ -72,8 +99,12 @@ namespace anton_engine::rendering {
     }
 
     void unload_face(Font_Face* face) {
-        // TODO: Unload all rasterized glyphs.
+        // TODO: Unload all rasterized glyphs and textures.
         FT_Done_Face(reinterpret_cast<FT_Face>(face));
+    }
+
+    i32 points_to_pixels(i32 points, i32 dpi) {
+        return points * dpi / 72;
     }
 
     Face_Metrics get_face_metrics(Font_Face* _face) {
@@ -81,125 +112,102 @@ namespace anton_engine::rendering {
         Face_Metrics metrics;
         metrics.family_name = face->family_name;
         metrics.style_name = face->style_name;
-        metrics.ascent = face->ascender;
-        metrics.descent = face->descender;
+        metrics.ascender = face->ascender;
+        metrics.descender = face->descender;
         metrics.line_height = face->height;
+        metrics.glyph_x_max = face->bbox.xMax;
+        metrics.glyph_x_min = face->bbox.xMin;
+        metrics.glyph_y_max = face->bbox.yMax;
+        metrics.glyph_y_min = face->bbox.yMin;
         metrics.max_advance = face->max_advance_width;
         metrics.units_per_em = face->units_per_EM;
         return metrics;
     }
 
-    atl::Vector<Glyph> rasterize_text_glyphs(Font_Face* const _face, Font_Render_Info const info, atl::String_View const string) {
-        FT_Face face = reinterpret_cast<FT_Face>(_face);
+    // Face_Metrics get_face_metrics_as_pixels(Font_Face* _face, Font_Render_Info const info) {
+    //     FT_Face face = reinterpret_cast<FT_Face>(_face);
+    //     Face_Metrics metrics;
+    //     metrics.family_name = face->family_name;
+    //     metrics.style_name = face->style_name;
+    //     metrics.ascender = face->ascender;
+    //     metrics.descender = face->descender;
+    //     metrics.line_height = face->height;
+    //     metrics.glyph_x_max = face->bbox.xMax;
+    //     metrics.glyph_x_min = face->bbox.xMin;
+    //     metrics.glyph_y_max = face->bbox.yMax;
+    //     metrics.glyph_y_min = face->bbox.yMin;
+    //     metrics.max_advance = face->max_advance_width;
+    //     metrics.units_per_em = face->units_per_EM;
+    //     return metrics;
+    // }
 
-        if(FT_Set_Char_Size(face, 0, info.points * 64, info.h_dpi, info.v_dpi)) {
-            throw Exception(u8"Could not render glyph: failed to set glyph size.");
-        }
-
-        // TODO: layout
-        // TODO: caching
-
-        i32 const buf_size = unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), nullptr) / sizeof(char32);
-        atl::Vector<char32> buffer_utf32{atl::reserve, buf_size};
-        buffer_utf32.force_size(buf_size);
-        unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), buffer_utf32.data());
-        atl::Vector<Glyph> glyphs;
-        for(i32 i = 0; i < buf_size; ++i) {
-            // Skip null-terminator because it's non-printable, but rasterizes to rectangle.
-            if(buffer_utf32[i] == U'\0') {
-                continue;
-            }
-
-            u32 const glyph_index = FT_Get_Char_Index(face, buffer_utf32[i]);
-            if(FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT)) {
-                throw Exception(u8"Could not render glyph: failed to load the glyph.");
-            }
-
-            if(FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL)) {
-                throw Exception(u8"Could not render glyph.");
-            }
-
-            FT_Bitmap& bitmap = face->glyph->bitmap;
-            FT_Glyph_Metrics& metrics = face->glyph->metrics;
-            unsigned char* bitmap_buffer_begin = (bitmap.pitch > 0 ? bitmap.buffer : bitmap.buffer + bitmap.pitch * bitmap.rows);
-            unsigned char* bitmap_buffer_end = (bitmap.pitch > 0 ? bitmap.buffer + bitmap.pitch * bitmap.rows : bitmap.buffer);
-            glyphs.emplace_back(metrics.width, metrics.height, metrics.horiBearingX, metrics.horiBearingY, metrics.horiAdvance,
-                                /* metrics.vertBearingX, metrics.vertBearingY, metrics.vertAdvance, */ (u32)math::abs(bitmap.pitch),
-                                atl::Vector<u8>{atl::range_construct, bitmap_buffer_begin, bitmap_buffer_end});
-        }
-
-        return glyphs;
-    }
-
-    Text_Metrics compute_text_dimensions(Font_Face* const _face, Font_Render_Info const info, atl::String_View const string) {
+    i32 compute_text_width(Font_Face* const _face, Font_Render_Info const info, atl::String_View const string) {
         FT_Face face = reinterpret_cast<FT_Face>(_face);
 
         if(FT_Set_Char_Size(face, 0, info.points * 64, info.h_dpi, info.v_dpi)) {
             throw Exception(u8"Could not compute text size: failed to set glyph size.");
         }
 
-        // TODO: layout
-        // TODO: caching
-
         i64 const buf_size = unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), nullptr) / sizeof(char32);
-        atl::Vector<char32> buffer_utf32{atl::reserve, buf_size};
-        buffer_utf32.force_size(buf_size);
-        unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), buffer_utf32.data());
-        i64 width = 0;
-        i64 height_above_baseline = 0;
-        i64 height_below_baseline = 0;
+        atl::Vector<char32> text_utf32{atl::reserve, buf_size};
+        text_utf32.force_size(buf_size);
+        unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), text_utf32.data());
 
+        i32 width = 0;
         i64 i = 0;
-        // Skip all null-terminators.
-        for(; buffer_utf32[i] == U'\n' && i < buf_size; ++i)
-            ;
+        // Skip all null-terminators and ignore newline.
+        for(; i < buf_size && (text_utf32[i] == U'\0' || text_utf32[i] == U'\n'); ++i) {}
 
         // Special handling for first character.
         if(i < buf_size) {
-            u32 const glyph_index = FT_Get_Char_Index(face, buffer_utf32[i]);
+            char32 const c = text_utf32[i];
+            u32 const glyph_index = FT_Get_Char_Index(face, c);
             if(FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT)) {
                 throw Exception(u8"Could not compute text size: failed to load the glyph.");
             }
 
             FT_Glyph_Metrics& metrics = face->glyph->metrics;
-            height_above_baseline = metrics.horiBearingY;
-            height_below_baseline = metrics.height - metrics.horiBearingY;
             if(i + 1 != buf_size) {
-                if(metrics.horiBearingX >= 0) {
-                    width += metrics.horiAdvance;
-                } else {
-                    // Handle the case of negative left side bearing
-                    width += -metrics.horiBearingX + metrics.horiAdvance;
-                }
+                // Handle the case of negative left side bearing
+                width = -math::min((i32)metrics.horiBearingX, 0) + metrics.horiAdvance;
             } else {
                 // Handle the case of this being the only glyph.
-                width = metrics.width;
+                if(!atl::is_whitespace(c)) {
+                    width = metrics.width;
+                } else {
+                    width = metrics.horiAdvance;
+                }
             }
             ++i;
         }
 
         for(; i < buf_size; ++i) {
+            char32 const c = text_utf32[i];
+
             // Skip null-terminator because it's non-printable, but rasterizes to rectangle.
-            if(buffer_utf32[i] == U'\0') {
+            // Ignore newline.
+            if(c == U'\0' || c == U'\n') {
                 continue;
             }
 
-            u32 const glyph_index = FT_Get_Char_Index(face, buffer_utf32[i]);
+            u32 const glyph_index = FT_Get_Char_Index(face, c);
             if(FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT)) {
                 throw Exception(u8"Could not compute text size: failed to load the glyph.");
             }
 
             FT_Glyph_Metrics& metrics = face->glyph->metrics;
-            height_above_baseline = math::max(height_above_baseline, (i64)(metrics.horiBearingY));
-            height_below_baseline = math::max(height_below_baseline, (i64)((metrics.height - metrics.horiBearingY)));
             if(i + 1 != buf_size) {
                 width += metrics.horiAdvance;
             } else {
-                width += metrics.horiBearingX + metrics.width;
+                if(!atl::is_whitespace(c)) {
+                    width += metrics.horiBearingX + metrics.width;
+                } else {
+                    width += metrics.horiAdvance;
+                }
             }
         }
 
-        return Text_Metrics{width, height_above_baseline + height_below_baseline, height_above_baseline};
+        return width;
     }
 
     static void flip_texture(atl::Slice<u8> tex, i64 const width, i64 const height) {
@@ -213,158 +221,142 @@ namespace anton_engine::rendering {
         }
     }
 
-    Text_Image render_text(Font_Face* const _face, Font_Render_Info const info, atl::String_View const string) {
-        u64 const str_hash = atl::hash(string);
-        auto iter = font_lib->font_texture_map.find(str_hash);
-        if(iter != font_lib->font_texture_map.end()) {
-            atl::Vector<Text_Image_With_Parameters>& vec = iter->value;
-            for(Text_Image_With_Parameters& tex: vec) {
-                if(tex.face == _face && tex.render_info.points == info.points && tex.render_info.h_dpi == info.h_dpi && tex.render_info.v_dpi == info.v_dpi) {
-                    return tex.image;
+    // Does not handle null-terminator or other zero-width characters.
+    //
+    static Glyph rasterize_glyph(Font_Library& lib, Font_Face* const _face, Font_Render_Info const info, char32 const codepoint) {
+        Font_Atlas* atlas = find_atlas_with_params(lib, _face, info);
+        // Ensure the container exists.
+        if(!atlas) {
+            Font_Atlas& _atlas = lib.atlases.emplace_back();
+            _atlas.face = _face;
+            _atlas.render_info = info;
+            atlas = &_atlas;
+        }
+
+        if(auto iter = atlas->glyphs.find(codepoint); iter != atlas->glyphs.end()) {
+            return iter->value;
+        }
+
+        FT_Face face = reinterpret_cast<FT_Face>(_face);
+        if(FT_Set_Char_Size(face, 0, info.points * 64, info.h_dpi, info.v_dpi)) {
+            throw Exception(u8"Could not render glyph: failed to set glyph size.");
+        }
+
+        u32 const glyph_index = FT_Get_Char_Index(face, codepoint);
+        if(FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT)) {
+            throw Exception(u8"Could not render glyph: failed to load the glyph.");
+        }
+
+        if(FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL)) {
+            throw Exception(u8"Could not render glyph.");
+        }
+
+        FT_Glyph_Metrics& metrics = face->glyph->metrics;
+        Glyph glyph;
+        glyph.metrics.width = metrics.width;
+        glyph.metrics.height = metrics.height;
+        glyph.metrics.bearing_x = metrics.horiBearingX;
+        glyph.metrics.bearing_y = metrics.horiBearingY;
+        glyph.metrics.advance = metrics.horiAdvance;
+        FT_Bitmap& bitmap = face->glyph->bitmap;
+        i32 const bitmap_width = math::abs(bitmap.pitch);
+        i32 const bitmap_height = bitmap.rows;
+        unsigned char* bitmap_buffer_begin = (bitmap.pitch > 0 ? bitmap.buffer : bitmap.buffer - bitmap_width * bitmap_height);
+        unsigned char* bitmap_buffer_end = (bitmap.pitch > 0 ? bitmap.buffer + bitmap_width * bitmap_height : bitmap.buffer);
+        atl::Vector<u8> tex_data{atl::range_construct, bitmap_buffer_begin, bitmap_buffer_end};
+
+        i32 const required_row_height = bitmap_height + 1 + math::min(bitmap_height / 10, 1);
+        auto& rows = atlas->rows;
+        // Try to find a slot for the glyph in an existing row.
+        for(i64 i = 0; i < rows.size(); ++i) {
+            for(Font_Row& row: rows[i]) {
+                i32 const row_height = row.y_end - row.y_start;
+                i32 const available_width = font_texture_width - row.pen_pos;
+                if(bitmap_height + 1 <= row_height && bitmap_width <= available_width) {
+                    // Copy bitmap to texture.
+                    u32 const texture = atlas->textures[i];
+                    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+                    glTextureSubImage2D(texture, 0, row.pen_pos, row.y_start, bitmap_width, bitmap_height, GL_RED, GL_UNSIGNED_BYTE, tex_data.data());
+                    glyph.texture = texture;
+                    glyph.uv = {(f32)(row.pen_pos) / (f32)font_texture_width, (f32)(row.y_start) / (f32)font_texture_height,
+                                (f32)(row.pen_pos + bitmap_width) / (f32)font_texture_width, (f32)(row.y_start + bitmap_height) / (f32)font_texture_height};
+                    // Flip uv because of OpenGL's flipped vertical axis.
+                    // glyph.uv.top = 1.0f - glyph.uv.top;
+                    // glyph.uv.bottom = 1.0f - glyph.uv.bottom;
+                    row.pen_pos += bitmap_width + 1;
+                    atlas->glyphs.emplace(codepoint, glyph);
+                    return glyph;
                 }
             }
         }
 
-        atl::Vector<Glyph> const glyphs = rasterize_text_glyphs(_face, info, string);
-        if(glyphs.size() == 0) {
-            return {};
-        }
-
-        i64 text_pixel_width = 0;
-        i64 height_above_baseline = 0;
-        i64 height_below_baseline = 0;
-
-        // Special handling of first glyph due to possibly negative left side bearing.
-        {
-            Glyph const& glyph = glyphs[0];
-            height_above_baseline = glyph.hori_bearing_y;
-            height_below_baseline = glyph.height - glyph.hori_bearing_y;
-            if(glyphs.size() != 1) {
-                if(glyph.hori_bearing_x >= 0) {
-                    text_pixel_width += glyph.hori_advance;
-                } else {
-                    // Handle the less frequent case of negative left side bearing
-                    text_pixel_width += -glyph.hori_bearing_x + glyph.hori_advance;
-                }
-            } else {
-                // If it's also the last glyph, add whole bitmap row size because advance might be smaller than glyph size and
-                // therefore the buffer wouldn't be large enough to fit the whole text.
-                text_pixel_width = glyph.bitmap_row_width * 64;
+        // We haven't found a slot in existing rows.
+        // Try to create new row in an existing texture.
+        for(i64 i = 0; i < rows.size(); ++i) {
+            auto& tex_rows = rows[i];
+            Font_Row& last = tex_rows[tex_rows.size() - 1];
+            i32 const available_height = font_texture_height - last.y_end;
+            if(required_row_height <= available_height) {
+                // Set pen_pos to bitmap_width + 1.
+                Font_Row& row = tex_rows.emplace_back(last.y_end, last.y_end + required_row_height, bitmap_width + 1);
+                // Copy bitmap to texture.
+                u32 const texture = atlas->textures[i];
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+                glTextureSubImage2D(texture, 0, 0, row.y_start, bitmap_width, bitmap_height, GL_RED, GL_UNSIGNED_BYTE, tex_data.data());
+                glyph.texture = texture;
+                glyph.uv = {0.0f, (f32)row.y_start / (f32)font_texture_height, (f32)bitmap_width / (f32)font_texture_width,
+                            (f32)(row.y_start + bitmap_height) / (f32)font_texture_height};
+                // Flip uv because of OpenGL's flipped vertical axis.
+                // glyph.uv.top = 1.0f - glyph.uv.top;
+                // glyph.uv.bottom = 1.0f - glyph.uv.bottom;
+                atlas->glyphs.emplace(codepoint, glyph);
+                return glyph;
             }
         }
 
-        for(i64 i = 1; i < glyphs.size(); i += 1) {
-            Glyph const& glyph = glyphs[i];
-            // If it's last glyph, add whole bitmap row size because advance might be smaller than glyph size and
-            // therefore the buffer wouldn't be large enough to fit the whole text.
-            height_above_baseline = math::max(height_above_baseline, (i64)glyph.hori_bearing_y);
-            height_below_baseline = math::max(height_below_baseline, (i64)(glyph.height - glyph.hori_bearing_y));
-            if(i + 1 < glyphs.size()) {
-                text_pixel_width += glyph.hori_advance;
-            } else {
-                text_pixel_width += glyph.bitmap_row_width * 64;
-            }
-        }
-
-        i64 const buffer_height = (height_above_baseline + height_below_baseline) / 64 + !!((height_above_baseline + height_below_baseline) & 0x3F);
-        i64 const buffer_width = text_pixel_width / 64 + !!(text_pixel_width & 0x3F);
-        atl::Vector<u8> tex_data_f32{buffer_width * buffer_height, 0};
-        // If first glyph's left bearing is negative, move pen position so we don't write before the buffer.
-        i64 pen_position = (glyphs[0].hori_bearing_x >= 0 ? 0 : -glyphs[0].hori_bearing_x);
-        for(Glyph const& glyph: glyphs) {
-            // Spaces and other non-printable characters do not produce glyph representations.
-            // The only non-zero field on those glyphs is advance width.
-            if(glyph.bitmap_row_width == 0) {
-                pen_position += glyph.hori_advance;
-                continue;
-            }
-
-            i64 const glyph_position = pen_position + glyph.hori_bearing_x;
-            i64 const vertical_offset = height_above_baseline - glyph.hori_bearing_y;
-            i64 const bitmap_height = glyph.bitmap.size() / glyph.bitmap_row_width;
-            // In case when the text has no vertical subpixel offset and a glyph is the height of the buffer we would write past the end.
-            // We workaround that by adding special case to handle perfectly aligned glyphs.
-            if(vertical_offset & 0x3F) {
-                // Has vertical subpixel offset.
-                if(glyph_position & 0x3F) {
-                    // Has horizontal subpixel offset.
-                    f32 const fract_y = (f32)(vertical_offset & 0x3F) / 64.0f;
-                    f32 const one_fract_y = 1.0f - fract_y;
-                    f32 const fract_x = (f32)(glyph_position & 0x3F) / 64.0f;
-                    f32 const one_fract_x = 1.0f - fract_x;
-                    for(i64 i = 0; i < bitmap_height; i += 1) {
-                        i64 const offset = buffer_width * (i + vertical_offset / 64) + glyph_position / 64;
-                        i64 const next_row_offset = buffer_width * (i + vertical_offset / 64 + 1) + glyph_position / 64;
-                        for(i64 j = 0; j < glyph.bitmap_row_width; j += 1) {
-                            // Linearly distribute bitmap pixel value over the 4 overlapped pixels.
-                            f32 const bitmap_pixel = glyph.bitmap[i * glyph.bitmap_row_width + j];
-                            tex_data_f32[offset + j] = math::min(tex_data_f32[offset + j] + bitmap_pixel * one_fract_x * one_fract_y, 255.0f);
-                            tex_data_f32[offset + j + 1] = math::min(tex_data_f32[offset + j + 1] + bitmap_pixel * fract_x * one_fract_y, 255.0f);
-                            tex_data_f32[next_row_offset + j] = math::min(tex_data_f32[next_row_offset + j] + bitmap_pixel * one_fract_x * fract_y, 255.0f);
-                            tex_data_f32[next_row_offset + j + 1] = math::min(tex_data_f32[next_row_offset + j + 1] + bitmap_pixel * fract_x * fract_y, 255.0f);
-                        }
-                    }
-                } else {
-                    f32 const fract_y = (f32)(vertical_offset & 0x3F) / 64.0f;
-                    f32 const one_fract_y = 1.0f - fract_y;
-                    for(i64 i = 0; i < bitmap_height; i += 1) {
-                        i64 const offset = buffer_width * (i + vertical_offset / 64) + glyph_position / 64;
-                        i64 const next_row_offset = buffer_width * (i + vertical_offset / 64 + 1) + glyph_position / 64;
-                        for(i64 j = 0; j < glyph.bitmap_row_width; j += 1) {
-                            // Overlaps 2 vertical pixels. Distribute the bitmap pixel value linearily over them.
-                            f32 const bitmap_pixel = glyph.bitmap[i * glyph.bitmap_row_width + j];
-                            tex_data_f32[offset + j] = math::min(tex_data_f32[offset + j] + bitmap_pixel * one_fract_y, 255.0f);
-                            tex_data_f32[next_row_offset + j] = math::min(tex_data_f32[next_row_offset + j] + bitmap_pixel * fract_y, 255.0f);
-                        }
-                    }
-                }
-            } else {
-                if(glyph_position & 0x3F) {
-                    // Has horizontal subpixel offset.
-                    f32 const fract_x = (f32)(glyph_position & 0x3F) / 64.0f;
-                    f32 const one_fract_x = 1.0f - fract_x;
-                    for(i64 i = 0; i < bitmap_height; i += 1) {
-                        i64 const offset = buffer_width * (i + vertical_offset / 64) + glyph_position / 64;
-                        for(i64 j = 0; j < glyph.bitmap_row_width; j += 1) {
-                            // Overlaps 2 horizontal pixels. Distribute the bitmap pixel value linearily over them.
-                            f32 const bitmap_pixel = glyph.bitmap[i * glyph.bitmap_row_width + j];
-                            tex_data_f32[offset + j] = math::min(tex_data_f32[offset + j] + bitmap_pixel * one_fract_x, 255.0f);
-                            tex_data_f32[offset + j + 1] = math::min(tex_data_f32[offset + j + 1] + bitmap_pixel * fract_x, 255.0f);
-                        }
-                    }
-                } else {
-                    for(i64 i = 0; i < bitmap_height; i += 1) {
-                        i64 const offset = buffer_width * (i + vertical_offset / 64) + glyph_position / 64;
-                        for(i64 j = 0; j < glyph.bitmap_row_width; j += 1) {
-                            // Perfectly aligned. Just add.
-                            f32 const bitmap_pixel = glyph.bitmap[i * glyph.bitmap_row_width + j];
-                            tex_data_f32[offset + j] = math::min(tex_data_f32[offset + j] + bitmap_pixel, 255.0f);
-                        }
-                    }
-                }
-            }
-            pen_position += glyph.hori_advance;
-        }
-
-        atl::Vector<u8> tex_data{atl::range_construct, tex_data_f32.begin(), tex_data_f32.end()};
-        flip_texture(tex_data, buffer_width, buffer_height);
-
-        Text_Image image;
-        image.baseline = height_above_baseline;
-        image.width = buffer_width * 64;
-        image.height = buffer_height * 64;
-        glCreateTextures(GL_TEXTURE_2D, 1, &image.texture);
-        glTextureStorage2D(image.texture, 1, GL_R8, buffer_width, buffer_height);
+        // We couldn't create a new row in an existing texture.
+        // Create new texture.
+        u32 texture;
+        glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+        glTextureStorage2D(texture, 1, GL_R8, font_texture_width, font_texture_height);
         i32 const swizzle[] = {GL_ONE, GL_ONE, GL_ONE, GL_RED};
-        glTextureParameteriv(image.texture, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
-        glTextureParameteri(image.texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTextureParameteri(image.texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        glTextureParameteriv(texture, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+        glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         f32 const border_color[] = {0.0f, 0.0f, 0.0f, 0.0f};
-        glTextureParameterfv(image.texture, GL_TEXTURE_BORDER_COLOR, border_color);
+        glTextureParameterfv(texture, GL_TEXTURE_BORDER_COLOR, border_color);
+        atlas->textures.emplace_back(texture);
+
+        auto& new_rows = atlas->rows.emplace_back();
+        // Set pen_pos to bitmap_width + 1.
+        new_rows.emplace_back(0, required_row_height, bitmap_width + 1);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTextureSubImage2D(image.texture, 0, 0, 0, buffer_width, buffer_height, GL_RED, GL_UNSIGNED_BYTE, tex_data.data());
-        atl::Vector<Text_Image_With_Parameters>& textures = font_lib->font_texture_map.find_or_emplace(str_hash)->value;
-        textures.emplace_back(_face, info, image);
-        return image;
+        glTextureSubImage2D(texture, 0, 0, 0, bitmap_width, bitmap_height, GL_RED, GL_UNSIGNED_BYTE, tex_data.data());
+
+        glyph.texture = texture;
+        glyph.uv = {0.0f, 0.0f, (f32)bitmap_width / (f32)font_texture_width, (f32)bitmap_height / (f32)font_texture_height};
+        // Flip uv because of OpenGL's flipped vertical axis.
+        // glyph.uv.top = 1.0f - glyph.uv.top;
+        // glyph.uv.bottom = 1.0f - glyph.uv.bottom;
+        atlas->glyphs.emplace(codepoint, glyph);
+        return glyph;
+    }
+
+    atl::Vector<Glyph> render_text(Font_Face* const face, Font_Render_Info const info, atl::String_View const string) {
+        i64 const text_size = unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), nullptr) / sizeof(char32);
+        atl::Vector<char32> text_utf32{atl::reserve, text_size};
+        text_utf32.force_size(text_size);
+        unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), text_utf32.data());
+        // TODO: Layout via HarfBuzz.
+        atl::Vector<Glyph> glyphs(atl::reserve, text_size);
+        for(char32 const c: text_utf32) {
+            // TODO: Handle space, ignore newline
+            // Omit all null-terminators because they rasterize to missing character (empty rectangle, etc).
+            if(c != U'\0' && c != U'\n' && c != U' ') {
+                Glyph const glyph = rasterize_glyph(*font_lib, face, info, c);
+                glyphs.emplace_back(glyph);
+            }
+        }
+        return glyphs;
     }
 } // namespace anton_engine::rendering

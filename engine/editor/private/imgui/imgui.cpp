@@ -1430,10 +1430,10 @@ namespace anton_engine::imgui {
 
     static Vector2 compute_text_dimensions(atl::String_View const text, Font_Style const style, f32 const max_width, bool const ignore_newline) {
         rendering::Face_Metrics const face_metrics = rendering::get_face_metrics(style.face);
-        f32 const line_height = (f32)style.size * (f32)style.v_dpi / 72.0f * (f32)face_metrics.line_height / (f32)face_metrics.units_per_em;
-        rendering::Text_Metrics const space_metrics = rendering::compute_text_dimensions(style.face, {style.size, style.h_dpi, style.v_dpi}, u8" ");
-        f32 const space_width = (f32)space_metrics.width / 64.0f;
-        Vector2 text_dimensions = {0.0f, 0.0f};
+        f32 const size_px = (f32)rendering::points_to_pixels(style.size * 64, style.v_dpi) / 64.0f;
+        f32 const line_height = size_px * (f32)face_metrics.line_height / (f32)face_metrics.units_per_em;
+        f32 const space_width = (f32)rendering::compute_text_width(style.face, {style.size, style.h_dpi, style.v_dpi}, u8" ") / 64.0f;
+        Vector2 text_dimensions = {0.0f, size_px * (f32)face_metrics.glyph_y_max / (f32)face_metrics.units_per_em};
         f32 offset_x = 0;
         auto i = text.chars_begin();
         auto j = text.chars_begin();
@@ -1449,8 +1449,7 @@ namespace anton_engine::imgui {
                 // When i and j are unequal, we hit a whitespace preceded by a word.
                 if(i != j) {
                     atl::String_View const word{j, distance_to_end > 1 ? i : i + 1};
-                    rendering::Text_Metrics const metrics = rendering::compute_text_dimensions(style.face, {style.size, style.h_dpi, style.v_dpi}, word);
-                    f32 const word_width = (f32)metrics.width / 64.0f;
+                    f32 const word_width = (f32)rendering::compute_text_width(style.face, {style.size, style.h_dpi, style.v_dpi}, word) / 64.0f;
                     bool const empty_line = offset_x == 0.0f;
                     bool const overflows_line = offset_x + space_width + word_width > max_width;
                     bool const break_line = (!empty_line && overflows_line) || should_end_line;
@@ -1474,19 +1473,18 @@ namespace anton_engine::imgui {
         }
 
         text_dimensions.x = math::max(text_dimensions.x, offset_x);
-        text_dimensions.y += line_height;
+        text_dimensions.y -= size_px * (f32)face_metrics.glyph_y_min / (f32)face_metrics.units_per_em;
         return text_dimensions;
     }
 
     static void render_multiline_text(atl::String_View const text, Font_Style const style, Draw_Context& dc, Vector2 const base_draw_pos, f32 const max_width,
                                       bool const ignore_newline) {
         rendering::Face_Metrics const face_metrics = rendering::get_face_metrics(style.face);
-        // Max height above baseline
-        f32 const ascent = (f32)style.size * (f32)style.v_dpi / 72.0f * (f32)face_metrics.ascent / (f32)face_metrics.units_per_em;
-        f32 const line_height = (f32)style.size * (f32)style.v_dpi / 72.0f * (f32)face_metrics.line_height / (f32)face_metrics.units_per_em;
-        rendering::Text_Metrics const space_metrics = rendering::compute_text_dimensions(style.face, {style.size, style.h_dpi, style.v_dpi}, u8" ");
-        f32 const space_width = (f32)space_metrics.width / 64.0f;
-        Vector2 offset = {0.0f, 0.0f};
+        f32 const size_px = (f32)rendering::points_to_pixels(style.size * 64, style.v_dpi) / 64.0f;
+        f32 const line_height = size_px * (f32)(face_metrics.line_height) / (f32)face_metrics.units_per_em;
+        f32 const space_width = (f32)rendering::compute_text_width(style.face, {style.size, style.h_dpi, style.v_dpi}, u8" ") / 64.0f;
+        // We start at baseline.
+        Vector2 offset = {0.0f, size_px * (f32)face_metrics.glyph_y_max / (f32)face_metrics.units_per_em};
         auto i = text.chars_begin();
         auto j = text.chars_begin();
         auto end = text.chars_end();
@@ -1501,8 +1499,7 @@ namespace anton_engine::imgui {
                 // When i and j are unequal, we hit a whitespace preceded by a word.
                 if(i != j) {
                     atl::String_View const word{j, distance_to_end > 1 ? i : i + 1};
-                    rendering::Text_Metrics const metrics = rendering::compute_text_dimensions(style.face, {style.size, style.h_dpi, style.v_dpi}, word);
-                    f32 const word_width = (f32)metrics.width / 64.0f;
+                    f32 const word_width = (f32)rendering::compute_text_width(style.face, {style.size, style.h_dpi, style.v_dpi}, word) / 64.0f;
                     bool const empty_line = offset.x == 0.0f;
                     bool const overflows_line = offset.x + space_width + word_width > max_width;
                     bool const break_line = (!empty_line && overflows_line) || should_end_line;
@@ -1511,27 +1508,31 @@ namespace anton_engine::imgui {
                         offset.y += line_height;
                     }
 
-                    rendering::Text_Image const text_img = rendering::render_text(style.face, {style.size, style.h_dpi, style.v_dpi}, word);
-                    Vector2 const baseline_correction = {0.0f, ascent - (f32)text_img.baseline / 64.0f};
-                    Vector2 const draw_pos = base_draw_pos + offset + baseline_correction;
-                    Draw_Command text_cmd;
-                    text_cmd.texture = text_img.texture;
-                    text_cmd.element_count = 6;
-                    text_cmd.vertex_offset = dc.vertex_buffer.size();
-                    text_cmd.index_offset = dc.index_buffer.size();
-                    dc.draw_commands.emplace_back(text_cmd);
-                    f32 const text_width = text_img.width / 64;
-                    f32 const text_height = text_img.height / 64;
-                    dc.vertex_buffer.emplace_back(draw_pos, Vector2{0.0f, 1.0f}, Vertex::Color{0, 0, 0, 0});
-                    dc.vertex_buffer.emplace_back(draw_pos + Vector2{0.0f, text_height}, Vector2{0.0f, 0.0f}, Vertex::Color{0, 0, 0, 0});
-                    dc.vertex_buffer.emplace_back(draw_pos + Vector2{text_width, text_height}, Vector2{1.0f, 0.0f}, Vertex::Color{0, 0, 0, 0});
-                    dc.vertex_buffer.emplace_back(draw_pos + Vector2{text_width, 0.0f}, Vector2{1.0f, 1.0f}, Vertex::Color{0, 0, 0, 0});
-                    dc.index_buffer.emplace_back(0);
-                    dc.index_buffer.emplace_back(1);
-                    dc.index_buffer.emplace_back(2);
-                    dc.index_buffer.emplace_back(0);
-                    dc.index_buffer.emplace_back(2);
-                    dc.index_buffer.emplace_back(3);
+                    atl::Vector<rendering::Glyph> const glyphs = rendering::render_text(style.face, {style.size, style.h_dpi, style.v_dpi}, word);
+                    Vector2 pen_offset = {0.0f, 0.0f};
+                    for(rendering::Glyph const& glyph: glyphs) {
+                        Draw_Command text_cmd;
+                        text_cmd.texture = glyph.texture;
+                        text_cmd.element_count = 6;
+                        text_cmd.vertex_offset = dc.vertex_buffer.size();
+                        text_cmd.index_offset = dc.index_buffer.size();
+                        dc.draw_commands.emplace_back(text_cmd);
+                        Vector2 const bearing_correction = {(f32)glyph.metrics.bearing_x / 64.0f, -(f32)glyph.metrics.bearing_y / 64.0f};
+                        Vector2 const draw_pos = base_draw_pos + offset + bearing_correction + pen_offset;
+                        Vector2 const glyph_dimensions = {(f32)glyph.metrics.width / 64.0f, (f32)glyph.metrics.height / 64.0f};
+                        Vertex::Color const color = Vertex::Color{0, 255, 120, 255};
+                        dc.vertex_buffer.emplace_back(draw_pos, Vector2{glyph.uv.left, glyph.uv.top}, color);
+                        dc.vertex_buffer.emplace_back(draw_pos + Vector2{0.0f, glyph_dimensions.y}, Vector2{glyph.uv.left, glyph.uv.bottom}, color);
+                        dc.vertex_buffer.emplace_back(draw_pos + glyph_dimensions, Vector2{glyph.uv.right, glyph.uv.bottom}, color);
+                        dc.vertex_buffer.emplace_back(draw_pos + Vector2{glyph_dimensions.x, 0.0f}, Vector2{glyph.uv.right, glyph.uv.top}, color);
+                        dc.index_buffer.emplace_back(0);
+                        dc.index_buffer.emplace_back(1);
+                        dc.index_buffer.emplace_back(2);
+                        dc.index_buffer.emplace_back(0);
+                        dc.index_buffer.emplace_back(2);
+                        dc.index_buffer.emplace_back(3);
+                        pen_offset.x += (f32)glyph.metrics.advance / 64.0f;
+                    }
 
                     offset.x += word_width;
                     if(!break_line) {
