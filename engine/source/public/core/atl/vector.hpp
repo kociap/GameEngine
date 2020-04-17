@@ -379,7 +379,7 @@ namespace anton_engine::atl {
     template<typename T, typename Allocator>
     void Vector<T, Allocator>::insert(size_type const position, value_type const& value) {
         if constexpr(ANTON_ITERATOR_DEBUG) {
-            ANTON_FAIL(position < _size && position >= 0, "Index out of bounds.");
+            ANTON_FAIL(position <= _size && position >= 0, "Index out of bounds.");
         }
 
         if(_size == _capacity || position != _size) {
@@ -420,7 +420,7 @@ namespace anton_engine::atl {
     template<typename Input_Iterator>
     void Vector<T, Allocator>::insert(size_type position, Input_Iterator first, Input_Iterator last) {
         if constexpr(ANTON_ITERATOR_DEBUG) {
-            ANTON_FAIL(position < _size && position >= 0, "Index out of bounds.");
+            ANTON_FAIL(position <= _size && position >= 0, "Index out of bounds.");
         }
 
         // TODO: Distance and actual support for input iterators.
@@ -471,7 +471,7 @@ namespace anton_engine::atl {
     template<typename T, typename Allocator>
     void Vector<T, Allocator>::insert_unsorted(const_iterator position, value_type const& value) {
         if constexpr(ANTON_ITERATOR_DEBUG) {
-            ANTON_FAIL(position < _size && position >= 0, "Index out of bounds.");
+            ANTON_FAIL(position <= _size && position >= 0, "Index out of bounds.");
         }
 
         ensure_capacity(_size + 1);

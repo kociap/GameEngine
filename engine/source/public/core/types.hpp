@@ -29,6 +29,14 @@ namespace anton_engine {
         i32 right;
         i32 bottom;
     };
+
+    class Rect_f32 {
+    public:
+        f32 left;
+        f32 top;
+        f32 right;
+        f32 bottom;
+    };
 } // namespace anton_engine
 
 #endif // !CORE_TYPES_HPP_INCLUDE
