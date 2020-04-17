@@ -2,11 +2,11 @@
 #define CORE_ATL_STRING_VIEW_HPP_INCLUDE
 
 #include <build_config.hpp>
-#include <core/hashing/murmurhash2.hpp>
 #include <core/atl/detail/string_common.hpp>
 #include <core/atl/iterators.hpp>
 #include <core/atl/string_utils.hpp>
 #include <core/atl/utility.hpp>
+#include <core/hashing/murmurhash2.hpp>
 #include <core/types.hpp>
 
 namespace anton_engine::atl {
@@ -56,11 +56,11 @@ namespace anton_engine::atl {
 
     // Compares bytes
     [[nodiscard]] constexpr bool operator==(String_View const& lhs, String_View const& rhs) {
-        if (lhs.size_bytes() != rhs.size_bytes()) {
+        if(lhs.size_bytes() != rhs.size_bytes()) {
             return false;
         }
 
-        return compare_equal(lhs.data(), rhs.data());
+        return compare_equal(lhs.data(), rhs.data(), lhs.size_bytes());
     }
 
     // Compares bytes
@@ -69,17 +69,17 @@ namespace anton_engine::atl {
     }
 
     constexpr u64 hash(String_View const view) {
-        return anton_engine::murmurhash2_64(view.bytes_begin(), view.size_bytes(), 0x1F0D3804);
+        return anton_engine::murmurhash2_64(view.bytes_begin(), view.size_bytes());
     }
 
     constexpr i64 find_substring(atl::String_View string, atl::String_View substr);
 } // namespace anton_engine::atl
 
 namespace std {
-    template <typename T>
+    template<typename T>
     struct hash;
 
-    template <>
+    template<>
     struct hash<anton_engine::atl::String_View> {
         anton_engine::u64 operator()(anton_engine::atl::String_View const view) const {
             return anton_engine::atl::hash(view);
@@ -91,30 +91,29 @@ namespace anton_engine::atl {
     constexpr String_View::String_View(): _begin(nullptr), _end(nullptr) {}
 
     constexpr String_View::String_View(value_type const* s): _begin(s), _end(s) {
-        if (_begin != nullptr) {
-            while (*_end)
+        if(_begin != nullptr) {
+            while(*_end)
                 ++_end;
         }
 
-        if constexpr (ANTON_STRING_VIEW_VERIFY_ENCODING) {
+        if constexpr(ANTON_STRING_VIEW_VERIFY_ENCODING) {
             // TODO: Implement
         }
     }
 
     constexpr String_View::String_View(value_type const* s, size_type n): _begin(s), _end(s + n) {
-        if constexpr (ANTON_STRING_VIEW_VERIFY_ENCODING) {
+        if constexpr(ANTON_STRING_VIEW_VERIFY_ENCODING) {
             // TODO: Implement
         }
     }
 
     constexpr String_View::String_View(value_type const* first, value_type const* last): _begin(first), _end(last) {
-        if constexpr (ANTON_STRING_VIEW_VERIFY_ENCODING) {
+        if constexpr(ANTON_STRING_VIEW_VERIFY_ENCODING) {
             // TODO: Implement
         }
     }
 
-    inline String_View::String_View(char_iterator first, char_iterator last): 
-        _begin(first.get_underlying_pointer()), _end(last.get_underlying_pointer()) {}
+    inline String_View::String_View(char_iterator first, char_iterator last): _begin(first.get_underlying_pointer()), _end(last.get_underlying_pointer()) {}
 
     inline /* constexpr */ auto String_View::bytes() const -> UTF8_Const_Bytes {
         return {_begin, _end};

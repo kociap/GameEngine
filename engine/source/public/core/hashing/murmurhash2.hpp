@@ -18,11 +18,19 @@ namespace anton_engine {
     // 1. It will not work incrementally.
     // 2. It will not produce the same results on little-endian and big-endian
     //    machines.
-    // 
-    // len - size of the data pointed to by key in bytes.
     //
-    constexpr u32 murmurhash2_32(void const* key, i32 len, u32 seed) {
-        #define mmix(h,k) { k *= m; k ^= k >> r; k *= m; h *= m; h ^= k; }
+    // len - size of the data pointed to by key in bytes.
+    // seed - 0x7FBD4396 is the value use by https://github.com/aappleby/smhasher
+    //
+    constexpr u32 murmurhash2_32(void const* key, i32 len, u32 seed = 0x7FBD4396) {
+#define mmix(h, k)   \
+    {                \
+        k *= m;      \
+        k ^= k >> r; \
+        k *= m;      \
+        h *= m;      \
+        h ^= k;      \
+    }
 
         // 'm' and 'r' are mixing constants generated offline.
         // They're not really 'magic', they just happen to work well.
@@ -39,7 +47,7 @@ namespace anton_engine {
         while(len >= 4) {
             u32 k = *(u32*)data;
 
-            mmix(h,k);
+            mmix(h, k);
 
             data += 4;
             len -= 4;
@@ -50,12 +58,12 @@ namespace anton_engine {
         // Handle the last few bytes of the input array
 
         switch(len) {
-            case 3: 
-                t ^= data[2] << 16;
-            case 2: 
-                t ^= data[1] << 8;
-            case 1: 
-                t ^= data[0];
+        case 3:
+            t ^= data[2] << 16;
+        case 2:
+            t ^= data[1] << 8;
+        case 1:
+            t ^= data[0];
         }
 
         mmix(h, t);
@@ -68,7 +76,7 @@ namespace anton_engine {
         h *= m;
         h ^= h >> 15;
 
-        #undef mmix
+#undef mmix
 
         return h;
     }
@@ -79,8 +87,9 @@ namespace anton_engine {
     // and endian-ness issues if used across multiple platforms.
     //
     // len - size of the data pointed to by key in bytes.
+    // seed - 0x1F0D3804 is the value use by https://github.com/aappleby/smhasher
     //
-    constexpr u64 murmurhash2_64(void const* key, i64 len, u64 seed) {
+    constexpr u64 murmurhash2_64(void const* key, i64 len, u64 seed = 0x1F0D3804) {
         u64 const m = 0xc6a4a7935bd1e995;
         i64 const r = 47;
 
@@ -89,7 +98,7 @@ namespace anton_engine {
         u64 const* data = (u64 const*)key;
         u64 const* end = data + (len / 8);
 
-        while (data != end) {
+        while(data != end) {
             u64 k = *data++;
 
             k *= m;
@@ -102,7 +111,7 @@ namespace anton_engine {
 
         unsigned char const* data2 = (unsigned char const*)data;
 
-        switch (len & 7) {
+        switch(len & 7) {
         case 7:
             h ^= u64(data2[6]) << 48;
         case 6:
