@@ -210,17 +210,6 @@ namespace anton_engine::rendering {
         return width;
     }
 
-    static void flip_texture(atl::Slice<u8> tex, i64 const width, i64 const height) {
-        i64 const rows_half = height / 2;
-        for(i64 i = 0; i < rows_half; ++i) {
-            i64 bottom_row_off = i * width;
-            i64 top_row_off = (height - i - 1) * width;
-            for(i64 j = 0; j < width; ++j) {
-                atl::swap(tex[bottom_row_off + j], tex[top_row_off + j]);
-            }
-        }
-    }
-
     // Does not handle null-terminator or other zero-width characters.
     //
     static Glyph rasterize_glyph(Font_Library& lib, Font_Face* const _face, Font_Render_Info const info, char32 const codepoint) {
