@@ -1,9 +1,9 @@
 #ifndef WINDOWING_WINDOW_HPP_INCLUDE
 #define WINDOWING_WINDOW_HPP_INCLUDE
 
+#include <core/math/vector2.hpp>
 #include <core/types.hpp>
 #include <engine/key.hpp>
-#include <core/math/vector2.hpp>
 
 namespace anton_engine::windowing {
     class Window;
@@ -34,7 +34,7 @@ namespace anton_engine::windowing {
     Window* create_window(f32 width, f32 height, bool decorated);
     void destroy_window(Window*);
 
-    void clip_cursor(Window*, Rect const*);
+    void clip_cursor(Window*, Rect_i32 const*);
     void lock_cursor(Window*);
     void unlock_cursor(Window*);
     void set_cursor(Window* window, Cursor* cursor);

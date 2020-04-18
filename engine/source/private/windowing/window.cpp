@@ -2,10 +2,10 @@
 
 #include <core/anton_crt.hpp>
 #include <core/assert.hpp>
+#include <core/atl/fixed_array.hpp>
 #include <core/atl/vector.hpp>
 #include <core/diagnostic_macros.hpp>
 #include <core/exception.hpp>
-#include <core/atl/fixed_array.hpp>
 
 #include <mimas/mimas_gl.h>
 
@@ -42,7 +42,7 @@ namespace anton_engine::windowing {
     static Windowing windowing;
 
     bool init() {
-        if (!mimas_init_with_gl()) {
+        if(!mimas_init_with_gl()) {
             return false;
         }
 
@@ -56,7 +56,7 @@ namespace anton_engine::windowing {
         windowing.callbacks.joystick = nullptr;
         windowing.callbacks.joystick_data = nullptr;
 
-        for (Window* window: windowing.windows) {
+        for(Window* window: windowing.windows) {
             destroy_window(window);
         }
 
@@ -75,7 +75,7 @@ namespace anton_engine::windowing {
         mimas_fullscreen_window(window->mimas_window, reinterpret_cast<Mimas_Display*>(display));
     }
 
-    void _window_activate_callback(Mimas_Window* const, mimas_i32 const activated, void* const data){
+    void _window_activate_callback(Mimas_Window* const, mimas_i32 const activated, void* const data) {
         Window* const window = reinterpret_cast<Window*>(data);
         window->active = activated;
         if(window->callbacks.window_activate) {
@@ -309,7 +309,7 @@ namespace anton_engine::windowing {
         return mimas_get_key(key);
     }
 
-    void _window_key_callback(Mimas_Window* const, Mimas_Key const key, Mimas_Key_Action const action, void* data){
+    void _window_key_callback(Mimas_Window* const, Mimas_Key const key, Mimas_Key_Action const action, void* data) {
         static atl::Fixed_Array<Key, 256> key_map = create_mimas_to_key_map();
         Key const mapped_key = key_map[key];
         Window* const window = reinterpret_cast<Window*>(data);
@@ -334,13 +334,13 @@ namespace anton_engine::windowing {
         }
     }
 
-    void _cursor_callback(Mimas_Window* const, mimas_i32 const x, mimas_i32 const y, void* data){
+    void _cursor_callback(Mimas_Window* const, mimas_i32 const x, mimas_i32 const y, void* data) {
         Window* const window = reinterpret_cast<Window*>(data);
         if(window->callbacks.cursor_pos) {
             window->callbacks.cursor_pos(window, x, y, window->callbacks.cursor_pos_data);
         }
     }
-    
+
     Window* create_window(f32 const width, f32 const height, bool const decorated) {
         ANTON_ASSERT(width > 0 && height > 0, "Window dimensions may not be 0");
 
@@ -350,7 +350,7 @@ namespace anton_engine::windowing {
         info.title = "GameEngine";
         info.decorated = decorated;
         Mimas_Window* const mimas_window = mimas_create_window(info);
-        if (mimas_window) {
+        if(mimas_window) {
             mimas_show_window(mimas_window);
             Window* window = new Window;
             window->mimas_window = mimas_window;
@@ -367,8 +367,8 @@ namespace anton_engine::windowing {
     }
 
     void destroy_window(Window* const window) {
-        for (i64 i = 0; i < windowing.windows.size(); ++i) {
-            if (windowing.windows[i] == window) {
+        for(i64 i = 0; i < windowing.windows.size(); ++i) {
+            if(windowing.windows[i] == window) {
                 windowing.windows.erase_unsorted_unchecked(i);
                 break;
             }
@@ -378,7 +378,7 @@ namespace anton_engine::windowing {
         delete window;
     }
 
-    void clip_cursor(Window* window, Rect const* rect) {
+    void clip_cursor(Window* window, Rect_i32 const* rect) {
         mimas_clip_cursor(window->mimas_window, reinterpret_cast<Mimas_Rect const*>(rect));
     }
 
@@ -409,28 +409,28 @@ namespace anton_engine::windowing {
     }
 
     void set_window_activate_callback(Window* const window, window_activate_function const cb, void* const user_data) {
-        window->callbacks.window_activate =  cb;
+        window->callbacks.window_activate = cb;
         window->callbacks.window_activate_data = user_data;
     }
 
     void set_cursor_pos_callback(Window* const window, cursor_pos_function const cb, void* user_data) {
-        window->callbacks.cursor_pos =  cb;
-        window->callbacks.cursor_pos_data= user_data;
+        window->callbacks.cursor_pos = cb;
+        window->callbacks.cursor_pos_data = user_data;
     }
 
     void set_mouse_button_callback(Window* const window, mouse_button_function const cb, void* user_data) {
-        window->callbacks.mouse_button =  cb;
-        window->callbacks.mouse_button_data= user_data;
+        window->callbacks.mouse_button = cb;
+        window->callbacks.mouse_button_data = user_data;
     }
 
     void set_scroll_callback(Window* const window, scroll_function const cb, void* user_data) {
-        window->callbacks.scroll =  cb;
+        window->callbacks.scroll = cb;
         window->callbacks.scroll_data = user_data;
     }
 
     void set_key_callback(Window* const window, key_function const cb, void* user_data) {
-        window->callbacks.key =  cb;
-        window->callbacks.key_data= user_data;
+        window->callbacks.key = cb;
+        window->callbacks.key_data = user_data;
     }
 
     void set_joystick_callback(joystick_function const cb, void* user_data) {

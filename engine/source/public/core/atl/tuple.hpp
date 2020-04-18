@@ -6,37 +6,6 @@
 #include <core/types.hpp>
 
 namespace anton_engine::atl {
-    template<typename T, T... Integers>
-    struct Integer_Sequence {
-        using type = Integer_Sequence<T, Integers...>;
-    };
-
-    template<typename T, T... Integers>
-    using integer_sequence = Integer_Sequence<T, Integers...>;
-
-    namespace detail {
-        template<typename T, T, T, typename>
-        struct Make_Integer_Sequence;
-
-        template<typename T, T N, T X, T... Integers>
-        struct Make_Integer_Sequence<T, N, X, Integer_Sequence<T, Integers...>> {
-            using type = typename Make_Integer_Sequence<T, N, X + 1, Integer_Sequence<T, Integers..., X>>::type;
-        };
-
-        template<typename T, T N, T... Integers>
-        struct Make_Integer_Sequence<T, N, N, Integer_Sequence<T, Integers...>> {
-            using type = Integer_Sequence<T, Integers...>;
-        };
-    } // namespace detail
-
-    template<typename T, T N>
-    struct Make_Integer_Sequence {
-        using type = typename detail::Make_Integer_Sequence<T, N, 0, Integer_Sequence<T>>::type;
-    };
-
-    template<typename T, T N>
-    using make_integer_sequence = typename Make_Integer_Sequence<T, N>::type;
-
     namespace detail {
         template<u64 Index, typename Type>
         class Tuple_Child {
@@ -199,10 +168,10 @@ namespace std {
     template<typename... Types>
     struct tuple_size<anton_engine::atl::Tuple<Types...> const>: anton_engine::atl::Tuple_Size<anton_engine::atl::Tuple<Types...> const> {};
 
-    template<unsigned long long I, typename... Types>
+    template<anton_engine::usize I, typename... Types>
     struct tuple_element<I, anton_engine::atl::Tuple<Types...>>: anton_engine::atl::Tuple_Element<I, anton_engine::atl::Tuple<Types...>> {};
 
-    template<unsigned long long I, typename... Types>
+    template<anton_engine::usize I, typename... Types>
     struct tuple_element<I, anton_engine::atl::Tuple<Types...> const>: anton_engine::atl::Tuple_Element<I, anton_engine::atl::Tuple<Types...> const> {};
 } // namespace std
 
