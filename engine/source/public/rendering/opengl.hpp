@@ -2,10 +2,10 @@
 #define RENDERER_OPENGL_HPP_INCLUDE
 
 #include <build_config.hpp>
-#include <core/types.hpp>
 #include <core/color.hpp>
-#include <rendering/opengl_enums_defs.hpp>
+#include <core/types.hpp>
 #include <core/utils/enum.hpp>
+#include <rendering/opengl_enums_defs.hpp>
 
 namespace anton_engine::opengl {
     enum class Sized_Internal_Format : u32 {
@@ -132,7 +132,7 @@ namespace anton_engine::opengl {
     constexpr Buffer_Mask depth_buffer_bit = Buffer_Mask::depth_buffer_bit;
     constexpr Buffer_Mask stencil_buffer_bit = Buffer_Mask::stencil_buffer_bit;
 
-    enum class Shader_Type : u32 {
+    enum class Shader_Stage_Type : u32 {
         vertex_shader = GL_VERTEX_SHADER,
         fragment_shader = GL_FRAGMENT_SHADER,
         geometry_shader = GL_GEOMETRY_SHADER,
@@ -162,9 +162,9 @@ namespace anton_engine::opengl {
 
 #if ANTON_DEBUG
     void _check_gl_errors();
-#   define ANTON_CHECK_GL_ERRORS() ::anton_engine::opengl::_check_gl_errors()
+#    define ANTON_CHECK_GL_ERRORS() ::anton_engine::opengl::_check_gl_errors()
 #else
-#   define ANTON_CHECK_GL_ERRORS() ((void)0)
+#    define ANTON_CHECK_GL_ERRORS() ((void)0)
 #endif // ANTON_DEBUG
 
     // Notes:
@@ -172,17 +172,17 @@ namespace anton_engine::opengl {
 } // namespace anton_engine::opengl
 
 namespace anton_engine {
-    template <>
+    template<>
     struct utils::enable_enum_add_operator<opengl::Attachment> {
         static constexpr bool value = true;
     };
 
-    template <>
+    template<>
     struct utils::enable_enum_bitwise_or<opengl::Buffer_Mask> {
         static constexpr bool value = true;
     };
 
-    template <>
+    template<>
     struct utils::enable_enum_bitwise_and<opengl::Buffer_Mask> {
         static constexpr bool value = true;
     };

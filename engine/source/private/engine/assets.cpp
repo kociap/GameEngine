@@ -2,23 +2,23 @@
 
 #include <rendering/glad.hpp>
 
-#include <core/anton_crt.hpp>
-#include <core/types.hpp>
-#include <core/atl/vector.hpp>
 #include <build_config.hpp>
-#include <core/math/vector3.hpp>
-#include <engine/mesh.hpp>
-#include <rendering/opengl.hpp>
-#include <core/paths.hpp>
-#include <shaders/shader.hpp>
-#include <rendering/texture_format.hpp>
+#include <core/anton_crt.hpp>
+#include <core/atl/vector.hpp>
 #include <core/exception.hpp>
 #include <core/filesystem.hpp>
+#include <core/math/vector3.hpp>
+#include <core/paths.hpp>
+#include <core/types.hpp>
+#include <engine/mesh.hpp>
+#include <rendering/opengl.hpp>
+#include <rendering/texture_format.hpp>
+#include <shaders/shader.hpp>
 
 namespace anton_engine::assets {
     atl::String read_file_raw_string(atl::String_View const path) {
         FILE* const file = fopen(path.data(), "r");
-        if (!file) {
+        if(!file) {
             atl::String error_msg{u8"Could not open file "};
             error_msg.append(path);
             throw Exception(error_msg);
@@ -32,31 +32,31 @@ namespace anton_engine::assets {
         return out;
     }
 
-    opengl::Shader_Type shader_type_from_filename(atl::String_View const filename) {
+    opengl::Shader_Stage_Type shader_stage_type_from_filename(atl::String_View const filename) {
         atl::String_View const ext = fs::get_extension(filename);
-        if (ext == u8".vert") {
-            return opengl::Shader_Type::vertex_shader;
-        } else if (ext == u8".frag") {
-            return opengl::Shader_Type::fragment_shader;
-        } else if (ext == u8".geom") {
-            return opengl::Shader_Type::geometry_shader;
-        } else if (ext == u8".comp") {
-            return opengl::Shader_Type::compute_shader;
-        } else if (ext == u8".tese") {
-            return opengl::Shader_Type::tessellation_evaluation_shader;
-        } else if (ext == u8".tesc") {
-            return opengl::Shader_Type::tessellation_control_shader;
+        if(ext == u8".vert") {
+            return opengl::Shader_Stage_Type::vertex_shader;
+        } else if(ext == u8".frag") {
+            return opengl::Shader_Stage_Type::fragment_shader;
+        } else if(ext == u8".geom") {
+            return opengl::Shader_Stage_Type::geometry_shader;
+        } else if(ext == u8".comp") {
+            return opengl::Shader_Stage_Type::compute_shader;
+        } else if(ext == u8".tese") {
+            return opengl::Shader_Stage_Type::tessellation_evaluation_shader;
+        } else if(ext == u8".tesc") {
+            return opengl::Shader_Stage_Type::tessellation_control_shader;
         } else {
             throw Exception(u8"\"" + ext + u8"\" is not a known shader file extension");
         }
     }
 
-    Shader_File load_shader_file(atl::String_View const path) {
+    Shader_Stage load_shader_stage(atl::String_View const path) {
         // TODO: Will not compile in shipping build.
         atl::String const full_path = fs::concat_paths(paths::shaders_directory(), path);
         atl::String const shader_source = read_file_raw_string(full_path);
-        opengl::Shader_Type const type = shader_type_from_filename(path);
-        return Shader_File(path, type, shader_source);
+        opengl::Shader_Stage_Type const type = shader_stage_type_from_filename(path);
+        return Shader_Stage(path, type, shader_source);
     }
 
     static u8 read_uint8(FILE* stream) {
@@ -90,10 +90,10 @@ namespace anton_engine::assets {
         atl::String const texture_path = fs::concat_paths(paths::assets_directory(), filename_ext);
         // TODO texture loading
         FILE* file = fopen(texture_path.data(), "rb");
-        while (file && !feof(file)) {
+        while(file && !feof(file)) {
             [[maybe_unused]] i64 const texture_data_size = read_int64_le(file);
             u64 const tex_id = read_uint64_le(file);
-            if (tex_id == texture_id) {
+            if(tex_id == texture_id) {
                 Texture_Format format;
                 fread(reinterpret_cast<char*>(&format), sizeof(Texture_Format), 1, file);
                 i64 const texture_size_bytes = read_int64_le(file);
@@ -119,9 +119,9 @@ namespace anton_engine::assets {
         atl::String asset_path = fs::concat_paths(paths::assets_directory(), filename_no_ext);
         asset_path.append(u8".mesh");
         FILE* file = fopen(asset_path.data(), "rb");
-        while (file) {
+        while(file) {
             u64 const extracted_guid = read_uint64_le(file);
-            if (extracted_guid != guid) {
+            if(extracted_guid != guid) {
                 i64 const vertex_count = read_int64_le(file);
                 fseek(file, vertex_count * sizeof(Vertex), SEEK_CUR);
                 i64 const index_count = read_int64_le(file);

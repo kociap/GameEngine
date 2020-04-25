@@ -480,16 +480,16 @@ namespace anton_engine {
         // }
 
 #ifdef RENDER_CUBES
-        auto basic_frag = assets::load_shader_file("basicfrag.2.frag");
+        auto basic_frag = assets::load_shader_stage("basicfrag.2.frag");
 #else
-        auto basic_frag = assets::load_shader_file("basicfrag.frag");
+        auto basic_frag = assets::load_shader_stage("basicfrag.frag");
 #endif
-        auto basic_vert = assets::load_shader_file("basicvertex.vert");
+        auto basic_vert = assets::load_shader_stage("basicvertex.vert");
         Shader default_shader = create_shader(basic_vert, basic_frag);
         Handle<Shader> default_shader_handle = shader_manager->add(atl::move(default_shader));
 
-        auto unlit_vert = assets::load_shader_file("unlit_default.vert");
-        auto unlit_frag = assets::load_shader_file("unlit_default.frag");
+        auto unlit_vert = assets::load_shader_stage("unlit_default.vert");
+        auto unlit_frag = assets::load_shader_stage("unlit_default.frag");
         Shader unlit_default_shader = create_shader(unlit_vert, unlit_frag);
         [[maybe_unused]] Handle<Shader> unlit_default_shader_handle = shader_manager->add(atl::move(unlit_default_shader));
 

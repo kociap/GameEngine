@@ -28,7 +28,7 @@
 #include <rendering/glad.hpp>
 #include <rendering/renderer.hpp>
 #include <shaders/builtin_shaders.hpp>
-#include <shaders/shader_file.hpp>
+#include <shaders/shader_stage.hpp>
 
 #include <imgui/imgui.hpp>
 #include <rendering/builtin_editor_shaders.hpp>

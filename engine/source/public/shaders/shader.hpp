@@ -1,18 +1,18 @@
 #ifndef SHADERS_SHADER_HPP_INCLUDE
 #define SHADERS_SHADER_HPP_INCLUDE
 
-#include <core/types.hpp>
+#include <core/atl/flat_hash_map.hpp>
 #include <core/atl/string_view.hpp>
 #include <core/atl/type_traits.hpp>
-#include <core/atl/flat_hash_map.hpp>
 #include <core/math/vector2.hpp>
 #include <core/math/vector3.hpp>
+#include <core/types.hpp>
 
 namespace anton_engine {
     class Vector3;
     class Color;
     class Matrix4;
-    class Shader_File;
+    class Shader_Stage;
 
     class Shader {
     public:
@@ -23,10 +23,10 @@ namespace anton_engine {
         Shader& operator=(Shader&&) noexcept;
         ~Shader();
 
-        void attach(Shader_File const& shader);
+        void attach(Shader_Stage const& shader);
         void link();
         void use();
-        void detach(Shader_File const&);
+        void detach(Shader_Stage const&);
 
         void set_int(atl::String_View, i32);
         void set_uint(atl::String_View, u32);
@@ -49,9 +49,9 @@ namespace anton_engine {
         u32 program = 0;
     };
 
-    template <typename... Ts>
+    template<typename... Ts>
     auto create_shader(Ts const&... shaders) {
-        static_assert((... && atl::is_same<Shader_File, atl::decay<Ts>>), "Passed arguments are not of Shader_File type");
+        static_assert((... && atl::is_same<Shader_Stage, atl::decay<Ts>>), "Passed arguments are not of Shader_Stage type");
         Shader shader;
         (shader.attach(shaders), ...);
         shader.link();
