@@ -1,18 +1,18 @@
 #include <core/atl/string.hpp>
 
 #include <build_config.hpp>
-#include <core/math/math.hpp>
-#include <core/serialization/archives/binary.hpp>
-#include <core/serialization/serialization.hpp>
+#include <core/anton_crt.hpp>
 #include <core/atl/detail/utility_common.hpp>
 #include <core/atl/memory.hpp>
 #include <core/atl/string_utils.hpp>
 #include <core/atl/type_traits.hpp>
+#include <core/math/math.hpp>
+#include <core/serialization/archives/binary.hpp>
+#include <core/serialization/serialization.hpp>
 #include <core/unicode/common.hpp>
-#include <core/anton_crt.hpp>
 
 // TODO: Replace with format.
-#include <stdio.h> // sprintf
+#include <stdio.h>  // sprintf
 #include <stdlib.h> // strtof
 
 namespace anton_engine::atl {
@@ -33,7 +33,7 @@ namespace anton_engine::atl {
 
     String::String(Reserve_Tag, size_type n): String(atl::reserve, n, allocator_type()) {}
 
-    String::String(Reserve_Tag, size_type n, allocator_type const&) {
+    String::String(Reserve_Tag, size_type n, allocator_type const& allocator): _allocator(allocator) {
         _capacity = math::max(_capacity - 1, n) + 1;
         _data = reinterpret_cast<value_type*>(_allocator.allocate(_capacity, alignof(value_type)));
         memset(_data, 0, _capacity);
@@ -43,7 +43,7 @@ namespace anton_engine::atl {
 
     String::String(value_type const* cstr, allocator_type const& allocator): _allocator(allocator) {
         _size = strlen(cstr);
-        if constexpr (ANTON_STRING_VERIFY_ENCODING) {
+        if constexpr(ANTON_STRING_VERIFY_ENCODING) {
             // TODO: Implement
         }
         _capacity = math::max(_capacity - 1, _size) + 1;
@@ -74,22 +74,20 @@ namespace anton_engine::atl {
 
     String::String(String const& other): String(other, allocator_type()) {}
 
-    String::String(String const& other, allocator_type const& allocator): _allocator(allocator) {
-        _size = other._size;
-        _capacity = other._capacity;
+    String::String(String const& other, allocator_type const& allocator): _allocator(allocator), _size(other._size), _capacity(other._capacity) {
         _data = reinterpret_cast<value_type*>(_allocator.allocate(_capacity, alignof(value_type)));
         memset(_data + _size, 0, _capacity - _size);
         atl::copy(other._data, other._data + other._size, _data);
     }
 
-    String::String(String&& other) noexcept: _allocator(atl::move(other._allocator)), _data(other._data), _size(other._size) {
+    String::String(String&& other) noexcept: _allocator(atl::move(other._allocator)), _data(other._data), _size(other._size), _capacity(other._capacity) {
         other._data = nullptr;
         other._size = 0;
         other._capacity = 0;
     }
 
     String::String(String&& other, allocator_type const& allocator): _allocator(allocator) {
-        if (_allocator == other._allocator) {
+        if(_allocator == other._allocator) {
             _data = other._data;
             other._data = nullptr;
             _capacity = other._capacity;
@@ -106,7 +104,7 @@ namespace anton_engine::atl {
     }
 
     String::~String() {
-        if (_data != nullptr) {
+        if(_data != nullptr) {
             _allocator.deallocate(_data, _capacity, alignof(value_type));
         }
     }
@@ -234,7 +232,7 @@ namespace anton_engine::atl {
 
     void String::append(char32 const c) {
         ensure_capacity(_size + 4);
-        i64 const bytes_written =  unicode::convert_utf32_to_utf8(&c, 4, _data + _size);
+        i64 const bytes_written = unicode::convert_utf32_to_utf8(&c, 4, _data + _size);
         _size += bytes_written;
     }
 
@@ -261,9 +259,9 @@ namespace anton_engine::atl {
     }
 
     void String::ensure_capacity(size_type requested_capacity) {
-        if (requested_capacity >= _capacity) {
+        if(requested_capacity >= _capacity) {
             size_type new_capacity = _capacity;
-            while (new_capacity <= requested_capacity) {
+            while(new_capacity <= requested_capacity) {
                 new_capacity *= 2;
             }
 
@@ -277,7 +275,7 @@ namespace anton_engine::atl {
     }
 
     void String::ensure_capacity_exact(size_type requested_capacity) {
-        if (requested_capacity > _capacity) {
+        if(requested_capacity > _capacity) {
             value_type* new_data = static_cast<value_type*>(_allocator.allocate(requested_capacity, alignof(value_type)));
             memset(new_data + _size, 0, requested_capacity - _size);
             atl::move(_data, _data + _size, new_data);
@@ -310,7 +308,7 @@ namespace anton_engine::atl {
     }
 
     bool operator==(String const& lhs, String const& rhs) {
-        if (lhs.size_bytes() != rhs.size_bytes()) {
+        if(lhs.size_bytes() != rhs.size_bytes()) {
             return false;
         }
 

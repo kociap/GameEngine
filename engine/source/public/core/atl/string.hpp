@@ -131,14 +131,6 @@ namespace anton_engine::atl {
     String& operator+=(String&, char32);
     String& operator+=(String&, String_View);
 
-    // Compares bytes
-    [[nodiscard]] bool operator==(String const&, String const&);
-
-    // Compares bytes
-    [[nodiscard]] inline bool operator!=(String const& lhs, String const& rhs) {
-        return !(lhs == rhs);
-    }
-
     [[nodiscard]] atl::String operator+(atl::String const& lhs, atl::String const& rhs);
     [[nodiscard]] atl::String operator+(atl::String_View, atl::String const&);
     [[nodiscard]] atl::String operator+(atl::String const&, atl::String_View);
