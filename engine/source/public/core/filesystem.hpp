@@ -1,20 +1,40 @@
 #ifndef CORE_FILESYSTEM_HPP_INCLUDE
 #define CORE_FILESYSTEM_HPP_INCLUDE
 
-#include <core/atl/string_view.hpp>
 #include <core/atl/string.hpp>
+#include <core/atl/string_view.hpp>
 #include <core/stream.hpp>
 
 namespace anton_engine::fs {
+    // normalize_path
+    //
+    atl::String normalize_path(atl::String_View path);
+
+    // concat_paths
+    // Concatenate paths with separator.
+    //
     atl::String concat_paths(atl::String_View path1, atl::String_View path2);
+
     atl::String_View remove_filename(atl::String_View path);
     atl::String_View remove_extension(atl::String_View path);
     atl::String_View get_filename(atl::String_View path);
     atl::String_View get_filename_no_extension(atl::String_View path);
     atl::String_View get_extension(atl::String_View path);
+
+    // get_directory_name
+    // Does not support paths using "file:".
+    //
     atl::String_View get_directory_name(atl::String_View path);
+
     bool has_extension(atl::String_View path);
     bool has_filename(atl::String_View path);
+    bool exists(atl::String_View path);
+
+    enum class Open_Mode {
+        // Has effect only on Windows. Makes all reading operations translate the \n\r sequences into \n.
+        // Opposite of std::ios_base::open_mode::binary.
+        windows_translate_newline,
+    };
 
     class Output_File_Stream: public Output_Stream {
     public:
@@ -39,7 +59,7 @@ namespace anton_engine::fs {
         virtual void put(char32) override;
         virtual void seek(Seek_Dir dir, i64 offset) override;
         virtual i64 tell() override;
-    
+
     private:
         void* _buffer;
     };

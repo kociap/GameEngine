@@ -2,7 +2,9 @@
 
 #include <core/anton_crt.hpp>
 #include <core/exception.hpp>
+
 #include <filesystem>
+#include <string_view>
 
 namespace anton_engine::fs {
     static atl::String fs_path_to_string(std::filesystem::path const& path) {
@@ -10,9 +12,14 @@ namespace anton_engine::fs {
         return {gen_str.data(), (i64)gen_str.size()};
     }
 
+    atl::String normalize_path(atl::String_View const path) {
+        std::filesystem::path p(std::string_view(path.data(), path.size_bytes()));
+        return fs_path_to_string(p);
+    }
+
     atl::String concat_paths(atl::String_View const lhs, atl::String_View const rhs) {
-        std::filesystem::path a(lhs.data());
-        std::filesystem::path b(rhs.data());
+        std::filesystem::path a(std::string_view(lhs.data(), lhs.size_bytes()));
+        std::filesystem::path b(std::string_view(rhs.data(), rhs.size_bytes()));
         a /= b;
         return fs_path_to_string(a);
     }
@@ -70,6 +77,14 @@ namespace anton_engine::fs {
     }
 
     atl::String_View get_directory_name(atl::String_View const path) {
+        // TODO: Doesn't correctly handle drives or path root
+        auto i = path.chars_end() - 1;
+        for(auto const begin = path.chars_begin() - 1; i != begin; --i) {
+            char32 const c = *i;
+            if(c == U'/' || c == U'\\') {
+                return {path.chars_begin(), i};
+            }
+        }
         return {};
     }
 
@@ -81,6 +96,11 @@ namespace anton_engine::fs {
     bool has_extension(atl::String_View const path) {
         atl::String_View const ext = get_extension(path);
         return ext.size_bytes();
+    }
+
+    bool exists(atl::String_View const path) {
+        std::filesystem::path a(std::string_view(path.data(), path.size_bytes()));
+        return std::filesystem::exists(a);
     }
 
     Input_File_Stream::Input_File_Stream(): _buffer(nullptr) {}
@@ -208,7 +228,7 @@ namespace anton_engine::fs {
     void Output_File_Stream::write(atl::Slice<u8 const> const buffer) {
         fwrite(buffer.data(), buffer.size(), 1, (FILE*)_buffer);
     }
-    
+
     void Output_File_Stream::write(atl::String_View const buffer) {
         fwrite(buffer.data(), buffer.size_bytes(), 1, (FILE*)_buffer);
     }
