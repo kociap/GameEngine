@@ -4,18 +4,16 @@
 #include <core/assert.hpp>
 #include <core/atl/flat_hash_map.hpp>
 #include <core/atl/string.hpp>
+#include <core/atl/vector.hpp>
 #include <core/logging.hpp>
 #include <core/math/math.hpp>
 #include <core/math/vector2.hpp>
 #include <core/paths.hpp>
-#include <core/utils/filesystem.hpp>
-#include <core/utils/simple_xml_parser.hpp>
-#include <engine/assets.hpp>
 #include <engine/time.hpp>
 
-#include <cctype>
-
-// TODO add support for multiple gamepads
+// TODO: Add support for multiple gamepads.
+// TODO: Fix any_key.
+// TODO: Clean up events.
 
 namespace anton_engine::input {
     struct Action_Mapping {
@@ -40,31 +38,31 @@ namespace anton_engine::input {
 
     struct Event {
         Key key;
-        float value;
+        f32 value;
 
-        Event(Key k, float v): key(k), value(v) {}
+        Event(Key k, f32 v): key(k), value(v) {}
     };
 
     struct Mouse_Event {
-        float mouse_x;
-        float mouse_y;
-        float wheel;
+        f32 mouse_x;
+        f32 mouse_y;
+        f32 wheel;
 
-        Mouse_Event(float m_x = 0.0f, float m_y = 0.0f, float w = 0.0f): mouse_x(m_x), mouse_y(m_y), wheel(w) {}
+        Mouse_Event(f32 m_x = 0.0f, f32 m_y = 0.0f, f32 w = 0.0f): mouse_x(m_x), mouse_y(m_y), wheel(w) {}
     };
 
     struct Gamepad_Event {
         i32 pad_index;
         Key key;
-        float value;
+        f32 value;
 
-        Gamepad_Event(i32 pad_inx, Key k, float val): pad_index(pad_inx), key(k), value(val) {}
+        Gamepad_Event(i32 pad_inx, Key k, f32 val): pad_index(pad_inx), key(k), value(val) {}
     };
 
     struct Axis {
         atl::String axis;
-        float value = 0.0f;
-        float raw_value = 0.0f;
+        f32 value = 0.0f;
+        f32 raw_value = 0.0f;
 
         Axis(atl::String_View const a): axis(a) {}
     };
@@ -100,7 +98,7 @@ namespace anton_engine::input {
     static bool use_radial_deadzone_for_gamepad_sticks = true;
 
     // TODO TEMPORARY hardcoded deadzone for gamepad sticks
-    static float gamepad_dead_zone = 0.25f;
+    static f32 gamepad_dead_zone = 0.25f;
 
     void add_gamepad_event(i32 const pad_index, Key const k, f32 const value) {
         if(is_gamepad_stick(k)) {
@@ -148,6 +146,32 @@ namespace anton_engine::input {
         wheel_key_state.value = wheel_key_state.raw_value = current_frame_mouse.wheel;
     }
 
+    // TODO: Radial dead zone makes axes never reach 1 (values are slightly less than 1, e.g. 0.99996).
+    [[nodiscard]] static Vector2 apply_deadzone(Vector2 const stick, f32 const deadzone, bool const use_radial) {
+        if(use_radial) {
+            f32 const stick_length = math::min(math::length(stick), 1.0f);
+            if(stick_length > deadzone) {
+                return math::normalize(stick) * (stick_length - deadzone) / (1.0f - deadzone);
+            } else {
+                return Vector2{0.0f, 0.0f};
+            }
+        } else {
+            Vector2 out;
+            if(math::abs(stick.x) > deadzone) {
+                out.x = (stick.x - math::sign(stick.x) * deadzone) / (1.0f - deadzone);
+            } else {
+                out.x = 0.0f;
+            }
+
+            if(math::abs(stick.y) > deadzone) {
+                out.y = (stick.y - math::sign(stick.y) * deadzone) / (1.0f - deadzone);
+            } else {
+                out.y = 0.0f;
+            }
+            return out;
+        }
+    }
+
     static void process_gamepad_events() {
         Vector2 left_stick;
         Vector2 right_stick;
@@ -173,36 +197,8 @@ namespace anton_engine::input {
             }
         }
 
-        // TODO radial dead zone makes axes never reach 1 (values are slightly less than 1, e.g. 0.99996)
-
-        if(use_radial_deadzone_for_gamepad_sticks) { // Radial dead zone
-            float left_stick_length = math::min(math::length(left_stick), 1.0f);
-            if(left_stick_length > gamepad_dead_zone) {
-                left_stick = math::normalize(left_stick) * (left_stick_length - gamepad_dead_zone) / (1 - gamepad_dead_zone);
-            } else {
-                left_stick = Vector2{0.0f, 0.0f};
-            }
-
-            float right_stick_length = math::min(math::length(right_stick), 1.0f);
-            if(right_stick_length > gamepad_dead_zone) {
-                right_stick = math::normalize(right_stick) * (right_stick_length - gamepad_dead_zone) / (1 - gamepad_dead_zone);
-            } else {
-                right_stick = Vector2{0.0f, 0.0f};
-            }
-        } else { // Axial dead zone
-            auto apply_dead_zone = [](f32& value, f32 deadzone) -> void {
-                if(math::abs(value) > deadzone) {
-                    value = (value - math::sign(value) * deadzone) / (1 - deadzone);
-                } else {
-                    value = 0;
-                }
-            };
-
-            apply_dead_zone(left_stick.x, gamepad_dead_zone);
-            apply_dead_zone(left_stick.y, gamepad_dead_zone);
-            apply_dead_zone(right_stick.x, gamepad_dead_zone);
-            apply_dead_zone(right_stick.y, gamepad_dead_zone);
-        }
+        left_stick = apply_deadzone(left_stick, gamepad_dead_zone, use_radial_deadzone_for_gamepad_sticks);
+        right_stick = apply_deadzone(right_stick, gamepad_dead_zone, use_radial_deadzone_for_gamepad_sticks);
 
         left_stick_x_state.value = left_stick.x;
         left_stick_y_state.value = left_stick.y;
@@ -239,7 +235,7 @@ namespace anton_engine::input {
         }
         input_event_queue.clear();
 
-        float delta_time = get_delta_time();
+        f32 delta_time = get_delta_time();
         for(auto& mapping: axis_mappings) {
             Key_State const& key_state = key_states.find_or_emplace(mapping.key)->value;
             if(is_mouse_axis(mapping.key) || is_gamepad_axis(mapping.key)) {
@@ -248,12 +244,12 @@ namespace anton_engine::input {
                 mapping.value = math::sign(mapping.accumulation_speed) * mapping.raw_value_scale * key_state.value;
             } else {
                 mapping.raw_value = key_state.value;
-                float raw_scaled = mapping.raw_value_scale * mapping.raw_value;
+                f32 raw_scaled = mapping.raw_value_scale * mapping.raw_value;
                 if(mapping.snap && raw_scaled != 0 && math::sign(mapping.value) != math::sign(mapping.raw_value)) {
                     mapping.value = 0;
                 }
 
-                float value_delta = math::abs(mapping.accumulation_speed) * delta_time;
+                f32 value_delta = math::abs(mapping.accumulation_speed) * delta_time;
                 mapping.value = math::step_to_value(mapping.value, math::sign(mapping.accumulation_speed) * raw_scaled, value_delta);
             }
         }

@@ -158,9 +158,19 @@ namespace anton_engine {
         gamepad_button_19,
     };
 
-    bool is_mouse_axis(Key);
-    bool is_gamepad_axis(Key);
-    bool is_gamepad_stick(Key);
+    [[nodiscard]] inline bool is_mouse_axis(Key const k) {
+        return k == Key::mouse_x | k == Key::mouse_y | k == Key::mouse_scroll;
+    }
+
+    [[nodiscard]] inline bool is_gamepad_axis(Key const k) {
+        return k == Key::gamepad_right_stick_x_axis | k == Key::gamepad_right_stick_y_axis | k == Key::gamepad_left_stick_x_axis |
+               k == Key::gamepad_left_stick_y_axis | k == Key::gamepad_left_trigger | k == Key::gamepad_right_trigger;
+    }
+
+    [[nodiscard]] inline bool is_gamepad_stick(Key const k) {
+        return k == Key::gamepad_right_stick_x_axis | k == Key::gamepad_right_stick_y_axis | k == Key::gamepad_left_stick_x_axis |
+               k == Key::gamepad_left_stick_y_axis;
+    }
 
     atl::String_View key_to_string(Key);
     Key key_from_string(atl::String_View);

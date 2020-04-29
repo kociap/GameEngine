@@ -3,20 +3,6 @@
 #include <core/atl/flat_hash_map.hpp>
 
 namespace anton_engine {
-    bool is_mouse_axis(Key const k) {
-        return k == Key::mouse_x | k == Key::mouse_y | k == Key::mouse_scroll;
-    }
-
-    bool is_gamepad_axis(Key const k) {
-        return k == Key::gamepad_right_stick_x_axis | k == Key::gamepad_right_stick_y_axis | k == Key::gamepad_left_stick_x_axis |
-               k == Key::gamepad_left_stick_y_axis | k == Key::gamepad_left_trigger | k == Key::gamepad_right_trigger;
-    }
-
-    bool is_gamepad_stick(Key const k) {
-        return k == Key::gamepad_right_stick_x_axis | k == Key::gamepad_right_stick_y_axis | k == Key::gamepad_left_stick_x_axis |
-               k == Key::gamepad_left_stick_y_axis;
-    }
-
     static atl::Flat_Hash_Map<Key, atl::String_View> construct_key_string_map() {
         atl::Flat_Hash_Map<Key, atl::String_View> key_string(atl::reserve, 139);
         key_string.emplace(Key::none, "none");
