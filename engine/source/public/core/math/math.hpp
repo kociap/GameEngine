@@ -203,14 +203,13 @@ namespace anton_engine::math {
 
     // ilog2
     // Computes the floor of logarithm base 2 of v.
-    // Returns 0 for ilog2(0).
     //
     constexpr u32 ilog2(u32 const v) {
-        return 32 - clz(v);
+        return 32 - clz(v) - 1;
     }
 
     constexpr u64 ilog2(u64 const v) {
-        return 64 - clz(v);
+        return 64 - clz(v) - 1;
     }
 
     // ilog10
