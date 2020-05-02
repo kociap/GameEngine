@@ -43,6 +43,10 @@ namespace anton_engine::math {
         return ::sqrtf(a);
     }
 
+    inline f32 cbrt(f32 a) {
+        return ::cbrtf(a);
+    }
+
     inline f32 inv_sqrt(f32 a) {
         return 1 / sqrt(a);
     }
@@ -55,30 +59,74 @@ namespace anton_engine::math {
         return ::sinf(angle);
     }
 
+    inline f32 asin(f32 angle) {
+        return ::asinf(angle);
+    }
+
     inline f32 cos(f32 angle) {
         return ::cosf(angle);
+    }
+
+    inline f32 acos(f32 angle) {
+        return ::acosf(angle);
     }
 
     inline f32 tan(f32 angle) {
         return ::tanf(angle);
     }
 
-    template <typename T>
+    inline f32 atan(f32 angle) {
+        return ::atanf(angle);
+    }
+
+    inline f32 atan2(f32 y, f32 x) {
+        return ::atan2f(y, x);
+    }
+
+    // exp
+    // Calculate e^n
+    //
+    inline f32 exp(f32 n) {
+        return ::expf(n);
+    }
+
+    // log
+    // Compute natural logarithm (base-e).
+    //
+    inline f32 log(f32 v) {
+        return ::logf(v);
+    }
+
+    // log10
+    // Compute base-10 logarithm.
+    //
+    inline f32 log10(f32 v) {
+        return ::log10f(v);
+    }
+
+    // log2
+    // Compute base-2 logarithm.
+    //
+    inline f32 log2(f32 v) {
+        return ::log2f(v);
+    }
+
+    template<typename T>
     constexpr T abs(T a) {
         return a < T(0) ? -a : a;
     }
 
-    template <typename T>
+    template<typename T>
     constexpr T max(T a, T b) {
         return a > b ? a : b;
     }
 
-    template <typename T>
+    template<typename T>
     constexpr T min(T a, T b) {
         return a < b ? a : b;
     }
 
-    template <typename T>
+    template<typename T>
     constexpr T clamp(T x, T lower_limit, T upper_limit) {
         return min(max(x, lower_limit), upper_limit);
     }
@@ -102,7 +150,7 @@ namespace anton_engine::math {
 
     constexpr f32 step_to_value(f32 current, f32 target, f32 change) {
         f32 delta = target - current;
-        if (abs(delta) > change) {
+        if(abs(delta) > change) {
             return current + sign(delta) * change;
         } else {
             return target;
@@ -111,6 +159,7 @@ namespace anton_engine::math {
 
     // lerp
     // Computes the linear interpolation between a and b for the parameter t in the interval [0, 1].
+    //
     constexpr f32 lerp(f32 const a, f32 const b, f32 const t) {
         return (1.0f - t) * a + t * b;
     }

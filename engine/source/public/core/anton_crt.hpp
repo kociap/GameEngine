@@ -2,9 +2,11 @@
 #define CORE_ANTON_CRT_HPP_INCLUDE
 
 #if defined(_WIN64)
+    #define ANTON_NOEXCEPT
     #define ANTON_CRT_IMPORT __declspec(dllimport)
     #define size_t unsigned long long
 #else 
+    #define ANTON_NOEXCEPT noexcept
     #define ANTON_CRT_IMPORT
     #define size_t unsigned long int
 #endif
@@ -26,13 +28,22 @@ extern "C" {
 
     ANTON_CRT_IMPORT float powf(float, float);
     ANTON_CRT_IMPORT float sqrtf(float);
-    ANTON_CRT_IMPORT float sinf(float);
-    ANTON_CRT_IMPORT float cosf(float);
+    ANTON_CRT_IMPORT float cbrtf(float) ANTON_NOEXCEPT;
     ANTON_CRT_IMPORT float roundf(float);
     ANTON_CRT_IMPORT float floorf(float);
     ANTON_CRT_IMPORT float ceilf(float);
-    ANTON_CRT_IMPORT float tanf(float);
     ANTON_CRT_IMPORT float modff(float, float*);
+    ANTON_CRT_IMPORT float sinf(float) ANTON_NOEXCEPT;
+    ANTON_CRT_IMPORT float cosf(float) ANTON_NOEXCEPT;
+    ANTON_CRT_IMPORT float tanf(float) ANTON_NOEXCEPT;
+    ANTON_CRT_IMPORT float asinf(float) ANTON_NOEXCEPT;
+    ANTON_CRT_IMPORT float acosf(float) ANTON_NOEXCEPT;
+    ANTON_CRT_IMPORT float atanf(float) ANTON_NOEXCEPT;
+    ANTON_CRT_IMPORT float atan2f(float, float) ANTON_NOEXCEPT;
+    ANTON_CRT_IMPORT float expf(float) ANTON_NOEXCEPT;
+    ANTON_CRT_IMPORT float logf(float) ANTON_NOEXCEPT;
+    ANTON_CRT_IMPORT float log10f(float) ANTON_NOEXCEPT;
+    ANTON_CRT_IMPORT float log2f(float) ANTON_NOEXCEPT;
 
 
     // string.h

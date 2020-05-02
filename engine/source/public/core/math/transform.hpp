@@ -37,21 +37,21 @@ namespace anton_engine::math {
     }
 
     // scale
-    // Consturct a varying scale transformation matrix.
+    // Construct a varying scale transformation matrix.
     //
     inline Matrix4 scale(Vector3 scale) {
         return {{scale.x, 0, 0, 0}, {0, scale.y, 0, 0}, {0, 0, scale.z, 0}, {0, 0, 0, 1}};
     }
 
     // scale
-    // Consturct a uniform scale transformation matrix.
+    // Construct a uniform scale transformation matrix.
     //
     inline Matrix4 scale(f32 scale) {
         return {{scale, 0, 0, 0}, {0, scale, 0, 0}, {0, 0, scale, 0}, {0, 0, 0, 1}};
     }
 
     // orthographic_rh
-    //  Calculates orthographic projection matrix for right-handed coordinate system.
+    // Calculates orthographic projection matrix for right-handed coordinate system.
     //
     inline Matrix4 orthographic_rh(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
         return {{2.0f / (right - left), 0, 0, 0},
@@ -61,7 +61,7 @@ namespace anton_engine::math {
     }
 
     // orthographic_lh
-    //  Calculates orthographic projection matrix for left-handed coordinate system.
+    // Calculates orthographic projection matrix for left-handed coordinate system.
     //
     inline Matrix4 orthographic_lh(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
         return {{2.0f / (right - left), 0, 0, 0},

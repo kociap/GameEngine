@@ -66,6 +66,7 @@ namespace anton_engine {
             return {-q.x, -q.y, -q.z, q.w};
         }
 
+        // inverse
         // If quaternion is normalized, this function returns the same result as conjugate.
         //
         inline Quaternion inverse(Quaternion const& q) {

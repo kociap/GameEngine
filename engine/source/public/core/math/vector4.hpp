@@ -176,12 +176,16 @@ namespace anton_engine {
         // If vector is non-zero, returns normalized copy of the vector.
         // Otherwise returns zero vector.
         inline Vector4 normalize(Vector4 vec) {
-            if (!is_almost_zero(vec)) {
+            if(!is_almost_zero(vec)) {
                 f32 inverse_vec_length = math::inv_sqrt(length_squared(vec));
                 vec *= inverse_vec_length;
             }
 
             return vec;
+        }
+
+        inline Vector4 lerp(Vector4 const a, Vector4 const b, f32 const t) {
+            return (1.0f - t) * a + t * b;
         }
     } // namespace math
 
