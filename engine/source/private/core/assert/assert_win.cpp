@@ -10,10 +10,10 @@ ANTON_DISABLE_WARNINGS();
 #include <debugapi.h>
 ANTON_RESTORE_WARNINGS();
 
+#include <core/anton_crt.hpp>
 #include <core/atl/string.hpp>
 #include <core/atl/string_utils.hpp>
 #include <core/windows/debugging.hpp>
-#include <core/anton_crt.hpp>
 
 #include <new>
 #include <stdio.h>
@@ -35,10 +35,10 @@ namespace anton_engine {
         symbol_info.MaxNameLen = max_symbol_length + 1;
 
         atl::String call_stack(atl::reserve, 1024);
-        for (int i = 0; i < captured_frames; ++i) {
-            if (SymFromAddr(current_process, DWORD64(stack_trace[i]), nullptr, &symbol_info)) {
+        for(int i = 0; i < captured_frames; ++i) {
+            if(SymFromAddr(current_process, DWORD64(stack_trace[i]), nullptr, &symbol_info)) {
                 CHAR const* name = symbol_info.Name;
-                if (atl::compare_equal(name, u8"invoke_main")) {
+                if(atl::compare_equal(name, u8"invoke_main")) {
                     break;
                 }
 
@@ -47,9 +47,10 @@ namespace anton_engine {
 
                 IMAGEHLP_LINE64 image_line;
                 image_line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-                if (DWORD displacement = 0; SymGetLineFromAddr64(current_process, DWORD64(stack_trace[i]), &displacement, &image_line)) {
+                if(DWORD displacement = 0; SymGetLineFromAddr64(current_process, DWORD64(stack_trace[i]), &displacement, &image_line)) {
                     call_stack.append(u8" Line ");
-                    call_stack.append(atl::to_string(image_line.LineNumber));
+                    atl::String line_number = atl::to_string(image_line.LineNumber);
+                    call_stack.append(line_number);
                 }
             } else {
                 call_stack.append(atl::to_string(stack_trace[i]));
@@ -71,9 +72,9 @@ namespace anton_engine {
         fflush(stderr);
         dialog_text.append(u8"\nPress 'Retry' to break into debug mode.");
         int clicked_button = MessageBoxA(nullptr, dialog_text.data(), "Assertion Failed", MB_ABORTRETRYIGNORE | MB_TASKMODAL);
-        if (clicked_button == IDABORT) {
+        if(clicked_button == IDABORT) {
             TerminateProcess(current_process, 900);
-        } else if (clicked_button == IDRETRY) {
+        } else if(clicked_button == IDRETRY) {
             DebugBreak();
         }
 

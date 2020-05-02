@@ -37,7 +37,9 @@ namespace anton_engine::atl {
     public:
         String();
         explicit String(allocator_type const&);
+        // Reserve space to fit a string of length n and null-terminator.
         String(Reserve_Tag, size_type n);
+        // Reserve space to fit a string of length n and null-terminator.
         String(Reserve_Tag, size_type n, allocator_type const&);
         // Constructs String from null-terminated UTF-8 string
         // TODO: Consider making explicit

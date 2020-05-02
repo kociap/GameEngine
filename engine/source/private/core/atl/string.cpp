@@ -18,8 +18,8 @@
 namespace anton_engine::atl {
     String String::from_utf16(char16 const* str_utf16) {
         i32 const buffer_size = unicode::convert_utf16_to_utf8(str_utf16, -1, nullptr);
-        String str{atl::reserve, buffer_size};
-        str.force_size(buffer_size);
+        String str{atl::reserve, buffer_size - 1};
+        str.force_size(buffer_size - 1);
         unicode::convert_utf16_to_utf8(str_utf16, -1, str.data());
         return str;
     }
