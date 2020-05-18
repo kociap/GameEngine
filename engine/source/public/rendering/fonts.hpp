@@ -58,9 +58,9 @@ namespace anton_engine::rendering {
     class Glyph {
     public:
         Glyph_Metrics metrics;
-        // Handle to OpenGL texture.
-        u32 texture;
-        // uv coordinates of glyph in the texture.
+        // Handle a texture.
+        u64 texture;
+        // uv coordinates of the glyph in the texture.
         Rect_f32 uv;
     };
 
@@ -84,7 +84,7 @@ namespace anton_engine::rendering {
     // Returns:
     // Equialent size in pixels in 26.6 format (1/64 of a pixel precision).
     //
-    i32 points_to_pixels(i32 points, i32 dpi);
+    i64 points_to_pixels(i64 points, i64 dpi);
 
     Face_Metrics get_face_metrics(Font_Face* face);
     // Face_Metrics get_face_metrics_as_pixels(Font_Face* face, Font_Render_Info);
@@ -96,7 +96,7 @@ namespace anton_engine::rendering {
     // Returns:
     // Width of text drawn on a single line with specified face and info in 26.6 pixel format (1/64 of a pixel precision).
     //
-    i32 compute_text_width(Font_Face* face, Font_Render_Info info, atl::String_View text);
+    i64 compute_text_width(Font_Face* face, Font_Render_Info info, atl::String_View text);
 
     atl::Vector<Glyph> render_text(Font_Face* face, Font_Render_Info info, atl::String_View text);
 } // namespace anton_engine::rendering
