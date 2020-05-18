@@ -39,9 +39,6 @@
 
 #include <build_config.hpp>
 
-// For load_bindings
-#include <core/utils/simple_xml_parser.hpp>
-
 namespace anton_engine {
     static rendering::Renderer* renderer = nullptr;
     static ECS* ecs = nullptr;
@@ -54,62 +51,6 @@ namespace anton_engine {
     static Framebuffer* deferred_framebuffer = nullptr;
     static Framebuffer* postprocess_front = nullptr;
     static Framebuffer* postprocess_back = nullptr;
-
-    // TODO: Rework.
-    static void load_input_bindings() {
-        // TODO uses engine exe dir
-        atl::String const bindings_file_path = fs::concat_paths(paths::executable_directory(), u8"input_bindings.config");
-        atl::String const config_file = assets::read_file_raw_string(bindings_file_path);
-        {
-            auto find_property = [](auto& properties, auto predicate) -> atl::Vector<utils::xml::Tag_Property>::iterator {
-                auto end = properties.end();
-                for(auto iter = properties.begin(); iter != end; ++iter) {
-                    if(predicate(*iter)) {
-                        return iter;
-                    }
-                }
-                return end;
-            };
-
-            atl::Vector<utils::xml::Tag> tags(utils::xml::parse(config_file));
-            for(utils::xml::Tag& tag: tags) {
-                if(tag.name != "axis" && tag.name != "action") {
-                    ANTON_LOG_INFO("Unknown tag, skipping...");
-                    continue;
-                }
-
-                auto axis_prop = find_property(tag.properties, [](auto& property) { return property.name == "axis"; });
-                auto action_prop = find_property(tag.properties, [](auto& property) { return property.name == "action"; });
-                auto key_prop = find_property(tag.properties, [](auto& property) { return property.name == "key"; });
-                auto accumulation_speed_prop = find_property(tag.properties, [](auto& property) { return property.name == "scale"; });
-                auto sensitivity_prop = find_property(tag.properties, [](auto& property) { return property.name == "sensitivity"; });
-
-                if(axis_prop == tag.properties.end() && action_prop == tag.properties.end()) {
-                    ANTON_LOG_INFO("Missing action/axis property, skipping...");
-                    continue;
-                }
-                if(key_prop == tag.properties.end()) {
-                    ANTON_LOG_INFO("Missing key property, skipping...");
-                    continue;
-                }
-
-                if(axis_prop != tag.properties.end()) {
-                    if(sensitivity_prop == tag.properties.end()) {
-                        ANTON_LOG_INFO("Missing sensitivity property, skipping...");
-                        continue;
-                    }
-                    if(accumulation_speed_prop == tag.properties.end()) {
-                        ANTON_LOG_INFO("Missing scale property, skipping...");
-                        continue;
-                    }
-                    input::add_axis(axis_prop->value.data(), key_from_string(key_prop->value), atl::str_to_f32(sensitivity_prop->value),
-                                    atl::str_to_f32(accumulation_speed_prop->value), false);
-                } else {
-                    input::add_action(action_prop->value.data(), key_from_string(key_prop->value));
-                }
-            }
-        }
-    }
 
     // TODO: Forward decl. Remove.
     static void load_world();
@@ -202,7 +143,31 @@ namespace anton_engine {
         mesh_manager = new Resource_Manager<Mesh>();
         shader_manager = new Resource_Manager<Shader>();
         material_manager = new Resource_Manager<Material>();
-        load_input_bindings();
+
+        // TODO: Currently we manually add bindings, but they should be loaded from a file.
+        input::add_axis(u8"mouse_x", Key::mouse_x, 0.05f, 1.0f, false);
+        input::add_axis(u8"mouse_y", Key::mouse_y, 0.05f, 1.0f, false);
+        input::add_axis(u8"mouse_x", Key::gamepad_right_stick_x_axis, 1.0f, 1.0f, false);
+        input::add_axis(u8"mouse_y", Key::gamepad_right_stick_y_axis, 1.0f, -1.0f, false);
+        input::add_axis(u8"scroll", Key::mouse_scroll, 1.0f, 1.0f, false);
+        input::add_axis(u8"move_forward", Key::w, 1.0f, 5.0f, false);
+        input::add_axis(u8"move_forward", Key::s, 1.0f, -5.0f, false);
+        input::add_axis(u8"move_sideways", Key::d, 1.0f, 5.0f, false);
+        input::add_axis(u8"move_sideways", Key::a, 1.0f, -5.0f, false);
+        input::add_axis(u8"move_vertical", Key::e, 1.0f, 5.0f, false);
+        input::add_axis(u8"move_vertical", Key::q, 1.0f, -5.0f, false);
+        input::add_axis(u8"move_forward", Key::gamepad_left_stick_y_axis, 0.5f, -1.0f, false);
+        input::add_axis(u8"move_sideways", Key::gamepad_left_stick_x_axis, 0.5f, 1.0f, false);
+        input::add_axis(u8"move_vertical", Key::gamepad_right_trigger, 0.5f, 1.0f, false);
+        input::add_axis(u8"move_vertical", Key::gamepad_left_trigger, 0.5f, -1.0f, false);
+        input::add_action(u8"reload_shaders", Key::r);
+        input::add_action(u8"show_shadow_map", Key::t);
+        input::add_action(u8"swap_fxaa_shaders", Key::y);
+        input::add_action(u8"print_press", Key::f);
+        input::add_action(u8"print_press", Key::g);
+        input::add_action(u8"print_press", Key::h);
+        input::add_action(u8"capture_mouse", Key::u);
+
         ecs = new ECS();
 
         Vector2 const window_dims = windowing::get_window_size(main_window);
