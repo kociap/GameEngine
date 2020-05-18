@@ -14,11 +14,14 @@ namespace anton_engine::atl {
         return *lhs == u8'\0' && *rhs == u8'\0';
     }
 
+    // compare without care for nulls
+    // use this for views
     constexpr bool compare_equal(char8 const* lhs, char8 const* rhs, i64 length) {
-        for(; length > 0; --length, ++lhs, ++rhs) {
-            if(*lhs != *rhs) {
+        for(i64 i = 0; i < length; ++i) {
+            if(*lhs != *rhs)
                 return false;
-            }
+            ++lhs;
+            ++rhs;
         }
         return true;
     }

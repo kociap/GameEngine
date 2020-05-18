@@ -17,7 +17,7 @@ namespace anton_engine::atl {
 
     // Note: swap left unprefixed to allow ADL of user-defined swap specializations
     template<typename T, typename U>
-    struct Is_Swappable_With<T, U, void_trait<decltype(swap(declval<U&>(), declval<T&>())), decltype(swap(declval<T&>(), declval<U&>()))>>: True_Type {};
+    struct Is_Swappable_With<T, U, void_sink<decltype(swap(declval<U&>(), declval<T&>())), decltype(swap(declval<T&>(), declval<U&>()))>>: True_Type {};
 
     template<typename T, typename U>
     inline constexpr bool is_swappable_with = Is_Swappable_With<T, U>::value;

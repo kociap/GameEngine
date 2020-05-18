@@ -1,5 +1,4 @@
-#ifndef CORE_ANTON_CRT_HPP_INCLUDE
-#define CORE_ANTON_CRT_HPP_INCLUDE
+#pragma once
 
 #if defined(_WIN64)
     #define ANTON_NOEXCEPT
@@ -26,13 +25,13 @@ extern "C" {
 
     // math.h
 
-    ANTON_CRT_IMPORT float powf(float, float);
-    ANTON_CRT_IMPORT float sqrtf(float);
+    ANTON_CRT_IMPORT float powf(float, float) ANTON_NOEXCEPT;
+    ANTON_CRT_IMPORT float sqrtf(float) ANTON_NOEXCEPT;
     ANTON_CRT_IMPORT float cbrtf(float) ANTON_NOEXCEPT;
-    ANTON_CRT_IMPORT float roundf(float);
-    ANTON_CRT_IMPORT float floorf(float);
-    ANTON_CRT_IMPORT float ceilf(float);
-    ANTON_CRT_IMPORT float modff(float, float*);
+    ANTON_CRT_IMPORT float roundf(float) ANTON_NOEXCEPT;
+    ANTON_CRT_IMPORT float floorf(float) ANTON_NOEXCEPT;
+    ANTON_CRT_IMPORT float ceilf(float) ANTON_NOEXCEPT;
+    ANTON_CRT_IMPORT float modff(float, float*) ANTON_NOEXCEPT;
     ANTON_CRT_IMPORT float sinf(float) ANTON_NOEXCEPT;
     ANTON_CRT_IMPORT float cosf(float) ANTON_NOEXCEPT;
     ANTON_CRT_IMPORT float tanf(float) ANTON_NOEXCEPT;
@@ -55,6 +54,13 @@ extern "C" {
     int memcmp(void const* lhs, void const* rhs, size_t count);
 
     size_t strlen(char const* string);
+
+    // stdlib.h
+
+    ANTON_CRT_IMPORT float strtof(char const*, char**);
+    ANTON_CRT_IMPORT double strtod(char const*, char**);
+    ANTON_CRT_IMPORT long long strtoll(char const*, char**, int base);
+    ANTON_CRT_IMPORT unsigned long long strtoull(char const*, char**, int base);
 
     // stdio.h
 
@@ -129,5 +135,3 @@ void operator delete(void* ptr, void* place) noexcept;
 
 #undef ANTON_CRT_IMPORT
 #undef size_t
-
-#endif // !CORE_ANTON_CRT_HPP_INCLUDE

@@ -1,12 +1,14 @@
 #ifndef CORE_ATL_DETAIL_STRING_ITERATORS_HPP_INCLUDE
 #define CORE_ATL_DETAIL_STRING_ITERATORS_HPP_INCLUDE
 
-#include <core/types.hpp>
 #include <core/atl/iterators.hpp>
+#include <core/types.hpp>
 
 // TODO: constexpr
 
 namespace anton_engine::atl {
+    constexpr i64 npos = -1;
+
     class String;
     class String_View;
     class UTF8_Chars;
@@ -113,13 +115,13 @@ namespace anton_engine::atl {
     // This is a linear-time operation.
     [[nodiscard]] inline UTF8_Char_Iterator::difference_type operator-(UTF8_Char_Iterator const& lhs, UTF8_Char_Iterator rhs) {
         UTF8_Char_Iterator::difference_type difference = 0;
-        if (lhs < rhs) {
-            while (lhs != rhs) {
+        if(lhs < rhs) {
+            while(lhs != rhs) {
                 --rhs;
                 difference -= 1;
             }
         } else {
-            while (lhs != rhs) {
+            while(lhs != rhs) {
                 ++rhs;
                 difference += 1;
             }

@@ -1,28 +1,28 @@
 #ifndef CORE_ATL_SLICE_HPP_INCLUDE
 #define CORE_ATL_SLICE_HPP_INCLUDE
 
-#include <core/types.hpp>
 #include <core/atl/iterators.hpp>
 #include <core/atl/type_traits.hpp>
 #include <core/atl/utility.hpp>
+#include <core/types.hpp>
 
 namespace anton_engine::atl {
-    template <typename T>
+    template<typename T>
     class Slice;
 
-    template <typename T>
+    template<typename T>
     struct Is_Slice: False_Type {};
 
-    template <typename T>
+    template<typename T>
     struct Is_Slice<Slice<T>>: True_Type {};
 
-    template <typename T>
+    template<typename T>
     struct Is_Slice<Slice<T> const>: True_Type {};
 
-    template <typename T>
+    template<typename T>
     constexpr bool is_slice = Is_Slice<T>::value;
 
-    template <typename T>
+    template<typename T>
     class Slice {
     public:
         using value_type = T;
@@ -32,13 +32,13 @@ namespace anton_engine::atl {
         using const_iterator = T const*;
 
         Slice(): _data(nullptr), _size(0) {}
-        Slice(T* const first, size_type const length): _data(first), _size(length) {}
+        template<typename Integral, enable_if<is_integral<Integral>, i64> = 0>
+        Slice(T* const first, Integral const length): _data(first), _size(length) {}
         Slice(T* const first, T* const last): _data(first), _size(last - first) {}
-        template <typename Container>
-        Slice(Container& c,
-              enable_if<!is_slice<Container> && is_convertible<remove_pointer<decltype(atl::data(c))> (*)[], value_type (*)[]>, void*> = nullptr)
+        template<typename Container>
+        Slice(Container& c, enable_if<!is_slice<Container> && is_convertible<remove_pointer<decltype(atl::data(c))> (*)[], value_type (*)[]>, void*> = nullptr)
             : _data(atl::data(c)), _size(atl::size(c)) {}
-        template <typename U>
+        template<typename U>
         Slice(Slice<U> const& other, enable_if<is_convertible<U (*)[], value_type (*)[]>, void*> = nullptr): _data(other.data()), _size(other.size()) {}
         Slice(Slice const& other): _data(other._data), _size(other._size) {}
 

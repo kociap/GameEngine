@@ -12,13 +12,13 @@ namespace anton_engine {
         static Color const green;
         static Color const blue;
 
-        float r = 0;
-        float g = 0;
-        float b = 0;
-        float a = 1.0f;
+        f32 r = 0;
+        f32 g = 0;
+        f32 b = 0;
+        f32 a = 1.0f;
 
         Color() = default;
-        Color(float red, float green, float blue, float alpha = 1.0f): r(red), g(green), b(blue), a(alpha) {}
+        Color(f32 red, f32 green, f32 blue, f32 alpha = 1.0f): r(red), g(green), b(blue), a(alpha) {}
 
         // Componentwise multiply
         void operator*=(Color const&);

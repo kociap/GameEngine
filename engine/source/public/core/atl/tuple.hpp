@@ -45,12 +45,6 @@ namespace anton_engine::atl {
     struct Tuple_Size<Tuple<Types...> const>: Integral_Constant<u64, sizeof...(Types)> {};
 
     namespace detail {
-        template<typename T, typename... Ts>
-        struct Tuple_Type_Slitter {
-            using first = T;
-            using rest = Tuple<Ts...>;
-        };
-
         template<u64 N, u64 X, typename>
         struct Tuple_Element;
 

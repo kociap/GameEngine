@@ -1,7 +1,7 @@
 #include <core/filesystem.hpp>
 
 #include <core/anton_crt.hpp>
-#include <core/exception.hpp>
+#include <core/assert.hpp>
 
 #include <filesystem>
 #include <string_view>
@@ -88,6 +88,12 @@ namespace anton_engine::fs {
         return {};
     }
 
+    i64 get_last_write_time(atl::String_View path) {
+        std::filesystem::path p(std::string_view(path.data(), path.size_bytes()));
+        auto t = std::filesystem::last_write_time(p);
+        return t.time_since_epoch().count();
+    }
+
     bool has_filename(atl::String_View const path) {
         atl::String_View const filename = get_filename(path);
         return filename.size_bytes();
@@ -103,10 +109,20 @@ namespace anton_engine::fs {
         return std::filesystem::exists(a);
     }
 
-    Input_File_Stream::Input_File_Stream(): _buffer(nullptr) {}
+    atl::String parent_path(atl::String_View const path) {
+        std::filesystem::path a(std::string_view(path.data(), path.size_bytes()));
 
-    Input_File_Stream::Input_File_Stream(atl::String const& filename): _buffer(nullptr) {
+        return fs_path_to_string(a.parent_path());
+    }
+
+    Input_File_Stream::Input_File_Stream() {}
+
+    Input_File_Stream::Input_File_Stream(atl::String const& filename) {
         open(filename);
+    }
+
+    Input_File_Stream::Input_File_Stream(atl::String const& filename, Open_Mode const open_mode) {
+        open(filename, open_mode);
     }
 
     Input_File_Stream::Input_File_Stream(Input_File_Stream&& other): _buffer(other._buffer) {
@@ -135,6 +151,16 @@ namespace anton_engine::fs {
         return _buffer != nullptr;
     }
 
+    bool Input_File_Stream::open(atl::String const& filename, Open_Mode const open_mode) {
+        if(_buffer) {
+            fclose((FILE*)_buffer);
+        }
+
+        // TODO: implement open modes.
+        _buffer = fopen(filename.data(), open_mode != Open_Mode::windows_translate_newline ? "rb" : "r");
+        return _buffer != nullptr;
+    }
+
     void Input_File_Stream::close() {
         if(_buffer) {
             fclose((FILE*)_buffer);
@@ -146,10 +172,12 @@ namespace anton_engine::fs {
     }
 
     void Input_File_Stream::read(void* buffer, i64 count) {
+        ANTON_ASSERT(_buffer, "Attempting to read from the stream, but no file has been opened.");
         fread(buffer, count, 1, (FILE*)_buffer);
     }
 
     void Input_File_Stream::read(atl::Slice<u8> const buffer) {
+        ANTON_ASSERT(_buffer, "Attempting to read from the stream, but no file has been opened.");
         fread(buffer.data(), buffer.size(), 1, (FILE*)_buffer);
     }
 
@@ -160,25 +188,43 @@ namespace anton_engine::fs {
     }
 
     char32 Input_File_Stream::get() {
+        ANTON_ASSERT(_buffer, "Attempting to read from the stream, but no file has been opened.");
         return fgetc((FILE*)_buffer);
     }
 
     void Input_File_Stream::unget(char32 c) {
+        ANTON_ASSERT(_buffer, "Attempting to unget to the stream, but no file has been opened.");
         ungetc(c, (FILE*)_buffer);
     }
 
     void Input_File_Stream::seek(Seek_Dir dir, i64 offset) {
+        ANTON_ASSERT(_buffer, "Attempting to seek in the stream, but no file has been opened.");
         fseek((FILE*)_buffer, offset, (int)(dir));
     }
 
     i64 Input_File_Stream::tell() {
+        ANTON_ASSERT(_buffer, "Attempting to tell the stream, but no file has been opened.");
         return ftell((FILE*)_buffer);
     }
 
-    Output_File_Stream::Output_File_Stream(): _buffer(nullptr) {}
+    bool Input_File_Stream::eof() const {
+        ANTON_ASSERT(_buffer, "Attempting to get error state from the stream, but no file has been opened.");
+        return feof((FILE*)_buffer);
+    }
 
-    Output_File_Stream::Output_File_Stream(atl::String const& filename): _buffer(nullptr) {
+    bool Input_File_Stream::error() const {
+        ANTON_ASSERT(_buffer, "Attempting to get error state the stream, but no file has been opened.");
+        return ferror((FILE*)_buffer);
+    }
+
+    Output_File_Stream::Output_File_Stream() {}
+
+    Output_File_Stream::Output_File_Stream(atl::String const& filename) {
         open(filename);
+    }
+
+    Output_File_Stream::Output_File_Stream(atl::String const& filename, Open_Mode const open_mode) {
+        open(filename, open_mode);
     }
 
     Output_File_Stream::Output_File_Stream(Output_File_Stream&& other): _buffer(other._buffer) {
@@ -207,6 +253,16 @@ namespace anton_engine::fs {
         return _buffer != nullptr;
     }
 
+    bool Output_File_Stream::open(atl::String const& filename, Open_Mode const open_mode) {
+        if(_buffer) {
+            fclose((FILE*)_buffer);
+        }
+
+        // TODO: implement open modes.
+        _buffer = fopen(filename.data(), "wb");
+        return _buffer != nullptr;
+    }
+
     void Output_File_Stream::close() {
         if(_buffer) {
             fclose((FILE*)_buffer);
@@ -218,30 +274,37 @@ namespace anton_engine::fs {
     }
 
     void Output_File_Stream::flush() {
+        ANTON_ASSERT(_buffer, "Attempting to flush the stream, but no file has been opened.");
         fflush((FILE*)_buffer);
     }
 
     void Output_File_Stream::write(void const* buffer, i64 count) {
+        ANTON_ASSERT(_buffer, "Attempting to write to the stream, but no file has been opened.");
         fwrite(buffer, count, 1, (FILE*)_buffer);
     }
 
     void Output_File_Stream::write(atl::Slice<u8 const> const buffer) {
+        ANTON_ASSERT(_buffer, "Attempting to write to the stream, but no file has been opened.");
         fwrite(buffer.data(), buffer.size(), 1, (FILE*)_buffer);
     }
 
     void Output_File_Stream::write(atl::String_View const buffer) {
+        ANTON_ASSERT(_buffer, "Attempting to write to the stream, but no file has been opened.");
         fwrite(buffer.data(), buffer.size_bytes(), 1, (FILE*)_buffer);
     }
 
     void Output_File_Stream::put(char32 c) {
+        ANTON_ASSERT(_buffer, "Attempting to write to the stream, but no file has been opened.");
         fputc(c, (FILE*)_buffer);
     }
 
     void Output_File_Stream::seek(Seek_Dir dir, i64 offset) {
+        ANTON_ASSERT(_buffer, "Attempting to seek the stream, but no file has been opened.");
         fseek((FILE*)_buffer, offset, (int)(dir));
     }
 
     i64 Output_File_Stream::tell() {
+        ANTON_ASSERT(_buffer, "Attempting to tell the stream, but no file has been opened.");
         return ftell((FILE*)_buffer);
     }
 } // namespace anton_engine::fs

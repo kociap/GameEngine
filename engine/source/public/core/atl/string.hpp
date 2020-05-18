@@ -3,6 +3,7 @@
 
 #include <core/atl/allocator.hpp>
 #include <core/atl/detail/string_common.hpp>
+#include <core/atl/functors.hpp>
 #include <core/atl/iterators.hpp>
 #include <core/atl/string_view.hpp>
 #include <core/atl/tags.hpp>
@@ -32,7 +33,21 @@ namespace anton_engine::atl {
         using char_iterator = UTF8_Char_Iterator;
 
     public:
-        [[nodiscard]] static String from_utf16(char16 const*);
+        // from_utf32
+        // Construct String from UTF-32 encoded string.
+        //
+        // length is the number of bytes to be used to construct String. If length is -1,
+        // the function will convert all characters up until and including the null-terminator.
+        //
+        [[nodiscard]] static String from_utf32(char32 const* string, i64 length = -1);
+
+        // from_utf16
+        // Construct String from UTF-16 encoded string.
+        //
+        // length is the number of bytes to be used to construct String. If length is -1,
+        // the function will convert all characters up until and including the null-terminator.
+        //
+        [[nodiscard]] static String from_utf16(char16 const* string, i64 length = -1);
 
     public:
         String();
@@ -63,6 +78,7 @@ namespace anton_engine::atl {
         String& operator=(String const&);
         String& operator=(String&&) noexcept;
         String& operator=(String_View);
+        String& operator=(value_type const*);
 
     public:
         // Implicit conversion operator
@@ -95,14 +111,22 @@ namespace anton_engine::atl {
         // This is a linear-time operation.
         [[nodiscard]] size_type size_utf8() const;
 
-        // Allocates at least n bytes of storage.
+        // reserve
+        // Allocates at least requested_capacity + 1 (for null-terminator) bytes of storage.
         // Does nothing if requested_capacity is less than capacity().
+        //
         void reserve(size_type requested_capacity);
-        // Allocates exactly n bytes of storage.
+
+        // reserve_exact
+        // Allocates exactly requested_capacity (no null-terminator) bytes of storage.
         // Does nothing if requested_capacity is less than capacity().
+        //
         void reserve_exact(size_type requested_capacity);
+
+        // force_size
         // Changes the size of the string to n. Useful in situations when the user
         // writes to the string via external means.
+        //
         void force_size(size_type n);
 
         void clear();
@@ -146,21 +170,36 @@ namespace anton_engine::atl {
     //
     // TODO: Consider creating a dedicated class for the return type
     //
-    [[nodiscard]] int compare(String const& lhs, String const& rhs);
+    [[nodiscard]] i32 compare(String const& lhs, String const& rhs);
 
-    String to_string(int);
-    String to_string(long);
-    String to_string(long long);
-    String to_string(unsigned int);
-    String to_string(unsigned long);
-    String to_string(unsigned long long);
-    String to_string(float);
-    String to_string(double);
-    String to_string(long double);
+    String to_string(i32);
+    String to_string(u32);
+    String to_string(i64);
+    String to_string(u64);
+    String to_string(f32);
+    String to_string(f64);
     String to_string(void*);
 
-    // TODO: Organize better.
-    f32 str_to_f32(atl::String const&);
+    // TODO: Implement in terms of String_View.
+    f32 str_to_f32(atl::String const& string);
+
+    template<>
+    struct Default_Hash<atl::String> {
+        using transparent = void;
+
+        [[nodiscard]] constexpr u64 operator()(atl::String_View const v) const {
+            return atl::hash(v);
+        }
+    };
+
+    template<>
+    struct Equal_Compare<atl::String> {
+        using transparent = void;
+
+        [[nodiscard]] constexpr bool operator()(atl::String_View const lhs, atl::String_View const rhs) const {
+            return lhs == rhs;
+        }
+    };
 } // namespace anton_engine::atl
 
 namespace anton_engine {

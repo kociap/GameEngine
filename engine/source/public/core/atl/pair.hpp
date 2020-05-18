@@ -6,14 +6,6 @@
 #include <core/types.hpp>
 
 namespace anton_engine::atl {
-    namespace detail {
-        template<typename T1, typename U1, typename T2, typename U2>
-        inline constexpr bool enable_explicit = is_constructible<T1, U1>&& is_constructible<T2, U2> && !(is_convertible<U1, T1> && is_convertible<U2, T2>);
-
-        template<typename T1, typename U1, typename T2, typename U2>
-        inline constexpr bool enable_implicit = is_constructible<T1, U1>&& is_constructible<T2, U2>&& is_convertible<U1, T1>&& is_convertible<U2, T2>;
-    } // namespace detail
-
     template<typename T1, typename T2>
     class Pair {
     public:
@@ -23,28 +15,18 @@ namespace anton_engine::atl {
         first_type first;
         second_type second;
 
-        template<enable_if<is_default_constructible<T1> && is_default_constructible<T2> && detail::is_implicitly_default_constructible<T1> &&
-                               detail::is_implicitly_default_constructible<T2>,
-                           int> = 0>
-        /* [[nodiscard]] */ constexpr Pair(): first(), second() {}
-        template<enable_if<is_default_constructible<T1> && is_default_constructible<T2> &&
-                               !(detail::is_implicitly_default_constructible<T1> && detail::is_implicitly_default_constructible<T2>),
-                           int> = 0>
-        /* [[nodiscard]] */ explicit constexpr Pair(): first(), second() {}
-        template<typename U1, typename U2, enable_if<detail::enable_implicit<T1, U1&&, T2, U2&&>, int> = 0>
-        /* [[nodiscard]] */ constexpr Pair(U1&& a, U2&& b): first(forward<U1>(a)), second(forward<U2>(b)) {}
-        template<typename U1, typename U2, enable_if<detail::enable_explicit<T1, U1&&, T2, U2&&>, int> = 0>
-        /* [[nodiscard]] */ explicit constexpr Pair(U1&& a, U2&& b): first(forward<U1>(a)), second(forward<U2>(b)) {}
-        template<typename U1, typename U2, enable_if<detail::enable_implicit<T1, U1 const&, T2, U2 const&>, int> = 0>
-        /* [[nodiscard]] */ constexpr Pair(Pair<U1, U2> const& p): first(p.first), second(p.second) {}
-        template<typename U1, typename U2, enable_if<detail::enable_explicit<T1, U1 const&, T2, U2 const&>, int> = 0>
-        /* [[nodiscard]] */ explicit constexpr Pair(Pair<U1, U2> const& p): first(p.first), second(p.second) {}
-        template<typename U1, typename U2, enable_if<detail::enable_implicit<T1, U1&&, T2, U2&&>, int> = 0>
-        /* [[nodiscard]] */ constexpr Pair(Pair<U1, U2>&& p): first(move(p.first)), second(move(p.second)) {}
-        template<typename U1, typename U2, enable_if<detail::enable_explicit<T1, U1&&, T2, U2&&>, int> = 0>
-        /* [[nodiscard]] */ explicit constexpr Pair(Pair<U1, U2>&& p): first(move(p.first)), second(move(p.second)) {}
-        /* [[nodiscard]] */ constexpr Pair(Pair const&) = default;
-        /* [[nodiscard]] */ constexpr Pair(Pair&&) = default;
+        constexpr Pair() = default;
+        template<typename U1, typename U2>
+        constexpr Pair(U1&& u1, U2&& u2): first(atl::forward<U1>(u1)), second(atl::forward<U2>(u2)) {}
+        template<typename U1, typename U2>
+        constexpr Pair(Pair<U1, U2> const& pair): first(pair.first), second(pair.second) {}
+        template<typename U1, typename U2>
+        constexpr Pair(Pair<U1, U2>&& pair): first(atl::move(pair.first)), second(atl::move(pair.second)) {}
+        constexpr Pair(Pair const& pair) = default;
+        constexpr Pair(Pair&& pair) = default;
+        constexpr Pair& operator=(Pair const& pair) = default;
+        constexpr Pair& operator=(Pair&& pair) = default;
+        constexpr ~Pair() = default;
     };
 
     template<typename T1, typename T2>

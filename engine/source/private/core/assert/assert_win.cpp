@@ -49,7 +49,7 @@ namespace anton_engine {
                 image_line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
                 if(DWORD displacement = 0; SymGetLineFromAddr64(current_process, DWORD64(stack_trace[i]), &displacement, &image_line)) {
                     call_stack.append(u8" Line ");
-                    atl::String line_number = atl::to_string(image_line.LineNumber);
+                    atl::String line_number = atl::to_string((i64)image_line.LineNumber);
                     call_stack.append(line_number);
                 }
             } else {

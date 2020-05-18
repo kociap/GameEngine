@@ -1,9 +1,8 @@
 #ifndef CORE_ATL_ITERATORS_HPP_INCLUDE
 #define CORE_ATL_ITERATORS_HPP_INCLUDE
 
-#include <core/types.hpp>
-#include <core/atl/detail/memory_common.hpp>
 #include <core/atl/type_traits.hpp>
+#include <core/types.hpp>
 
 namespace anton_engine::atl {
     // Iterator category tags
@@ -38,27 +37,27 @@ namespace anton_engine::atl {
 
     // Is_Iterator_Category
     //
-    template <typename T, typename Category>
+    template<typename T, typename Category>
     struct Is_Iterator_Category: public atl::Is_Convertible<T, Category> {};
 
-    template <typename T, typename Category>
+    template<typename T, typename Category>
     inline constexpr bool is_iterator_category = Is_Iterator_Category<T, Category>::value;
 
     // Is_Iterator_Wrapper
     // Checks whether a type is an iterator wrapper. Relies on the class daclaring wrapped_iterator_type alias.
     //
-    template <typename T, typename = void>
+    template<typename T, typename = void>
     struct Is_Iterator_Wrapper: atl::False_Type {};
 
-    template <typename T>
-    struct Is_Iterator_Wrapper<T, atl::void_trait<typename T::wrapped_iterator_type>>: atl::True_Type {};
+    template<typename T>
+    struct Is_Iterator_Wrapper<T, atl::void_sink<typename T::wrapped_iterator_type>>: atl::True_Type {};
 
-    template <typename T>
+    template<typename T>
     inline constexpr bool is_iterator_wrapper = Is_Iterator_Wrapper<T>::value;
 
     // Iterator_Traits
     //
-    template <typename T>
+    template<typename T>
     struct Iterator_Traits {
         using difference_type = typename T::difference_type;
         using value_type = typename T::value_type;
@@ -67,7 +66,7 @@ namespace anton_engine::atl {
         using iterator_category = typename T::iterator_category;
     };
 
-    template <typename T>
+    template<typename T>
     struct Iterator_Traits<T*> {
         using difference_type = isize;
         using value_type = atl::remove_const<T>;
@@ -77,7 +76,7 @@ namespace anton_engine::atl {
     };
 
     // TODO: Fix this
-    template <typename Iterator>
+    template<typename Iterator>
     class Reverse_Iterator {
     public:
         using value_type = typename Iterator::value_type;
@@ -149,42 +148,42 @@ namespace anton_engine::atl {
         wrapped_iterator_type _iterator;
     };
 
-    template <typename T>
+    template<typename T>
     [[nodiscard]] inline constexpr Reverse_Iterator<T> operator+(typename Reverse_Iterator<T>::difference_type n, Reverse_Iterator<T> const& a) {
         return Reverse_Iterator<T>(a.base() - n);
     }
 
-    template <typename T1, typename T2>
+    template<typename T1, typename T2>
     [[nodiscard]] inline constexpr auto operator-(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) -> decltype(b.base() - a.base()) {
         return b.base() - a.base();
     }
 
-    template <typename T1, typename T2>
+    template<typename T1, typename T2>
     [[nodiscard]] inline constexpr bool operator==(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) {
         return a.base() == b.base();
     }
 
-    template <typename T1, typename T2>
+    template<typename T1, typename T2>
     [[nodiscard]] inline constexpr bool operator!=(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) {
         return a.base() != b.base();
     }
 
-    template <typename T1, typename T2>
+    template<typename T1, typename T2>
     [[nodiscard]] inline constexpr bool operator<(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) {
         return a.base() > b.base();
     }
 
-    template <typename T1, typename T2>
+    template<typename T1, typename T2>
     [[nodiscard]] inline constexpr bool operator>(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) {
         return a.base() < b.base();
     }
 
-    template <typename T1, typename T2>
+    template<typename T1, typename T2>
     [[nodiscard]] inline constexpr bool operator<=(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) {
         return a.base() >= b.base();
     }
 
-    template <typename T1, typename T2>
+    template<typename T1, typename T2>
     [[nodiscard]] inline constexpr bool operator>=(Reverse_Iterator<T1> const& a, Reverse_Iterator<T2> const& b) {
         return a.base() <= b.base();
     }

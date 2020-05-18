@@ -16,11 +16,19 @@
 #include <stdlib.h> // strtof
 
 namespace anton_engine::atl {
-    String String::from_utf16(char16 const* str_utf16) {
-        i32 const buffer_size = unicode::convert_utf16_to_utf8(str_utf16, -1, nullptr);
+    String String::from_utf32(char32 const* string, i64 const length) {
+        i32 const buffer_size = unicode::convert_utf32_to_utf8(string, length, nullptr);
         String str{atl::reserve, buffer_size - 1};
         str.force_size(buffer_size - 1);
-        unicode::convert_utf16_to_utf8(str_utf16, -1, str.data());
+        unicode::convert_utf32_to_utf8(string, length, str.data());
+        return str;
+    }
+
+    String String::from_utf16(char16 const* string, i64 const length) {
+        i32 const buffer_size = unicode::convert_utf16_to_utf8(string, length, nullptr);
+        String str{atl::reserve, buffer_size - 1};
+        str.force_size(buffer_size - 1);
+        unicode::convert_utf16_to_utf8(string, length, str.data());
         return str;
     }
 
@@ -74,13 +82,13 @@ namespace anton_engine::atl {
 
     String::String(String const& other): String(other, allocator_type()) {}
 
-    String::String(String const& other, allocator_type const& allocator): _allocator(allocator), _size(other._size), _capacity(other._capacity) {
+    String::String(String const& other, allocator_type const& allocator): _allocator(allocator), _capacity(other._capacity), _size(other._size) {
         _data = reinterpret_cast<value_type*>(_allocator.allocate(_capacity, alignof(value_type)));
         memset(_data + _size, 0, _capacity - _size);
         atl::copy(other._data, other._data + other._size, _data);
     }
 
-    String::String(String&& other) noexcept: _allocator(atl::move(other._allocator)), _data(other._data), _size(other._size), _capacity(other._capacity) {
+    String::String(String&& other) noexcept: _allocator(atl::move(other._allocator)), _data(other._data), _capacity(other._capacity), _size(other._size) {
         other._data = nullptr;
         other._size = 0;
         other._capacity = 0;
@@ -139,6 +147,11 @@ namespace anton_engine::atl {
 
         memset(_data + _size, 0, _capacity - _size);
         atl::copy(sv.data(), sv.data() + sv.size_bytes(), _data);
+        return *this;
+    }
+
+    String& String::operator=(value_type const* const str) {
+        *this = String_View(str);
         return *this;
     }
 
@@ -344,69 +357,51 @@ namespace anton_engine::atl {
         return lhs + String_View(rhs);
     }
 
-    atl::String to_string(int value) {
+    atl::String to_string(i32 value) {
         char buffer[50] = {};
-        int written_chars = sprintf(buffer, "%d", value);
+        i32 written_chars = sprintf(buffer, "%d", value);
         return {buffer, written_chars};
     }
 
-    atl::String to_string(long value) {
+    atl::String to_string(u32 value) {
         char buffer[50] = {};
-        int written_chars = sprintf(buffer, "%ld", value);
+        i32 written_chars = sprintf(buffer, "%u", value);
         return {buffer, written_chars};
     }
 
-    atl::String to_string(long long value) {
+    atl::String to_string(i64 value) {
         char buffer[50] = {};
-        int written_chars = sprintf(buffer, "%lld", value);
+        i32 written_chars = sprintf(buffer, "%lld", value);
         return {buffer, written_chars};
     }
 
-    atl::String to_string(unsigned int value) {
+    atl::String to_string(u64 value) {
         char buffer[50] = {};
-        int written_chars = sprintf(buffer, "%u", value);
+        i32 written_chars = sprintf(buffer, "%llu", value);
         return {buffer, written_chars};
     }
 
-    atl::String to_string(unsigned long value) {
+    atl::String to_string(f32 value) {
         char buffer[50] = {};
-        int written_chars = sprintf(buffer, "%lu", value);
+        i32 written_chars = sprintf(buffer, "%.7f", value);
         return {buffer, written_chars};
     }
 
-    atl::String to_string(unsigned long long value) {
+    atl::String to_string(f64 value) {
         char buffer[50] = {};
-        int written_chars = sprintf(buffer, "%llu", value);
-        return {buffer, written_chars};
-    }
-
-    atl::String to_string(float value) {
-        char buffer[50] = {};
-        int written_chars = sprintf(buffer, "%f", value);
-        return {buffer, written_chars};
-    }
-
-    atl::String to_string(double value) {
-        char buffer[50] = {};
-        int written_chars = sprintf(buffer, "%f", value);
-        return {buffer, written_chars};
-    }
-
-    atl::String to_string(long double value) {
-        char buffer[50] = {};
-        int written_chars = sprintf(buffer, "%Lf", value);
+        i32 written_chars = sprintf(buffer, "%.14f", value);
         return {buffer, written_chars};
     }
 
     atl::String to_string(void* value) {
         char buffer[50] = {};
         usize address = reinterpret_cast<usize>(value);
-        int written_chars = sprintf(buffer, "0x%016llx", address);
+        i32 written_chars = sprintf(buffer, "0x%016llx", address);
         return {buffer, written_chars};
     }
 
-    f32 str_to_f32(atl::String const& sv) {
-        return ::strtof(sv.data(), nullptr);
+    f32 str_to_f32(atl::String const& string) {
+        return ::strtof(string.data(), nullptr);
     }
 } // namespace anton_engine::atl
 

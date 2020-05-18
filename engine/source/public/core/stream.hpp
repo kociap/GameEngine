@@ -1,9 +1,9 @@
 #ifndef CORE_STREAM_HPP_INCLUDE
 #define CORE_STREAM_HPP_INCLUDE
 
-#include <core/types.hpp>
 #include <core/atl/slice.hpp>
 #include <core/atl/string_view.hpp>
+#include <core/types.hpp>
 
 namespace anton_engine {
     constexpr char32 eof_char32 = (char32)-1;
@@ -12,11 +12,6 @@ namespace anton_engine {
         beg,
         cur,
         end,
-    };
-
-    enum class Open_Mode {
-        binary, 
-        append,
     };
 
     class Output_Stream {
@@ -48,6 +43,6 @@ namespace anton_engine {
         virtual void seek(Seek_Dir dir, i64 offset) = 0;
         virtual i64 tell() = 0;
     };
-}
+} // namespace anton_engine
 
 #endif // !CORE_STREAM_HPP_INCLUDE

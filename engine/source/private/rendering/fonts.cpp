@@ -103,7 +103,7 @@ namespace anton_engine::rendering {
         FT_Done_Face(reinterpret_cast<FT_Face>(face));
     }
 
-    i32 points_to_pixels(i32 points, i32 dpi) {
+    i64 points_to_pixels(i64 points, i64 dpi) {
         return points * dpi / 72;
     }
 
@@ -141,7 +141,7 @@ namespace anton_engine::rendering {
     //     return metrics;
     // }
 
-    i32 compute_text_width(Font_Face* const _face, Font_Render_Info const info, atl::String_View const string) {
+    i64 compute_text_width(Font_Face* const _face, Font_Render_Info const info, atl::String_View const string) {
         FT_Face face = reinterpret_cast<FT_Face>(_face);
 
         if(FT_Set_Char_Size(face, 0, info.points * 64, info.h_dpi, info.v_dpi)) {
@@ -153,7 +153,7 @@ namespace anton_engine::rendering {
         text_utf32.force_size(buf_size);
         unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), text_utf32.data());
 
-        i32 width = 0;
+        i64 width = 0;
         i64 i = 0;
         // Skip all null-terminators and ignore newline.
         for(; i < buf_size && (text_utf32[i] == U'\0' || text_utf32[i] == U'\n'); ++i) {}

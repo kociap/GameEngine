@@ -19,9 +19,6 @@ namespace anton_engine::atl {
     //
     template<typename T, typename Allocator = atl::Allocator>
     class Vector {
-        static_assert(atl::is_move_constructible<T> || atl::is_copy_constructible<T> || atl::is_trivially_copy_constructible<T>,
-                      "Type is neither move constructible nor copy constructible");
-
     public:
         using value_type = T;
         using allocator_type = Allocator;
@@ -35,6 +32,7 @@ namespace anton_engine::atl {
         using const_iterator = T const*;
 
         Vector();
+        explicit Vector(Allocator);
         explicit Vector(size_type size);
         Vector(Reserve_Tag, size_type size);
         Vector(size_type, value_type const&);
@@ -63,32 +61,60 @@ namespace anton_engine::atl {
         [[nodiscard]] size_type size() const;
         [[nodiscard]] size_type capacity() const;
 
+        // resize
+        // Resizes the vector allocating additional memory if n is greater than capacity.
+        // If n is greater than size, the new elements are default constructed.
+        // If n is less than size, the excess elements are destroyed.
+        //
         void resize(size_type n);
-        void resize(size_type n, value_type const&);
-        // Allocates at least n bytes of storage.
+
+        // resize
+        // Resizes the vector allocating additional memory if n is greater than capacity.
+        // If n is greater than size, the new elements are copy constructed from v.
+        // If n is less than size, the excess elements are destroyed.
+        //
+        void resize(size_type n, value_type const& v);
+
+        // reserve
+        // Allocates enough memory to fit n elements of type T.
         // Does nothing if requested_capacity is less than capacity().
+        //
         void reserve(size_type n);
+
+        // set_capacity
+        // Sets the capacity to exactly match n.
+        // If n is not equal capacity, contents are reallocated.
+        //
         void set_capacity(size_type n);
+
+        // force_size
         // Changes the size of the vector to n. Useful in situations when the user
         // writes to the vector via external means.
+        //
         void force_size(size_type n);
 
         template<typename Input_Iterator>
         void assign(Input_Iterator first, Input_Iterator last);
-        void insert(size_type position, value_type const&);
+
+        template<typename... Args>
+        void insert(const_iterator position, Args&&... args);
+        template<typename... Args>
+        void insert(size_type position, Args&&... args);
         template<typename Input_Iterator>
         void insert(size_type position, Input_Iterator first, Input_Iterator last);
-        // void insert(const_iterator position, value_type const& value);
         void insert_unsorted(const_iterator position, value_type const& value);
+
         void push_back(value_type const&);
         void push_back(value_type&&);
-        template<typename... CtorArgs>
-        reference emplace_back(CtorArgs&&... args);
+        template<typename... Args>
+        reference emplace_back(Args&&... args);
+
+        iterator erase(const_iterator first, const_iterator last);
         void erase_unsorted(size_type index); // TODO: remove
         void erase_unsorted_unchecked(size_type index);
         iterator erase_unsorted(const_iterator first);
         // iterator erase_unsorted(const_iterator first, const_iterator last);
-        iterator erase(const_iterator first, const_iterator last);
+
         void pop_back();
         void clear();
 
@@ -98,11 +124,8 @@ namespace anton_engine::atl {
         size_type _size = 0;
         T* _data = nullptr;
 
-    private:
         void attempt_copy(T* from, T* to);
         void attempt_move(T* from, T* to);
-        template<typename... Ctor_Args>
-        void attempt_construct(T* in, Ctor_Args&&... args);
 
         T* get_ptr(size_type index = 0);
         T const* get_ptr(size_type index = 0) const;
@@ -111,7 +134,6 @@ namespace anton_engine::atl {
         void deallocate(void*, size_type);
         void ensure_capacity(size_type requested_capacity);
     };
-
 } // namespace anton_engine::atl
 
 namespace anton_engine {
@@ -124,6 +146,11 @@ namespace anton_engine {
 namespace anton_engine::atl {
     template<typename T, typename Allocator>
     Vector<T, Allocator>::Vector() {
+        _data = allocate(_capacity);
+    }
+
+    template<typename T, typename Allocator>
+    Vector<T, Allocator>::Vector(Allocator alloc): _allocator(atl::move(alloc)) {
         _data = allocate(_capacity);
     }
 
@@ -377,7 +404,14 @@ namespace anton_engine::atl {
     }
 
     template<typename T, typename Allocator>
-    void Vector<T, Allocator>::insert(size_type const position, value_type const& value) {
+    template<typename... Args>
+    void Vector<T, Allocator>::insert(const_iterator position, Args&&... args) {
+        insert(position - begin(), atl::forward<Args>(args)...);
+    }
+
+    template<typename T, typename Allocator>
+    template<typename... Args>
+    void Vector<T, Allocator>::insert(size_type const position, Args&&... args) {
         if constexpr(ANTON_ITERATOR_DEBUG) {
             ANTON_FAIL(position <= _size && position >= 0, "Index out of bounds.");
         }
@@ -386,7 +420,7 @@ namespace anton_engine::atl {
             if(_size != _capacity) {
                 atl::uninitialized_move_n(get_ptr(_size - 1), 1, get_ptr(_size));
                 atl::move_backward(get_ptr(position), get_ptr(_size - 1), get_ptr(_size));
-                attempt_construct(get_ptr(position), value);
+                construct(get_ptr(position), atl::forward<Args>(args)...);
                 _size += 1;
             } else {
                 i64 const new_capacity = _capacity * 2;
@@ -395,7 +429,7 @@ namespace anton_engine::atl {
                 try {
                     atl::uninitialized_move(get_ptr(0), get_ptr(position), new_data);
                     moved = position;
-                    attempt_construct(new_data + position, value);
+                    construct(new_data + position, atl::forward<Args>(args)...);
                     moved += 1;
                     atl::uninitialized_move(get_ptr(position), get_ptr(_size), new_data + moved);
                 } catch(...) {
@@ -411,7 +445,7 @@ namespace anton_engine::atl {
             }
         } else {
             // Quick path when position points to end and we have room for one more element.
-            attempt_construct(get_ptr(_size), value);
+            construct(get_ptr(_size), atl::forward<Args>(args)...);
             _size += 1;
         }
     }
@@ -477,7 +511,7 @@ namespace anton_engine::atl {
         ensure_capacity(_size + 1);
         size_type offset = static_cast<size_type>(position - _data);
         if(offset == _size) {
-            attempt_construct(get_ptr(offset), value);
+            construct(get_ptr(offset), value);
             ++_size;
         } else {
             T* elem_ptr = get_ptr(offset);
@@ -487,7 +521,7 @@ namespace anton_engine::atl {
                 attempt_copy(elem_ptr, get_ptr(_size));
             }
             atl::destruct(elem_ptr);
-            attempt_construct(elem_ptr, value);
+            construct(elem_ptr, value);
             ++_size;
         }
     }
@@ -496,7 +530,7 @@ namespace anton_engine::atl {
     void Vector<T, Allocator>::push_back(value_type const& val) {
         ensure_capacity(_size + 1);
         T* elem_ptr = get_ptr(_size);
-        attempt_construct(elem_ptr, val);
+        construct(elem_ptr, val);
         ++_size;
     }
 
@@ -504,16 +538,16 @@ namespace anton_engine::atl {
     void Vector<T, Allocator>::push_back(value_type&& val) {
         ensure_capacity(_size + 1);
         T* elem_ptr = get_ptr(_size);
-        attempt_construct(elem_ptr, atl::move(val));
+        construct(elem_ptr, atl::move(val));
         ++_size;
     }
 
     template<typename T, typename Allocator>
-    template<typename... CtorArgs>
-    auto Vector<T, Allocator>::emplace_back(CtorArgs&&... args) -> reference {
+    template<typename... Args>
+    auto Vector<T, Allocator>::emplace_back(Args&&... args) -> reference {
         ensure_capacity(_size + 1);
         T* elem_ptr = get_ptr(_size);
-        attempt_construct(elem_ptr, atl::forward<CtorArgs>(args)...);
+        construct(elem_ptr, atl::forward<Args>(args)...);
         ++_size;
         return *elem_ptr;
     }
@@ -606,16 +640,6 @@ namespace anton_engine::atl {
     template<typename T, typename Allocator>
     void Vector<T, Allocator>::attempt_move(T* from, T* to) {
         ::new(to) T(atl::move(*from));
-    }
-
-    template<typename T, typename Allocator>
-    template<typename... Ctor_Args>
-    void Vector<T, Allocator>::attempt_construct(T* in, Ctor_Args&&... args) {
-        if constexpr(atl::is_constructible<T, Ctor_Args&&...>) {
-            ::new(in) T(atl::forward<Ctor_Args>(args)...);
-        } else {
-            ::new(in) T{atl::forward<Ctor_Args>(args)...};
-        }
     }
 
     template<typename T, typename Allocator>

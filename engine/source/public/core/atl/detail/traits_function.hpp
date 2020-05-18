@@ -40,13 +40,13 @@ namespace anton_engine::atl {
     // Removes all function qualifiers (const, &, && and noexcept) from a function type.
     // Does not support the volatile qualifier as volatile qualified member functions have been deprecated in C++20.
     //
-    template <typename T>
+    template<typename T>
     struct Remove_Function_Qualifiers {
         using type = T;
     };
 
 #define ANTON_DEFINE_TRAIT_REMOVE_FUNCTION_QUALIFIERS(CALL_QUALIFIER, CONST_QUALIFIER, REF_QUALIFIER, NOEXCEPT_QUALIFIER) \
-    template <typename R, typename... Params>                                                                             \
+    template<typename R, typename... Params>                                                                              \
     struct Remove_Function_Qualifiers<R CALL_QUALIFIER(Params...) CONST_QUALIFIER REF_QUALIFIER NOEXCEPT_QUALIFIER> {     \
         using type = R(Params...);                                                                                        \
     };
@@ -55,7 +55,7 @@ namespace anton_engine::atl {
 
 #define ANTON_DEFINE_TRAIT_REMOVE_ELLIPSIS_FUNCTION_QUALIFIERS(CONST_QUALIFIER, REF_QUALIFIER, NOEXCEPT_QUALIFIER) \
     /* No calling convention for ellipsis */                                                                       \
-    template <typename R, typename... Params>                                                                      \
+    template<typename R, typename... Params>                                                                       \
     struct Remove_Function_Qualifiers<R(Params..., ...) CONST_QUALIFIER REF_QUALIFIER NOEXCEPT_QUALIFIER> {        \
         using type = R(Params..., ...);                                                                            \
     };
@@ -65,32 +65,32 @@ namespace anton_engine::atl {
     // Is_Function
     // Does not support the volatile qualifier as volatile qualified member functions have been deprecated in C++20
     //
-    template <typename T>
+    template<typename T>
     struct Is_Function: atl::False_Type {};
 
 #define ANTON_DEFINE_TRAIT_IS_FUNCTION(CALL_QUALIFIER, CONST_QUALIFIER, REF_QUALIFIER, NOEXCEPT_QUALIFIER) \
-    template <typename R, typename... Params>                                                              \
+    template<typename R, typename... Params>                                                               \
     struct Is_Function<R CALL_QUALIFIER(Params...) CONST_QUALIFIER REF_QUALIFIER NOEXCEPT_QUALIFIER>: atl::True_Type {};
     ANTON_DEFINE_CALL_CONST_REF_NOEXCEPT_QUALIFIERS(ANTON_DEFINE_TRAIT_IS_FUNCTION)
 #undef ANTON_DEFINE_TRAIT_IS_FUNCTION
 
 #define ANTON_DEFINE_TRAIT_IS_FUNCTION_ELLIPSIS(CONST_QUALIFIER, REF_QUALIFIER, NOEXCEPT_QUALIFIER) \
-    template <typename R, typename... Params>                                                       \
+    template<typename R, typename... Params>                                                        \
     struct Is_Function<R(Params..., ...) CONST_QUALIFIER REF_QUALIFIER NOEXCEPT_QUALIFIER>: atl::True_Type {};
     ANTON_DEFINE_CONST_REF_NOEXCEPT_QUALIFIERS(ANTON_DEFINE_TRAIT_IS_FUNCTION_ELLIPSIS)
 #undef ANTON_DEFINE_TRAIT_IS_FUNCTION_ELLIPSIS
 
-    template <typename T>
+    template<typename T>
     constexpr bool is_function = Is_Function<T>::value;
 
     namespace detail {
-        template <typename Fn, typename... Args>
+        template<typename Fn, typename... Args>
         struct Is_Invocable {
         private:
-            template <typename XFn, typename... XArgs>
+            template<typename XFn, typename... XArgs>
             static atl::type_sink<atl::True_Type, decltype(atl::declval<XFn>()(atl::declval<XArgs>()...))> test(int);
 
-            template <typename...>
+            template<typename...>
             static atl::False_Type test(...);
 
         public:
@@ -99,26 +99,25 @@ namespace anton_engine::atl {
     } // namespace detail
 
     template<typename Fn, typename... Args>
-    struct Invoke_Result: enable_if<detail::Is_Invocable<Fn, Args...>::value,
-                                    Identity<decltype(declval<Fn>()(declval<Args>()...))>> {};
+    struct Invoke_Result: enable_if<detail::Is_Invocable<Fn, Args...>::value, Identity<decltype(declval<Fn>()(declval<Args>()...))>> {};
 
     template<typename Fn, typename... Args>
     using invoke_result = typename Invoke_Result<Fn, Args...>::type;
 
     // Is_Invocable
     //
-    template <typename Fn, typename... Args>
+    template<typename Fn, typename... Args>
     struct Is_Invocable: Bool_Constant<detail::Is_Invocable<Fn, Args...>::value> {};
 
-    template <typename Fn, typename... Args>
+    template<typename Fn, typename... Args>
     constexpr bool is_invocable = Is_Invocable<Fn, Args...>::value;
 
     // Is_Invocable_R
     //
-    template <typename Return, typename Fn, typename... Args>
+    template<typename Return, typename Fn, typename... Args>
     struct Is_Invocable_R: Bool_Constant<conjunction<Is_Invocable<Fn, Args...>, detail::Is_Same_Type<Identity<Return>, Invoke_Result<Fn, Args...>>>> {};
 
-    template <typename Return, typename Fn, typename... Args>
+    template<typename Return, typename Fn, typename... Args>
     constexpr bool is_invocable_r = Is_Invocable_R<Return, Fn, Args...>::value;
 } // namespace anton_engine::atl
 

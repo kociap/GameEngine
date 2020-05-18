@@ -21,6 +21,21 @@ namespace anton_engine::atl {
         enum class State : u8;
         class Slot;
 
+        template<typename _Key, typename _Hash, typename _Key_Equal, typename = void>
+        struct Transparent_Key {
+            template<typename>
+            using type = _Key const&;
+        };
+
+        template<typename _Key, typename _Hash, typename _Key_Equal>
+        struct Transparent_Key<_Key, _Hash, _Key_Equal, enable_if<is_transparent<_Hash> && is_transparent<_Key_Equal>>> {
+            template<typename Key_Type>
+            using type = Key_Type const&;
+        };
+
+        template<typename T>
+        using transparent_key = typename Transparent_Key<Key, Hash, Key_Equal>::template type<T>;
+
     public:
         class Entry {
         public:
@@ -181,29 +196,92 @@ namespace anton_engine::atl {
         Flat_Hash_Map& operator=(Flat_Hash_Map&&) noexcept;
         ~Flat_Hash_Map();
 
-        [[nodiscard]] iterator begin();
-        [[nodiscard]] const_iterator begin() const;
-        [[nodiscard]] const_iterator cbegin();
+        [[nodiscard]] iterator begin() {
+            i64 offset = 0;
+            while(_states[offset] == State::empty || _states[offset] == State::deleted) {
+                offset += 1;
+            }
+            return iterator(_slots + offset, _states + offset);
+        }
 
-        [[nodiscard]] iterator end();
-        [[nodiscard]] const_iterator end() const;
-        [[nodiscard]] const_iterator cend();
+        [[nodiscard]] const_iterator begin() const {
+            i64 offset = 0;
+            while(_states[offset] == State::empty || _states[offset] == State::deleted) {
+                offset += 1;
+            }
+            return const_iterator(_slots + offset, _states + offset);
+        }
 
-        [[nodiscard]] iterator find(Key const& key);
-        [[nodiscard]] const_iterator find(Key const& key) const;
+        [[nodiscard]] const_iterator cbegin() {
+            i64 offset = 0;
+            while(_states[offset] == State::empty || _states[offset] == State::deleted) {
+                offset += 1;
+            }
+            return const_iterator(_slots + offset, _states + offset);
+        }
 
+        [[nodiscard]] iterator end() {
+            return iterator(_slots + _capacity, _states + _capacity);
+        }
+
+        [[nodiscard]] const_iterator end() const {
+            return const_iterator(_slots + _capacity, _states + _capacity);
+        }
+
+        [[nodiscard]] const_iterator cend() {
+            return const_iterator(_slots + _capacity, _states + _capacity);
+        }
+
+        template<typename K = void>
+        [[nodiscard]] iterator find(transparent_key<K> key) {
+            if(_capacity) {
+                u64 const h = _hasher(key);
+                i64 index = h % _capacity;
+                while(true) {
+                    State const state = _states[index];
+                    if(state == State::active && _key_equal(key, _slots[index].key)) {
+                        return iterator(_slots + index, _states + index);
+                    } else if(state == State::empty) {
+                        return end();
+                    }
+                    index = (index + 1) % _capacity;
+                }
+            }
+            return end();
+        }
+
+        template<typename K = void>
+        [[nodiscard]] const_iterator find(transparent_key<K> key) const {
+            if(_capacity) {
+                u64 const h = _hasher(key);
+                i64 index = h % _capacity;
+                while(true) {
+                    State const state = _states[index];
+                    if(state == State::active && _key_equal(key, _slots[index].key)) {
+                        return iterator(_slots + index, _states + index);
+                    } else if(state == State::empty) {
+                        return end();
+                    }
+                    index = (index + 1) % _capacity;
+                }
+            }
+            return end();
+        }
+
+        // find_or_emplace
         // Finds the entry with given key or default constructs one if it doesn't exist.
         //
         template<typename... Args>
         [[nodiscard]] iterator find_or_emplace(Key const& key, Args&&... args);
 
-        // TODO: Consider making emplace overwrite the value if it already exists.
-        template<typename... Args>
-        iterator emplace(Key const& key, Args&&... args);
-        template<typename... Args>
-        iterator emplace(Key&& key, Args&&... args);
+        // emplace
+        // Overwrites the value if it already exists.
+        //
+        template<typename Key_Type, typename... Args>
+        iterator emplace(Key_Type&& key, Args&&... args);
 
         void erase(const_iterator position);
+        void clear();
 
         // ensure_capacity
         // Resizes and rehashes the hash map if c elements wouldn't fit into the hash map.
@@ -212,13 +290,29 @@ namespace anton_engine::atl {
 
         void rehash();
 
-        [[nodiscard]] i64 capacity() const;
-        [[nodiscard]] i64 size() const;
-        [[nodiscard]] allocator_type& get_allocator();
-        [[nodiscard]] allocator_type const& get_allocator() const;
+        [[nodiscard]] i64 capacity() const {
+            return _capacity;
+        }
 
-        [[nodiscard]] f32 load_factor() const;
-        [[nodiscard]] f32 max_load_factor() const;
+        [[nodiscard]] i64 size() const {
+            return _size;
+        }
+
+        [[nodiscard]] allocator_type& get_allocator() {
+            return _allocator;
+        }
+
+        [[nodiscard]] allocator_type const& get_allocator() const {
+            return _allocator;
+        }
+
+        [[nodiscard]] f32 load_factor() const {
+            return (f32)(_capacity - _empty_slots_left) / (f32)_capacity;
+        }
+
+        [[nodiscard]] f32 max_load_factor() const {
+            return 0.75f;
+        }
 
     private:
         enum class State : u8 {
@@ -233,7 +327,7 @@ namespace anton_engine::atl {
             Key key;
             Value value;
 
-            template<typename K, typename... Args>
+            template<typename K, typename... Args, atl::enable_if<!is_same<remove_const_ref<K>, Slot>, int> = 0>
             Slot(K&& k, Args&&... args): key(atl::forward<K>(k)), value(atl::forward<Args>(args)...) {}
             Slot(Slot const&) = default;
             Slot(Slot&&) = default;
@@ -279,7 +373,7 @@ namespace anton_engine::atl {
             _slots = (Slot*)_allocator.allocate(_capacity * sizeof(Slot), alignof(Slot));
             for(i64 i = 0; i < _capacity; ++i) {
                 if(_states[i] == State::active) {
-                    new(_slots + i) Slot(other._slots[i].key, other._slots[i].value);
+                    construct(_slots + i, other._slots[i]);
                 }
             }
         } else {
@@ -289,8 +383,8 @@ namespace anton_engine::atl {
 
     template<typename Key, typename Value, typename Hash, typename Key_Compare>
     Flat_Hash_Map<Key, Value, Hash, Key_Compare>::Flat_Hash_Map(Flat_Hash_Map&& other) noexcept
-        : _allocator(atl::move(other._allocator)), _hasher(atl::move(other._hasher)), _key_equal(atl::move(other._key_equal)), _states(other._states),
-          _slots(other._slots), _capacity(other._capacity), _size(other._size), _empty_slots_left(other._empty_slots_left) {
+        : _allocator(), _hasher(), _key_equal(), _states(other._states), _slots(other._slots), _capacity(other._capacity), _size(other._size),
+          _empty_slots_left(other._empty_slots_left) {
         other._slots = nullptr;
         other._states = nullptr;
         other._capacity = 0;
@@ -314,10 +408,11 @@ namespace anton_engine::atl {
             _empty_slots_left = other._empty_slots_left;
             _states = (State*)_allocator.allocate((_capacity + 16 + 1) * sizeof(State), 16);
             memcpy(_states, other._states - 16, (_capacity + 16 + 1) * sizeof(State));
+            _states += 16;
             _slots = (Slot*)_allocator.allocate(_capacity * sizeof(Slot), alignof(Slot));
             for(i64 i = 0; i < _capacity; ++i) {
                 if(_states[i] == State::active) {
-                    new(_slots + i) Slot(other._slots[i].key, other._slots[i].value);
+                    construct(_slots + i, other._slots[i]);
                 }
             }
         } else {
@@ -343,7 +438,7 @@ namespace anton_engine::atl {
     Flat_Hash_Map<Key, Value, Hash, Key_Compare>::~Flat_Hash_Map() {
         for(i64 i = 0; i < _capacity; ++i) {
             if(_states[i] == State::active) {
-                _slots[i].~Slot();
+                destruct(_slots + i);
             }
         }
 
@@ -351,84 +446,6 @@ namespace anton_engine::atl {
             _allocator.deallocate(_states - 16, (_capacity + 16 + 1) * sizeof(State), 16);
             _allocator.deallocate(_slots, _capacity * sizeof(Slot), alignof(Slot));
         }
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::begin() -> iterator {
-        i64 offset = 0;
-        while(_states[offset] == State::empty || _states[offset] == State::deleted) {
-            offset += 1;
-        }
-        return iterator(_slots + offset, _states + offset);
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::begin() const -> const_iterator {
-        i64 offset = 0;
-        while(_states[offset] == State::empty || _states[offset] == State::deleted) {
-            offset += 1;
-        }
-        return const_iterator(_slots + offset, _states + offset);
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::cbegin() -> const_iterator {
-        i64 offset = 0;
-        while(_states[offset] == State::empty || _states[offset] == State::deleted) {
-            offset += 1;
-        }
-        return const_iterator(_slots + offset, _states + offset);
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::end() -> iterator {
-        return iterator(_slots + _capacity, _states + _capacity);
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::end() const -> const_iterator {
-        return const_iterator(_slots + _capacity, _states + _capacity);
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::cend() -> const_iterator {
-        return const_iterator(_slots + _capacity, _states + _capacity);
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::find(Key const& key) -> iterator {
-        if(_capacity) {
-            u64 const h = _hasher(key);
-            i64 index = h % _capacity;
-            while(true) {
-                State const state = _states[index];
-                if(state == State::active && _key_equal(key, _slots[index].key)) {
-                    return iterator(_slots + index, _states + index);
-                } else if(state == State::empty) {
-                    return end();
-                }
-                index = (index + 1) % _capacity;
-            }
-        }
-        return end();
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::find(Key const& key) const -> const_iterator {
-        if(_capacity) {
-            u64 const h = _hasher(key);
-            i64 index = h % _capacity;
-            while(true) {
-                State const state = _states[index];
-                if(state == State::active && _key_equal(key, _slots[index].key)) {
-                    return iterator(_slots + index, _states + index);
-                } else if(state == State::empty) {
-                    return end();
-                }
-                index = (index + 1) % _capacity;
-            }
-        }
-        return end();
     }
 
     template<typename Key, typename Value, typename Hash, typename Key_Compare>
@@ -443,8 +460,8 @@ namespace anton_engine::atl {
     }
 
     template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    template<typename... Args>
-    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::emplace(Key const& key, Args&&... args) -> iterator {
+    template<typename Key_Type, typename... Args>
+    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::emplace(Key_Type&& key, Args&&... args) -> iterator {
         ensure_capacity(_size + 1);
         u64 const h = _hasher(key);
         i64 index = h % _capacity;
@@ -452,35 +469,15 @@ namespace anton_engine::atl {
             State const state = _states[index];
             if(state != State::active) {
                 _states[index] = State::active;
-                new(_slots + index) Slot(key, atl::forward<Args>(args)...);
+                construct(_slots + index, key, atl::forward<Args>(args)...);
                 _size += 1;
                 _empty_slots_left -= 1;
                 return iterator(_slots + index, _states + index);
             } else {
                 if(_key_equal(key, _slots[index].key)) {
-                    return iterator(_slots + index, _states + index);
-                }
-                index = (index + 1) % _capacity;
-            }
-        }
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    template<typename... Args>
-    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::emplace(Key&& key, Args&&... args) -> iterator {
-        ensure_capacity(_size + 1);
-        u64 const h = _hasher(key);
-        i64 index = h % _capacity;
-        while(true) {
-            State const state = _states[index];
-            if(state != State::active) {
-                _states[index] = State::active;
-                new(_slots + index) Slot(key, atl::forward<Args>(args)...);
-                _size += 1;
-                _empty_slots_left -= 1;
-                return iterator(_slots + index, _states + index);
-            } else {
-                if(_key_equal(key, _slots[index].key)) {
+                    Value* ptr = &_slots[index].value;
+                    destruct(ptr);
+                    construct(ptr, atl::forward<Args>(args)...);
                     return iterator(_slots + index, _states + index);
                 }
                 index = (index + 1) % _capacity;
@@ -491,12 +488,22 @@ namespace anton_engine::atl {
     template<typename Key, typename Value, typename Hash, typename Key_Compare>
     void Flat_Hash_Map<Key, Value, Hash, Key_Compare>::erase(const_iterator pos) {
         if constexpr(ANTON_ITERATOR_DEBUG) {
-            // TODO: Implement.
+            ANTON_FAIL(pos._states >= _states && pos._states < _states + _capacity,
+                       "Flat_Hash_Map::erase(const_iterator): Attepmting to erase an iterator outside the container.");
+            ANTON_FAIL(*pos._states == State::active,
+                       "Flat_Hash_Map::erase(const_iterator): Attempting to erase an iterator that doesn't point to a valid object.");
         }
 
         *const_cast<State*>(pos._states) = State::deleted;
         destruct(pos._slots);
         _size -= 1;
+    }
+
+    template<typename Key, typename Value, typename Hash, typename Key_Compare>
+    void Flat_Hash_Map<Key, Value, Hash, Key_Compare>::clear() {
+        for(auto it = begin(); it != end(); ++it) {
+            erase(it);
+        }
     }
 
     template<typename Key, typename Value, typename Hash, typename Key_Compare>
@@ -517,26 +524,19 @@ namespace anton_engine::atl {
                 return;
             }
 
-            State* new_states = nullptr;
-            Slot* new_slots = nullptr;
-            try {
-                new_states = (State*)_allocator.allocate((new_capacity + 16 + 1) * sizeof(State), 16);
-                new_states += 16;
-                new_states[-1] = State::sentinel;
-                memset(new_states, (u8)State::empty, new_capacity);
-                new_states[new_capacity] = State::sentinel;
-                new_slots = (Slot*)_allocator.allocate(new_capacity * sizeof(Slot), alignof(Slot));
-            } catch(...) {
-                // TODO: Cleanup or whatever.
-                throw;
-            }
+            State* new_states = (State*)_allocator.allocate((new_capacity + 16 + 1) * sizeof(State), 16);
+            new_states += 16;
+            new_states[-1] = State::sentinel;
+            memset(new_states, (u8)State::empty, new_capacity);
+            new_states[new_capacity] = State::sentinel;
+            Slot* new_slots = (Slot*)_allocator.allocate(new_capacity * sizeof(Slot), alignof(Slot));
 
             for(i64 i = 0; i < _capacity; ++i) {
                 if(_states[i] == State::active) {
                     u64 const h = _hasher(_slots[i].key);
                     i64 const index = find_non_active(h, new_capacity, new_states);
-                    new(new_slots + index) Slot{atl::move(_slots[i])};
-                    _slots[i].~Slot();
+                    construct(new_slots + index, atl::move(_slots[i]));
+                    destruct(_slots + i);
                     new_states[index] = State::active;
                 }
             }
@@ -572,7 +572,7 @@ namespace anton_engine::atl {
                     State const state = _states[index];
                     if(state == State::empty) {
                         _states[index] = State::active;
-                        new(_slots + index) Slot(atl::move(slot));
+                        construct(_slots + index, atl::move(_slots[i]));
                         break;
                     } else if(state == State::deleted) {
                         _states[index] = State::active;
@@ -585,36 +585,6 @@ namespace anton_engine::atl {
         }
 
         _empty_slots_left = _capacity - _size;
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    i64 Flat_Hash_Map<Key, Value, Hash, Key_Compare>::capacity() const {
-        return _capacity;
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    i64 Flat_Hash_Map<Key, Value, Hash, Key_Compare>::size() const {
-        return _size;
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::get_allocator() -> allocator_type& {
-        return _allocator;
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    auto Flat_Hash_Map<Key, Value, Hash, Key_Compare>::get_allocator() const -> allocator_type const& {
-        return _allocator;
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    f32 Flat_Hash_Map<Key, Value, Hash, Key_Compare>::load_factor() const {
-        return (f32)(_capacity - _empty_slots_left) / (f32)_capacity;
-    }
-
-    template<typename Key, typename Value, typename Hash, typename Key_Compare>
-    f32 Flat_Hash_Map<Key, Value, Hash, Key_Compare>::max_load_factor() const {
-        return 0.75f;
     }
 
     template<typename Key, typename Value, typename Hash, typename Key_Compare>
