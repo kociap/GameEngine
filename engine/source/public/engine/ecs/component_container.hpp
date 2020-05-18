@@ -3,8 +3,8 @@
 
 #include <core/assert.hpp>
 #include <core/atl/algorithm.hpp>
+#include <core/atl/array.hpp>
 #include <core/atl/type_traits.hpp>
-#include <core/atl/vector.hpp>
 #include <core/serialization/archives/binary.hpp>
 #include <engine/ecs/component_container_iterator.hpp>
 #include <engine/ecs/entity.hpp>
@@ -12,9 +12,9 @@
 namespace anton_engine {
     class Component_Container_Base {
     public:
-        using size_type = atl::Vector<Entity>::size_type;
-        using iterator = atl::Vector<Entity>::iterator;
-        using const_iterator = atl::Vector<Entity>::const_iterator;
+        using size_type = atl::Array<Entity>::size_type;
+        using iterator = atl::Array<Entity>::iterator;
+        using const_iterator = atl::Array<Entity>::const_iterator;
 
         virtual ~Component_Container_Base() = default;
 
@@ -35,17 +35,17 @@ namespace anton_engine {
         [[nodiscard]] size_type get_component_index(Entity entity);
         void remove_entity(Entity entity);
 
-        // Sort entities and the provided component vector.
+        // Sort entities and the provided component array.
         template<typename Component, typename Sort, typename Predicate>
-        void sort_components(atl::Vector<Component>&, Sort sort, Predicate predicate);
+        void sort_components(atl::Array<Component>&, Sort sort, Predicate predicate);
 
         // Sort only entities.
         void sort_entities();
 
     private:
-        // Indices into entities vector
-        atl::Vector<size_type> _indirect;
-        atl::Vector<Entity> _entities;
+        // Indices into entities array
+        atl::Array<size_type> _indirect;
+        atl::Array<Entity> _entities;
 
         [[nodiscard]] size_type indirect_index(Entity entity) const;
         void ensure(size_type index);
@@ -116,7 +116,7 @@ namespace anton_engine {
     private:
         using base_t = Component_Container_Base;
 
-        atl::conditional<atl::is_empty<Component>, Component, atl::Vector<Component>> _components;
+        atl::conditional<atl::is_empty<Component>, Component, atl::Array<Component>> _components;
     };
 } // namespace anton_engine
 
@@ -197,11 +197,11 @@ namespace anton_engine {
     }
 
     template<typename Component, typename Sort, typename Predicate>
-    void Component_Container_Base::sort_components(atl::Vector<Component>& components, Sort sort, Predicate predicate) {
+    void Component_Container_Base::sort_components(atl::Array<Component>& components, Sort sort, Predicate predicate) {
         static_assert(atl::is_invocable_r<bool, Predicate, Entity const, Entity const> ||
                           atl::is_invocable_r<bool, Predicate, Component const, Component const>,
                       "Predicate is not invocable with either Entity or Component as the parameter");
-        atl::Vector<i64> indices(_entities.size());
+        atl::Array<i64> indices(_entities.size());
         atl::fill_with_consecutive(indices.begin(), indices.end(), 0);
         sort(indices.begin(), indices.end(), [&, cmp = predicate](i64 const lhs, i64 const rhs) -> bool {
             if constexpr(atl::is_invocable_r<bool, Predicate, Entity const, Entity const>) {

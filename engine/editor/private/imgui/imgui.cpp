@@ -1,10 +1,10 @@
 #include <imgui/imgui.hpp>
 
 #include <core/assert.hpp>
+#include <core/atl/array.hpp>
 #include <core/atl/flat_hash_map.hpp>
 #include <core/atl/string.hpp>
 #include <core/atl/utility.hpp>
-#include <core/atl/vector.hpp>
 #include <core/hashing/murmurhash2.hpp>
 #include <core/intrinsics.hpp>
 #include <core/math/math.hpp>
@@ -36,12 +36,12 @@ namespace anton_engine::imgui {
 
     class Layout: public Layout_Tile {
     public:
-        atl::Vector<Layout_Tile*> tiles;
+        atl::Array<Layout_Tile*> tiles;
     };
 
     class Dockspace: public Layout_Tile {
     public:
-        atl::Vector<i64> windows;
+        atl::Array<i64> windows;
         i64 active_window = -1;
         Viewport* viewport = nullptr;
         // Vector2 position;
@@ -54,9 +54,9 @@ namespace anton_engine::imgui {
     class Draw_Context {
     public:
         Vector2 draw_pos;
-        atl::Vector<Draw_Command> draw_commands;
-        atl::Vector<Vertex> vertex_buffer;
-        atl::Vector<u32> index_buffer;
+        atl::Array<Draw_Command> draw_commands;
+        atl::Array<Vertex> vertex_buffer;
+        atl::Array<u32> index_buffer;
     };
 
     class Window {
@@ -87,8 +87,8 @@ namespace anton_engine::imgui {
     public:
         Context* context;
         windowing::Window* native_window = nullptr;
-        atl::Vector<Draw_Command> draw_commands_buffer;
-        atl::Vector<Dockspace*> dockspaces;
+        atl::Array<Draw_Command> draw_commands_buffer;
+        atl::Array<Dockspace*> dockspaces;
         Layout_Root layout_root;
     };
 
@@ -102,17 +102,17 @@ namespace anton_engine::imgui {
         i64 current_widget = -1;
         Input_State input = {};
         Input_State prev_input = {};
-        atl::Vector<Widget> widgets;
-        atl::Vector<i64> widget_stack;
+        atl::Array<Widget> widgets;
+        atl::Array<i64> widget_stack;
         Style default_style;
         Font_Style default_font_style;
         Settings settings;
-        atl::Vector<Vertex> vertex_buffer;
-        atl::Vector<u32> index_buffer;
+        atl::Array<Vertex> vertex_buffer;
+        atl::Array<u32> index_buffer;
         Viewport* main_viewport;
         // Stores viewports in their z-order (most recent at the end).
-        atl::Vector<Viewport*> viewports;
-        atl::Vector<Dockspace*> dockspaces;
+        atl::Array<Viewport*> viewports;
+        atl::Array<Dockspace*> dockspaces;
         Viewport* dragged_viewport = nullptr;
         bool dragging = false;
         bool clicked_tab = false;
@@ -371,7 +371,7 @@ namespace anton_engine::imgui {
 
     static Dockspace* find_dockspace_under_cursor(Context& ctx, Vector2 const cursor, atl::Slice<Dockspace const* const> const exclude) {
         for(auto i = ctx.viewports.end() - 1, end = ctx.viewports.begin() - 1; i != end; --i) {
-            atl::Vector<Dockspace*> dockspaces = (**i).dockspaces;
+            atl::Array<Dockspace*> dockspaces = (**i).dockspaces;
             for(Dockspace* const dockspace: dockspaces) {
                 bool excluded = false;
                 for(Dockspace const* const excluded_docksapce: exclude) {
@@ -1031,7 +1031,7 @@ namespace anton_engine::imgui {
     }
 
     // From top-left counterclockwise order of vertices.
-    static void add_quad(atl::Vector<Vertex>& verts, atl::Vector<u32>& indices, Vertex v1, Vertex v2, Vertex v3, Vertex v4, u32 inx1, u32 inx2, u32 inx3,
+    static void add_quad(atl::Array<Vertex>& verts, atl::Array<u32>& indices, Vertex v1, Vertex v2, Vertex v3, Vertex v4, u32 inx1, u32 inx2, u32 inx3,
                          u32 inx4, u32 inx5, u32 inx6) {
         verts.emplace_back(v1);
         verts.emplace_back(v2);
@@ -1085,7 +1085,7 @@ namespace anton_engine::imgui {
         auto& verts = ctx.vertex_buffer;
         auto& indices = ctx.index_buffer;
         for(Dockspace const* const dockspace: ctx.dockspaces) {
-            atl::Vector<Draw_Command>& draw_cmd_buffer = dockspace->viewport->draw_commands_buffer;
+            atl::Array<Draw_Command>& draw_cmd_buffer = dockspace->viewport->draw_commands_buffer;
             Vector2 const dockspace_pos = get_dockspace_screen_pos(dockspace);
             Vector2 const dockspace_size = get_dockspace_size(dockspace);
             Vector2 const dockspace_content_pos = get_dockspace_content_screen_pos(dockspace);
@@ -1507,7 +1507,7 @@ namespace anton_engine::imgui {
                         offset.y += line_height;
                     }
 
-                    atl::Vector<rendering::Glyph> const glyphs = rendering::render_text(style.face, {style.size, style.h_dpi, style.v_dpi}, word);
+                    atl::Array<rendering::Glyph> const glyphs = rendering::render_text(style.face, {style.size, style.h_dpi, style.v_dpi}, word);
                     Vector2 pen_offset = {0.0f, 0.0f};
                     for(rendering::Glyph const& glyph: glyphs) {
                         Draw_Command text_cmd;

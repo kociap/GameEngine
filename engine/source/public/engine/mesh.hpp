@@ -1,11 +1,11 @@
 #ifndef ENGINE_MESH_HPP_INCLUDE
 #define ENGINE_MESH_HPP_INCLUDE
 
-#include <core/types.hpp>
+#include <core/atl/array.hpp>
 #include <core/atl/type_traits.hpp>
-#include <core/atl/vector.hpp>
 #include <core/math/vector2.hpp>
 #include <core/math/vector3.hpp>
+#include <core/types.hpp>
 
 namespace anton_engine {
     struct Vertex {
@@ -17,17 +17,17 @@ namespace anton_engine {
 
         Vertex() = default;
         Vertex(Vector3 const pos, Vector3 const normal, Vector3 const tangent, Vector3 const bitangent, Vector2 const uv)
-            : position(atl::move(pos)), normal(atl::move(normal)), tangent(atl::move(tangent)), bitangent(atl::move(bitangent)),
-              uv_coordinates(atl::move(uv)) {}
+            : position(atl::move(pos)), normal(atl::move(normal)), tangent(atl::move(tangent)), bitangent(atl::move(bitangent)), uv_coordinates(atl::move(uv)) {
+        }
     };
 
     class Mesh {
     public:
-        Mesh(atl::Vector<Vertex> const& vertices, atl::Vector<u32> const& indices): vertices(vertices), indices(indices) {}
-        Mesh(atl::Vector<Vertex>&& vertices, atl::Vector<u32>&& indices): vertices(atl::move(vertices)), indices(atl::move(indices)) {}
+        Mesh(atl::Array<Vertex> const& vertices, atl::Array<u32> const& indices): vertices(vertices), indices(indices) {}
+        Mesh(atl::Array<Vertex>&& vertices, atl::Array<u32>&& indices): vertices(atl::move(vertices)), indices(atl::move(indices)) {}
 
-        atl::Vector<Vertex> vertices;
-        atl::Vector<u32> indices;
+        atl::Array<Vertex> vertices;
+        atl::Array<u32> indices;
     };
 
     Mesh generate_plane();

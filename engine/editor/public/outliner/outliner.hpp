@@ -1,9 +1,9 @@
 #ifndef EDITOR_OUTLINER_OUTLINER_HPP_INCLUDE
 #define EDITOR_OUTLINER_OUTLINER_HPP_INCLUDE
 
-#include <core/atl/vector.hpp>
-#include <core/types.hpp>
+#include <core/atl/array.hpp>
 #include <core/diagnostic_macros.hpp>
+#include <core/types.hpp>
 #include <engine/ecs/entity.hpp>
 #include <outliner_item.hpp>
 
@@ -24,8 +24,8 @@ namespace anton_engine {
 
         void update();
         void add_entity(Entity);
-        void remove_entities(atl::Vector<Entity> const& entities_to_remove);
-        void select_entities(atl::Vector<Entity> const&);
+        void remove_entities(atl::Array<Entity> const& entities_to_remove);
+        void select_entities(atl::Array<Entity> const&);
         void select_entity(Entity);
         void deselect_entity(Entity);
 

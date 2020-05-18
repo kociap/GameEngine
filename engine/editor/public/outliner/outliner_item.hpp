@@ -1,8 +1,8 @@
 #ifndef EDITOR_OUTLINER_OUTLINER_ITEM_HPP_INCLUDE
 #define EDITOR_OUTLINER_OUTLINER_ITEM_HPP_INCLUDE
 
+#include <core/atl/array.hpp>
 #include <core/atl/string_view.hpp>
-#include <core/atl/vector.hpp>
 #include <engine/ecs/entity.hpp>
 
 #include <core/diagnostic_macros.hpp>

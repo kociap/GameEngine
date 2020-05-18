@@ -1,6 +1,6 @@
 #include <shaders/shader_stage.hpp>
 
-#include <core/atl/vector.hpp>
+#include <core/atl/array.hpp>
 #include <rendering/glad.hpp>
 #include <rendering/opengl.hpp>
 #include <shaders/shader_exceptions.hpp>

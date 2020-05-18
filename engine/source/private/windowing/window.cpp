@@ -2,8 +2,8 @@
 
 #include <core/anton_crt.hpp>
 #include <core/assert.hpp>
+#include <core/atl/array.hpp>
 #include <core/atl/fixed_array.hpp>
-#include <core/atl/vector.hpp>
 #include <core/diagnostic_macros.hpp>
 #include <core/exception.hpp>
 
@@ -36,7 +36,7 @@ namespace anton_engine::windowing {
             joystick_function joystick;
             void* joystick_data;
         } callbacks;
-        atl::Vector<Window*> windows;
+        atl::Array<Window*> windows;
     };
 
     static Windowing windowing;

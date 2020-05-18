@@ -4,7 +4,7 @@
 
 #include <build_config.hpp>
 #include <core/anton_crt.hpp>
-#include <core/atl/vector.hpp>
+#include <core/atl/array.hpp>
 #include <core/exception.hpp>
 #include <core/filesystem.hpp>
 #include <core/math/vector3.hpp>
@@ -84,7 +84,7 @@ namespace anton_engine::assets {
     }
 
     // TODO extract writing and reading to one tu to keep them in sync
-    Texture_Format load_texture_no_mipmaps(atl::String_View const filename, u64 const texture_id, atl::Vector<u8>& pixels) {
+    Texture_Format load_texture_no_mipmaps(atl::String_View const filename, u64 const texture_id, atl::Array<u8>& pixels) {
 #if !GE_BUILD_SHIPPING
         atl::String const filename_ext = atl::String(filename) + ".getex";
         atl::String const texture_path = fs::concat_paths(paths::assets_directory(), filename_ext);
@@ -128,10 +128,10 @@ namespace anton_engine::assets {
                 fseek(file, index_count * sizeof(u32), SEEK_CUR);
             } else {
                 i64 const vertex_count = read_int64_le(file);
-                atl::Vector<Vertex> vertices(vertex_count);
+                atl::Array<Vertex> vertices(vertex_count);
                 fread(reinterpret_cast<char*>(vertices.data()), vertex_count * sizeof(Vertex), 1, file);
                 i64 const index_count = read_int64_le(file);
-                atl::Vector<u32> indices(index_count);
+                atl::Array<u32> indices(index_count);
                 fread(reinterpret_cast<char*>(indices.data()), index_count * sizeof(u32), 1, file);
                 fclose(file);
                 return {atl::move(vertices), atl::move(indices)};

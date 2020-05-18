@@ -1,19 +1,19 @@
 #include <engine/ecs/jobs.hpp>
 #include <engine/ecs/jobs_management.hpp>
 
-#include <core/atl/vector.hpp>
+#include <core/atl/array.hpp>
 
 namespace anton_engine {
-    static atl::Vector<Job*> jobs;
+    static atl::Array<Job*> jobs;
 
     i64 schedule_job(Job* job) {
         jobs.push_back(job);
-		// TODO: Generate id
+        // TODO: Generate id
         return 0;
     }
 
     void execute_jobs() {
-        for (Job* job: jobs) {
+        for(Job* job: jobs) {
             job->execute();
         }
 

@@ -31,14 +31,14 @@ namespace anton_engine::rendering {
     struct Font_Atlas {
         Font_Face* face;
         Font_Render_Info render_info;
-        atl::Vector<u32> textures;
-        atl::Vector<atl::Fixed_Array<Font_Row, max_row_count>> rows;
+        atl::Array<u32> textures;
+        atl::Array<atl::Fixed_Array<Font_Row, max_row_count>> rows;
         atl::Flat_Hash_Map<char32, Glyph> glyphs;
     };
 
     class Font_Library {
     public:
-        atl::Vector<Font_Atlas> atlases;
+        atl::Array<Font_Atlas> atlases;
     };
 
     static Font_Atlas* find_atlas_with_params(Font_Library& lib, Font_Face* face, Font_Render_Info const info) {
@@ -149,7 +149,7 @@ namespace anton_engine::rendering {
         }
 
         i64 const buf_size = unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), nullptr) / sizeof(char32);
-        atl::Vector<char32> text_utf32{atl::reserve, buf_size};
+        atl::Array<char32> text_utf32{atl::reserve, buf_size};
         text_utf32.force_size(buf_size);
         unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), text_utf32.data());
 
@@ -252,7 +252,7 @@ namespace anton_engine::rendering {
         i32 const bitmap_height = bitmap.rows;
         unsigned char* bitmap_buffer_begin = (bitmap.pitch > 0 ? bitmap.buffer : bitmap.buffer - bitmap_width * bitmap_height);
         unsigned char* bitmap_buffer_end = (bitmap.pitch > 0 ? bitmap.buffer + bitmap_width * bitmap_height : bitmap.buffer);
-        atl::Vector<u8> tex_data{atl::range_construct, bitmap_buffer_begin, bitmap_buffer_end};
+        atl::Array<u8> tex_data{atl::range_construct, bitmap_buffer_begin, bitmap_buffer_end};
 
         i32 const required_row_height = bitmap_height + 1 + math::min(bitmap_height / 10, 1);
         auto& rows = atlas->rows;
@@ -331,13 +331,13 @@ namespace anton_engine::rendering {
         return glyph;
     }
 
-    atl::Vector<Glyph> render_text(Font_Face* const face, Font_Render_Info const info, atl::String_View const string) {
+    atl::Array<Glyph> render_text(Font_Face* const face, Font_Render_Info const info, atl::String_View const string) {
         i64 const text_size = unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), nullptr) / sizeof(char32);
-        atl::Vector<char32> text_utf32{atl::reserve, text_size};
+        atl::Array<char32> text_utf32{atl::reserve, text_size};
         text_utf32.force_size(text_size);
         unicode::convert_utf8_to_utf32(string.data(), string.size_bytes(), text_utf32.data());
         // TODO: Layout via HarfBuzz.
-        atl::Vector<Glyph> glyphs(atl::reserve, text_size);
+        atl::Array<Glyph> glyphs(atl::reserve, text_size);
         for(char32 const c: text_utf32) {
             // TODO: Handle space, ignore newline
             // Omit all null-terminators because they rasterize to missing character (empty rectangle, etc).

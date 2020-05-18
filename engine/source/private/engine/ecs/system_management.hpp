@@ -1,8 +1,8 @@
-#include <core/atl/vector.hpp>
+#include <core/atl/array.hpp>
 #include <engine/ecs/system.hpp>
 
 namespace anton_engine {
-    using create_systems_type = atl::Vector<System*> (*)();
+    using create_systems_type = atl::Array<System*> (*)();
     ENGINE_API extern create_systems_type create_systems;
 
     void init_systems();

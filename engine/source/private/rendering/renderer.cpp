@@ -2,10 +2,10 @@
 
 #include <build_config.hpp>
 #include <core/atl/algorithm.hpp>
+#include <core/atl/array.hpp>
 #include <core/atl/flat_hash_map.hpp>
 #include <core/atl/string.hpp>
 #include <core/atl/utility.hpp>
-#include <core/atl/vector.hpp>
 #include <core/exception.hpp>
 #include <core/handle.hpp>
 #include <core/intrinsics.hpp>
@@ -145,15 +145,15 @@ namespace anton_engine::rendering {
     };
 
     struct Array_Texture_Storage {
-        atl::Vector<u32> free_list;
+        atl::Array<u32> free_list;
         i32 size = 0;
     };
 
-    static atl::Vector<Array_Texture> textures(64, Array_Texture{});
-    static atl::Vector<Array_Texture_Storage> textures_storage(64, Array_Texture_Storage());
+    static atl::Array<Array_Texture> textures(64, Array_Texture{});
+    static atl::Array<Array_Texture_Storage> textures_storage(64, Array_Texture_Storage());
 
     // Draw commands buffer
-    static atl::Vector<Draw_Elements_Command> draw_elements_commands;
+    static atl::Array<Draw_Elements_Command> draw_elements_commands;
 
     static atl::Flat_Hash_Map<u64, Draw_Elements_Command> persistent_draw_commands_map;
 

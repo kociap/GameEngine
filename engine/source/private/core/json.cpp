@@ -1,9 +1,9 @@
 #include <core/json.hpp>
 
 #include <core/assert.hpp>
+#include <core/atl/array.hpp>
 #include <core/atl/flat_hash_map.hpp>
 #include <core/atl/string.hpp>
-#include <core/atl/vector.hpp>
 #include <core/filesystem.hpp>
 
 namespace anton_engine::json {
@@ -96,7 +96,7 @@ namespace anton_engine::json {
     }
 
     struct _Array {
-        atl::Vector<_Element> elements;
+        atl::Array<_Element> elements;
     };
 
     Array_Iterator& Array_Iterator::operator++() {
@@ -914,7 +914,7 @@ namespace anton_engine::json {
     }
 
     Element insert(Array array, Array_Iterator iterator) {
-        // TODO: Fix return value. Requires modification of vector's insert.
+        // TODO: Fix return value. Requires modification of array's insert.
         array->elements.insert(iterator.element);
         return nullptr;
     }

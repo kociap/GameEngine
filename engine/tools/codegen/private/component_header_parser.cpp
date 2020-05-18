@@ -40,7 +40,7 @@ namespace anton_engine {
 
         Lexer();
 
-        atl::Vector<Word> parse(File&);
+        atl::Array<Word> parse(File&);
 
     private:
         std::tuple<File::iterator, Token, std::string> scan(File::iterator begin, File::iterator end);
@@ -48,9 +48,9 @@ namespace anton_engine {
 
     Lexer::Lexer(): tokens{{"class", Token::keyword_class}, {"{", Token::opening_brace}, {"COMPONENT", Token::macro_component}} {}
 
-    atl::Vector<Word> Lexer::parse(File& file) {
-        atl::Vector<Word> tokens_vec;
-        for (File::iterator current = file.begin(), end = file.end(); current != end;) {
+    atl::Array<Word> Lexer::parse(File& file) {
+        atl::Array<Word> tokens_vec;
+        for(File::iterator current = file.begin(), end = file.end(); current != end;) {
             auto [new_iter, token_type, string] = scan(current, end);
             current = new_iter;
             tokens_vec.emplace_back(string, token_type);
@@ -60,20 +60,20 @@ namespace anton_engine {
 
     std::tuple<File::iterator, Token, std::string> Lexer::scan(File::iterator begin, File::iterator const end) {
         char current = *begin;
-        while (begin != end && is_whitespace(current)) {
+        while(begin != end && is_whitespace(current)) {
             current = *(++begin);
         }
 
         File::iterator copy = begin + 1;
-        if (begin != end && is_allowed_identifier_character(*begin)) {
-            while (copy != end && is_allowed_identifier_character(*copy)) {
+        if(begin != end && is_allowed_identifier_character(*begin)) {
+            while(copy != end && is_allowed_identifier_character(*copy)) {
                 ++copy;
             }
         }
 
         std::string identifier(begin, copy);
         auto tokens_iter = tokens.find(identifier);
-        if (tokens_iter != tokens.end()) {
+        if(tokens_iter != tokens.end()) {
             return {copy, tokens_iter->second, tokens_iter->first};
         } else {
             tokens.emplace(identifier, Token::identifier);
@@ -81,13 +81,13 @@ namespace anton_engine {
         }
     }
 
-    atl::Vector<std::string> parse_component_header(File& file) {
-        atl::Vector<std::string> class_names;
+    atl::Array<std::string> parse_component_header(File& file) {
+        atl::Array<std::string> class_names;
         Lexer lexer;
         auto tokens = lexer.parse(file);
-        for (i64 i = 0; i + 2 < tokens.size(); ++i) {
-            if (tokens[i].token == Token::keyword_class) {
-                if (tokens[i + 1].token == Token::macro_component && tokens[i + 2].token == Token::identifier) {
+        for(i64 i = 0; i + 2 < tokens.size(); ++i) {
+            if(tokens[i].token == Token::keyword_class) {
+                if(tokens[i + 1].token == Token::macro_component && tokens[i + 2].token == Token::identifier) {
                     class_names.push_back(tokens[i + 2].string);
                 }
                 i += 2;

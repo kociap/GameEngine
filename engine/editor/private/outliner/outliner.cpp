@@ -3,9 +3,9 @@
 #include <core/atl/algorithm.hpp>
 #include <core/atl/string.hpp>
 #include <core/atl/string_view.hpp>
+#include <editor.hpp>
 #include <engine/components/entity_name.hpp>
 #include <engine/ecs/ecs.hpp>
-#include <editor.hpp>
 
 ANTON_DISABLE_WARNINGS();
 #include <QScrollArea>
@@ -16,9 +16,9 @@ namespace anton_engine {
     static Entity find_entity_with_name(atl::String_View name) {
         ECS& ecs = Editor::get_ecs();
         auto entities_with_names = ecs.view<Entity_Name>();
-        for (Entity const entity: entities_with_names) {
+        for(Entity const entity: entities_with_names) {
             Entity_Name& entity_name = entities_with_names.get(entity);
-            if (name == entity_name.name) {
+            if(name == entity_name.name) {
                 return entity;
             }
         }
@@ -47,7 +47,7 @@ namespace anton_engine {
         ECS& ecs = Editor::get_ecs();
         atl::String_View name;
         Entity_Name* entity_name = ecs.try_get_component<Entity_Name>(entity);
-        if (entity_name) {
+        if(entity_name) {
             name = entity_name->name;
         } else {
             name = u8"<unnamed entity>";
@@ -57,21 +57,21 @@ namespace anton_engine {
         item.show();
     }
 
-    void Outliner::remove_entities(atl::Vector<Entity> const& entities_to_remove) {
-        for (Entity const entity: entities_to_remove) {
-            if (auto iter = atl::find_if(list_widget->begin(), list_widget->end(),
-                                               [entity](Outliner_Item const& item) { return item.get_associated_entity() == entity; });
-                iter != list_widget->end()) {
+    void Outliner::remove_entities(atl::Array<Entity> const& entities_to_remove) {
+        for(Entity const entity: entities_to_remove) {
+            if(auto iter = atl::find_if(list_widget->begin(), list_widget->end(),
+                                        [entity](Outliner_Item const& item) { return item.get_associated_entity() == entity; });
+               iter != list_widget->end()) {
                 iter->setParent(nullptr);
                 list_widget->erase(iter, iter + 1);
             }
         }
     }
 
-    void Outliner::select_entities(atl::Vector<Entity> const& selected_entities) {
-        for (Outliner_Item& item: *list_widget) {
-            if (atl::any_of(selected_entities.begin(), selected_entities.end(),
-                                  [&item](Entity const entity) { return item.get_associated_entity() == entity; })) {
+    void Outliner::select_entities(atl::Array<Entity> const& selected_entities) {
+        for(Outliner_Item& item: *list_widget) {
+            if(atl::any_of(selected_entities.begin(), selected_entities.end(),
+                           [&item](Entity const entity) { return item.get_associated_entity() == entity; })) {
                 item.select();
             } else {
                 item.deselect();
@@ -80,8 +80,8 @@ namespace anton_engine {
     }
 
     void Outliner::select_entity(Entity const entity) {
-        for (Outliner_Item& item: *list_widget) {
-            if (item.get_associated_entity() == entity) {
+        for(Outliner_Item& item: *list_widget) {
+            if(item.get_associated_entity() == entity) {
                 item.select();
                 break;
             }
@@ -89,8 +89,8 @@ namespace anton_engine {
     }
 
     void Outliner::deselect_entity(Entity const entity) {
-        for (Outliner_Item& item: *list_widget) {
-            if (item.get_associated_entity() == entity) {
+        for(Outliner_Item& item: *list_widget) {
+            if(item.get_associated_entity() == entity) {
                 item.deselect();
                 break;
             }
@@ -99,9 +99,9 @@ namespace anton_engine {
 
     void Outliner::update() {
         ECS& ecs = Editor::get_ecs();
-        for (Outliner_Item& item: *list_widget) {
+        for(Outliner_Item& item: *list_widget) {
             Entity_Name* entity_name = ecs.try_get_component<Entity_Name>(item.get_associated_entity());
-            if (entity_name) {
+            if(entity_name) {
                 item.set_name(entity_name->name);
             } else {
                 item.set_name(u8"<unnamed entity>");

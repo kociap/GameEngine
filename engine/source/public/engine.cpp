@@ -218,8 +218,8 @@ namespace anton_engine {
         Mesh container = assets::load_mesh("barrel", 1);
         Material barrel_mat;
         {
-            atl::Vector<u8> pixels;
-            // auto create_noise_texture = [](atl::Vector<u8>& pixels) {
+            atl::Array<u8> pixels;
+            // auto create_noise_texture = [](atl::Array<u8>& pixels) {
             //     i32 const perm_table[] = {
             //         11,  3,   299, 83,  42,  81,  213, 25,  98,  279, 292, 43,  22,  247, 243, 145, 245, 240, 96,  17,  26,  152, 244, 32,  62,  24,  119, 186,
             //         274, 188, 163, 39,  175, 90,  156, 79,  278, 237, 157, 13,  258, 7,   225, 131, 252, 94,  176, 52,  44,  136, 283, 0,   168, 208, 167, 95,

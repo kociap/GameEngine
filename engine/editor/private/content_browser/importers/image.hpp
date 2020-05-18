@@ -1,9 +1,9 @@
 #ifndef EDITOR_ASSET_IMPORTER_IMPORTERS_IMAGE_HPP_INCLUDE
 #define EDITOR_ASSET_IMPORTER_IMPORTERS_IMAGE_HPP_INCLUDE
 
-#include <core/atl/vector.hpp>
-#include <core/types.hpp>
+#include <core/atl/array.hpp>
 #include <core/exception.hpp>
+#include <core/types.hpp>
 
 namespace anton_engine::importers {
     constexpr u64 jpeg_header = 0xFFD8;
@@ -45,10 +45,10 @@ namespace anton_engine::importers {
         float gamma;
         Image_Pixel_Format pixel_format;
         Image_Color_Space color_space;
-        atl::Vector<u8> data;
+        atl::Array<u8> data;
 
         Image() {}
-        Image(u32 width, u32 height, Image_Pixel_Format pixel_format, Image_Color_Space color_space, float gamma, atl::Vector<u8>&& data)
+        Image(u32 width, u32 height, Image_Pixel_Format pixel_format, Image_Color_Space color_space, float gamma, atl::Array<u8>&& data)
             : width(width), height(height), gamma(gamma), pixel_format(pixel_format), color_space(color_space), data(atl::move(data)) {}
     };
 } // namespace anton_engine::importers

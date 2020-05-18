@@ -39,8 +39,8 @@
         </Expand>
     </Type>
 
-    <!-- anton_engine::atl::Vector<T, Allocator> -->
-    <Type Name="anton_engine::atl::Vector&lt;*,*&gt;">
+    <!-- anton_engine::atl::Array<T, Allocator> -->
+    <Type Name="anton_engine::atl::Array&lt;*,*&gt;">
         <DisplayString>{{ size = {_size}, capacity = {_capacity} }}</DisplayString>
         <Expand>
             <ArrayItems>

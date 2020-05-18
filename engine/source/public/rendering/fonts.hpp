@@ -1,9 +1,9 @@
 #ifndef RENDERING_FONTS_HPP_INCLUDE
 #define RENDERING_FONTS_HPP_INCLUDE
 
+#include <core/atl/array.hpp>
 #include <core/atl/slice.hpp>
 #include <core/atl/string_view.hpp>
-#include <core/atl/vector.hpp>
 #include <core/types.hpp>
 
 namespace anton_engine::rendering {
@@ -98,7 +98,7 @@ namespace anton_engine::rendering {
     //
     i64 compute_text_width(Font_Face* face, Font_Render_Info info, atl::String_View text);
 
-    atl::Vector<Glyph> render_text(Font_Face* face, Font_Render_Info info, atl::String_View text);
+    atl::Array<Glyph> render_text(Font_Face* face, Font_Render_Info info, atl::String_View text);
 } // namespace anton_engine::rendering
 
 #endif // !RENDERING_FONTS_HPP_INCLUDE

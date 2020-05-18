@@ -2,7 +2,7 @@
 #include <level_editor/gizmo/dial_3d.hpp>
 // #include <level_editor/gizmo/primitive_3d.hpp>
 
-#include <core/atl/vector.hpp>
+#include <core/atl/array.hpp>
 #include <core/intrinsics.hpp>
 #include <core/math/math.hpp>
 #include <core/math/quaternion.hpp>
@@ -190,7 +190,7 @@ namespace anton_engine::gizmo {
         float time;
     };
 
-    static atl::Vector<Line_Segment> line_segments;
+    static atl::Array<Line_Segment> line_segments;
 
     void debug_draw_line(Vector3 f, Vector3 l, float time) {
         line_segments.push_back({f, l, time});
@@ -346,16 +346,16 @@ namespace anton_engine::gizmo {
         uniform_color_shader.set_matrix4("mvp_mat", math::scale(scale) * world_transform * view_projection_matrix);
         glBindVertexArray(vao);
         switch(arrow.draw_style) {
-        case Arrow_3D_Style::cone: {
-            glDrawArrays(GL_LINES, cone_base_index, 2);
-            GLint const first[2] = {cone_base_index + 2, cone_base_index + 2 + cone_base_point_count + 2};
-            GLsizei const count[2] = {cone_base_point_count + 2, cone_base_point_count + 2};
-            glMultiDrawArrays(GL_TRIANGLE_FAN, first, count, 2);
-        } break;
-        case Arrow_3D_Style::cube: {
-            glDrawArrays(GL_LINES, cube_base_index, 2);
-            glDrawArrays(GL_TRIANGLE_STRIP, cube_base_index + 2, cube_vertex_count);
-        } break;
+            case Arrow_3D_Style::cone: {
+                glDrawArrays(GL_LINES, cone_base_index, 2);
+                GLint const first[2] = {cone_base_index + 2, cone_base_index + 2 + cone_base_point_count + 2};
+                GLsizei const count[2] = {cone_base_point_count + 2, cone_base_point_count + 2};
+                glMultiDrawArrays(GL_TRIANGLE_FAN, first, count, 2);
+            } break;
+            case Arrow_3D_Style::cube: {
+                glDrawArrays(GL_LINES, cube_base_index, 2);
+                glDrawArrays(GL_TRIANGLE_STRIP, cube_base_index + 2, cube_vertex_count);
+            } break;
         }
     }
 
@@ -363,70 +363,71 @@ namespace anton_engine::gizmo {
                                             Vector2 const viewport_size) {
         float const scale = compute_scale(world_transform, arrow.size, view_projection_matrix, viewport_size);
         switch(arrow.draw_style) {
-        case Arrow_3D_Style::cone: {
-            atl::Optional<float> result = atl::null_optional;
+            case Arrow_3D_Style::cone: {
+                atl::Optional<float> result = atl::null_optional;
 
-            // OBB line_bounding_vol;
-            // line_bounding_vol.local_x = Vector3(Vector4(Vector3{1.0f, 0.0f, 0.0f}, 0.0f) * world_transform);
-            // line_bounding_vol.local_y = Vector3(Vector4(Vector3{0.0f, 1.0f, 0.0f}, 0.0f) * world_transform);
-            // line_bounding_vol.local_z = Vector3(Vector4(Vector3{0.0f, 0.0f, -1.0f}, 0.0f) * world_transform);
-            // line_bounding_vol.halfwidths = {0.05f * scale, 0.05f * scale, 0.4f * scale};
-            // line_bounding_vol.center = math::get_translation(world_transform) + line_bounding_vol.local_z * 0.4f * scale;
-            // if (atl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, line_bounding_vol); hit.holds_value()) {
-            //     result = hit->distance;
-            // }
+                // OBB line_bounding_vol;
+                // line_bounding_vol.local_x = Vector3(Vector4(Vector3{1.0f, 0.0f, 0.0f}, 0.0f) * world_transform);
+                // line_bounding_vol.local_y = Vector3(Vector4(Vector3{0.0f, 1.0f, 0.0f}, 0.0f) * world_transform);
+                // line_bounding_vol.local_z = Vector3(Vector4(Vector3{0.0f, 0.0f, -1.0f}, 0.0f) * world_transform);
+                // line_bounding_vol.halfwidths = {0.05f * scale, 0.05f * scale, 0.4f * scale};
+                // line_bounding_vol.center = math::get_translation(world_transform) + line_bounding_vol.local_z * 0.4f * scale;
+                // if (atl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, line_bounding_vol); hit.holds_value()) {
+                //     result = hit->distance;
+                // }
 
-            Vector3 const vertex1 = Vector3(Vector4(0, 0, 0, 1) * world_transform);
-            Vector3 const vertex2 = Vector3(Vector4(0, 0, -0.8f * scale, 1) * world_transform);
-            if(atl::Optional<Raycast_Hit> const hit = intersect_ray_cylinder(ray, vertex1, vertex2, 0.05f * scale);
-               hit.holds_value() && (!result || hit->distance < *result)) {
-                result = hit->distance;
+                Vector3 const vertex1 = Vector3(Vector4(0, 0, 0, 1) * world_transform);
+                Vector3 const vertex2 = Vector3(Vector4(0, 0, -0.8f * scale, 1) * world_transform);
+                if(atl::Optional<Raycast_Hit> const hit = intersect_ray_cylinder(ray, vertex1, vertex2, 0.05f * scale);
+                   hit.holds_value() && (!result || hit->distance < *result)) {
+                    result = hit->distance;
+                }
+
+                Vector3 const vertex = Vector3(Vector4(0.0f, 0.0f, -1.05f, 1.0f) * math::scale(scale) * world_transform);
+                Vector3 const direction = Vector3(Vector4(-Vector3{0.0f, 0.0f, -1.0f}, 0.0f) * world_transform);
+                // 0.2 height, 0.05 radius
+                float const angle_cos = 0.970143f;
+                float const height = 0.3f * scale;
+                if(atl::Optional<Raycast_Hit> const hit = intersect_ray_cone(ray, vertex, direction, angle_cos, height);
+                   hit.holds_value() && (!result || hit->distance < *result)) {
+                    result = hit->distance;
+                }
+
+                return result;
             }
+            case Arrow_3D_Style::cube: {
+                atl::Optional<float> result = atl::null_optional;
 
-            Vector3 const vertex = Vector3(Vector4(0.0f, 0.0f, -1.05f, 1.0f) * math::scale(scale) * world_transform);
-            Vector3 const direction = Vector3(Vector4(-Vector3{0.0f, 0.0f, -1.0f}, 0.0f) * world_transform);
-            // 0.2 height, 0.05 radius
-            float const angle_cos = 0.970143f;
-            float const height = 0.3f * scale;
-            if(atl::Optional<Raycast_Hit> const hit = intersect_ray_cone(ray, vertex, direction, angle_cos, height);
-               hit.holds_value() && (!result || hit->distance < *result)) {
-                result = hit->distance;
+                // OBB line_bounding_vol;
+                // line_bounding_vol.local_x = Vector3(Vector4(Vector3{1.0f, 0.0f, 0.0f}, 0.0f) * world_transform);
+                // line_bounding_vol.local_y = Vector3(Vector4(Vector3{0.0f, 1.0f, 0.0f}, 0.0f) * world_transform);
+                // line_bounding_vol.local_z = Vector3(Vector4(Vector3{0.0f, 0.0f, -1.0f}, 0.0f) * world_transform);
+                // line_bounding_vol.halfwidths = {0.05f * scale, 0.05f * scale, 0.425f * scale};
+                // line_bounding_vol.center = math::get_translation(world_transform) + line_bounding_vol.local_z * 0.425f * scale;
+                // if (atl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, line_bounding_vol); hit.holds_value()) {
+                //     result = hit->distance;
+                // }
+
+                Vector3 const vertex1 = Vector3(Vector4(0, 0, 0, 1) * world_transform);
+                Vector3 const vertex2 = Vector3(Vector4(0, 0, -0.8f * scale, 1) * world_transform);
+                if(atl::Optional<Raycast_Hit> const hit = intersect_ray_cylinder(ray, vertex1, vertex2, 0.05f * scale);
+                   hit.holds_value() && (!result || hit->distance < *result)) {
+                    result = hit->distance;
+                }
+
+                OBB cube_bounding_vol;
+                cube_bounding_vol.local_x = Vector3(Vector4(Vector3{1.0f, 0.0f, 0.0f}, 0.0f) * world_transform);
+                cube_bounding_vol.local_y = Vector3(Vector4(Vector3{0.0f, 1.0f, 0.0f}, 0.0f) * world_transform);
+                cube_bounding_vol.local_z = Vector3(Vector4(Vector3{0.0f, 0.0f, -1.0f}, 0.0f) * world_transform);
+                cube_bounding_vol.halfwidths = {0.1f * scale, 0.1f * scale, 0.1f * scale};
+                cube_bounding_vol.center = math::get_translation(world_transform) + cube_bounding_vol.local_z * 0.95f * scale;
+                if(atl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, cube_bounding_vol);
+                   hit.holds_value() && (!result || hit->distance < *result)) {
+                    result = hit->distance;
+                }
+
+                return result;
             }
-
-            return result;
-        }
-        case Arrow_3D_Style::cube: {
-            atl::Optional<float> result = atl::null_optional;
-
-            // OBB line_bounding_vol;
-            // line_bounding_vol.local_x = Vector3(Vector4(Vector3{1.0f, 0.0f, 0.0f}, 0.0f) * world_transform);
-            // line_bounding_vol.local_y = Vector3(Vector4(Vector3{0.0f, 1.0f, 0.0f}, 0.0f) * world_transform);
-            // line_bounding_vol.local_z = Vector3(Vector4(Vector3{0.0f, 0.0f, -1.0f}, 0.0f) * world_transform);
-            // line_bounding_vol.halfwidths = {0.05f * scale, 0.05f * scale, 0.425f * scale};
-            // line_bounding_vol.center = math::get_translation(world_transform) + line_bounding_vol.local_z * 0.425f * scale;
-            // if (atl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, line_bounding_vol); hit.holds_value()) {
-            //     result = hit->distance;
-            // }
-
-            Vector3 const vertex1 = Vector3(Vector4(0, 0, 0, 1) * world_transform);
-            Vector3 const vertex2 = Vector3(Vector4(0, 0, -0.8f * scale, 1) * world_transform);
-            if(atl::Optional<Raycast_Hit> const hit = intersect_ray_cylinder(ray, vertex1, vertex2, 0.05f * scale);
-               hit.holds_value() && (!result || hit->distance < *result)) {
-                result = hit->distance;
-            }
-
-            OBB cube_bounding_vol;
-            cube_bounding_vol.local_x = Vector3(Vector4(Vector3{1.0f, 0.0f, 0.0f}, 0.0f) * world_transform);
-            cube_bounding_vol.local_y = Vector3(Vector4(Vector3{0.0f, 1.0f, 0.0f}, 0.0f) * world_transform);
-            cube_bounding_vol.local_z = Vector3(Vector4(Vector3{0.0f, 0.0f, -1.0f}, 0.0f) * world_transform);
-            cube_bounding_vol.halfwidths = {0.1f * scale, 0.1f * scale, 0.1f * scale};
-            cube_bounding_vol.center = math::get_translation(world_transform) + cube_bounding_vol.local_z * 0.95f * scale;
-            if(atl::Optional<Raycast_Hit> const hit = intersect_ray_obb(ray, cube_bounding_vol); hit.holds_value() && (!result || hit->distance < *result)) {
-                result = hit->distance;
-            }
-
-            return result;
-        }
         }
     }
 

@@ -1,17 +1,17 @@
 #ifndef ENGINE_ASSET_IMPORTING_HPP_INCLUDE
 #define ENGINE_ASSET_IMPORTING_HPP_INCLUDE
 
-#include <core/types.hpp>
+#include <core/atl/array.hpp>
 #include <core/atl/slice.hpp>
 #include <core/atl/string_view.hpp>
-#include <core/atl/vector.hpp>
+#include <core/types.hpp>
 #include <engine/mesh.hpp>
 
 namespace anton_engine::asset_importing {
     class Imported_Meshes {
     public:
-        atl::Vector<i32> hierarchy;
-        atl::Vector<Mesh> meshes;
+        atl::Array<i32> hierarchy;
+        atl::Array<Mesh> meshes;
     };
 
     void import_image(atl::String_View path);

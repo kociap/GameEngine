@@ -2,9 +2,9 @@
 #include <engine/input/input_internal.hpp>
 
 #include <core/assert.hpp>
+#include <core/atl/array.hpp>
 #include <core/atl/flat_hash_map.hpp>
 #include <core/atl/string.hpp>
-#include <core/atl/vector.hpp>
 #include <core/logging.hpp>
 #include <core/math/math.hpp>
 #include <core/math/vector2.hpp>
@@ -81,16 +81,16 @@ namespace anton_engine::input {
 
     static atl::Flat_Hash_Map<Key, Key_State> key_states;
     // TODO redesign events
-    static atl::Vector<Key> key_events_queue;
-    static atl::Vector<Event> input_event_queue;
-    static atl::Vector<Mouse_Event> mouse_event_queue;
-    static atl::Vector<Gamepad_Event> gamepad_event_queue;
-    static atl::Vector<Gamepad_Event> gamepad_stick_event_queue;
+    static atl::Array<Key> key_events_queue;
+    static atl::Array<Event> input_event_queue;
+    static atl::Array<Mouse_Event> mouse_event_queue;
+    static atl::Array<Gamepad_Event> gamepad_event_queue;
+    static atl::Array<Gamepad_Event> gamepad_stick_event_queue;
 
-    static atl::Vector<Axis_Mapping> axis_mappings;
-    static atl::Vector<Action_Mapping> action_mappings;
-    static atl::Vector<Axis> axes;
-    static atl::Vector<Action> actions;
+    static atl::Array<Axis_Mapping> axis_mappings;
+    static atl::Array<Action_Mapping> action_mappings;
+    static atl::Array<Axis> axes;
+    static atl::Array<Action> actions;
 
     // Use radial dead zone for gamepad sticks?
     // Turned on by default
@@ -120,7 +120,7 @@ namespace anton_engine::input {
         key_events_queue.push_back(k);
     }
 
-    static Action_Mapping const* find_mapping_with_key(atl::Vector<Action_Mapping> const& mappings, atl::String_View const action, Key key) {
+    static Action_Mapping const* find_mapping_with_key(atl::Array<Action_Mapping> const& mappings, atl::String_View const action, Key key) {
         for(auto& mapping: mappings) {
             if(mapping.key == key && mapping.action == action) {
                 return &mapping;

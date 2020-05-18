@@ -1,10 +1,10 @@
 #ifndef EDITOR_LOG_VIEWER_LOG_VIEWER_HPP_INCLUDE
 #define EDITOR_LOG_VIEWER_LOG_VIEWER_HPP_INCLUDE
 
+#include <core/atl/array.hpp>
 #include <core/atl/string_view.hpp>
-#include <core/atl/vector.hpp>
-#include <list_widget.hpp>
 #include <core/logging.hpp>
+#include <list_widget.hpp>
 
 #include <core/diagnostic_macros.hpp>
 ANTON_DISABLE_WARNINGS();

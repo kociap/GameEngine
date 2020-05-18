@@ -1,8 +1,8 @@
 #include <shaders/builtin_shaders.hpp>
 
 #include <build_config.hpp>
+#include <core/atl/array.hpp>
 #include <core/atl/string.hpp>
-#include <core/atl/vector.hpp>
 #include <core/utils/enum.hpp>
 #include <engine/assets.hpp>
 #include <shaders/shader_stage.hpp>
@@ -14,9 +14,9 @@
 #endif // ANTON_WITH_EDITOR
 
 namespace anton_engine {
-    static atl::Vector<Shader> builtin_shaders = atl::Vector<Shader>(atl::reserve, 5);
+    static atl::Array<Shader> builtin_shaders = atl::Array<Shader>(atl::reserve, 5);
 #if ANTON_WITH_EDITOR
-    static atl::Vector<Shader> builtin_editor_shaders = atl::Vector<Shader>(atl::reserve, 3);
+    static atl::Array<Shader> builtin_editor_shaders = atl::Array<Shader>(atl::reserve, 3);
 #endif // ANTON_WITH_EDITOR
 
     // TODO: Should be private (most likely)

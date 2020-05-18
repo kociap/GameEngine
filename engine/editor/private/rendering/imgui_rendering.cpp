@@ -1,6 +1,6 @@
 #include <rendering/imgui_rendering.hpp>
 
-#include <core/atl/vector.hpp>
+#include <core/atl/array.hpp>
 #include <rendering/glad.hpp>
 #include <rendering/opengl.hpp>
 
@@ -11,7 +11,7 @@ namespace anton_engine::imgui {
         i64 size;
     };
 
-    template <typename T>
+    template<typename T>
     struct Buffer {
         T* buffer;
         T* head;
@@ -25,7 +25,7 @@ namespace anton_engine::imgui {
     static GPU_Buffer gpu_draw_cmd_buffer;
     static Buffer<Draw_Elements_Command> draw_cmd_buffer;
     static u32 vao;
-    static atl::Vector<Draw_Elements_Command> draw_commands;
+    static atl::Array<Draw_Elements_Command> draw_commands;
 
     void setup_rendering() {
         glGenVertexArrays(1, &vao);
@@ -78,7 +78,7 @@ namespace anton_engine::imgui {
         Draw_Elements_Command cmd = {};
 
         i64 vert_head_offset = vertex_buffer.head - vertex_buffer.buffer;
-        if (vertex_buffer.size - vert_head_offset < vertices.size()) {
+        if(vertex_buffer.size - vert_head_offset < vertices.size()) {
             vertex_buffer.head = vertex_buffer.buffer;
             vert_head_offset = 0;
         }
@@ -87,7 +87,7 @@ namespace anton_engine::imgui {
         cmd.base_vertex = vert_head_offset;
 
         i64 elem_head_offset = element_buffer.head - element_buffer.buffer;
-        if (element_buffer.size - elem_head_offset < indices.size()) {
+        if(element_buffer.size - elem_head_offset < indices.size()) {
             element_buffer.head = element_buffer.buffer;
             elem_head_offset = 0;
         }
@@ -104,8 +104,8 @@ namespace anton_engine::imgui {
     }
 
     void commit_draw() {
-        if (draw_commands.size() > 0) {
-            if (draw_cmd_buffer.head - draw_cmd_buffer.buffer + draw_commands.size() > draw_cmd_buffer.size) {
+        if(draw_commands.size() > 0) {
+            if(draw_cmd_buffer.head - draw_cmd_buffer.buffer + draw_commands.size() > draw_cmd_buffer.size) {
                 draw_cmd_buffer.head = draw_cmd_buffer.buffer;
             }
 

@@ -1,19 +1,19 @@
 #include <content_browser/asset_importing.hpp>
 
-#include <core/atl/string.hpp>
-#include <core/atl/vector.hpp>
 #include <content_browser/importers/image.hpp>
 #include <content_browser/importers/mesh.hpp>
 #include <content_browser/importers/obj.hpp>
 #include <content_browser/importers/png.hpp>
 #include <content_browser/importers/tga.hpp>
+#include <core/atl/array.hpp>
+#include <core/atl/string.hpp>
+#include <core/filesystem.hpp>
 #include <core/math/math.hpp>
+#include <core/paths.hpp>
+#include <core/utils/filesystem.hpp>
 #include <rendering/opengl.hpp>
 #include <rendering/opengl_enums_defs.hpp>
-#include <core/paths.hpp>
 #include <rendering/texture_format.hpp>
-#include <core/filesystem.hpp>
-#include <core/utils/filesystem.hpp>
 
 namespace anton_engine::asset_importing {
     struct Matching_Format {
@@ -24,7 +24,7 @@ namespace anton_engine::asset_importing {
 
     [[nodiscard]] static Matching_Format get_matching_texture_format(importers::Image const& image) {
         using Internal_Format = opengl::Sized_Internal_Format;
-        switch (image.pixel_format) {
+        switch(image.pixel_format) {
             case importers::Image_Pixel_Format::grey8:
             case importers::Image_Pixel_Format::grey16: {
                 Internal_Format const internal_format =
@@ -54,7 +54,7 @@ namespace anton_engine::asset_importing {
     [[nodiscard]] static i32 compute_number_of_mipmaps(u32 const width, u32 const height) {
         i32 mipmap_levels = 0;
         u32 max_dim = math::max(width, height);
-        while (max_dim > 1) {
+        while(max_dim > 1) {
             max_dim /= 2;
             mipmap_levels += 1;
         }
@@ -82,7 +82,9 @@ namespace anton_engine::asset_importing {
         atl::String const out_filename = atl::String(out_filename_no_ext) + ".getex";
         atl::String const out_file_path = fs::concat_paths(output_directory, out_filename);
         FILE* file = fopen(out_file_path.data(), "wb");
-        if(!file) { throw Exception(u8"Could not open file for writing"); }
+        if(!file) {
+            throw Exception(u8"Could not open file for writing");
+        }
         fwrite(reinterpret_cast<char const*>(&texture_chunk_size), 8, 1, file); // Allows to skip the entire texture chunk without parsing it
         fwrite(reinterpret_cast<char const*>(&identifier), 8, 1, file);
         fwrite(reinterpret_cast<char const*>(&format), sizeof(Texture_Format), 1, file);
@@ -98,14 +100,14 @@ namespace anton_engine::asset_importing {
         // TODO support files with multiple images
         // TODO generate mipmaps and save them to the file (if asked to do so)
 
-        atl::Vector<u8> const file = utils::read_file_binary(path);
-        if (importers::test_png(file)) {
+        atl::Array<u8> const file = utils::read_file_binary(path);
+        if(importers::test_png(file)) {
             importers::Image decoded_image = importers::import_png(file);
             write_texture(paths::assets_directory(), path, decoded_image);
             return;
         }
 
-        if (importers::test_tga(file)) {
+        if(importers::test_tga(file)) {
             importers::Image decoded_image = importers::import_tga(file);
             write_texture(paths::assets_directory(), path, decoded_image);
             return;
@@ -129,28 +131,28 @@ namespace anton_engine::asset_importing {
     }
 
     static Mesh process_mesh(importers::Mesh const& imported_mesh) {
-        atl::Vector<Vertex> vertices(imported_mesh.vertices.size());
-        atl::Vector<u32> indices;
-        if (imported_mesh.texture_coordinates.size() != 0) {
-            for (isize i = 0; i < imported_mesh.vertices.size(); ++i) {
+        atl::Array<Vertex> vertices(imported_mesh.vertices.size());
+        atl::Array<u32> indices;
+        if(imported_mesh.texture_coordinates.size() != 0) {
+            for(isize i = 0; i < imported_mesh.vertices.size(); ++i) {
                 vertices[i].position = imported_mesh.vertices[i];
                 vertices[i].normal = imported_mesh.normals[i];
                 vertices[i].uv_coordinates = Vector2(imported_mesh.texture_coordinates[i]);
             }
         } else {
-            for (isize i = 0; i < imported_mesh.vertices.size(); ++i) {
+            for(isize i = 0; i < imported_mesh.vertices.size(); ++i) {
                 vertices[i].position = imported_mesh.vertices[i];
                 vertices[i].normal = imported_mesh.normals[i];
             }
         }
 
-        for (importers::Face const& imported_face: imported_mesh.faces) {
-            for (u32 const index: imported_face.indices) {
+        for(importers::Face const& imported_face: imported_mesh.faces) {
+            for(u32 const index: imported_face.indices) {
                 indices.push_back(index);
             }
         }
 
-        for (isize i = 0; i < indices.size(); i += 3) {
+        for(isize i = 0; i < indices.size(); i += 3) {
             compute_tangents(vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]);
         }
 
@@ -158,14 +160,14 @@ namespace anton_engine::asset_importing {
     }
 
     Imported_Meshes import_mesh(atl::String_View const path) {
-        atl::Vector<u8> const file = utils::read_file_binary(path);
+        atl::Array<u8> const file = utils::read_file_binary(path);
         atl::String_View const extension = fs::get_extension(path);
-        if (importers::test_obj(extension, file)) {
-            atl::Vector<importers::Mesh> meshes = importers::import_obj(file);
+        if(importers::test_obj(extension, file)) {
+            atl::Array<importers::Mesh> meshes = importers::import_obj(file);
 
             Imported_Meshes imported_meshes;
             imported_meshes.hierarchy.resize(meshes.size(), -1);
-            for (importers::Mesh const& mesh: meshes) {
+            for(importers::Mesh const& mesh: meshes) {
                 imported_meshes.meshes.push_back(process_mesh(mesh));
             }
             return imported_meshes;
@@ -178,8 +180,10 @@ namespace anton_engine::asset_importing {
         atl::String const file_name_with_ext = atl::String(filename) + u8".mesh";
         atl::String const path = fs::concat_paths(paths::assets_directory(), file_name_with_ext);
         FILE* out = fopen(path.data(), "wb");
-        if(!out) { throw Exception(u8"Could not open file for writing"); }
-        for (isize i = 0; i < guids.size(); ++i) {
+        if(!out) {
+            throw Exception(u8"Could not open file for writing");
+        }
+        for(isize i = 0; i < guids.size(); ++i) {
             fwrite(reinterpret_cast<char const*>(&guids[i]), sizeof(u64), 1, out);
             i64 const vertex_count = meshes[i].vertices.size();
             fwrite(reinterpret_cast<char const*>(&vertex_count), sizeof(i64), 1, out);

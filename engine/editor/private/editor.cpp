@@ -50,7 +50,7 @@ namespace anton_engine {
 
     class Editor_Shared_State {
     public:
-        atl::Vector<Entity> selected_entities;
+        atl::Array<Entity> selected_entities;
     };
 
     // TODO: Temporarily
@@ -60,7 +60,7 @@ namespace anton_engine {
     static Resource_Manager<Shader>* shader_manager = nullptr;
     static Resource_Manager<Material>* material_manager = nullptr;
     static ECS* ecs = nullptr;
-    static atl::Vector<Viewport*> viewports;
+    static atl::Array<Viewport*> viewports;
     static imgui::Context* imgui_context = nullptr;
     static rendering::Font_Face* comic_sans_face = nullptr;
     static rendering::Font_Face* french_script_regular_face = nullptr;
@@ -460,14 +460,14 @@ namespace anton_engine {
 
         // BS code to output anything on the screen
 #ifdef RENDER_CUBES
-        // atl::Vector<Mesh> meshes = assets::load_model("cube.obj");
+        // atl::Array<Mesh> meshes = assets::load_model("cube.obj");
         auto& container = meshes[0];
         Handle<Material> material_handle = material_manager->add(Material());
 #else
         Mesh container = assets::load_mesh("barrel", 1);
         Material barrel_mat;
         {
-            atl::Vector<u8> pixels;
+            atl::Array<u8> pixels;
             Texture_Format const format = assets::load_texture_no_mipmaps("barrel_texture", 0, pixels);
             Texture handle;
             void* pix_data = pixels.data();

@@ -1,14 +1,14 @@
 #ifndef TOOLS_CODEGEN_FILE_HPP_INCLUDE
 #define TOOLS_CODEGEN_FILE_HPP_INCLUDE
 
-#include <core/atl/vector.hpp>
+#include <core/atl/array.hpp>
 #include <filesystem>
 #include <string_view>
 
 namespace anton_engine {
     class File {
     public:
-        using iterator = atl::Vector<char>::iterator;
+        using iterator = atl::Array<char>::iterator;
 
         File();
         File(std::string_view filename);
@@ -22,7 +22,7 @@ namespace anton_engine {
         iterator end();
 
     private:
-        atl::Vector<char> contents;
+        atl::Array<char> contents;
     };
 } // namespace anton_engine
 

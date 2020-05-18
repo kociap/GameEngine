@@ -2,8 +2,8 @@
 
 #include <rendering/glad.hpp>
 
+#include <core/atl/array.hpp>
 #include <core/atl/utility.hpp>
-#include <core/atl/vector.hpp>
 #include <core/color.hpp>
 #include <core/math/matrix4.hpp>
 #include <core/math/vector3.hpp>
@@ -47,7 +47,7 @@ namespace anton_engine {
         // glGetProgramInterfaceiv outputs the max name length including null-terminator.
         i32 uniform_max_name_length;
         glGetProgramInterfaceiv(program, GL_UNIFORM, GL_MAX_NAME_LENGTH, &uniform_max_name_length);
-        atl::Vector<char> name(uniform_max_name_length);
+        atl::Array<char> name(uniform_max_name_length);
         for(i32 uniform_index = 0; uniform_index < active_uniforms; ++uniform_index) {
             // glGetActiveUniformName outputs the number of characters written not including null-terminator.
             i32 name_length;
@@ -65,7 +65,7 @@ namespace anton_engine {
         if(link_status == GL_FALSE) {
             GLint log_length;
             glGetProgramiv(program, GL_INFO_LOG_LENGTH, &log_length);
-            atl::Vector<GLchar> log{log_length};
+            atl::Array<GLchar> log{log_length};
             glGetProgramInfoLog(program, log_length, &log_length, &log[0]);
             throw Program_Linking_Failed(atl::String_View{log.data(), log.size()});
         }

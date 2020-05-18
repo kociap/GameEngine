@@ -4,7 +4,7 @@
 #include <core/logging.hpp>
 
 namespace anton_engine {
-    static atl::Vector<System*> systems;
+    static atl::Array<System*> systems;
 
     // From game dll
     create_systems_type create_systems = nullptr;
@@ -14,13 +14,13 @@ namespace anton_engine {
     }
 
     void start_systems() {
-        for (System* system: systems) {
+        for(System* system: systems) {
             system->start();
         }
     }
 
     void update_systems() {
-        for (System* system: systems) {
+        for(System* system: systems) {
             system->update();
         }
     }
