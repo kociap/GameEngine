@@ -13,6 +13,7 @@ target_compile_definitions(anton_engine
     ENGINE_API=${ENGINE_DLL_EXPORT} 
     GAME_API=${ENGINE_DLL_IMPORT} 
     ANTON_WITH_EDITOR=${ENGINE_WITH_EDITOR}
+    ANTON_JSON_VERIFY_TYPE=${ANTON_JSON_VERIFY_TYPE}
     # Use unicode instead of multibyte charset (VS)
     UNICODE
     _UNICODE
