@@ -412,85 +412,85 @@ namespace anton_engine::imgui {
 
     static void recalculate_sublayout_size(Layout_Tile* tile) {
         switch(tile->tile_type) {
-        case Layout_Tile_Type::root: {
-            Layout_Root* const root = (Layout_Root*)tile;
-            if(root->child) {
-                root->child->size = root->size;
-                root->child->position = {0.0f, 0.0f};
-                recalculate_sublayout_size(root->child);
-            }
-        } break;
-
-        case Layout_Tile_Type::horizontal_layout: {
-            Layout* layout = (Layout*)tile;
-            Vector2 const available_space = layout->size;
-            f32 prev_width = 0.0f;
-            for(Layout_Tile* child: layout->tiles) {
-                prev_width += child->size.x;
-            }
-
-            if(prev_width == 0.0f) {
-                f32 pos_offset = 0.0f;
-                Vector2 const parent_pos = layout->position;
-                Vector2 const child_size = {available_space.x / layout->tiles.size(), available_space.y};
-                for(Layout_Tile* child: layout->tiles) {
-                    child->size = child_size;
-                    child->position = parent_pos + Vector2{pos_offset, 0.0f};
-                    pos_offset += child_size.x;
-                    recalculate_sublayout_size(child);
+            case Layout_Tile_Type::root: {
+                Layout_Root* const root = (Layout_Root*)tile;
+                if(root->child) {
+                    root->child->size = root->size;
+                    root->child->position = {0.0f, 0.0f};
+                    recalculate_sublayout_size(root->child);
                 }
-            } else {
-                f32 pos_offset = 0.0f;
-                Vector2 const parent_pos = layout->position;
-                f32 const size_factor = available_space.x / prev_width;
-                for(Layout_Tile* child: layout->tiles) {
-                    Vector2 const new_size = {child->size.x * size_factor, available_space.y};
-                    child->size = new_size;
-                    child->position = parent_pos + Vector2{pos_offset, 0.0f};
-                    pos_offset += new_size.x;
-                    recalculate_sublayout_size(child);
-                }
-            }
-        } break;
+            } break;
 
-        case Layout_Tile_Type::vertical_layout: {
-            Layout* layout = (Layout*)tile;
-            Vector2 const available_space = layout->size;
-            f32 prev_height = 0.0f;
-            for(Layout_Tile* child: layout->tiles) {
-                prev_height += child->size.y;
-            }
-
-            if(prev_height == 0.0f) {
-                f32 pos_offset = 0.0f;
-                Vector2 const parent_pos = layout->position;
-                Vector2 const child_size = {available_space.x, available_space.y / layout->tiles.size()};
+            case Layout_Tile_Type::horizontal_layout: {
+                Layout* layout = (Layout*)tile;
+                Vector2 const available_space = layout->size;
+                f32 prev_width = 0.0f;
                 for(Layout_Tile* child: layout->tiles) {
-                    child->size = child_size;
-                    child->position = parent_pos + Vector2{0.0f, pos_offset};
-                    pos_offset += child_size.x;
-                    recalculate_sublayout_size(child);
+                    prev_width += child->size.x;
                 }
-            } else {
-                f32 pos_offset = 0.0f;
-                Vector2 const parent_pos = layout->position;
-                f32 const size_factor = available_space.y / prev_height;
-                for(Layout_Tile* child: layout->tiles) {
-                    Vector2 const new_size = {available_space.x, child->size.y * size_factor};
-                    child->size = new_size;
-                    child->position = parent_pos + Vector2{0.0f, pos_offset};
-                    pos_offset += new_size.y;
-                    recalculate_sublayout_size(child);
-                }
-            }
-        } break;
 
-        case Layout_Tile_Type::dockspace: {
-            Dockspace* const dockspace = (Dockspace*)tile;
-            Vector2 const tab_bar_size = get_dockspace_tab_bar_size(dockspace);
-            dockspace->content_size = dockspace->size - Vector2{0.0f, tab_bar_size.y};
-            // Nothing to do
-        } break;
+                if(prev_width == 0.0f) {
+                    f32 pos_offset = 0.0f;
+                    Vector2 const parent_pos = layout->position;
+                    Vector2 const child_size = {available_space.x / layout->tiles.size(), available_space.y};
+                    for(Layout_Tile* child: layout->tiles) {
+                        child->size = child_size;
+                        child->position = parent_pos + Vector2{pos_offset, 0.0f};
+                        pos_offset += child_size.x;
+                        recalculate_sublayout_size(child);
+                    }
+                } else {
+                    f32 pos_offset = 0.0f;
+                    Vector2 const parent_pos = layout->position;
+                    f32 const size_factor = available_space.x / prev_width;
+                    for(Layout_Tile* child: layout->tiles) {
+                        Vector2 const new_size = {child->size.x * size_factor, available_space.y};
+                        child->size = new_size;
+                        child->position = parent_pos + Vector2{pos_offset, 0.0f};
+                        pos_offset += new_size.x;
+                        recalculate_sublayout_size(child);
+                    }
+                }
+            } break;
+
+            case Layout_Tile_Type::vertical_layout: {
+                Layout* layout = (Layout*)tile;
+                Vector2 const available_space = layout->size;
+                f32 prev_height = 0.0f;
+                for(Layout_Tile* child: layout->tiles) {
+                    prev_height += child->size.y;
+                }
+
+                if(prev_height == 0.0f) {
+                    f32 pos_offset = 0.0f;
+                    Vector2 const parent_pos = layout->position;
+                    Vector2 const child_size = {available_space.x, available_space.y / layout->tiles.size()};
+                    for(Layout_Tile* child: layout->tiles) {
+                        child->size = child_size;
+                        child->position = parent_pos + Vector2{0.0f, pos_offset};
+                        pos_offset += child_size.x;
+                        recalculate_sublayout_size(child);
+                    }
+                } else {
+                    f32 pos_offset = 0.0f;
+                    Vector2 const parent_pos = layout->position;
+                    f32 const size_factor = available_space.y / prev_height;
+                    for(Layout_Tile* child: layout->tiles) {
+                        Vector2 const new_size = {available_space.x, child->size.y * size_factor};
+                        child->size = new_size;
+                        child->position = parent_pos + Vector2{0.0f, pos_offset};
+                        pos_offset += new_size.y;
+                        recalculate_sublayout_size(child);
+                    }
+                }
+            } break;
+
+            case Layout_Tile_Type::dockspace: {
+                Dockspace* const dockspace = (Dockspace*)tile;
+                Vector2 const tab_bar_size = get_dockspace_tab_bar_size(dockspace);
+                dockspace->content_size = dockspace->size - Vector2{0.0f, tab_bar_size.y};
+                // Nothing to do
+            } break;
         }
     }
 
@@ -498,34 +498,34 @@ namespace anton_engine::imgui {
         Layout_Tile* parent = layout->layout_parent;
         if(layout->tiles.size() == 1) {
             switch(parent->tile_type) {
-            case Layout_Tile_Type::root: {
-                Layout_Root* const root = (Layout_Root*)parent;
-                Layout_Tile* const tile = layout->tiles[0];
-                root->child = tile;
-                tile->layout_parent = root;
-                tile->size = root->size;
-                tile->position = {0.0f, 0.0f};
-                recalculate_sublayout_size(tile);
-            } break;
+                case Layout_Tile_Type::root: {
+                    Layout_Root* const root = (Layout_Root*)parent;
+                    Layout_Tile* const tile = layout->tiles[0];
+                    root->child = tile;
+                    tile->layout_parent = root;
+                    tile->size = root->size;
+                    tile->position = {0.0f, 0.0f};
+                    recalculate_sublayout_size(tile);
+                } break;
 
-            case Layout_Tile_Type::horizontal_layout:
-            case Layout_Tile_Type::vertical_layout: {
-                Layout* const parent_layout = (Layout*)parent;
-                for(i64 i = 0, tiles_count = parent_layout->tiles.size(); i < tiles_count; ++i) {
-                    if(parent_layout->tiles[i] == layout) {
-                        Layout_Tile* const tile = layout->tiles[0];
-                        parent_layout->tiles[i] = tile;
-                        tile->layout_parent = parent_layout;
-                        tile->size = layout->size;
-                        tile->position = layout->position;
-                        recalculate_sublayout_size(tile);
-                        break;
+                case Layout_Tile_Type::horizontal_layout:
+                case Layout_Tile_Type::vertical_layout: {
+                    Layout* const parent_layout = (Layout*)parent;
+                    for(i64 i = 0, tiles_count = parent_layout->tiles.size(); i < tiles_count; ++i) {
+                        if(parent_layout->tiles[i] == layout) {
+                            Layout_Tile* const tile = layout->tiles[0];
+                            parent_layout->tiles[i] = tile;
+                            tile->layout_parent = parent_layout;
+                            tile->size = layout->size;
+                            tile->position = layout->position;
+                            recalculate_sublayout_size(tile);
+                            break;
+                        }
                     }
-                }
-            } break;
+                } break;
 
-            default:
-                ANTON_UNREACHABLE();
+                default:
+                    ANTON_UNREACHABLE();
             }
             destroy_layout(layout);
         } else {
@@ -536,27 +536,27 @@ namespace anton_engine::imgui {
     static void unparent(Dockspace* dockspace) {
         Layout_Tile* parent = dockspace->layout_parent;
         switch(parent->tile_type) {
-        case Layout_Tile_Type::root: {
-            Layout_Root* const root = (Layout_Root*)parent;
-            root->child = nullptr;
-            dockspace->layout_parent = nullptr;
-        } break;
+            case Layout_Tile_Type::root: {
+                Layout_Root* const root = (Layout_Root*)parent;
+                root->child = nullptr;
+                dockspace->layout_parent = nullptr;
+            } break;
 
-        case Layout_Tile_Type::vertical_layout:
-        case Layout_Tile_Type::horizontal_layout: {
-            Layout* const layout = (Layout*)parent;
-            for(i64 i = 0, tiles_count = layout->tiles.size(); i < tiles_count; ++i) {
-                if(layout->tiles[i] == dockspace) {
-                    layout->tiles.erase(layout->tiles.begin() + i, layout->tiles.begin() + i + 1);
-                    dockspace->layout_parent = nullptr;
-                    break;
+            case Layout_Tile_Type::vertical_layout:
+            case Layout_Tile_Type::horizontal_layout: {
+                Layout* const layout = (Layout*)parent;
+                for(i64 i = 0, tiles_count = layout->tiles.size(); i < tiles_count; ++i) {
+                    if(layout->tiles[i] == dockspace) {
+                        layout->tiles.erase(layout->tiles.begin() + i, layout->tiles.begin() + i + 1);
+                        dockspace->layout_parent = nullptr;
+                        break;
+                    }
                 }
-            }
-            _unparent_internal(layout);
-        } break;
+                _unparent_internal(layout);
+            } break;
 
-        default:
-            ANTON_UNREACHABLE();
+            default:
+                ANTON_UNREACHABLE();
         }
 
         remove_dockspace(dockspace->viewport, dockspace);
@@ -580,77 +580,77 @@ namespace anton_engine::imgui {
     static void parent_vertical(Dockspace* dockspace, Dockspace* relative_to, bool const parent_before) {
         Layout_Tile* const parent = get_layout_parent(relative_to);
         switch(parent->tile_type) {
-        case Layout_Tile_Type::root: {
-            Layout_Root* root = (Layout_Root*)parent;
-            Layout* layout = create_layout_vertical();
-            if(parent_before) {
-                layout->tiles.emplace_back(dockspace);
-                layout->tiles.emplace_back(relative_to);
-            } else {
-                layout->tiles.emplace_back(relative_to);
-                layout->tiles.emplace_back(dockspace);
-            }
-            root->child = layout;
-            layout->layout_parent = root;
-            relative_to->layout_parent = layout;
-            dockspace->layout_parent = layout;
-
-            layout->size = root->size;
-            dockspace->size = {layout->size.x, layout->size.y * 0.5f};
-            relative_to->size = {layout->size.x, layout->size.y * 0.5f};
-            // TODO: Recalculate size to account for resize bars.
-            recalculate_sublayout_size(layout);
-        } break;
-
-        case Layout_Tile_Type::horizontal_layout: {
-            Layout* parent_layout = (Layout*)parent;
-            Layout* layout = create_layout_vertical();
-            for(i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
-                if(parent_layout->tiles[i] == relative_to) {
-                    parent_layout->tiles[i] = layout;
-                    break;
+            case Layout_Tile_Type::root: {
+                Layout_Root* root = (Layout_Root*)parent;
+                Layout* layout = create_layout_vertical();
+                if(parent_before) {
+                    layout->tiles.emplace_back(dockspace);
+                    layout->tiles.emplace_back(relative_to);
+                } else {
+                    layout->tiles.emplace_back(relative_to);
+                    layout->tiles.emplace_back(dockspace);
                 }
-            }
-            layout->layout_parent = parent_layout;
-            if(parent_before) {
-                layout->tiles.emplace_back(dockspace);
-                layout->tiles.emplace_back(relative_to);
-            } else {
-                layout->tiles.emplace_back(relative_to);
-                layout->tiles.emplace_back(dockspace);
-            }
-            relative_to->layout_parent = layout;
-            dockspace->layout_parent = layout;
+                root->child = layout;
+                layout->layout_parent = root;
+                relative_to->layout_parent = layout;
+                dockspace->layout_parent = layout;
 
-            layout->size = relative_to->size;
-            layout->position = relative_to->position;
-            dockspace->size = {layout->size.x * 0.5f, layout->size.y};
-            relative_to->size = {layout->size.x * 0.5f, layout->size.y};
-            // TODO: Recalculate size to account for resize bars.
-            recalculate_sublayout_size(layout);
-        } break;
+                layout->size = root->size;
+                dockspace->size = {layout->size.x, layout->size.y * 0.5f};
+                relative_to->size = {layout->size.x, layout->size.y * 0.5f};
+                // TODO: Recalculate size to account for resize bars.
+                recalculate_sublayout_size(layout);
+            } break;
 
-        case Layout_Tile_Type::vertical_layout: {
-            Layout* parent_layout = (Layout*)parent;
-            for(i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
-                if(parent_layout->tiles[i] == relative_to) {
-                    if(parent_before) {
-                        parent_layout->tiles.insert(i, dockspace);
-                    } else {
-                        parent_layout->tiles.insert(i + 1, dockspace);
+            case Layout_Tile_Type::horizontal_layout: {
+                Layout* parent_layout = (Layout*)parent;
+                Layout* layout = create_layout_vertical();
+                for(i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
+                    if(parent_layout->tiles[i] == relative_to) {
+                        parent_layout->tiles[i] = layout;
+                        break;
                     }
-                    break;
                 }
-            }
-            dockspace->layout_parent = parent_layout;
+                layout->layout_parent = parent_layout;
+                if(parent_before) {
+                    layout->tiles.emplace_back(dockspace);
+                    layout->tiles.emplace_back(relative_to);
+                } else {
+                    layout->tiles.emplace_back(relative_to);
+                    layout->tiles.emplace_back(dockspace);
+                }
+                relative_to->layout_parent = layout;
+                dockspace->layout_parent = layout;
 
-            // TODO: recalculate size to account for resize bars.
-            dockspace->size = relative_to->size = {relative_to->size.x, relative_to->size.y * 0.5f};
-            recalculate_sublayout_size(parent_layout);
-        } break;
+                layout->size = relative_to->size;
+                layout->position = relative_to->position;
+                dockspace->size = {layout->size.x * 0.5f, layout->size.y};
+                relative_to->size = {layout->size.x * 0.5f, layout->size.y};
+                // TODO: Recalculate size to account for resize bars.
+                recalculate_sublayout_size(layout);
+            } break;
 
-        default:
-            ANTON_UNREACHABLE();
+            case Layout_Tile_Type::vertical_layout: {
+                Layout* parent_layout = (Layout*)parent;
+                for(i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
+                    if(parent_layout->tiles[i] == relative_to) {
+                        if(parent_before) {
+                            parent_layout->tiles.insert(i, dockspace);
+                        } else {
+                            parent_layout->tiles.insert(i + 1, dockspace);
+                        }
+                        break;
+                    }
+                }
+                dockspace->layout_parent = parent_layout;
+
+                // TODO: recalculate size to account for resize bars.
+                dockspace->size = relative_to->size = {relative_to->size.x, relative_to->size.y * 0.5f};
+                recalculate_sublayout_size(parent_layout);
+            } break;
+
+            default:
+                ANTON_UNREACHABLE();
         }
 
         add_dockspace(relative_to->viewport, dockspace);
@@ -661,77 +661,77 @@ namespace anton_engine::imgui {
     static void parent_horizontal(Dockspace* dockspace, Dockspace* relative_to, bool const parent_before) {
         Layout_Tile* const parent = get_layout_parent(relative_to);
         switch(parent->tile_type) {
-        case Layout_Tile_Type::root: {
-            Layout_Root* root = (Layout_Root*)parent;
-            Layout* layout = create_layout_horizontal();
-            if(parent_before) {
-                layout->tiles.emplace_back(dockspace);
-                layout->tiles.emplace_back(relative_to);
-            } else {
-                layout->tiles.emplace_back(relative_to);
-                layout->tiles.emplace_back(dockspace);
-            }
-            root->child = layout;
-            layout->layout_parent = root;
-            relative_to->layout_parent = layout;
-            dockspace->layout_parent = layout;
-
-            // TODO: recalculate size to account for resize bars.
-            layout->size = root->size;
-            dockspace->size = {layout->size.x * 0.5f, layout->size.y};
-            relative_to->size = {layout->size.x * 0.5f, layout->size.y};
-            recalculate_sublayout_size(layout);
-        } break;
-
-        case Layout_Tile_Type::vertical_layout: {
-            Layout* parent_layout = (Layout*)parent;
-            Layout* layout = create_layout_horizontal();
-            for(i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
-                if(parent_layout->tiles[i] == relative_to) {
-                    parent_layout->tiles[i] = layout;
-                    break;
+            case Layout_Tile_Type::root: {
+                Layout_Root* root = (Layout_Root*)parent;
+                Layout* layout = create_layout_horizontal();
+                if(parent_before) {
+                    layout->tiles.emplace_back(dockspace);
+                    layout->tiles.emplace_back(relative_to);
+                } else {
+                    layout->tiles.emplace_back(relative_to);
+                    layout->tiles.emplace_back(dockspace);
                 }
-            }
-            layout->layout_parent = parent_layout;
-            if(parent_before) {
-                layout->tiles.emplace_back(dockspace);
-                layout->tiles.emplace_back(relative_to);
-            } else {
-                layout->tiles.emplace_back(relative_to);
-                layout->tiles.emplace_back(dockspace);
-            }
-            relative_to->layout_parent = layout;
-            dockspace->layout_parent = layout;
+                root->child = layout;
+                layout->layout_parent = root;
+                relative_to->layout_parent = layout;
+                dockspace->layout_parent = layout;
 
-            // TODO: recalculate size to account for resize bars.
-            layout->size = relative_to->size;
-            layout->position = relative_to->position;
-            dockspace->size = {layout->size.x, layout->size.y * 0.5f};
-            relative_to->size = {layout->size.x, layout->size.y * 0.5f};
-            recalculate_sublayout_size(layout);
-        } break;
+                // TODO: recalculate size to account for resize bars.
+                layout->size = root->size;
+                dockspace->size = {layout->size.x * 0.5f, layout->size.y};
+                relative_to->size = {layout->size.x * 0.5f, layout->size.y};
+                recalculate_sublayout_size(layout);
+            } break;
 
-        case Layout_Tile_Type::horizontal_layout: {
-            Layout* parent_layout = (Layout*)parent;
-            for(i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
-                if(parent_layout->tiles[i] == relative_to) {
-                    if(parent_before) {
-                        parent_layout->tiles.insert(i, dockspace);
-                    } else {
-                        parent_layout->tiles.insert(i + 1, dockspace);
+            case Layout_Tile_Type::vertical_layout: {
+                Layout* parent_layout = (Layout*)parent;
+                Layout* layout = create_layout_horizontal();
+                for(i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
+                    if(parent_layout->tiles[i] == relative_to) {
+                        parent_layout->tiles[i] = layout;
+                        break;
                     }
-                    break;
                 }
-            }
-            dockspace->layout_parent = parent_layout;
+                layout->layout_parent = parent_layout;
+                if(parent_before) {
+                    layout->tiles.emplace_back(dockspace);
+                    layout->tiles.emplace_back(relative_to);
+                } else {
+                    layout->tiles.emplace_back(relative_to);
+                    layout->tiles.emplace_back(dockspace);
+                }
+                relative_to->layout_parent = layout;
+                dockspace->layout_parent = layout;
 
-            // TODO: recalculate size to account for resize bars.
-            dockspace->size = relative_to->size = {relative_to->size.x * 0.5f, relative_to->size.y};
-            recalculate_sublayout_size(parent_layout);
-        } break;
+                // TODO: recalculate size to account for resize bars.
+                layout->size = relative_to->size;
+                layout->position = relative_to->position;
+                dockspace->size = {layout->size.x, layout->size.y * 0.5f};
+                relative_to->size = {layout->size.x, layout->size.y * 0.5f};
+                recalculate_sublayout_size(layout);
+            } break;
 
-        default:
-            ANTON_UNREACHABLE();
+            case Layout_Tile_Type::horizontal_layout: {
+                Layout* parent_layout = (Layout*)parent;
+                for(i64 i = 0, parent_tile_count = parent_layout->tiles.size(); i < parent_tile_count; ++i) {
+                    if(parent_layout->tiles[i] == relative_to) {
+                        if(parent_before) {
+                            parent_layout->tiles.insert(i, dockspace);
+                        } else {
+                            parent_layout->tiles.insert(i + 1, dockspace);
+                        }
+                        break;
+                    }
+                }
+                dockspace->layout_parent = parent_layout;
+
+                // TODO: recalculate size to account for resize bars.
+                dockspace->size = relative_to->size = {relative_to->size.x * 0.5f, relative_to->size.y};
+                recalculate_sublayout_size(parent_layout);
+            } break;
+
+            default:
+                ANTON_UNREACHABLE();
         }
 
         add_dockspace(relative_to->viewport, dockspace);
@@ -944,21 +944,21 @@ namespace anton_engine::imgui {
                                 i32 const border_section =
                                     check_cursor_in_border_area(cursor, dockspace_content_pos, dockspace_content_size, border_area_width);
                                 switch(border_section) {
-                                case 0:
-                                case 2: {
-                                    unparent(current_dockspace);
-                                    bool const parent_before = border_section == 0;
-                                    parent_vertical(current_dockspace, dockspace, parent_before);
-                                    destroy_viewport(ctx, current_viewport);
-                                } break;
+                                    case 0:
+                                    case 2: {
+                                        unparent(current_dockspace);
+                                        bool const parent_before = border_section == 0;
+                                        parent_vertical(current_dockspace, dockspace, parent_before);
+                                        destroy_viewport(ctx, current_viewport);
+                                    } break;
 
-                                case 1:
-                                case 3: {
-                                    unparent(current_dockspace);
-                                    bool const parent_before = border_section == 3;
-                                    parent_horizontal(current_dockspace, dockspace, parent_before);
-                                    destroy_viewport(ctx, current_viewport);
-                                } break;
+                                    case 1:
+                                    case 3: {
+                                        unparent(current_dockspace);
+                                        bool const parent_before = border_section == 3;
+                                        parent_horizontal(current_dockspace, dockspace, parent_before);
+                                        destroy_viewport(ctx, current_viewport);
+                                    } break;
                                 }
                             } else {
                                 // Cursor must be in tab bar because we are in dockspace, but not in its content area.
@@ -1301,25 +1301,25 @@ namespace anton_engine::imgui {
                     Vector2 preview_pos;
                     Vector2 preview_size;
                     switch(border_section) {
-                    case 0: {
-                        preview_pos = dockspace_pos;
-                        preview_size = {dockspace_size.x, dockspace_size.y * 0.5f};
-                    } break;
+                        case 0: {
+                            preview_pos = dockspace_pos;
+                            preview_size = {dockspace_size.x, dockspace_size.y * 0.5f};
+                        } break;
 
-                    case 1: {
-                        preview_pos = dockspace_pos + Vector2{dockspace_size.x * 0.5f, 0.0f};
-                        preview_size = {dockspace_size.x * 0.5f, dockspace_size.y};
-                    } break;
+                        case 1: {
+                            preview_pos = dockspace_pos + Vector2{dockspace_size.x * 0.5f, 0.0f};
+                            preview_size = {dockspace_size.x * 0.5f, dockspace_size.y};
+                        } break;
 
-                    case 2: {
-                        preview_pos = dockspace_pos + Vector2{0.0f, dockspace_size.y * 0.5f};
-                        preview_size = {dockspace_size.x, dockspace_size.y * 0.5f};
-                    } break;
+                        case 2: {
+                            preview_pos = dockspace_pos + Vector2{0.0f, dockspace_size.y * 0.5f};
+                            preview_size = {dockspace_size.x, dockspace_size.y * 0.5f};
+                        } break;
 
-                    case 3: {
-                        preview_pos = dockspace_pos;
-                        preview_size = {dockspace_size.x * 0.5f, dockspace_size.y};
-                    } break;
+                        case 3: {
+                            preview_pos = dockspace_pos;
+                            preview_size = {dockspace_size.x * 0.5f, dockspace_size.y};
+                        } break;
                     }
                     verts.emplace_back(preview_pos, Vector2{0, 1.0}, preview_color);
                     verts.emplace_back(preview_pos + Vector2{0.0f, preview_size.y}, Vector2{0.0f, 0.0f}, preview_color);
@@ -1376,8 +1376,7 @@ namespace anton_engine::imgui {
         return ctx.index_buffer;
     }
 
-    // TODO: remove new_viewport.
-    void begin_window(Context& ctx, atl::String_View identifier, bool new_viewport) {
+    void begin_window(Context& ctx, atl::String_View identifier) {
         ANTON_VERIFY(ctx.current_window == -1, "Cannot create window inside another window.");
 
         i64 const id = hash_string(identifier);
@@ -1571,20 +1570,18 @@ namespace anton_engine::imgui {
         Button_State& state = window.button_state.find_or_emplace(hash)->value;
         Button_Style style;
         switch(state) {
-        case Button_State::inactive: {
-            style = inactive_style;
-        } break;
+            case Button_State::inactive: {
+                style = inactive_style;
+            } break;
 
-        case Button_State::hot: {
-            style = hot_style;
-        } break;
+            case Button_State::hot: {
+                style = hot_style;
+            } break;
 
-        case Button_State::clicked: {
-            style = active_style;
-        } break;
+            case Button_State::clicked: {
+                style = active_style;
+            } break;
         }
-
-        // TODO: Text wrap
 
         Draw_Context& dc = window.draw_context;
         Vector2 const border_draw_pos = dc.draw_pos;
