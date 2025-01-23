@@ -1,26 +1,23 @@
-#ifndef EDITOR_ASSET_IMPORTER_IMPORTERS_MESH_HPP_INCLUDE
-#define EDITOR_ASSET_IMPORTER_IMPORTERS_MESH_HPP_INCLUDE
+#pragma once
 
-#include <core/atl/array.hpp>
-#include <core/atl/string.hpp>
-#include <core/math/vector2.hpp>
-#include <core/math/vector3.hpp>
+#include <anton/array.hpp>
+#include <anton/math/vec2.hpp>
+#include <anton/math/vec3.hpp>
+#include <anton/string.hpp>
 #include <core/types.hpp>
 
 namespace anton_engine::importers {
-    class Face {
-    public:
-        atl::Array<u32> indices;
-    };
+  class Face {
+  public:
+    anton::Array<u32> indices;
+  };
 
-    class Mesh {
-    public:
-        atl::String name;
-        atl::Array<Face> faces;
-        atl::Array<Vector3> vertices;
-        atl::Array<Vector3> normals;
-        atl::Array<Vector3> texture_coordinates;
-    };
+  class Mesh {
+  public:
+    anton::String name;
+    anton::Array<Face> faces;
+    anton::Array<Vec3> vertices;
+    anton::Array<Vec3> normals;
+    anton::Array<Vec3> texture_coordinates;
+  };
 } // namespace anton_engine::importers
-
-#endif // !EDITOR_ASSET_IMPORTER_IMPORTERS_MESH_HPP_INCLUDE

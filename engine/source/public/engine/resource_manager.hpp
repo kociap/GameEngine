@@ -1,83 +1,89 @@
-#ifndef ENGINE_RESOURCE_MANAGER_HPP_INCLUDE
-#define ENGINE_RESOURCE_MANAGER_HPP_INCLUDE
+#pragma once
 
-#include <core/atl/array.hpp>
+#include <anton/array.hpp>
 #include <core/exception.hpp>
 #include <core/handle.hpp>
 #include <core/integer_sequence_generator.hpp>
 
 namespace anton_engine {
-    template<typename T>
-    class Resource_Manager {
-    public:
-        using iterator = typename atl::Array<T>::iterator;
+  template<typename T>
+  class Resource_Manager {
+  public:
+    using iterator = typename anton::Array<T>::iterator;
 
-        iterator begin();
-        iterator end();
+    iterator begin();
+    iterator end();
 
-        Handle<T> add(T&&);
-        T& get(Handle<T>);
-        T const& get(Handle<T>) const;
-        void remove(Handle<T>);
+    Handle<T> add(T&&);
+    T& get(Handle<T>);
+    T const& get(Handle<T>) const;
+    void remove(Handle<T>);
 
-    private:
-        atl::Array<T> resources;
-        atl::Array<u64> identifiers;
-    };
+  private:
+    anton::Array<T> resources;
+    anton::Array<u64> identifiers;
+  };
 } // namespace anton_engine
 
 namespace anton_engine {
-    template<typename T>
-    typename Resource_Manager<T>::iterator Resource_Manager<T>::begin() {
-        return resources.begin();
+  template<typename T>
+  typename Resource_Manager<T>::iterator Resource_Manager<T>::begin()
+  {
+    return resources.begin();
+  }
+
+  template<typename T>
+  typename Resource_Manager<T>::iterator Resource_Manager<T>::end()
+  {
+    return resources.end();
+  }
+
+  template<typename T>
+  Handle<T> Resource_Manager<T>::add(T&& resource)
+  {
+    static Integer_Sequence_Generator id_generator;
+    resources.emplace_back(ANTON_FWD(resource));
+    u64 resource_id = id_generator.next();
+    identifiers.push_back(resource_id);
+    return {resource_id};
+  }
+
+  template<typename T>
+  T& Resource_Manager<T>::get(Handle<T> handle)
+  {
+    for(typename anton::Array<T>::size_type i = 0; i < identifiers.size();
+        ++i) {
+      if(identifiers[i] == handle.value) {
+        return resources[i];
+      }
     }
 
-    template<typename T>
-    typename Resource_Manager<T>::iterator Resource_Manager<T>::end() {
-        return resources.end();
+    throw Exception(u8"Could not find resource with given handle");
+  }
+
+  template<typename T>
+  T const& Resource_Manager<T>::get(Handle<T> handle) const
+  {
+    for(typename anton::Array<T>::size_type i = 0; i < identifiers.size();
+        ++i) {
+      if(identifiers[i] == handle.value) {
+        return resources[i];
+      }
     }
 
-    template<typename T>
-    Handle<T> Resource_Manager<T>::add(T&& resource) {
-        static Integer_Sequence_Generator id_generator;
-        resources.emplace_back(atl::forward<T>(resource));
-        u64 resource_id = id_generator.next();
-        identifiers.push_back(resource_id);
-        return {resource_id};
+    throw Exception(u8"Could not find resource with given handle");
+  }
+
+  template<typename T>
+  void Resource_Manager<T>::remove(Handle<T> handle)
+  {
+    for(typename anton::Array<T>::size_type i = 0; i < identifiers.size();
+        ++i) {
+      if(identifiers[i] == handle.value) {
+        identifiers.erase_unsorted_unchecked(i);
+        resources.erase_unsorted_unchecked(i);
+        return;
+      }
     }
-
-    template<typename T>
-    T& Resource_Manager<T>::get(Handle<T> handle) {
-        for(typename atl::Array<T>::size_type i = 0; i < identifiers.size(); ++i) {
-            if(identifiers[i] == handle.value) {
-                return resources[i];
-            }
-        }
-
-        throw Exception(u8"Could not find resource with given handle");
-    }
-
-    template<typename T>
-    T const& Resource_Manager<T>::get(Handle<T> handle) const {
-        for(typename atl::Array<T>::size_type i = 0; i < identifiers.size(); ++i) {
-            if(identifiers[i] == handle.value) {
-                return resources[i];
-            }
-        }
-
-        throw Exception(u8"Could not find resource with given handle");
-    }
-
-    template<typename T>
-    void Resource_Manager<T>::remove(Handle<T> handle) {
-        for(typename atl::Array<T>::size_type i = 0; i < identifiers.size(); ++i) {
-            if(identifiers[i] == handle.value) {
-                identifiers.erase_unsorted_unchecked(i);
-                resources.erase_unsorted_unchecked(i);
-                return;
-            }
-        }
-    }
+  }
 } // namespace anton_engine
-
-#endif // !ENGINE_RESOURCE_MANAGER_HPP_INCLUDE

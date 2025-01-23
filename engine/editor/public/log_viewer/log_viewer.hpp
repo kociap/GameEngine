@@ -1,8 +1,7 @@
-#ifndef EDITOR_LOG_VIEWER_LOG_VIEWER_HPP_INCLUDE
-#define EDITOR_LOG_VIEWER_LOG_VIEWER_HPP_INCLUDE
+#pragma once
 
-#include <core/atl/array.hpp>
-#include <core/atl/string_view.hpp>
+#include <anton/array.hpp>
+#include <anton/string_view.hpp>
 #include <core/logging.hpp>
 #include <list_widget.hpp>
 
@@ -17,37 +16,37 @@ class QScrollArea;
 class QResizeEvent;
 
 namespace anton_engine {
-    class Log_Message: public QWidget {
-    public:
-        Log_Message(anton_engine::Log_Message_Severity, atl::String_View, QWidget* parent = nullptr);
-        Log_Message(Log_Message&&) noexcept;
-        Log_Message& operator=(Log_Message&&) noexcept;
-        ~Log_Message() override;
+  class Log_Message: public QWidget {
+  public:
+    Log_Message(anton_engine::Log_Message_Severity, anton::String_View,
+                QWidget* parent = nullptr);
+    Log_Message(Log_Message&&) noexcept;
+    Log_Message& operator=(Log_Message&&) noexcept;
+    ~Log_Message() override;
 
-    protected:
-        void resizeEvent(QResizeEvent*) override;
+  protected:
+    void resizeEvent(QResizeEvent*) override;
 
-    private:
-        QLabel* message = nullptr;
-    };
+  private:
+    QLabel* message = nullptr;
+  };
 
-    class Log_Viewer: public QWidget {
-    public:
-        Log_Viewer(QWidget* parent = nullptr);
-        Log_Viewer(Log_Viewer&&) noexcept;
-        Log_Viewer& operator=(Log_Viewer&&) noexcept;
-        ~Log_Viewer() override;
+  class Log_Viewer: public QWidget {
+  public:
+    Log_Viewer(QWidget* parent = nullptr);
+    Log_Viewer(Log_Viewer&&) noexcept;
+    Log_Viewer& operator=(Log_Viewer&&) noexcept;
+    ~Log_Viewer() override;
 
-        void add_message(anton_engine::Log_Message_Severity, atl::String_View time, atl::String_View message);
-        void remove_all_messages();
+    void add_message(anton_engine::Log_Message_Severity,
+                     anton::String_View time, anton::String_View message);
+    void remove_all_messages();
 
-    private:
-        QVBoxLayout* layout = nullptr;
-        QScrollArea* scroll_area = nullptr;
-        QWidget* content = nullptr;
-        QVBoxLayout* content_layout = nullptr;
-        List_Widget<Log_Message>* message_list = nullptr;
-    };
+  private:
+    QVBoxLayout* layout = nullptr;
+    QScrollArea* scroll_area = nullptr;
+    QWidget* content = nullptr;
+    QVBoxLayout* content_layout = nullptr;
+    List_Widget<Log_Message>* message_list = nullptr;
+  };
 } // namespace anton_engine
-
-#endif // !EDITOR_LOG_VIEWER_LOG_VIEWER_HPP_INCLUDE

@@ -4,24 +4,27 @@
 #include <core/logging.hpp>
 
 namespace anton_engine {
-    static atl::Array<System*> systems;
+  static anton::Array<System*> systems;
 
-    // From game dll
-    create_systems_type create_systems = nullptr;
+  // From game dll
+  create_systems_type create_systems = nullptr;
 
-    void init_systems() {
-        systems = create_systems();
+  void init_systems()
+  {
+    systems = create_systems();
+  }
+
+  void start_systems()
+  {
+    for(System* system: systems) {
+      system->start();
     }
+  }
 
-    void start_systems() {
-        for(System* system: systems) {
-            system->start();
-        }
+  void update_systems()
+  {
+    for(System* system: systems) {
+      system->update();
     }
-
-    void update_systems() {
-        for(System* system: systems) {
-            system->update();
-        }
-    }
+  }
 } // namespace anton_engine

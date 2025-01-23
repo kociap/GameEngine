@@ -1,19 +1,21 @@
 #include <engine/mesh.hpp>
 
 namespace anton_engine {
-    Mesh generate_plane() {
-        // clang-format off
-        return Mesh({atl::variadic_construct,
+  Mesh generate_plane()
+  {
+    // clang-format off
+        return Mesh({anton::variadic_construct,
                     Vertex({-1, 1, 0}, {0, 0, 1}, {1, 0, 0}, {0, 1, 0}, {0, 1}), Vertex({-1, -1, 0}, {0, 0, 1}, {1, 0, 0}, {0, 1, 0}, {0, 0}),
                     Vertex({1, -1, 0}, {0, 0, 1}, {1, 0, 0}, {0, 1, 0}, {1, 0}), Vertex({-1, 1, 0}, {0, 0, 1}, {1, 0, 0}, {0, 1, 0}, {0, 1}),
                     Vertex({1, -1, 0}, {0, 0, 1}, {1, 0, 0}, {0, 1, 0}, {1, 0}), Vertex({1, 1, 0}, {0, 0, 1}, {1, 0, 0}, {0, 1, 0}, {1, 1})},
-                    {atl::variadic_construct, 0, 1, 2, 3, 4, 5});
-        // clang-format on
-    }
+                    {anton::variadic_construct, 0, 1, 2, 3, 4, 5});
+    // clang-format on
+  }
 
-    Mesh generate_cube() {
-        // clang-format off
-        return Mesh({atl::variadic_construct,
+  Mesh generate_cube()
+  {
+    // clang-format off
+        return Mesh({anton::variadic_construct,
                     // back
                     Vertex({-1, -1, -1}, {0, 0, -1}, {-1, 0, 0}, {0, 1, 0}, {1, 0}),  Vertex({1, 1, -1}, {0, 0, -1}, {-1, 0, 0}, {0, 1, 0}, {0, 1}),
                     Vertex({1, -1, -1}, {0, 0, -1}, {-1, 0, 0}, {0, 1, 0}, {0, 0}),   Vertex({1, 1, -1}, {0, 0, -1}, {-1, 0, 0}, {0, 1, 0}, {0, 1}),
@@ -38,8 +40,8 @@ namespace anton_engine {
                     Vertex({-1, 1, -1}, {0, 1, 0}, {1, 0, 0}, {0, 0, -1}, {0, 1}),    Vertex({1, 1, 1}, {0, 1, 0}, {1, 0, 0}, {0, 0, -1}, {1, 0}),
                     Vertex({1, 1, -1}, {0, 1, 0}, {1, 0, 0}, {0, 0, -1}, {1, 1}),     Vertex({1, 1, 1}, {0, 1, 0}, {1, 0, 0}, {0, 0, -1}, {1, 0}),
                     Vertex({-1, 1, -1}, {0, 1, 0}, {1, 0, 0}, {0, 0, -1}, {0, 1}),    Vertex({-1, 1, 1}, {0, 1, 0}, {1, 0, 0}, {0, 0, -1}, {0, 0})},
-                    {atl::variadic_construct, 
+                    {anton::variadic_construct, 
                     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35});
-        // clang-format on
-    }
+    // clang-format on
+  }
 } // namespace anton_engine

@@ -1,5 +1,4 @@
-#ifndef EDITOR_OUTLINER_OUTLINER_HEADER_HPP_INCLUDE
-#define EDITOR_OUTLINER_OUTLINER_HEADER_HPP_INCLUDE
+#pragma once
 
 #include <core/diagnostic_macros.hpp>
 ANTON_DISABLE_WARNINGS();
@@ -8,7 +7,5 @@ ANTON_DISABLE_WARNINGS();
 ANTON_RESTORE_WARNINGS();
 
 namespace anton_engine {
-    class Outliner_Header: public QWidget {};
+  class Outliner_Header: public QWidget {};
 } // namespace anton_engine
-
-#endif // !EDITOR_OUTLINER_OUTLINER_HEADER_HPP_INCLUDE

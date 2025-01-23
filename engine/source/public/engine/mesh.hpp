@@ -1,37 +1,44 @@
-#ifndef ENGINE_MESH_HPP_INCLUDE
-#define ENGINE_MESH_HPP_INCLUDE
+#pragma once
 
-#include <core/atl/array.hpp>
-#include <core/atl/type_traits.hpp>
-#include <core/math/vector2.hpp>
-#include <core/math/vector3.hpp>
+#include <anton/array.hpp>
+#include <anton/math/vec2.hpp>
+#include <anton/math/vec3.hpp>
+#include <anton/type_traits.hpp>
 #include <core/types.hpp>
 
 namespace anton_engine {
-    struct Vertex {
-        Vector3 position;
-        Vector3 normal;
-        Vector3 tangent;
-        Vector3 bitangent;
-        Vector2 uv_coordinates;
+  struct Vertex {
+    Vec3 position;
+    Vec3 normal;
+    Vec3 tangent;
+    Vec3 bitangent;
+    Vec2 uv_coordinates;
 
-        Vertex() = default;
-        Vertex(Vector3 const pos, Vector3 const normal, Vector3 const tangent, Vector3 const bitangent, Vector2 const uv)
-            : position(atl::move(pos)), normal(atl::move(normal)), tangent(atl::move(tangent)), bitangent(atl::move(bitangent)), uv_coordinates(atl::move(uv)) {
-        }
-    };
+    Vertex() = default;
+    Vertex(Vec3 const pos, Vec3 const normal, Vec3 const tangent,
+           Vec3 const bitangent, Vec2 const uv)
+      : position(ANTON_MOV(pos)), normal(ANTON_MOV(normal)),
+        tangent(ANTON_MOV(tangent)), bitangent(ANTON_MOV(bitangent)),
+        uv_coordinates(ANTON_MOV(uv))
+    {
+    }
+  };
 
-    class Mesh {
-    public:
-        Mesh(atl::Array<Vertex> const& vertices, atl::Array<u32> const& indices): vertices(vertices), indices(indices) {}
-        Mesh(atl::Array<Vertex>&& vertices, atl::Array<u32>&& indices): vertices(atl::move(vertices)), indices(atl::move(indices)) {}
+  class Mesh {
+  public:
+    Mesh(anton::Array<Vertex> const& vertices, anton::Array<u32> const& indices)
+      : vertices(vertices), indices(indices)
+    {
+    }
+    Mesh(anton::Array<Vertex>&& vertices, anton::Array<u32>&& indices)
+      : vertices(ANTON_MOV(vertices)), indices(ANTON_MOV(indices))
+    {
+    }
 
-        atl::Array<Vertex> vertices;
-        atl::Array<u32> indices;
-    };
+    anton::Array<Vertex> vertices;
+    anton::Array<u32> indices;
+  };
 
-    Mesh generate_plane();
-    Mesh generate_cube();
+  Mesh generate_plane();
+  Mesh generate_cube();
 } // namespace anton_engine
-
-#endif // !ENGINE_MESH_HPP_INCLUDE

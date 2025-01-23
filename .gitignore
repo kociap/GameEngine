@@ -46,3 +46,5 @@ engine/buildtools
 
 # Tutorial things
 assets_main
+
+build/

@@ -1,15 +1,13 @@
-#ifndef PHYSICS_INTERSECTIONS_COMMON_HPP_INCLUDE
-#define PHYSICS_INTERSECTIONS_COMMON_HPP_INCLUDE
+#pragma once
 
-#include <core/math/vector3.hpp>
+#include <anton/math/vec3.hpp>
+#include <core/types.hpp>
 
 namespace anton_engine {
-    class Raycast_Hit {
-    public:
-        Vector3 hit_point;
-        Vector3 barycentric_coordinates;
-        float distance = 0;
-    };
+  class Raycast_Hit {
+  public:
+    Vec3 hit_point;
+    Vec3 barycentric_coordinates;
+    f32 distance = 0;
+  };
 } // namespace anton_engine
-
-#endif // !PHYSICS_INTERSECTIONS_COMMON_HPP_INCLUDE

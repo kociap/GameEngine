@@ -1,15 +1,12 @@
-#ifndef CORE_THREADS_HPP_INCLUDE
-#define CORE_THREADS_HPP_INCLUDE
+#pragma once
 
 #include <core/types.hpp>
 
 namespace anton_engine::threads {
-    struct Timespec {
-        i64 seconds;
-        i64 nanoseconds;
-    };
+  struct Timespec {
+    i64 seconds;
+    i64 nanoseconds;
+  };
 
-    void sleep(Timespec const& duration);
-}
-
-#endif // !CORE_THREADS_HPP_INCLUDE
+  void sleep(Timespec const& duration);
+} // namespace anton_engine::threads

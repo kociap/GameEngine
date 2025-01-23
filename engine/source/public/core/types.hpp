@@ -1,57 +1,57 @@
-#ifndef CORE_TYPES_HPP_INCLUDE
-#define CORE_TYPES_HPP_INCLUDE
+#pragma once
+
+#include <anton/types.hpp>
+
+namespace anton::math {
+  struct Vec2;
+  struct Vec3;
+  struct Vec4;
+  struct Mat2;
+  struct Mat3;
+  struct Mat4;
+  struct Quat;
+} // namespace anton::math
 
 namespace anton_engine {
-#if defined(_WIN64)
-    using i8 = signed char;
-    using i16 = signed short;
-    using i32 = signed int;
-    using i64 = signed long long;
+  using i8 = anton::i8;
+  using i16 = anton::i16;
+  using i32 = anton::i32;
+  using i64 = anton::i64;
 
-    using u8 = unsigned char;
-    using u16 = unsigned short;
-    using u32 = unsigned int;
-    using u64 = unsigned long long;
+  using u8 = anton::u8;
+  using u16 = anton::u16;
+  using u32 = anton::u32;
+  using u64 = anton::u64;
 
-    using f32 = float;
-    using f64 = double;
-#else
-    using i8 = signed char;
-    using i16 = signed short;
-    using i32 = signed int;
-    using i64 = signed long;
+  using f32 = anton::f32;
+  using f64 = anton::f64;
 
-    using u8 = unsigned char;
-    using u16 = unsigned short;
-    using u32 = unsigned int;
-    using u64 = unsigned long;
+  using isize = anton::isize;
+  using usize = anton::usize;
 
-    using f32 = float;
-    using f64 = double;
-#endif
+  using char8 = anton::char8;
+  using char16 = anton::char16;
+  using char32 = anton::char32;
 
-    using isize = i64;
-    using usize = u64;
+  using nullptr_t = anton::nullptr_t;
 
-    using char8 = char;
-    using char16 = char16_t;
-    using char32 = char32_t;
+  using anton::math::Mat2;
+  using anton::math::Mat3;
+  using anton::math::Mat4;
+  using anton::math::Quat;
+  using anton::math::Vec2;
+  using anton::math::Vec3;
+  using anton::math::Vec4;
 
-    class Rect_i32 {
-    public:
-        i32 left;
-        i32 top;
-        i32 right;
-        i32 bottom;
-    };
+  namespace math {
+    using namespace anton::math;
+  }
 
-    class Rect_f32 {
-    public:
-        f32 left;
-        f32 top;
-        f32 right;
-        f32 bottom;
-    };
+  template<typename T>
+  struct Rect {
+    T left;
+    T top;
+    T right;
+    T bottom;
+  };
 } // namespace anton_engine
-
-#endif // !CORE_TYPES_HPP_INCLUDE

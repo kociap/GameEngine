@@ -6,93 +6,109 @@
 // opt_attributes -> opt_attributes identifier | identifier
 // class_declaration -> class opt_attributes identifier : access_specifier identifier { class_body };
 namespace anton_engine {
-    static bool is_whitespace(char c) {
-        return c == '\n' || c == '\t' || c == ' ';
+  static bool is_whitespace(char c)
+  {
+    return c == '\n' || c == '\t' || c == ' ';
+  }
+
+  static bool is_digit(char c)
+  {
+    return c >= 48 && c < 58;
+  }
+
+  static bool is_alpha(char c)
+  {
+    return (c >= 97 && c < 123) || (c >= 65 && c < 91);
+  }
+
+  static bool is_allowed_identifier_character(char c)
+  {
+    return c == '_' || is_digit(c) || is_alpha(c);
+  }
+
+  enum class Token {
+    keyword_class,
+    identifier,
+    opening_brace,
+    macro_component,
+  };
+
+  struct Word {
+    std::string string;
+    Token token;
+  };
+
+  class Lexer {
+  public:
+    std::unordered_map<std::string, Token> tokens;
+
+    Lexer();
+
+    anton::Array<Word> parse(File&);
+
+  private:
+    std::tuple<File::iterator, Token, std::string> scan(File::iterator begin,
+                                                        File::iterator end);
+  };
+
+  Lexer::Lexer()
+    : tokens{{"class", Token::keyword_class},
+             {"{", Token::opening_brace},
+             {"COMPONENT", Token::macro_component}}
+  {
+  }
+
+  anton::Array<Word> Lexer::parse(File& file)
+  {
+    anton::Array<Word> tokens_vec;
+    for(File::iterator current = file.begin(), end = file.end();
+        current != end;) {
+      auto [new_iter, token_type, string] = scan(current, end);
+      current = new_iter;
+      tokens_vec.emplace_back(string, token_type);
+    }
+    return tokens_vec;
+  }
+
+  std::tuple<File::iterator, Token, std::string>
+  Lexer::scan(File::iterator begin, File::iterator const end)
+  {
+    char current = *begin;
+    while(begin != end && is_whitespace(current)) {
+      current = *(++begin);
     }
 
-    static bool is_digit(char c) {
-        return c >= 48 && c < 58;
+    File::iterator copy = begin + 1;
+    if(begin != end && is_allowed_identifier_character(*begin)) {
+      while(copy != end && is_allowed_identifier_character(*copy)) {
+        ++copy;
+      }
     }
 
-    static bool is_alpha(char c) {
-        return (c >= 97 && c < 123) || (c >= 65 && c < 91);
+    std::string identifier(begin, copy);
+    auto tokens_iter = tokens.find(identifier);
+    if(tokens_iter != tokens.end()) {
+      return {copy, tokens_iter->second, tokens_iter->first};
+    } else {
+      tokens.emplace(identifier, Token::identifier);
+      return {copy, Token::identifier, identifier};
     }
+  }
 
-    static bool is_allowed_identifier_character(char c) {
-        return c == '_' || is_digit(c) || is_alpha(c);
-    }
-
-    enum class Token {
-        keyword_class,
-        identifier,
-        opening_brace,
-        macro_component,
-    };
-
-    struct Word {
-        std::string string;
-        Token token;
-    };
-
-    class Lexer {
-    public:
-        std::unordered_map<std::string, Token> tokens;
-
-        Lexer();
-
-        atl::Array<Word> parse(File&);
-
-    private:
-        std::tuple<File::iterator, Token, std::string> scan(File::iterator begin, File::iterator end);
-    };
-
-    Lexer::Lexer(): tokens{{"class", Token::keyword_class}, {"{", Token::opening_brace}, {"COMPONENT", Token::macro_component}} {}
-
-    atl::Array<Word> Lexer::parse(File& file) {
-        atl::Array<Word> tokens_vec;
-        for(File::iterator current = file.begin(), end = file.end(); current != end;) {
-            auto [new_iter, token_type, string] = scan(current, end);
-            current = new_iter;
-            tokens_vec.emplace_back(string, token_type);
+  anton::Array<std::string> parse_component_header(File& file)
+  {
+    anton::Array<std::string> class_names;
+    Lexer lexer;
+    auto tokens = lexer.parse(file);
+    for(i64 i = 0; i + 2 < tokens.size(); ++i) {
+      if(tokens[i].token == Token::keyword_class) {
+        if(tokens[i + 1].token == Token::macro_component &&
+           tokens[i + 2].token == Token::identifier) {
+          class_names.push_back(tokens[i + 2].string);
         }
-        return tokens_vec;
+        i += 2;
+      }
     }
-
-    std::tuple<File::iterator, Token, std::string> Lexer::scan(File::iterator begin, File::iterator const end) {
-        char current = *begin;
-        while(begin != end && is_whitespace(current)) {
-            current = *(++begin);
-        }
-
-        File::iterator copy = begin + 1;
-        if(begin != end && is_allowed_identifier_character(*begin)) {
-            while(copy != end && is_allowed_identifier_character(*copy)) {
-                ++copy;
-            }
-        }
-
-        std::string identifier(begin, copy);
-        auto tokens_iter = tokens.find(identifier);
-        if(tokens_iter != tokens.end()) {
-            return {copy, tokens_iter->second, tokens_iter->first};
-        } else {
-            tokens.emplace(identifier, Token::identifier);
-            return {copy, Token::identifier, identifier};
-        }
-    }
-
-    atl::Array<std::string> parse_component_header(File& file) {
-        atl::Array<std::string> class_names;
-        Lexer lexer;
-        auto tokens = lexer.parse(file);
-        for(i64 i = 0; i + 2 < tokens.size(); ++i) {
-            if(tokens[i].token == Token::keyword_class) {
-                if(tokens[i + 1].token == Token::macro_component && tokens[i + 2].token == Token::identifier) {
-                    class_names.push_back(tokens[i + 2].string);
-                }
-                i += 2;
-            }
-        }
-        return class_names;
-    }
+    return class_names;
+  }
 } // namespace anton_engine

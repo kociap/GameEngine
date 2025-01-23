@@ -1,23 +1,21 @@
-#ifndef PHYSICS_OBB_HPP_INCLUDE
-#define PHYSICS_OBB_HPP_INCLUDE
+#pragma once
 
-#include <core/atl/optional.hpp>
+#include <anton/math/vec3.hpp>
+#include <anton/optional.hpp>
+#include <core/types.hpp>
 #include <physics/intersections_common.hpp>
-#include <core/math/vector3.hpp>
 #include <physics/ray.hpp>
 
 namespace anton_engine {
-    class OBB {
-    public:
-        Vector3 center;
-        Vector3 local_x;
-        Vector3 local_y;
-        Vector3 local_z;
-        Vector3 halfwidths;
-    };
+  class OBB {
+  public:
+    Vec3 center;
+    Vec3 local_x;
+    Vec3 local_y;
+    Vec3 local_z;
+    Vec3 halfwidths;
+  };
 
-    [[nodiscard]] bool test_ray_obb(Ray, OBB);
-    [[nodiscard]] atl::Optional<Raycast_Hit> intersect_ray_obb(Ray, OBB);
+  [[nodiscard]] bool test_ray_obb(Ray, OBB);
+  [[nodiscard]] anton::Optional<Raycast_Hit> intersect_ray_obb(Ray, OBB);
 } // namespace anton_engine
-
-#endif // !PHYSICS_OBB_HPP_INCLUDE
