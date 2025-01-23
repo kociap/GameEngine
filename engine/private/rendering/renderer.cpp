@@ -7,7 +7,6 @@
 #include <anton/math/transform.hpp>
 #include <anton/string.hpp>
 #include <anton/utility.hpp>
-#include <build_config.hpp>
 #include <core/exception.hpp>
 #include <core/handle.hpp>
 #include <core/logging.hpp>

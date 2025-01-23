@@ -2,7 +2,6 @@
 
 #include <engine/time.hpp>
 
-#include <build_config.hpp>
 #if ANTON_WITH_EDITOR
   #include <editor.hpp>
 #endif

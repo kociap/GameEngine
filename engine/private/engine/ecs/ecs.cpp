@@ -4,8 +4,6 @@
 #include <anton/memory.hpp>
 #include <engine/ecs/component_serialization.hpp>
 
-#include <build_config.hpp>
-
 #if ANTON_WITH_EDITOR
   #include <editor.hpp>
 #else

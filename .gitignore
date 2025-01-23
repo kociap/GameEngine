@@ -48,3 +48,5 @@ engine/buildtools
 assets_main
 
 build/
+
+.cache/

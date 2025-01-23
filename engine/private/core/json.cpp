@@ -307,10 +307,8 @@ namespace anton_engine::json {
 
   anton::Optional<Object> _Element::as_object() const
   {
-    if constexpr(ANTON_JSON_VERIFY_TYPE) {
-      if(_type != Element_Type::object) {
-        return anton::null_optional;
-      }
+    if(_type != Element_Type::object) {
+      return anton::null_optional;
     }
     Object object = (Object)_value;
     return object;
@@ -318,10 +316,8 @@ namespace anton_engine::json {
 
   anton::Optional<Array> _Element::as_array() const
   {
-    if constexpr(ANTON_JSON_VERIFY_TYPE) {
-      if(_type != Element_Type::array) {
-        return anton::null_optional;
-      }
+    if(_type != Element_Type::array) {
+      return anton::null_optional;
     }
     Array array = (Array)_value;
     return array;
@@ -329,10 +325,8 @@ namespace anton_engine::json {
 
   anton::Optional<anton::String_View> _Element::as_string() const
   {
-    if constexpr(ANTON_JSON_VERIFY_TYPE) {
-      if(_type != Element_Type::string) {
-        return anton::null_optional;
-      }
+    if(_type != Element_Type::string) {
+      return anton::null_optional;
     }
     anton::String const& string = *(anton::String*)_value;
     return string;
@@ -340,10 +334,8 @@ namespace anton_engine::json {
 
   anton::Optional<i64> _Element::as_i64() const
   {
-    if constexpr(ANTON_JSON_VERIFY_TYPE) {
-      if(_type != Element_Type::number_i64) {
-        return anton::null_optional;
-      }
+    if(_type != Element_Type::number_i64) {
+      return anton::null_optional;
     }
     i64 const number = *(i64*)&_value;
     return number;
@@ -351,10 +343,8 @@ namespace anton_engine::json {
 
   anton::Optional<f64> _Element::as_f64() const
   {
-    if constexpr(ANTON_JSON_VERIFY_TYPE) {
-      if(_type != Element_Type::number_f64) {
-        return anton::null_optional;
-      }
+    if(_type != Element_Type::number_f64) {
+      return anton::null_optional;
     }
     f64 const number = *(f64*)&_value;
     return number;
@@ -362,10 +352,8 @@ namespace anton_engine::json {
 
   anton::Optional<bool> _Element::as_boolean() const
   {
-    if constexpr(ANTON_JSON_VERIFY_TYPE) {
-      if(_type != Element_Type::boolean) {
-        return anton::null_optional;
-      }
+    if(_type != Element_Type::boolean) {
+      return anton::null_optional;
     }
     bool const boolean = (bool)_value;
     return boolean;

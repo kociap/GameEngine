@@ -5,7 +5,6 @@
 #include <anton/array.hpp>
 #include <anton/filesystem.hpp>
 #include <anton/math/vec3.hpp>
-#include <build_config.hpp>
 #include <core/exception.hpp>
 #include <core/paths.hpp>
 #include <core/types.hpp>

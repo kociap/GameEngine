@@ -36,8 +36,6 @@
 #include <scripts/camera_movement.hpp>
 #include <scripts/debug_hotkeys.hpp>
 
-#include <build_config.hpp>
-
 namespace anton_engine {
   static rendering::Renderer* renderer = nullptr;
   static ECS* ecs = nullptr;

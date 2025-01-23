@@ -1,7 +1,6 @@
 #include <editor.hpp>
 
 #include <anton/filesystem.hpp>
-#include <build_config.hpp>
 #include <core/diagnostic_macros.hpp>
 #include <core/paths.hpp>
 #include <core/paths_internal.hpp>

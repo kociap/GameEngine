@@ -1,6 +1,5 @@
 #pragma once
 
-#include <build_config.hpp>
 #include <core/color.hpp>
 #include <core/types.hpp>
 #include <core/utils/enum.hpp>

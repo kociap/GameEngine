@@ -2,7 +2,6 @@
 
 #include <anton/array.hpp>
 #include <anton/string.hpp>
-#include <build_config.hpp>
 #include <core/exception.hpp>
 #include <core/utils/enum.hpp>
 #include <engine/assets.hpp>

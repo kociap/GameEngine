@@ -2,7 +2,6 @@
 
 #include <anton/math/math.hpp>
 #include <anton/math/transform.hpp>
-#include <build_config.hpp>
 #include <engine/ecs/entity.hpp>
 #include <engine/input.hpp>
 #include <engine/time.hpp>

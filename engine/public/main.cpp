@@ -1,6 +1,5 @@
 #include <module_loader.hpp>
 
-#include <build_config.hpp>
 #include <core/exception.hpp>
 #include <engine/ecs/component_serialization.hpp>
 #include <engine/ecs/system_management.hpp>
